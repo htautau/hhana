@@ -7,12 +7,14 @@ lumi = '1.'
 lumi_rel_err = '0.039'
 
 channels = ('hh', 'elh', 'mulh')
-
 channel_templates = {}
-comb_templates = {}
 for channel in channels:
     channel_templates[channel] = ''.join(
             open('template_channel_%s.xml' % channel, 'r').readlines())
+
+comb_channels = ('hh', 'lh')
+comb_templates = {}
+for channel in comb_channels:
     comb_templates[channel] = ''.join(
             open('template_combination_%s.xml' % channel, 'r').readlines())
 
@@ -27,6 +29,7 @@ for mass in masses:
                 f.write(channel_templates[channel] % locals())
             #with open('hh_combination_%(category)s_%(mass)d.xml' % locals(), 'w') as f:
             #    f.write(template_combination % locals())
+    for channel in comb_channels:
         with open('%(channel)s_combination_%(mass)d.xml' % locals(), 'w') as f:
             f.write(comb_templates[channel] % locals())
     with open('all_combination_%(mass)d.xml' % locals(), 'w') as f:

@@ -1,6 +1,6 @@
 <!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
 
-<Combination OutputFilePrefix="./results/lephad/hh_%(mass)d" >
+<Combination OutputFilePrefix="./results/lephad/lh_%(mass)d" >
 
     <Input>./config/mulh_channel_vbf_%(mass)d.xml</Input>
     <Input>./config/mulh_channel_boosted_%(mass)d.xml</Input>
