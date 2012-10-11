@@ -2,16 +2,16 @@
 default: limits-all
 
 limits-hh:
-	./hist2workspace-hh.sh hh
-	./limits-hh.sh hh hadhad
+	./hist2workspace.sh hh
+	./limits.sh hh hadhad
 
 limits-lh:
-	./hist2workspace-lh.sh lh
-	./limits-lh.sh lh lephad
+	./hist2workspace.sh lh
+	./limits.sh lh lephad
 
 limits-all:
-	./hist2workspace-all.sh all
-	./limits-all.sh all combination
+	./hist2workspace.sh all
+	./limits.sh all combination
 
 clean-hh:
 	rm -rf results/hadhad/*

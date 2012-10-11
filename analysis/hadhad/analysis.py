@@ -753,26 +753,29 @@ for category, cat_info in categories_controls:
 
             bkg_scores.append((bkg, scores_dict))
 
-        sig_125 = Higgs(mass=125,
-                systematics=args.systematics)
-        scores_dict = sig_125.scores(clf,
-                branches,
-                train_fraction=args.train_fraction,
-                category=category,
-                region=target_region)
+        sig_scores = []
+        # signal scores
+        for mode in Higgs.MODES:
+            sig = Higgs(mode=mode, mass=125,
+                    systematics=args.systematics)
+            scores_dict = sig.scores(clf,
+                    branches,
+                    train_fraction=args.train_fraction,
+                    category=category,
+                    region=target_region)
 
-        for sys_term, (scores, weights) in scores_dict.items():
-            assert len(scores) == len(weights)
-            if len(scores) == 0:
-                continue
-            _min = np.min(scores)
-            _max = np.max(scores)
-            if _min < min_score:
-                min_score = _min
-            if _max > max_score:
-                max_score = _max
+            for sys_term, (scores, weights) in scores_dict.items():
+                assert len(scores) == len(weights)
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
 
-        sig_scores = [(sig_125, scores_dict)]
+            sig_scores.append((sig, scores_dict))
 
         print "minimum score: %f" % min_score
         print "maximum score: %f" % max_score
@@ -900,8 +903,8 @@ for category, cat_info in categories_controls:
 
             bkg_scores.append((bkg, scores_dict))
 
-        root_filename = '%s%s.root' % (category, output_suffix)
-        f = ropen(os.path.join(LIMITS_DIR, root_filename), 'recreate')
+        #root_filename = '%s%s.root' % (category, output_suffix)
+        #f = ropen(os.path.join(LIMITS_DIR, root_filename), 'recreate')
 
         for mass in Higgs.MASS_POINTS:
             print "%d GeV mass hypothesis" % mass
@@ -1020,10 +1023,10 @@ for category, cat_info in categories_controls:
                 f.cd()
                 data_hist.Write()
 
-            write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
-            write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
+            #write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
+            #write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
 
-        f.close()
+        #f.close()
 
 # save all variable plots in one large multipage pdf
 if 'plot' in args.actions and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
