@@ -15,23 +15,34 @@ for channel in channels:
 
 comb_channels = ('hh', 'lh')
 comb_templates = {}
+comb_category_templates = {}
 for channel in comb_channels:
     comb_templates[channel] = ''.join(
             open('template_combination_%s.xml' % channel, 'r').readlines())
+    comb_category_templates[channel] = ''.join(
+            open('template_combination_category_%s.xml' % channel, 'r').readlines())
 
-#template_combination_all = ''.join(open('template_combination_all_hh.xml', 'r').readlines())
 full_comb_template = ''.join(
         open('template_combination_all.xml', 'r').readlines())
+full_comb_category_template = ''.join(
+        open('template_combination_category_all.xml', 'r').readlines())
 
 for mass in masses:
     for channel in channels:
         for category in categories:
             with open('%(channel)s_channel_%(category)s_%(mass)d.xml' % locals(), 'w') as f:
                 f.write(channel_templates[channel] % locals())
-            #with open('hh_combination_%(category)s_%(mass)d.xml' % locals(), 'w') as f:
-            #    f.write(template_combination % locals())
+
     for channel in comb_channels:
         with open('%(channel)s_combination_%(mass)d.xml' % locals(), 'w') as f:
             f.write(comb_templates[channel] % locals())
+        for category in categories:
+            with open('%(channel)s_combination_%(category)s_%(mass)d.xml' % locals(), 'w') as f:
+                f.write(comb_category_templates[channel] % locals())
+
     with open('all_combination_%(mass)d.xml' % locals(), 'w') as f:
             f.write(full_comb_template % locals())
+
+    for category in categories:
+        with open('all_combination_%(category)s_%(mass)d.xml' % locals(), 'w') as f:
+                f.write(full_comb_category_template % locals())

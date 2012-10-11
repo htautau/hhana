@@ -3,12 +3,12 @@
 <Channel Name="hh_%(category)s_%(mass)d" >
 
     <!--<Data HistoName="Data_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root" />-->
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root" />-->
 
     <StatErrorConfig RelErrorThreshold="0.05" ConstraintType="Poisson"/>
 
     <Sample Name="Signal_gg_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="Signal_gg_%(mass)d"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -34,7 +34,7 @@
     </Sample>
 
     <Sample Name="Signal_VBF_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="Signal_VBF_%(mass)d"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -60,7 +60,7 @@
     </Sample>
 
     <Sample Name="Signal_Z_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="Signal_Z_%(mass)d"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -86,7 +86,7 @@
     </Sample>
 
     <Sample Name="Signal_W_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="Signal_W_%(mass)d"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -112,7 +112,7 @@
     </Sample>
 
     <Sample Name="Ztautau_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="Ztautau_%(mass)d"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
@@ -144,7 +144,7 @@
     </Sample>
 
     <Sample Name="QCD_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="QCD_%(mass)d"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
@@ -169,7 +169,7 @@
     </Sample>
 
     <Sample Name="Others_%(mass)d"
-        InputFile="./data/%(category)s_%(fitmethod)s.root"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root"
         HistoName="Others_%(mass)d"
         NormalizeByTheory="True" >
         <StatError Activate="True" />

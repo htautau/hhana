@@ -14,7 +14,7 @@
     <Input>./config/elh_channel_boosted_%(mass)d.xml</Input>
     <Input>./config/elh_channel_ggf_%(mass)d.xml</Input>
 
-    <Measurement Name="STATONLY"
+    <Measurement Name="%(workspace)s"
         Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
         ExportOnly="True">
 

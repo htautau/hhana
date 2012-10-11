@@ -1,0 +1,14 @@
+<!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
+
+<Combination OutputFilePrefix="./results/lephad/lh_%(category)s_%(mass)d" >
+
+    <Input>./config/mulh_channel_%(category)s_%(mass)d.xml</Input>
+    <Input>./config/elh_channel_%(category)s_%(mass)d.xml</Input>
+
+    <Measurement Name="%(workspace)s"
+        Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
+        ExportOnly="True">
+
+        <POI>SigXsecOverSM</POI>
+    </Measurement>
+</Combination>

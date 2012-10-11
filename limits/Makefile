@@ -2,16 +2,16 @@
 default: limits-all
 
 limits-hh:
-	./hist2workspace-hh.sh
-	./limits-hh.sh
+	./hist2workspace-hh.sh hh
+	./limits-hh.sh hh hadhad
 
 limits-lh:
-	./hist2workspace-lh.sh
-	./limits-lh.sh
+	./hist2workspace-lh.sh lh
+	./limits-lh.sh lh lephad
 
 limits-all:
-	./hist2workspace-all.sh
-	./limits-all.sh
+	./hist2workspace-all.sh all
+	./limits-all.sh all combination
 
 clean-hh:
 	rm -rf results/hadhad/*
@@ -26,5 +26,7 @@ clean-lh:
 	rm -f hist2workspace_lh.log
 
 clean-all:
-	clean-lh
-	clean-hh
+	rm -rf results/combination/*
+	rm -rf root-files/combination/*
+	rm -f log_all_*.txt
+	rm -f hist2workspace_all.log
