@@ -1,0 +1,18 @@
+<!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
+
+<Combination OutputFilePrefix="./results/lephad/hh_%(mass)d" >
+
+    <Input>./config/mulh_channel_vbf_%(mass)d.xml</Input>
+    <Input>./config/mulh_channel_boosted_%(mass)d.xml</Input>
+    <Input>./config/mulh_channel_ggf_%(mass)d.xml</Input>
+    <Input>./config/elh_channel_vbf_%(mass)d.xml</Input>
+    <Input>./config/elh_channel_boosted_%(mass)d.xml</Input>
+    <Input>./config/elh_channel_ggf_%(mass)d.xml</Input>
+
+    <Measurement Name="STATONLY"
+        Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
+        ExportOnly="True">
+
+        <POI>SigXsecOverSM</POI>
+    </Measurement>
+</Combination>
