@@ -14,7 +14,7 @@ WORKSPACE=SYSTEMATICS
 
 echo "Using tag runAsymptoticsCLs-"${TAG}
 
-for mass in $(seq 100 5 150)
+for mass in $(seq 125 5 125)
 do
     echo "*************************************"
     echo "Calculating ${CHANNEL} limits for mass point ${mass}"

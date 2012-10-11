@@ -95,6 +95,8 @@ parser.add_argument('--forest-feature-ranking',
         help='Use a random forest to perform a feature ranking.')
 parser.add_argument('--cor', action='store_true', default=False,
         help='draw correlation plots')
+parser.add_argument('--ranking', action='store_true', default=False,
+        help='only show the variable rankings')
 
 """
 Plotting Options
@@ -423,6 +425,7 @@ for category, cat_info in categories_controls:
                     range=var_info['range'],
                     show_ratio=True,
                     show_qq=False,
+                    plot_signal_significance=False,
                     dir=PLOTS_DIR,
                     systematics=SYSTEMATICS if args.systematics else None,
                     root=args.root,
@@ -723,6 +726,9 @@ for category, cat_info in categories_controls:
             print r"\end{tabular}"
             print
             print table.get_string(hrules=1)
+
+        if args.ranking:
+            continue
 
         # show the background model and 125 GeV signal over the full mass range
         print "plotting classifier output over all mass..."
