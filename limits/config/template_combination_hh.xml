@@ -6,7 +6,7 @@
     <Input>./config/hh_channel_ggf_%(mass)d.xml</Input>
     <Input>./config/hh_channel_boosted_%(mass)d.xml</Input>
 
-    <Measurement Name="FULL_SYSTEMATICS"
+    <Measurement Name="%(workspace)s"
         Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
         ExportOnly="True" Mode="comb">
 

@@ -7,7 +7,7 @@ rm -f limit_hh_boosted.txt
 rm -f limit_hh_vbf.txt
 
 TAG=00-01-02
-WORKSPACE=FULL_SYSTEMATICS
+WORKSPACE=SYSTEMATICS
 
 echo "Using tag runAsymptoticsCLs-"${TAG}
 

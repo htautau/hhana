@@ -5,6 +5,7 @@ fitmethod = 'trackfit'
 masses = range(100, 155, 5)
 lumi = '1.'
 lumi_rel_err = '0.039'
+workspace = 'SYSTEMATICS'
 
 channels = ('hh', 'elh', 'mulh')
 channel_templates = {}
