@@ -6,9 +6,9 @@ masses = range(100, 155, 5)
 lumi = '1.'
 lumi_rel_err = '0.039'
 
-template_channel = ''.join(open('template_channel.xml', 'r').readlines())
-template_combination = ''.join(open('template_combination.xml', 'r').readlines())
-template_combination_all = ''.join(open('template_combination_all.xml', 'r').readlines())
+template_channel = ''.join(open('template_channel_hh.xml', 'r').readlines())
+template_combination = ''.join(open('template_combination_hh.xml', 'r').readlines())
+template_combination_all = ''.join(open('template_combination_all_hh.xml', 'r').readlines())
 
 for mass in masses:
     for category in categories:
