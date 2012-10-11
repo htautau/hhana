@@ -1,0 +1,15 @@
+<!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
+
+<Combination OutputFilePrefix="./results/LH120" >
+
+  <Input>./config/muLHVBF120.xml</Input>
+  <Input>./config/muLHboosted120.xml</Input>
+  <Input>./config/muLHggF120.xml</Input>
+  <Input>./config/eLHVBF120.xml</Input>
+  <Input>./config/eLHboosted120.xml</Input>
+  <Input>./config/eLHggF120.xml</Input>
+
+  <Measurement Name="STATONLY" Lumi="1.0" LumiRelErr="0.039" ExportOnly="True">
+    <POI>SigXsecOverSM</POI>
+  </Measurement>
+</Combination>
