@@ -29,7 +29,7 @@ do
         then
             echo "Running the old limit script"
             (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-                \"./results/${CHANNEL_DIR}/${CHANNEL}_${category}_${mass}_combined_${WORKSPACE}_model.root\",\
+                \"./results/${CHANNEL_DIR}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
                 \"combined\",\
                 \"ModelConfig\",\
                 \"asimovData\",\
@@ -41,7 +41,7 @@ do
                 0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
         else
             (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-                \"./results/${CHANNEL_DIR}/${CHANNEL}_${category}_${mass}_combined_${WORKSPACE}_model.root\",\
+                \"./results/${CHANNEL_DIR}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
                 \"combined\",\
                 \"ModelConfig\",\
                 \"asimovData\",\
@@ -62,7 +62,7 @@ do
     then
         echo "Running the old limit script"
         (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-            \"./results/${CHANNEL_DIR}/${CHANNEL}_${mass}_combined_${WORKSPACE}_model.root\",\
+            \"./results/${CHANNEL_DIR}/${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
@@ -74,7 +74,7 @@ do
             0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
     else
         (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-            \"./results/${CHANNEL_DIR}/${CHANNEL}_${mass}_combined_${WORKSPACE}_model.root\",\
+            \"./results/${CHANNEL_DIR}/${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
