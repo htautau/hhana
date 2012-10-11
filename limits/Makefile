@@ -16,12 +16,12 @@ limits-all:
 clean-hh:
 	rm -rf results/hadhad/*
 	rm -rf root-files/hadhad/*
-	rm -f log*.txt
+	rm -f log_hh_*.txt
 
 clean-lh:
 	rm -rf results/lephad/*
 	rm -rf root-files/lephad/*
-	rm -f log*.txt
+	rm -f log_lh_*.txt
 
 clean-all:
 	clean-lh

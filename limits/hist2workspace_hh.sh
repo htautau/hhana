@@ -7,9 +7,9 @@ rm -f hist2workspace.log
 
 for mass in $(seq 115 5 150)
 do
-    (hist2workspace ./config/hh_combination_${mass}.xml 2>&1) | tee --append hist2workspace.log
+    (hist2workspace ./config/hh_combination_${mass}.xml 2>&1) | tee --append hist2workspace_hh.log
     for category in ggf boosted vbf
     do
-        (hist2workspace ./config/hh_combination_${category}_${mass}.xml 2>&1) | tee --append hist2workspace.log
+        (hist2workspace ./config/hh_combination_${category}_${mass}.xml 2>&1) | tee --append hist2workspace_hh.log
     done
 done

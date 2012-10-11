@@ -1,10 +1,10 @@
 #! /bin/bash
 source /cluster/data10/software/root-5.32-patches-64/bin/thisroot.sh
 
-rm -f bandPlotData_combined.txt
-rm -f bandPlotData_ggf.txt
-rm -f bandPlotData_boosted.txt
-rm -f bandPlotData_vbf.txt
+rm -f limit_hh_combined.txt
+rm -f limit_hh_ggf.txt
+rm -f limit_hh_boosted.txt
+rm -f limit_hh_vbf.txt
 
 TAG=00-01-02
 WORKSPACE=FULL_SYSTEMATICS
@@ -25,8 +25,8 @@ do
         if [ "$TAG" == "old" ]
         then
             echo "Running the old limit script"
-            (root -l -b -q ../common/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-                \"./results/hh_${category}_${mass}_combined_${WORKSPACE}_model.root\",\
+            (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
+                \"./results/hadhad/hh_${category}_${mass}_combined_${WORKSPACE}_model.root\",\
                 \"combined\",\
                 \"ModelConfig\",\
                 \"asimovData\",\
@@ -35,19 +35,19 @@ do
                 \"nominalGlobs\",\
                 \"${mass}\",\
                 ${mass},\
-                0.95)" 2>&1) | tee log${mass}_${category}.txt
+                0.95)" 2>&1) | tee log_hh_${mass}_${category}.txt
         else
-            (root -l -b -q ../common/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-                \"./results/hh_${category}_${mass}_combined_${WORKSPACE}_model.root\",\
+            (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
+                \"./results/hadhad/hh_${category}_${mass}_combined_${WORKSPACE}_model.root\",\
                 \"combined\",\
                 \"ModelConfig\",\
                 \"asimovData\",\
                 \"asimovData_0\",\
                 \"hadhad\",\
                 \"${mass}\",\
-                0.95)" 2>&1) | tee log${mass}_${category}.txt
-            echo ${mass} >> bandPlotData_${category}.txt
-            grep -A 6 -h "Correct bands" log${mass}_${category}.txt >> bandPlotData_${category}.txt
+                0.95)" 2>&1) | tee log_hh_${mass}_${category}.txt
+            echo ${mass} >> limit_hh_${category}.txt
+            grep -A 6 -h "Correct bands" log_hh_${mass}_${category}.txt >> limit_hh_${category}.txt
         fi
     done
     
@@ -58,8 +58,8 @@ do
     if [ "$TAG" == "old" ]
     then
         echo "Running the old limit script"
-        (root -l -b -q ../common/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-            \"./results/hh_${mass}_combined_${WORKSPACE}_model.root\",\
+        (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
+            \"./results/hadhad/hh_${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
@@ -68,18 +68,18 @@ do
             \"nominalGlobs\",\
             \"${mass}\",\
             ${mass},\
-            0.95)" 2>&1) | tee log${mass}_combined.txt
+            0.95)" 2>&1) | tee log_hh_${mass}_combined.txt
     else
-        (root -l -b -q ../common/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-            \"./results/hh_${mass}_combined_${WORKSPACE}_model.root\",\
+        (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
+            \"./results/hadhad/hh_${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
             \"asimovData_0\",\
             \"hadhad\",\
             \"${mass}\",\
-            0.95)" 2>&1) | tee log${mass}_combined.txt
-        echo ${mass} >> bandPlotData_combined.txt
-        grep -A 6 -h "Correct bands" log${mass}_combined.txt >> bandPlotData_combined.txt
+            0.95)" 2>&1) | tee log_hh_${mass}_combined.txt
+        echo ${mass} >> limit_hh_combined.txt
+        grep -A 6 -h "Correct bands" log_hh_${mass}_combined.txt >> limit_hh_combined.txt
     fi
 done
