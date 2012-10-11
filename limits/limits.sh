@@ -46,7 +46,7 @@ do
                 \"ModelConfig\",\
                 \"asimovData\",\
                 \"asimovData_0\",\
-                \"hadhad\",\
+                \"${CHANNEL_DIR}\",\
                 \"${mass}\",\
                 0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
             echo ${mass} >> limit_${CHANNEL}_${category}.txt
@@ -79,7 +79,7 @@ do
             \"ModelConfig\",\
             \"asimovData\",\
             \"asimovData_0\",\
-            \"hadhad\",\
+            \"${CHANNEL_DIR}\",\
             \"${mass}\",\
             0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
         echo ${mass} >> limit_${CHANNEL}_combined.txt

@@ -724,6 +724,83 @@ for category, cat_info in categories_controls:
             print
             print table.get_string(hrules=1)
 
+        # show the background model and 125 GeV signal over the full mass range
+        print "plotting classifier output over all mass..."
+
+        # determine min and max scores
+        min_score = 1.
+        max_score = 0.
+
+        # background model scores
+        bkg_scores = []
+        for bkg in backgrounds:
+            scores_dict = bkg.scores(clf,
+                    branches,
+                    train_fraction=args.train_fraction,
+                    category=category,
+                    region=target_region)
+
+            for sys_term, (scores, weights) in scores_dict.items():
+                assert len(scores) == len(weights)
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
+
+            bkg_scores.append((bkg, scores_dict))
+
+        sig_125 = Higgs(mass=125,
+                systematics=args.systematics)
+        scores_dict = sig_125.scores(clf,
+                branches,
+                train_fraction=args.train_fraction,
+                category=category,
+                region=target_region)
+
+        for sys_term, (scores, weights) in scores_dict.items():
+            assert len(scores) == len(weights)
+            if len(scores) == 0:
+                continue
+            _min = np.min(scores)
+            _max = np.max(scores)
+            if _min < min_score:
+                min_score = _min
+            if _max > max_score:
+                max_score = _max
+
+        sig_scores = [(sig_125, scores_dict)]
+
+        print "minimum score: %f" % min_score
+        print "maximum score: %f" % max_score
+
+        # prevent bin threshold effects
+        min_score -= 0.00001
+        max_score += 0.00001
+
+        # add a bin above max score and below min score for extra beauty
+        score_width = max_score - min_score
+        bin_width = score_width / args.bins
+        min_score -= bin_width
+        max_score += bin_width
+
+        # compare data and the model in a low mass control region
+        plot_clf(
+            background_scores=bkg_scores,
+            category=category,
+            category_name=cat_info['name'],
+            signal_scores=sig_scores,
+            signal_scale=50,
+            draw_data=True,
+            name='full_range' + output_suffix,
+            bins=args.bins + 2,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=SYSTEMATICS if args.systematics else None)
+
         # show the background model and data in the control region
         print "plotting classifier output in control region..."
         print control_region
