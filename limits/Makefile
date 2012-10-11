@@ -1,11 +1,28 @@
 
-default: limits
+default: limits-all
 
-limits:
-	./hist2workspace.sh
-	./limits.sh
+limits-hh:
+	./hist2workspace-hh.sh
+	./limits-hh.sh
 
-clean:
-	rm -rf results/*
-	rm -rf root-files/*
+limits-lh:
+	./hist2workspace-lh.sh
+	./limits-lh.sh
+
+limits-all:
+	./hist2workspace-all.sh
+	./limits-all.sh
+
+clean-hh:
+	rm -rf results/hadhad/*
+	rm -rf root-files/hadhad/*
 	rm -f log*.txt
+
+clean-lh:
+	rm -rf results/lephad/*
+	rm -rf root-files/lephad/*
+	rm -f log*.txt
+
+clean-all:
+	clean-lh
+	clean-hh

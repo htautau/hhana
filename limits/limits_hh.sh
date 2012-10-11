@@ -1,17 +1,6 @@
 #! /bin/bash
 source /cluster/data10/software/root-5.32-patches-64/bin/thisroot.sh
 
-
-#//main
-#void runAsymptoticsCLs(const char* infile,
-#		       const char* workspaceName,
-#		       const char* modelConfigName,
-#		       const char* dataName,
-#		       const char* asimovDataName,
-#		       string folder,
-#		       string mass,
-#		       double CL);
-
 rm -f bandPlotData_combined.txt
 rm -f bandPlotData_ggf.txt
 rm -f bandPlotData_boosted.txt
