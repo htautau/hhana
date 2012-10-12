@@ -1,15 +1,15 @@
 
-default: limits-all
+default: all
 
-limits-hh:
+hh:
 	./hist2workspace.sh hh
 	./limits.sh hh hadhad
 
-limits-lh:
+lh:
 	./hist2workspace.sh lh
 	./limits.sh lh lephad
 
-limits-all:
+all:
 	./hist2workspace.sh all
 	./limits.sh all combination
 
