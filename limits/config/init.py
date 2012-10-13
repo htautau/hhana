@@ -11,21 +11,21 @@ channels = ('hh', 'elh', 'mulh')
 channel_templates = {}
 for channel in channels:
     channel_templates[channel] = ''.join(
-            open('template_channel_%s.xml' % channel, 'r').readlines())
+            open('channel_%s.template' % channel, 'r').readlines())
 
 comb_channels = ('hh', 'lh')
 comb_templates = {}
 comb_category_templates = {}
 for channel in comb_channels:
     comb_templates[channel] = ''.join(
-            open('template_combination_%s.xml' % channel, 'r').readlines())
+            open('combination_%s.template' % channel, 'r').readlines())
     comb_category_templates[channel] = ''.join(
-            open('template_combination_category_%s.xml' % channel, 'r').readlines())
+            open('combination_category_%s.template' % channel, 'r').readlines())
 
 full_comb_template = ''.join(
-        open('template_combination_all.xml', 'r').readlines())
+        open('combination_all.template', 'r').readlines())
 full_comb_category_template = ''.join(
-        open('template_combination_category_all.xml', 'r').readlines())
+        open('combination_category_all.template', 'r').readlines())
 
 for mass in masses:
     for channel in channels:

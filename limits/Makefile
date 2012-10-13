@@ -48,3 +48,6 @@ clean-all:
 	rm -rf root-files/combination/*
 	rm -f log_all_*.txt
 	rm -f hist2workspace_all.log
+
+clean-config:
+	rm -f config/*.xml
