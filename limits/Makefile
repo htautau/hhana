@@ -13,6 +13,24 @@ all:
 	./hist2workspace.sh all
 	./limits.sh all combination
 
+hh-check:
+	./check.sh hh hadhad
+
+lh-check:
+	./check.sh lh lephad
+
+all-check:
+	./check.sh all combination
+
+hh-workspace:
+	./hist2workspace.sh hh
+
+lh-workspace:
+	./hist2workspace.sh lh
+
+all-workspace:
+	./hist2workspace.sh all
+
 clean-hh:
 	rm -rf results/hadhad/*
 	rm -rf root-files/hadhad/*
