@@ -1,19 +1,19 @@
 
 default: comb
 
-config:
+xml-config:
 	./config/init.py
 
 clean-config:
 	rm -f config/*.xml
 
-hh-workspace: config
+hh-workspace: xml-config
 	./hist2workspace.sh hh
 
-lh-workspace: config
+lh-workspace: xml-config
 	./hist2workspace.sh lh
 
-comb-workspace: config
+comb-workspace: xml-config
 	./hist2workspace.sh comb
 
 hh: hh-workspace
