@@ -2,6 +2,13 @@
 source /cluster/data10/software/root-5.32-patches-64/bin/thisroot.sh
 
 CHANNEL=$1
+shift
+if [ -z "$@" ]
+then
+    MASSES=$(seq 100 5 150)
+else
+    MASSES=$@
+fi
 
 rm -f limit_${CHANNEL}_combined.txt
 rm -f limit_${CHANNEL}_ggf.txt
@@ -13,7 +20,7 @@ WORKSPACE=SYSTEMATICS
 
 echo "Using tag runAsymptoticsCLs-"${TAG}
 
-for mass in $(seq 125 5 125)
+for mass in $MASSES
 do
     echo "*************************************"
     echo "Calculating ${CHANNEL} limits for mass point ${mass}"

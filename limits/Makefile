@@ -1,7 +1,7 @@
 
 default: comb
 
-xml-config:
+xml-config: clean-config
 	./config/init.py
 
 clean-config:
@@ -16,6 +16,15 @@ lh-workspace: xml-config
 comb-workspace: xml-config
 	./hist2workspace.sh comb
 
+hh-workspace-125: xml-config
+	./hist2workspace.sh hh 125
+
+lh-workspace-125: xml-config
+	./hist2workspace.sh lh 125
+
+comb-workspace-125: xml-config
+	./hist2workspace.sh comb 125
+
 hh: hh-workspace
 	./limits.sh hh
 
@@ -25,8 +34,20 @@ lh: lh-workspace
 comb: comb-workspace
 	./limits.sh comb
 
+hh-125: hh-workspace-125
+	./limits.sh hh 125
+
+lh-125: lh-workspace-125
+	./limits.sh lh 125
+
+comb-125: comb-workspace-125
+	./limits.sh comb 125
+
 hh-check:
 	./check.sh hh
+
+hh-check-125:
+	./check.sh hh 125
 
 clean-hh-check:
 	rm -f log_check_hh*
@@ -34,11 +55,17 @@ clean-hh-check:
 lh-check:
 	./check.sh lh
 
+lh-check-125:
+	./check.sh lh 125
+
 clean-lh-check:
 	rm -f log_check_lh*
 
 comb-check:
 	./check.sh comb
+
+comb-check-125:
+	./check.sh comb 125
 
 clean-comb-check:
 	rm -f log_check_comb*
