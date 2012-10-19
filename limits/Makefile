@@ -5,7 +5,7 @@ xml-config:
 	./config/init.py
 
 clean-config:
-	rm -f config/*.xml
+	rm -f ./config/*.xml
 
 hh-workspace: xml-config
 	./hist2workspace.sh hh
@@ -44,20 +44,20 @@ clean-comb-check:
 	rm -f log_check_comb*
 
 clean-hh:
-	rm -rf results/hh/*
-	rm -rf root-files/hh/*
+	rm -rf ./results/hh/*
+	rm -rf ./root-files/hh/*
 	rm -f log_hh_*.txt
 	rm -f hist2workspace_hh.log 
 
 clean-lh:
-	rm -rf results/lh/*
-	rm -rf root-files/lh/*
+	rm -rf ./results/lh/*
+	rm -rf ./root-files/lh/*
 	rm -f log_lh_*.txt
 	rm -f hist2workspace_lh.log
 
 clean-comb:
-	rm -rf results/comb/*
-	rm -rf root-files/comb/*
+	rm -rf ./results/comb/*
+	rm -rf ./root-files/comb/*
 	rm -f log_comb_*.txt
 	rm -f hist2workspace_comb.log
 
