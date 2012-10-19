@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
 categories = ['ggf', 'boosted', 'vbf']
 fitmethod = 'trackfit'
 masses = range(100, 155, 5)
@@ -11,7 +15,7 @@ workspace = 'SYSTEMATICS'
 def read_template(name):
 
     print "reading %s ..." % name
-    return ''.join(open(name, 'r').readlines())
+    return ''.join(open(os.path.join(HERE, name), 'r').readlines())
 
 
 def write_config(name, content, context):
@@ -19,7 +23,7 @@ def write_config(name, content, context):
     name = name % context
     content = content % context
     print "writing %s ..." % name
-    f = open(name, 'w')
+    f = open(os.path.join(HERE, name), 'w')
     f.write(content)
     f.close()
 
@@ -40,9 +44,9 @@ for channel in comb_channels:
             'combination_category_%s.template' % channel)
 
 full_comb_template = read_template(
-        'combination_all.template')
+        'combination_comb.template')
 full_comb_category_template = read_template(
-        'combination_category_all.template')
+        'combination_category_comb.template')
 
 for mass in masses:
     for channel in channels:
@@ -59,9 +63,9 @@ for mass in masses:
                 '%(channel)s_combination_%(category)s_%(mass)d.xml',
                 comb_category_templates[channel], locals())
 
-    write_config('all_combination_%(mass)d.xml',
+    write_config('comb_combination_%(mass)d.xml',
             full_comb_template, locals())
 
     for category in categories:
-        write_config('all_combination_%(category)s_%(mass)d.xml',
+        write_config('comb_combination_%(category)s_%(mass)d.xml',
             full_comb_category_template, locals())

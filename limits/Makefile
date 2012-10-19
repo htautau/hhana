@@ -1,66 +1,66 @@
 
-default: all
+default: comb
 
-hh:
+config:
+	./config/init.py
+
+clean-config:
+	rm -f config/*.xml
+
+hh-workspace: config
 	./hist2workspace.sh hh
-	./limits.sh hh hadhad
 
-lh:
+lh-workspace: config
 	./hist2workspace.sh lh
-	./limits.sh lh lephad
 
-all:
-	./hist2workspace.sh all
-	./limits.sh all combination
+comb-workspace: config
+	./hist2workspace.sh comb
+
+hh: hh-workspace
+	./limits.sh hh
+
+lh: lh-workspace
+	./limits.sh lh 
+
+comb: comb-workspace
+	./limits.sh comb
 
 hh-check:
-	./check.sh hh hadhad
+	./check.sh hh
 
 clean-hh-check:
 	rm -f log_check_hh*
 
 lh-check:
-	./check.sh lh lephad
+	./check.sh lh
 
 clean-lh-check:
 	rm -f log_check_lh*
 
-all-check:
-	./check.sh all combination
+comb-check:
+	./check.sh comb
 
-clean-all-check:
-	rm -f log_check_all*
-
-hh-workspace:
-	./hist2workspace.sh hh
-
-lh-workspace:
-	./hist2workspace.sh lh
-
-all-workspace:
-	./hist2workspace.sh all
+clean-comb-check:
+	rm -f log_check_comb*
 
 clean-hh:
-	rm -rf results/hadhad/*
-	rm -rf root-files/hadhad/*
+	rm -rf results/hh/*
+	rm -rf root-files/hh/*
 	rm -f log_hh_*.txt
 	rm -f hist2workspace_hh.log 
 
 clean-lh:
-	rm -rf results/lephad/*
-	rm -rf root-files/lephad/*
+	rm -rf results/lh/*
+	rm -rf root-files/lh/*
 	rm -f log_lh_*.txt
 	rm -f hist2workspace_lh.log
 
-clean-all:
-	rm -rf results/combination/*
-	rm -rf root-files/combination/*
-	rm -f log_all_*.txt
-	rm -f hist2workspace_all.log
+clean-comb:
+	rm -rf results/comb/*
+	rm -rf root-files/comb/*
+	rm -f log_comb_*.txt
+	rm -f hist2workspace_comb.log
 
-clean-check: clean-hh-check clean-lh-check clean-all-check
+clean-check: clean-hh-check clean-lh-check clean-comb-check
 
-clean-config:
-	rm -f config/*.xml
-
-clean: clean-hh clean-lh clean-all clean-config clean-check
+clean: clean-hh clean-lh clean-comb clean-config clean-check

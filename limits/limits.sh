@@ -2,7 +2,6 @@
 source /cluster/data10/software/root-5.32-patches-64/bin/thisroot.sh
 
 CHANNEL=$1
-CHANNEL_DIR=$2
 
 rm -f limit_${CHANNEL}_combined.txt
 rm -f limit_${CHANNEL}_ggf.txt
@@ -29,7 +28,7 @@ do
         then
             echo "Running the old limit script"
             (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-                \"./results/${CHANNEL_DIR}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
+                \"./results/${CHANNEL}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
                 \"combined\",\
                 \"ModelConfig\",\
                 \"asimovData\",\
@@ -41,12 +40,12 @@ do
                 0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
         else
             (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-                \"./results/${CHANNEL_DIR}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
+                \"./results/${CHANNEL}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
                 \"combined\",\
                 \"ModelConfig\",\
                 \"asimovData\",\
                 \"asimovData_0\",\
-                \"${CHANNEL_DIR}\",\
+                \"${CHANNEL}\",\
                 \"${mass}\",\
                 0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
             echo ${mass} >> limit_${CHANNEL}_${category}.txt
@@ -62,7 +61,7 @@ do
     then
         echo "Running the old limit script"
         (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-            \"./results/${CHANNEL_DIR}/${mass}_combined_${WORKSPACE}_model.root\",\
+            \"./results/${CHANNEL}/${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
@@ -74,12 +73,12 @@ do
             0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
     else
         (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-            \"./results/${CHANNEL_DIR}/${mass}_combined_${WORKSPACE}_model.root\",\
+            \"./results/${CHANNEL}/${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
             \"asimovData_0\",\
-            \"${CHANNEL_DIR}\",\
+            \"${CHANNEL}\",\
             \"${mass}\",\
             0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
         echo ${mass} >> limit_${CHANNEL}_combined.txt
