@@ -21,13 +21,14 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
 
 # low cut fixes mass, high cut removes QCD
-DR_FIX = Cut('1.0 < dR_tau1_tau2 < 3.2')
+#DR_FIX = Cut('1.0 < dR_tau1_tau2 < 3.2')
+DR_CUT = Cut('dR_tau1_tau2 < 3.2')
 BAD_MASS = 80
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
 
-COMMON_CUTS = MET & MASS_FIX & MAX_NJET #& DR_FIX
+COMMON_CUTS = MET & MASS_FIX & MAX_NJET & DR_CUT # DR CUT IS BACK!!
 
 CATEGORIES = {
     'vbf': {
