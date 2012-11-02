@@ -1,6 +1,6 @@
 <!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
 
-<Combination OutputFilePrefix="./results/hh/%(mass)d" Mode="comb">
+<Combination OutputFilePrefix="./results/hh/%(mass)d">
 
     <Input>./config/hh_channel_vbf_%(mass)d.xml</Input>
     <Input>./config/hh_channel_ggf_%(mass)d.xml</Input>
