@@ -32,7 +32,7 @@ do
             \"./results/${CHANNEL}/\",\
             \"combined\",\
             \"ModelConfig\",\
-            \"asimovData\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_${category}.txt
+            \"obsData\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_${category}.txt
     done
     
     echo "--------------------------------------------------"
@@ -44,5 +44,5 @@ do
         \"./results/${CHANNEL}/\",\
         \"combined\",\
         \"ModelConfig\",\
-        \"asimovData\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_combined.txt
+        \"obsData\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_combined.txt
 done
