@@ -1,6 +1,6 @@
 #! /bin/bash
 
-source /cluster/data10/software/root-5.34.03-64/bin/thisroot.sh
+source setup_root.sh
 cp $ROOTSYS/etc/HistFactorySchema.dtd ./config
 
 CHANNEL=$1

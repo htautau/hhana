@@ -1,5 +1,5 @@
 #! /bin/bash
-source /cluster/data10/software/root-5.34.03-64/bin/thisroot.sh
+source setup_root.sh
 
 CHANNEL=$1
 shift
