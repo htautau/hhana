@@ -1348,12 +1348,14 @@ RooDataSet* makeAsimovData(bool doConditional, RooNLLVar* conditioning_nll, doub
   int _printLevel = 0;
 
   stringstream muStr;
-  muStr << setprecision(5);
+  //muStr << setprecision(5);
+  muStr.precision(5);
   muStr << "_" << mu_val;
   if (mu_str) *mu_str = muStr.str();
 
   stringstream muStrProf;
-  muStrProf << setprecision(5);
+  //muStrProf << setprecision(5);
+  muStrProf.precision(5);
   muStrProf << "_" << mu_val_profile;
   if (mu_prof_str) *mu_prof_str = muStrProf.str();
 
