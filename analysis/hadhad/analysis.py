@@ -180,10 +180,8 @@ def staged_score(self, X, y, sample_weight, n_estimators=-1):
         scores_b, w_b = scores[y==0], sample_weight[y==0]
 
         # fill the histograms
-        for s, w in zip(scores_s, w_s):
-            s_hist.Fill(s, w)
-        for s, w in zip(scores_b, w_b):
-            b_hist.Fill(s, w)
+        s_hist.fill_array(scores_s, w_s)
+        b_hist.fill_array(scores_b, w_b)
 
         # reverse cumsum
         #bins = list(b_hist.xedges())[:-1]
@@ -214,8 +212,7 @@ def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
                 suffix = '_' + '_'.join(sys_term)
             hist = hist_template.Clone(
                     name=samp.name + ('_%d' % mass) + suffix)
-            for score, w in zip(scores, weights):
-                hist.Fill(score, w)
+            hist.fill_array(scores, weights)
             if sys_term not in sys_hists:
                 sys_hists[sys_term] = []
             sys_hists[sys_term].append(hist)
@@ -979,12 +976,12 @@ for category, cat_info in categories_controls:
                 sig_hist = bkg_hist.Clone()
                 # fill background
                 for bkg_sample, scores_dict in bkg_scores:
-                    for score, w in zip(*scores_dict['NOMINAL']):
-                        bkg_hist.Fill(score, w)
+                    score, w = scores_dict['NOMINAL']
+                    bkg_hist.fill_array(score, w)
                 # fill signal
                 for sig_sample, scores_dict in sig_scores:
-                    for score, w in zip(*scores_dict['NOMINAL']):
-                        sig_hist.Fill(score, w)
+                    score, w = scores_dict['NOMINAL']
+                    sig_hist.fill_array(score, w)
 
                 # determine maximum significance
                 sig, max_sig, max_cut = significance(sig_hist, bkg_hist, min_bkg=1)
@@ -1025,7 +1022,7 @@ for category, cat_info in categories_controls:
 
             if args.unblind:
                 data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
-                map(data_hist.Fill, data_scores)
+                data_hist.fill_array(data_scores)
                 f.cd()
                 data_hist.Write()
 
