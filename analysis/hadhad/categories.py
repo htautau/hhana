@@ -28,6 +28,9 @@ MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
 
+# TODO: require 1 or 3 (recounted) tracks after track fit or even after BDT training
+# possible new variable: ratio of core tracks to recounted tracks
+
 COMMON_CUTS = MET & MASS_FIX & MAX_NJET & DR_CUT # DR CUT IS BACK!!
 
 CATEGORIES = {
