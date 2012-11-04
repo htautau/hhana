@@ -37,8 +37,8 @@ import yellowhiggs
 
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
-    sys.exit("You did not source setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
+    sys.exit("You did not source higgtautau/setup.sh")
+NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad', 'finished')
 DEFAULT_STUDENT = 'HHProcessor'
 TOTAL_LUMI = total_lumi()
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
