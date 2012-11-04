@@ -30,6 +30,7 @@ MET = Cut('MET > 20000')
 
 # TODO: require 1 or 3 (recounted) tracks after track fit or even after BDT training
 # possible new variable: ratio of core tracks to recounted tracks
+# TODO: add new pi0 info (new variables?)
 
 COMMON_CUTS = MET & MASS_FIX & MAX_NJET & DR_CUT # DR CUT IS BACK!!
 
