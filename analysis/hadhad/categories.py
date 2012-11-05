@@ -32,7 +32,7 @@ MET = Cut('MET > 20000')
 # possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
 
-COMMON_CUTS = MET & MASS_FIX & MAX_NJET #& DR_CUT # DR CUT IS BACK!!
+COMMON_CUTS = MET & MASS_FIX & MAX_NJET & DR_CUT # DR CUT IS BACK!!
 
 CATEGORIES = {
     'vbf': {
@@ -41,7 +41,7 @@ CATEGORIES = {
         'cuts': COMMON_CUTS & ID_MEDIUM,
         'fitbins': 5,
         'limitbins': 12,
-        'limitbinning': 'variable',
+        'limitbinning': 'constant',
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
@@ -104,7 +104,7 @@ CATEGORIES = {
         'cuts': COMMON_CUTS & ID_MEDIUM,
         'fitbins': 8,
         'limitbins': 13,
-        'limitbinning': 'variable',
+        'limitbinning': 'constant',
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
