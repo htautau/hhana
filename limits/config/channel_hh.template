@@ -2,8 +2,8 @@
 
 <Channel Name="hh_%(category)s_%(mass)d" >
 
-    <!--<Data HistoName="Data_%(mass)d"
-        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root" />-->
+    <Data HistoName="Data_%(mass)d"
+        InputFile="./data/hadhad/%(category)s_%(fitmethod)s.root" />
 
     <StatErrorConfig RelErrorThreshold="0.05" ConstraintType="Poisson"/>
 
