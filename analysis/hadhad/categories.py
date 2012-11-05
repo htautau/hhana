@@ -32,7 +32,7 @@ MET = Cut('MET > 20000')
 # possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
 
-COMMON_CUTS = MET & MASS_FIX & MAX_NJET & DR_CUT # DR CUT IS BACK!!
+COMMON_CUTS = MET & MASS_FIX & MAX_NJET #& DR_CUT # DR CUT IS BACK!!
 
 CATEGORIES = {
     'vbf': {

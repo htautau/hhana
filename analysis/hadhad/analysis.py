@@ -240,7 +240,7 @@ def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
 LIMITS_DIR = os.getenv('HIGGSTAUTAU_LIMITS_DIR')
 if not LIMITS_DIR:
     sys.exit('You did not source setup.sh!')
-LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad', 'data')
+LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 
 PLOTS_DIR = plots_dir(__file__)
 
@@ -906,8 +906,8 @@ for category, cat_info in categories_controls:
 
             bkg_scores.append((bkg, scores_dict))
 
-        #root_filename = '%s%s.root' % (category, output_suffix)
-        #f = ropen(os.path.join(LIMITS_DIR, root_filename), 'recreate')
+        root_filename = '%s%s.root' % (category, output_suffix)
+        f = ropen(os.path.join(LIMITS_DIR, root_filename), 'recreate')
 
         for mass in Higgs.MASS_POINTS:
             print "%d GeV mass hypothesis" % mass
@@ -1020,16 +1020,20 @@ for category, cat_info in categories_controls:
                 hist_template = Hist(cat_info['limitbins'],
                         min_score_signal, max_score_signal)
 
+            data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
             if args.unblind:
-                data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
                 data_hist.fill_array(data_scores)
-                f.cd()
-                data_hist.Write()
+            else:
+                # write out the sum of the background model as "data"
+                for bkg_sample, scores_dict in bkg_scores:
+                    score, w = scores_dict['NOMINAL']
+                    data_hist.fill_array(score, w)
+            f.cd()
+            data_hist.Write()
+            write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
+            write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
 
-            #write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
-            #write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
-
-        #f.close()
+        f.close()
 
 # save all variable plots in one large multipage pdf
 if 'plot' in args.actions and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
