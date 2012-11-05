@@ -37,8 +37,8 @@ import yellowhiggs
 
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
-    sys.exit("You did not source setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
+    sys.exit("You did not source higgtautau/setup.sh")
+NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad', 'finished')
 DEFAULT_STUDENT = 'HHProcessor'
 TOTAL_LUMI = total_lumi()
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
@@ -941,6 +941,12 @@ class Higgs(MC, Signal):
         #self._label = r'%s$H%s\rightarrow\tau_{\mathrm{had}}\tau_{\mathrm{had}}$' % (
         #        str_mode, str_mass)
         self._label = r'%sH%s' % (str_mode, str_mass)
+        if year == 2011:
+            suffix = 'mc11c'
+        elif year == 2012:
+            suffix = 'mc12a'
+        else:
+            raise ValueError('No Higgs defined for year %d' % year)
 
         self.samples = []
         self.masses = []
@@ -948,8 +954,8 @@ class Higgs(MC, Signal):
         for mode in modes:
             generator = Higgs.MODES_DICT[mode][1]
             for mass in masses:
-                self.samples.append('%s%sH%d_tautauhh.mc11c' % (
-                    generator, mode, mass))
+                self.samples.append('%s%sH%d_tautauhh.%s' % (
+                    generator, mode, mass, suffix))
                 self.masses.append(mass)
                 self.modes.append(mode)
 

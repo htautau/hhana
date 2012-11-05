@@ -1,8 +1,4 @@
-
-
 from utils import draw
-
-
 import numpy as np
 from rootpy.plotting import Hist
 import ROOT
@@ -26,10 +22,10 @@ for a, name in ((1, 'good'), (1.2, 'high'), (0.8, 'low')):
     h3 = h1.Clone(title='Data')
 
     # fill the histograms with our distributions
-    map(h1.Fill, x1)
-    map(h2.Fill, x2)
-    map(h3.Fill, x1_obs)
-    map(h3.Fill, x2_obs)
+    h1.fill_array(x1)
+    h2.fill_array(x2)
+    h3.fill_array(x1_obs)
+    h3.fill_array(x2_obs)
 
     h1 *= a
     b = (sum(h3) - sum(h1)) / float(sum(h2))

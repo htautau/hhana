@@ -14,7 +14,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
 from rootpy.plotting import Canvas, Pad, Legend, Hist, HistStack
-import rootpy.root2matplotlib as rplt
+import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
 
 

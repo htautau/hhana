@@ -173,8 +173,7 @@ def plot_clf(
     for bkg, scores_dict in background_scores:
         hist = hist_template.Clone(title=bkg.label)
         scores, weight = scores_dict['NOMINAL']
-        for score, w in zip(scores, weight):
-            hist.Fill(score, w)
+        hist.fill_array(scores, weight)
         hist.decorate(**bkg.hist_decor)
         hist.systematics = {}
         for sys_term in scores_dict.keys():
@@ -182,8 +181,7 @@ def plot_clf(
                 continue
             sys_hist = hist_template.Clone()
             scores, weight = scores_dict[sys_term]
-            for score, w in zip(scores, weight):
-                sys_hist.Fill(score, w)
+            sys_hist.fill_array(scores, weight)
             hist.systematics[sys_term] = sys_hist
         bkg_hists.append(hist)
 
@@ -192,8 +190,7 @@ def plot_clf(
         for sig, scores_dict in signal_scores:
             sig_hist = hist_template.Clone(title=sig.label)
             scores, weight = scores_dict['NOMINAL']
-            for score, w in zip(scores, weight):
-                sig_hist.Fill(score, w)
+            sig_hist.fill_array(scores, weight)
             sig_hist.decorate(**sig.hist_decor)
             sig_hist.systematics = {}
             for sys_term in scores_dict.keys():
@@ -201,8 +198,7 @@ def plot_clf(
                     continue
                 sys_hist = hist_template.Clone()
                 scores, weight = scores_dict[sys_term]
-                for score, w in zip(scores, weight):
-                    sys_hist.Fill(score, w)
+                sys_hist.fill_array(scores, weight)
                 sig_hist.systematics[sys_term] = sys_hist
             sig_hists.append(sig_hist)
     else:
@@ -212,7 +208,7 @@ def plot_clf(
         data, data_scores = data_scores
         data_hist = hist_template.Clone(title=data.label)
         data_hist.decorate(**data.hist_decor)
-        map(data_hist.Fill, data_scores)
+        data_hist.fill_array(data_scores)
         print "Data events: %d" % sum(data_hist)
         print "Model events: %f" % sum(sum(bkg_hists))
         for hist in bkg_hists:
