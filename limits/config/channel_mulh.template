@@ -10,15 +10,26 @@
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="JER" HistoNameHigh="VBFH%(mass)d_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="VBFH%(mass)d_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="VBFH%(mass)d_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01484" Low="0.98516"/>
-        <OverallSys Name="T_EFF" High="1.03802" Low="0.96198"/>
-        <OverallSys Name="pdf_qqbar" High="1.04" Low="0.96"/>
-        <OverallSys Name="E_EFF" High="1.00993" Low="0.99043"/>
-        <OverallSys Name="CLUSTER" High="1.05659" Low="0.90554"/>
-        <OverallSys Name="QCDscale_qqH" High="1.01" Low="0.99"/>
+	<HistoSys Name="ATLAS_JER" HistoNameHigh="VBFH%(mass)d_JER_UP"
+		  HistoNameLow="VBFH%(mass)d"/>
+        <HistoSys Name="JES_TES" HistoNameLow="VBFH%(mass)d_JES_DOWN_TES_DOWN"
+        HistoNameHigh="VBFH%(mass)d_JES_UP_TES_UP"/>
+	<HistoSys Name="TH" HistoNameLow="VBFH%(mass)d_TH_DOWN"
+	HistoNameHigh="VBFH%(mass)d_TH_UP"/>
+	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="0.999527" Low="1.00052"/>
+	<OverallSys Name="ATLAS_UE" High="0.9" Low="1.1"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.015" Low="0.983"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.998" Low="0.995"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.00076" Low="1.00074"/>
+	<OverallSys Name="pdf_Higgs_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.00105" Low="1.00039"/>
+	<OverallSys Name="QCDscale_qqH" High="1.024" Low="0.976562"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.00862" Low="0.991385"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.00058" Low="1.0"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.988" Low="1.015"/>
     </Sample>
 
     <Sample Name="ggH%(mass)d"
@@ -27,15 +38,24 @@
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="JER" HistoNameHigh="ggH%(mass)d_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="ggH%(mass)d_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="ggH%(mass)d_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01461" Low="0.98539"/>
-        <OverallSys Name="T_EFF" High="1.03753" Low="0.96247"/>
-        <OverallSys Name="E_EFF" High="1.01853" Low="0.99048"/>
-        <OverallSys Name="QCDscale_ggH2in" High="1.22" Low="0.78"/>
-        <OverallSys Name="CLUSTER" High="1.13586" Low="0.88451"/>
-        <OverallSys Name="pdf_gg" High="1.08" Low="0.92"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="ggH%(mass)d_JER_UP"
+        HistoNameLow="ggH%(mass)d"/>
+        <HistoSys Name="JES_TES" HistoNameLow="ggH%(mass)d_JES_DOWN_TES_DOWN"
+        HistoNameHigh="ggH%(mass)d_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="pdf_Higgs_gg" High="1.08" Low="0.92"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_UE" High="1.04" Low="0.98"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.999" Low="0.976"/>
+	<OverallSys Name="QCDscale_ggH2in" High="1.235" Low="0.81"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.002" Low="0.998"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.02" Low="0.98"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.904" Low="1.021"/>
     </Sample>
 
     <Sample Name="WH%(mass)d"
@@ -44,15 +64,24 @@
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="JER" HistoNameHigh="WH%(mass)d_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="WH%(mass)d_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="WH%(mass)d_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.0146" Low="0.9854"/>
-        <OverallSys Name="T_EFF" High="1.04" Low="0.96"/>
-        <OverallSys Name="pdf_qqbar" High="1.04" Low="0.96"/>
-        <OverallSys Name="E_EFF" High="1.00883" Low="0.99117"/>
-        <OverallSys Name="CLUSTER" High="1.0" Low="0.7664"/>
-        <OverallSys Name="QCDscale_VH" High="1.01" Low="0.99"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="WH%(mass)d_JER_UP"
+        HistoNameLow="WH%(mass)d"/> 
+        <HistoSys Name="JES_TES" HistoNameLow="WH%(mass)d_JES_DOWN_TES_DOWN"
+        HistoNameHigh="WH%(mass)d_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="pdf_Higgs_gg" High="1.08" Low="0.92"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_UE" High="1.04" Low="0.98"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.999" Low="0.976"/>
+	<OverallSys Name="QCDscale_ggH2in" High="1.235" Low="0.81"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.002" Low="0.998"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.02" Low="0.98"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.904" Low="1.021"/>
     </Sample>
 
     <Sample Name="ZH%(mass)d"
@@ -61,15 +90,23 @@
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="JER" HistoNameHigh="ZH%(mass)d_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="ZH%(mass)d_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="ZH%(mass)d_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01233" Low="0.98767"/>
-        <OverallSys Name="T_EFF" High="1.0354" Low="0.9646"/>
-        <OverallSys Name="pdf_qqbar" High="1.04" Low="0.96"/>
-        <OverallSys Name="E_EFF" High="1.00467" Low="0.99533"/>
-        <OverallSys Name="CLUSTER" High="1.11592" Low="0.66922"/>
-        <OverallSys Name="QCDscale_VH" High="1.01" Low="0.99"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="ZH%(mass)d_JER_UP"
+        HistoNameLow="ZH%(mass)d"/>
+        <HistoSys Name="JES_TES" HistoNameLow="ZH%(mass)d_JES_DOWN_TES_DOWN"
+        HistoNameHigh="ZH%(mass)d_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.999" Low="0.976"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.002" Low="0.998"/>
+	<OverallSys Name="pdf_Higgs_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="QCDscale_qqH" High="1.01" Low="0.99"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.02" Low="0.98"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.995" Low="1.001"/>
     </Sample>
 
     <Sample Name="QCD"
@@ -77,7 +114,9 @@
         HistoName="QCD"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
-        <OverallSys Name="qcd_norm" High="1.01" Low="0.99"/>
+	<HistoSys Name="ATLAS_shape_SF_ANA_QCD" HistoNameLow="QCD_QCD_DOWN"
+	HistoNameHigh="QCD_QCD_UP"/>
+	<OverallSys Name="ATLAS_norm_SF_ANA_QCD" High="1.042" Low="0.958"/>
     </Sample>
 
     <Sample Name="Ztt"
@@ -85,33 +124,44 @@
         HistoName="Ztt"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
-        <HistoSys Name="JER" HistoNameHigh="Ztt_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="Ztt_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="Ztt_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01377" Low="0.98623"/>
-        <OverallSys Name="T_EFF" High="1.04341" Low="0.95659"/>
-        <OverallSys Name="CLUSTER" High="1.06115" Low="0.95572"/>
-        <OverallSys Name="E_EFF" High="1.00823" Low="0.99177"/>
-        <OverallSys Name="ztt_norm" High="1.04" Low="0.96"/>
-        <OverallSys Name="pdf_qqbarlh" High="1.04" Low="0.96"/>
-        <OverallSys Name="QCDscale_V" High="1.01" Low="0.99"/>
-        <OverallSys Name="GenAccq2Z" High="1.125" Low="0.875"/>
-    </Sample>
+	<OverallSys Name="ATLAS_norm_SF_ANA_Ztautaujets" High="1.08" Low="0.92"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.914" Low="0.967"/>
+	<OverallSys Name="pdf_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.0002" Low="0.995"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.007" Low="0.993"/>
+	<OverallSys Name="QCDscale_V" High="1.01" Low="0.99"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="GenAccq2Z" High="1.125" Low="0.875"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.958" Low="0.937"/> 
+   </Sample>
 
     <Sample Name="W"
         InputFile="./data/lephad/limitHistograms_%(category)smu.root"
         HistoName="W"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
-        <HistoSys Name="JER" HistoNameHigh="W_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="W_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="W_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01511" Low="0.98489"/>
-        <OverallSys Name="T_EFF" High="1.02324" Low="0.97673"/>
-        <OverallSys Name="E_EFF" High="1.01423" Low="0.98624"/>
-        <OverallSys Name="CLUSTER" High="1.5201" Low="0.98825"/>
-        <OverallSys Name="w_norm" High="1.05" Low="0.95"/>
-        <OverallSys Name="AddOn" High="1.1" Low="0.9"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="W_JER_UP"
+        HistoNameLow="W"/> 
+        <HistoSys Name="JES_TES" HistoNameLow="W_JES_DOWN_TES_DOWN"
+        HistoNameHigh="W_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.0" Low="0.964"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="1.05" Low="0.95"/>
+	<OverallSys Name="pdf_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_norm_SF_ANA_Wjets" High="1.09" Low="0.91"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="0.97" Low="1.03"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.02" Low="0.98"/>
+	<OverallSys Name="QCDscale_V" High="1.01" Low="0.99"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="1.0" Low="0.96"/>
     </Sample>
 
     <Sample Name="Diboson"
@@ -119,17 +169,22 @@
         HistoName="Diboson"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
-        <HistoSys Name="JER" HistoNameHigh="Diboson_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="Diboson_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="Diboson_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01595" Low="0.98405"/>
-        <OverallSys Name="T_EFF" High="1.02003" Low="0.97997"/>
-        <OverallSys Name="pdf_qg" High="1.00228" Low="0.99772"/>
-        <OverallSys Name="E_EFF" High="1.03817" Low="0.97936"/>
-        <OverallSys Name="QCDscale_VV" High="1.00626" Low="0.99374"/>
-        <OverallSys Name="CLUSTER" High="1.01895" Low="0.83319"/>
-        <OverallSys Name="GenAccq2Z" High="1.125" Low="0.875"/>
-        <OverallSys Name="pdf_gg" High="1.03726" Low="0.96274"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="Diboson_JER_UP"
+        HistoNameLow="Diboson"/>
+        <HistoSys Name="JES_TES" HistoNameLow="Diboson_JES_DOWN_TES_DOWN"
+        HistoNameHigh="Diboson_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.16" Low="0.84"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.001" Low="0.999"/>
+	<OverallSys Name="QCDscale_VV" High="1.01" Low="0.99"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.914" Low="0.967"/>
+	<OverallSys Name="pdf_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.0002" Low="0.995"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.007" Low="0.993"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.958" Low="0.937"/>
     </Sample>
 
     <Sample Name="TTbar"
@@ -137,18 +192,24 @@
         HistoName="TTbar"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
-        <HistoSys Name="JER" HistoNameHigh="TTbar_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="TTbar_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="TTbar_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01595" Low="0.98405"/>
-        <OverallSys Name="QCDscale_ttbar" High="1.01511" Low="0.96977"/>
-        <OverallSys Name="T_EFF" High="1.02003" Low="0.97997"/>
-        <OverallSys Name="pdf_qg" High="1.00228" Low="0.99772"/>
-        <OverallSys Name="E_EFF" High="1.03817" Low="0.97936"/>
-        <OverallSys Name="GenAccq2top" High="1.03" Low="0.97"/>
-        <OverallSys Name="CLUSTER" High="1.01895" Low="0.83319"/>
-        <OverallSys Name="pdf_gg" High="1.03726" Low="0.96274"/>
-        <OverallSys Name="top_norm" High="1.08" Low="0.92"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="TTbar_JER_UP"
+        HistoNameLow="TTbar"/>
+        <HistoSys Name="JES_TES" HistoNameLow="TTbar_JES_DOWN_TES_DOWN"
+        HistoNameHigh="TTbar_JES_UP_TES_UP"/>
+	<HistoSys Name="TH" HistoNameLow="TTbar_TH_DOWN"
+	HistoNameHigh="TTbar_TH_UP"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.0" Low="0.964"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="1.05" Low="0.95"/>
+	<OverallSys Name="pdf_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_norm_SF_ANA_top" High="1.08" Low="0.92"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="0.97" Low="1.03"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.02" Low="0.98"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="1.0" Low="0.96"/>
     </Sample>
 
     <Sample Name="singleTop"
@@ -156,18 +217,22 @@
         HistoName="singleTop"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
-        <HistoSys Name="JER" HistoNameHigh="singleTop_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="singleTop_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="singleTop_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01595" Low="0.98405"/>
-        <OverallSys Name="QCDscale_ttbar" High="1.01511" Low="0.96977"/>
-        <OverallSys Name="T_EFF" High="1.02003" Low="0.97997"/>
-        <OverallSys Name="pdf_qg" High="1.00228" Low="0.99772"/>
-        <OverallSys Name="E_EFF" High="1.03817" Low="0.97936"/>
-        <OverallSys Name="GenAccq2top" High="1.03" Low="0.97"/>
-        <OverallSys Name="CLUSTER" High="1.01895" Low="0.83319"/>
-        <OverallSys Name="pdf_gg" High="1.03726" Low="0.96274"/>
-        <OverallSys Name="top_norm" High="1.08" Low="0.92"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="singleTop_JER_UP"
+        HistoNameLow="singleTop"/>
+        <HistoSys Name="JES_TES" HistoNameLow="singleTop_JES_DOWN_TES_DOWN"
+        HistoNameHigh="singleTop_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.0" Low="0.964"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="1.05" Low="0.95"/>
+	<OverallSys Name="pdf_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_norm_SF_ANA_top" High="1.08" Low="0.92"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="0.97" Low="1.03"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.02" Low="0.98"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="1.0" Low="0.96"/>
     </Sample>
 
     <Sample Name="Zll"
@@ -175,17 +240,24 @@
         HistoName="Zll"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
-        <HistoSys Name="JER" HistoNameHigh="Zll_JER_UP"/>
-        <HistoSys Name="JES_TES" HistoNameLow="Zll_JES_DOWN_TES_DOWN"/>
-        <HistoSys Name="JES_TES" HistoNameHigh="Zll_JES_UP_TES_UP"/>
-        <OverallSys Name="M_EFF" High="1.01595" Low="0.98405"/>
-        <OverallSys Name="zll_norm" High="1.14" Low="0.86"/>
-        <OverallSys Name="T_EFF" High="1.02003" Low="0.97997"/>
-        <OverallSys Name="CLUSTER" High="1.01895" Low="0.83319"/>
-        <OverallSys Name="E_EFF" High="1.03817" Low="0.97936"/>
-        <OverallSys Name="pdf_qqbarlh" High="1.04" Low="0.96"/>
-        <OverallSys Name="QCDscale_V" High="1.01" Low="0.99"/>
-        <OverallSys Name="GenAccq2Z" High="1.125" Low="0.875"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="Zll_JER_UP"
+        HistoNameLow="Zll"/>
+        <HistoSys Name="JES_TES" HistoNameLow="Zll_JES_DOWN_TES_DOWN"
+        HistoNameHigh="Zll_JES_UP_TES_UP"/>
+	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
+	<OverallSys Name="ATLAS_TAU_ID" High="1.16" Low="0.84"/>
+	<OverallSys Name="ATLAS_MU_SCALE" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_EL_EFF" High="1.03" Low="0.97"/>
+	<OverallSys Name="ATLAS_MET_RESOSOFT" High="0.914" Low="0.967"/>
+	<OverallSys Name="ATLAS_norm_SF_ANA_Zlljets" High="1.15" Low="0.85"/>
+	<OverallSys Name="pdf_qq" High="1.04" Low="0.96"/>
+	<OverallSys Name="ATLAS_EL_SCALE" High="1.0002" Low="0.995"/>
+	<OverallSys Name="ATLAS_MU_EFF" High="1.007" Low="0.993"/>
+	<OverallSys Name="QCDscale_V" High="1.01" Low="0.99"/>
+	<OverallSys Name="ATLAS_EL_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="GenAccq2Z" High="1.125" Low="0.875"/>
+	<OverallSys Name="ATLAS_MU_RES" High="1.001" Low="0.999"/>
+	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.958" Low="0.937"/>
     </Sample>
 
 </Channel>
