@@ -10,7 +10,7 @@ else
     MASSES=$@
 fi
 
-TAG=00-00-02
+TAG=trunk
 WORKSPACE=SYSTEMATICS
 SCRIPT=NuisanceCheck-${TAG}
 
