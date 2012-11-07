@@ -17,6 +17,7 @@ rm -f hist2workspace_${CHANNEL}.log
 for mass in $MASSES
 do
     (hist2workspace ./config/${CHANNEL}_combination_${mass}.xml 2>&1) | tee --append hist2workspace_${CHANNEL}.log
+    
     for category in ggf boosted vbf
     do
         (hist2workspace ./config/${CHANNEL}_combination_${category}_${mass}.xml 2>&1) | tee --append hist2workspace_${CHANNEL}.log

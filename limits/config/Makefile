@@ -1,7 +1,7 @@
 
 
 all:
-	./init.py
+	./render
 
 clean:
 	rm -rf *.xml

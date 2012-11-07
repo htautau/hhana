@@ -1,6 +1,6 @@
 <!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
 
-<Combination OutputFilePrefix="./results/lh/mulh_{{ category }}_{{ mass }}" >
+<Combination OutputFilePrefix="./results/mulh/{{ category }}_{{ mass }}" >
 
     <Input>./config/mulh_channel_{{ category }}_{{ mass }}.xml</Input>
 

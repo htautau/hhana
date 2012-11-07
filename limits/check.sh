@@ -29,10 +29,7 @@ do
 
         (root -l -b -q ./scripts/${SCRIPT}/FitCrossCheckForLimits.C+"(LimitCrossCheck::PlotFitCrossChecks(\
             \"./results/${CHANNEL}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
-            \"./results/${CHANNEL}/\",\
-            \"combined\",\
-            \"ModelConfig\",\
-            \"obsData\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_${category}.txt
+            \"./results/${CHANNEL}/\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_${category}.txt
     done
     
     echo "--------------------------------------------------"
@@ -41,8 +38,5 @@ do
     
     (root -l -b -q ./scripts/${SCRIPT}/FitCrossCheckForLimits.C+"(LimitCrossCheck::PlotFitCrossChecks(\
         \"./results/${CHANNEL}/${mass}_combined_${WORKSPACE}_model.root\",\
-        \"./results/${CHANNEL}/\",\
-        \"combined\",\
-        \"ModelConfig\",\
-        \"obsData\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_combined.txt
+        \"./results/${CHANNEL}/\"))" 2>&1) | tee log_check_${CHANNEL}_${mass}_combined.txt
 done

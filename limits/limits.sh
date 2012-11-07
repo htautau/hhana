@@ -31,64 +31,34 @@ do
         echo "Category: ${category}"
         echo "--------------------------------------"
 
-        if [ "$TAG" == "old" ]
-        then
-            echo "Running the old limit script"
-            (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-                \"./results/${CHANNEL}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
-                \"combined\",\
-                \"ModelConfig\",\
-                \"asimovData\",\
-                \"asimovData_0\",\
-                \"conditionalGlobs_0\",\
-                \"nominalGlobs\",\
-                \"${mass}\",\
-                ${mass},\
-                0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
-        else
-            (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-                \"./results/${CHANNEL}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
-                \"combined\",\
-                \"ModelConfig\",\
-                \"asimovData\",\
-                \"asimovData_0\",\
-                \"${CHANNEL}\",\
-                \"${mass}\",\
-                0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
-            echo ${mass} >> limit_${CHANNEL}_${category}.txt
-            grep -A 6 -h "Correct bands" log_${CHANNEL}_${mass}_${category}.txt >> limit_${CHANNEL}_${category}.txt
-        fi
-    done
-    
-    echo "--------------------------------------"
-    echo "Combination: ${CHANNEL}"
-    echo "--------------------------------------"
-    
-    if [ "$TAG" == "old" ]
-    then
-        echo "Running the old limit script"
-        (root -l -b -q ./scripts/runAsymptoticsCLs-old/runAsymptoticsCLs.C+"(\
-            \"./results/${CHANNEL}/${mass}_combined_${WORKSPACE}_model.root\",\
-            \"combined\",\
-            \"ModelConfig\",\
-            \"asimovData\",\
-            \"asimovData_0\",\
-            \"conditionalGlobs_0\",\
-            \"nominalGlobs\",\
-            \"${mass}\",\
-            ${mass},\
-            0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
-    else
         (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
-            \"./results/${CHANNEL}/${mass}_combined_${WORKSPACE}_model.root\",\
+            \"./results/${CHANNEL}/${category}_${mass}_combined_${WORKSPACE}_model.root\",\
             \"combined\",\
             \"ModelConfig\",\
             \"asimovData\",\
             \"asimovData_0\",\
             \"${CHANNEL}\",\
             \"${mass}\",\
-            0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
-        echo ${mass} >> limit_${CHANNEL}_combined.txt
-        grep -A 6 -h "Correct bands" log_${CHANNEL}_${mass}_combined.txt >> limit_${CHANNEL}_combined.txt
-    fi
+            0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_${category}.txt
+        echo ${mass} >> limit_${CHANNEL}_${category}.txt
+        grep -A 6 -h "Correct bands" log_${CHANNEL}_${mass}_${category}.txt >> limit_${CHANNEL}_${category}.txt
+
+    done
+    
+    echo "--------------------------------------"
+    echo "Combination: ${CHANNEL}"
+    echo "--------------------------------------"
+    
+    (root -l -b -q ./scripts/runAsymptoticsCLs-${TAG}/runAsymptoticsCLs.C+"(\
+        \"./results/${CHANNEL}/${mass}_combined_${WORKSPACE}_model.root\",\
+        \"combined\",\
+        \"ModelConfig\",\
+        \"asimovData\",\
+        \"asimovData_0\",\
+        \"${CHANNEL}\",\
+        \"${mass}\",\
+        0.95)" 2>&1) | tee log_${CHANNEL}_${mass}_combined.txt
+    echo ${mass} >> limit_${CHANNEL}_combined.txt
+    grep -A 6 -h "Correct bands" log_${CHANNEL}_${mass}_combined.txt >> limit_${CHANNEL}_combined.txt
+
 done
