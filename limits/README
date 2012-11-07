@@ -1,7 +1,39 @@
 
+Limit scripts
+-------------
+
 CLs script taken from:
 https://svnweb.cern.ch/trac/atlasusr/browser/armbrust/runAsymptoticsCLs/trunk
 
 Check there for updated tags
 
 Michel's limit code is here: /cluster/data05/michel/bdtmva/limits
+(now migrated here)
+
+
+How to use the Makefile
+-----------------------
+
+To create limits::
+
+    make CHANNEL=comb
+
+    make CHANNEL=lh
+
+    make CHANNEL=mulh
+
+    make CHANNEL=elh
+
+    make CHANNEL=hh
+
+    make CHANNEL=hh MASS=125
+
+you get the idea...
+
+To just create a workspace::
+
+    make workspace CHANNEL=comb
+
+    make workspace CHANNEL=hh MASS=125
+
+you get the idea...
