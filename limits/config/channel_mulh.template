@@ -198,8 +198,10 @@
         HistoNameLow="TTbar"/>
         <HistoSys Name="JES_TES" HistoNameLow="TTbar_JES_DOWN_TES_DOWN"
         HistoNameHigh="TTbar_JES_UP_TES_UP"/>
+	{% if category == 'vbf' %}
 	<HistoSys Name="TH" HistoNameLow="TTbar_TH_DOWN"
 	HistoNameHigh="TTbar_TH_UP"/>
+	{% endif %}
 	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
 	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
 	<OverallSys Name="ATLAS_MU_SCALE" High="1.0" Low="0.964"/>
