@@ -37,7 +37,7 @@ for channel in channels:
     channel_templates[channel] = read_template(
             'channel_%s.template' % channel)
 
-comb_channels = ('hh', 'lh')
+comb_channels = ('hh', 'lh', 'elh', 'mulh')
 comb_templates = {}
 comb_category_templates = {}
 for channel in comb_channels:

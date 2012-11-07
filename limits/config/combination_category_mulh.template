@@ -1,0 +1,13 @@
+<!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
+
+<Combination OutputFilePrefix="./results/lh/mulh_{{ category }}_{{ mass }}" >
+
+    <Input>./config/mulh_channel_{{ category }}_{{ mass }}.xml</Input>
+
+    <Measurement Name="{{ workspace }}"
+        Lumi="{{ lumi }}" LumiRelErr="{{ lumi_rel_err }}"
+        ExportOnly="True">
+
+        <POI>SigXsecOverSM</POI>
+    </Measurement>
+</Combination>
