@@ -14,9 +14,11 @@
         HistoNameLow="VBFH{{ mass }}"/>
         <HistoSys Name="JES_TES" HistoNameLow="VBFH{{ mass }}_JES_DOWN_TES_DOWN"
         HistoNameHigh="VBFH{{ mass }}_JES_UP_TES_UP"/>
-        <HistoSys Name="TH" HistoNameLow="VBFH{{ mass }}_TH_DOWN"
+        {% if category == 'vbf' %} 
+	<HistoSys Name="TH" HistoNameLow="VBFH{{ mass }}_TH_DOWN"
         HistoNameHigh="VBFH{{ mass }}_TH_UP"/>
-        <OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
+        {% endif %}
+	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
         <OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
         <OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
         <OverallSys Name="ATLAS_MU_SCALE" High="0.999527" Low="1.00052"/>
