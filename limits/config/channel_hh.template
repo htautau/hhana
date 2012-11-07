@@ -3,12 +3,12 @@
 <Channel Name="hh_{{ category }}_{{ mass }}" >
 
     <Data HistoName="Data_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root" />
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root" />
 
     <StatErrorConfig RelErrorThreshold="0.05" ConstraintType="Poisson"/>
 
     <Sample Name="Signal_gg_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="Signal_gg_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -34,7 +34,7 @@
     </Sample>
 
     <Sample Name="Signal_VBF_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="Signal_VBF_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -60,7 +60,7 @@
     </Sample>
 
     <Sample Name="Signal_Z_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="Signal_Z_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -86,7 +86,7 @@
     </Sample>
 
     <Sample Name="Signal_W_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="Signal_W_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
@@ -112,7 +112,7 @@
     </Sample>
 
     <Sample Name="Ztautau_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="Ztautau_{{ mass }}"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
@@ -144,7 +144,7 @@
     </Sample>
 
     <Sample Name="QCD_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="QCD_{{ mass }}"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
@@ -169,7 +169,7 @@
     </Sample>
 
     <Sample Name="Others_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_%(fitmethod)s.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
         HistoName="Others_{{ mass }}"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
