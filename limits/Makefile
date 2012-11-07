@@ -2,7 +2,7 @@
 default: comb
 
 xml-config: clean-config
-	./config/init.py
+	./config/render
 
 clean-config:
 	rm -f ./config/*.xml
