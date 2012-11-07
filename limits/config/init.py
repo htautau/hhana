@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
 import os
+from jinja2 import Environment, FileSystemLoader
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+env = Environment(
+        loader=FileSystemLoader(
+            [HERE]))
 
 categories = ['ggf', 'boosted', 'vbf']
 fitmethod = 'trackfit'
@@ -15,16 +19,15 @@ workspace = 'SYSTEMATICS'
 def read_template(name):
 
     print "reading %s ..." % name
-    return ''.join(open(os.path.join(HERE, name), 'r').readlines())
+    return env.get_template(name)
 
 
 def write_config(name, content, context):
 
     name = name % context
-    content = content % context
     print "writing %s ..." % name
     f = open(os.path.join(HERE, name), 'w')
-    f.write(content)
+    f.write(content.render(**context))
     f.close()
 
 
