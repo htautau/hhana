@@ -1,21 +1,21 @@
 <!DOCTYPE Channel SYSTEM 'HistFactorySchema.dtd'>
 
-<Channel Name="mulh_%(category)s_%(mass)d" >
+<Channel Name="mulh_{{ category }}_{{ mass }}" >
     <Data HistoName="Data"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root" />
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root" />
 
-    <Sample Name="VBFH%(mass)d"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
-        HistoName="VBFH%(mass)d"
+    <Sample Name="VBFH{{ mass }}"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
+        HistoName="VBFH{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-	<HistoSys Name="ATLAS_JER" HistoNameHigh="VBFH%(mass)d_JER_UP"
-		  HistoNameLow="VBFH%(mass)d"/>
-        <HistoSys Name="JES_TES" HistoNameLow="VBFH%(mass)d_JES_DOWN_TES_DOWN"
-        HistoNameHigh="VBFH%(mass)d_JES_UP_TES_UP"/>
-	<HistoSys Name="TH" HistoNameLow="VBFH%(mass)d_TH_DOWN"
-	HistoNameHigh="VBFH%(mass)d_TH_UP"/>
+	<HistoSys Name="ATLAS_JER" HistoNameHigh="VBFH{{ mass }}_JER_UP"
+		  HistoNameLow="VBFH{{ mass }}"/>
+        <HistoSys Name="JES_TES" HistoNameLow="VBFH{{ mass }}_JES_DOWN_TES_DOWN"
+        HistoNameHigh="VBFH{{ mass }}_JES_UP_TES_UP"/>
+	<HistoSys Name="TH" HistoNameLow="VBFH{{ mass }}_TH_DOWN"
+	HistoNameHigh="VBFH{{ mass }}_TH_UP"/>
 	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
 	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
 	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
@@ -32,16 +32,16 @@
 	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.988" Low="1.015"/>
     </Sample>
 
-    <Sample Name="ggH%(mass)d"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
-        HistoName="ggH%(mass)d"
+    <Sample Name="ggH{{ mass }}"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
+        HistoName="ggH{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="ATLAS_JER" HistoNameHigh="ggH%(mass)d_JER_UP"
-        HistoNameLow="ggH%(mass)d"/>
-        <HistoSys Name="JES_TES" HistoNameLow="ggH%(mass)d_JES_DOWN_TES_DOWN"
-        HistoNameHigh="ggH%(mass)d_JES_UP_TES_UP"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="ggH{{ mass }}_JER_UP"
+        HistoNameLow="ggH{{ mass }}"/>
+        <HistoSys Name="JES_TES" HistoNameLow="ggH{{ mass }}_JES_DOWN_TES_DOWN"
+        HistoNameHigh="ggH{{ mass }}_JES_UP_TES_UP"/>
 	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
 	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
 	<OverallSys Name="pdf_Higgs_gg" High="1.08" Low="0.92"/>
@@ -58,16 +58,16 @@
 	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.904" Low="1.021"/>
     </Sample>
 
-    <Sample Name="WH%(mass)d"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
-        HistoName="WH%(mass)d"
+    <Sample Name="WH{{ mass }}"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
+        HistoName="WH{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="ATLAS_JER" HistoNameHigh="WH%(mass)d_JER_UP"
-        HistoNameLow="WH%(mass)d"/> 
-        <HistoSys Name="JES_TES" HistoNameLow="WH%(mass)d_JES_DOWN_TES_DOWN"
-        HistoNameHigh="WH%(mass)d_JES_UP_TES_UP"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="WH{{ mass }}_JER_UP"
+        HistoNameLow="WH{{ mass }}"/> 
+        <HistoSys Name="JES_TES" HistoNameLow="WH{{ mass }}_JES_DOWN_TES_DOWN"
+        HistoNameHigh="WH{{ mass }}_JES_UP_TES_UP"/>
 	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
 	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
 	<OverallSys Name="pdf_Higgs_gg" High="1.08" Low="0.92"/>
@@ -84,16 +84,16 @@
 	<OverallSys Name="ATLAS_MET_SCALESOFT" High="0.904" Low="1.021"/>
     </Sample>
 
-    <Sample Name="ZH%(mass)d"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
-        HistoName="ZH%(mass)d"
+    <Sample Name="ZH{{ mass }}"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
+        HistoName="ZH{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="40." Const="True" />
         <StatError Activate="False" />
-        <HistoSys Name="ATLAS_JER" HistoNameHigh="ZH%(mass)d_JER_UP"
-        HistoNameLow="ZH%(mass)d"/>
-        <HistoSys Name="JES_TES" HistoNameLow="ZH%(mass)d_JES_DOWN_TES_DOWN"
-        HistoNameHigh="ZH%(mass)d_JES_UP_TES_UP"/>
+        <HistoSys Name="ATLAS_JER" HistoNameHigh="ZH{{ mass }}_JER_UP"
+        HistoNameLow="ZH{{ mass }}"/>
+        <HistoSys Name="JES_TES" HistoNameLow="ZH{{ mass }}_JES_DOWN_TES_DOWN"
+        HistoNameHigh="ZH{{ mass }}_JES_UP_TES_UP"/>
 	<OverallSys Name="ATLAS_BR_tautau" High="1.065" Low="0.935"/>
 	<OverallSys Name="ATLAS_LUMI_2011" High="1.039" Low="0.961"/>
 	<OverallSys Name="ATLAS_TAU_ID" High="1.04" Low="0.96"/>
@@ -110,7 +110,7 @@
     </Sample>
 
     <Sample Name="QCD"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="QCD"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
@@ -120,7 +120,7 @@
     </Sample>
 
     <Sample Name="Ztt"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="Ztt"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
@@ -141,7 +141,7 @@
    </Sample>
 
     <Sample Name="W"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="W"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
@@ -165,7 +165,7 @@
     </Sample>
 
     <Sample Name="Diboson"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="Diboson"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
@@ -188,7 +188,7 @@
     </Sample>
 
     <Sample Name="TTbar"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="TTbar"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
@@ -213,7 +213,7 @@
     </Sample>
 
     <Sample Name="singleTop"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="singleTop"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
@@ -236,7 +236,7 @@
     </Sample>
 
     <Sample Name="Zll"
-        InputFile="./data/lephad/limitHistograms_%(category)smu.root"
+        InputFile="./data/lephad/limitHistograms_{{ category }}mu.root"
         HistoName="Zll"
         NormalizeByTheory="True" >
         <StatError Activate="True" />

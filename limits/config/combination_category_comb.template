@@ -1,15 +1,15 @@
 <!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
 
-<Combination OutputFilePrefix="./results/comb/%(category)s_%(mass)d">
+<Combination OutputFilePrefix="./results/comb/{{ category }}_{{ mass }}">
     
-    <Input>./config/hh_channel_%(category)s_%(mass)d.xml</Input>
+    <Input>./config/hh_channel_{{ category }}_{{ mass }}.xml</Input>
     
-    <Input>./config/mulh_channel_%(category)s_%(mass)d.xml</Input>
+    <Input>./config/mulh_channel_{{ category }}_{{ mass }}.xml</Input>
     
-    <Input>./config/elh_channel_%(category)s_%(mass)d.xml</Input>
+    <Input>./config/elh_channel_{{ category }}_{{ mass }}.xml</Input>
 
-    <Measurement Name="%(workspace)s"
-        Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
+    <Measurement Name="{{ workspace }}"
+        Lumi="{{ lumi }}" LumiRelErr="{{ lumi_rel_err }}"
         ExportOnly="True" Mode="comb">
 
         <POI>SigXsecOverSM</POI>

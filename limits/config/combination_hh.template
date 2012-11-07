@@ -1,13 +1,13 @@
 <!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
 
-<Combination OutputFilePrefix="./results/hh/%(mass)d">
+<Combination OutputFilePrefix="./results/hh/{{ mass }}">
 
-    <Input>./config/hh_channel_vbf_%(mass)d.xml</Input>
-    <Input>./config/hh_channel_ggf_%(mass)d.xml</Input>
-    <Input>./config/hh_channel_boosted_%(mass)d.xml</Input>
+    <Input>./config/hh_channel_vbf_{{ mass }}.xml</Input>
+    <Input>./config/hh_channel_ggf_{{ mass }}.xml</Input>
+    <Input>./config/hh_channel_boosted_{{ mass }}.xml</Input>
 
-    <Measurement Name="%(workspace)s"
-        Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
+    <Measurement Name="{{ workspace }}"
+        Lumi="{{ lumi }}" LumiRelErr="{{ lumi_rel_err }}"
         ExportOnly="True" Mode="comb">
 
         <POI>SigXsecOverSM</POI>

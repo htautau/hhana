@@ -1,16 +1,16 @@
 <!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
 
-<Combination OutputFilePrefix="./results/lh/%(mass)d" >
+<Combination OutputFilePrefix="./results/lh/{{ mass }}" >
 
-    <Input>./config/mulh_channel_vbf_%(mass)d.xml</Input>
-    <Input>./config/mulh_channel_boosted_%(mass)d.xml</Input>
-    <Input>./config/mulh_channel_ggf_%(mass)d.xml</Input>
-    <Input>./config/elh_channel_vbf_%(mass)d.xml</Input>
-    <Input>./config/elh_channel_boosted_%(mass)d.xml</Input>
-    <Input>./config/elh_channel_ggf_%(mass)d.xml</Input>
+    <Input>./config/mulh_channel_vbf_{{ mass }}.xml</Input>
+    <Input>./config/mulh_channel_boosted_{{ mass }}.xml</Input>
+    <Input>./config/mulh_channel_ggf_{{ mass }}.xml</Input>
+    <Input>./config/elh_channel_vbf_{{ mass }}.xml</Input>
+    <Input>./config/elh_channel_boosted_{{ mass }}.xml</Input>
+    <Input>./config/elh_channel_ggf_{{ mass }}.xml</Input>
 
-    <Measurement Name="%(workspace)s"
-        Lumi="%(lumi)s" LumiRelErr="%(lumi_rel_err)s"
+    <Measurement Name="{{ workspace }}"
+        Lumi="{{ lumi }}" LumiRelErr="{{ lumi_rel_err }}"
         ExportOnly="True">
 
         <POI>SigXsecOverSM</POI>
