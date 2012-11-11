@@ -127,6 +127,7 @@ parser.add_argument('--output-formats', default=['png'], nargs='+',
         help='output formats')
 
 args = parser.parse_args()
+year = args.year
 
 # root imports
 import ROOT

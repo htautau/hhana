@@ -66,13 +66,12 @@ def get_file(student, hdf=False, suffix=''):
     filename = student + ext
     if filename in FILES:
         return FILES[filename]
+    file_path = os.path.join(NTUPLE_PATH, student + suffix, filename)
+    print "opening %s ..." % file_path
     if hdf:
-        student_file = tables.openFile(
-                os.path.join(NTUPLE_PATH, student + suffix, filename))
+        student_file = tables.openFile(file_path)
     else:
-        student_file = ropen(
-                os.path.join(NTUPLE_PATH, student + suffix, filename),
-                'READ')
+        student_file = ropen(file_path, 'READ')
     FILES[filename] = student_file
     return student_file
 
@@ -888,10 +887,10 @@ class Higgs(MC, Signal):
     MODES = ['gg', 'VBF', 'Z', 'W']
 
     MODES_DICT = {
-        'gg': ('ggf', 'PowHegPythia_'),
-        'VBF': ('vbf', 'PowHegPythia_'),
-        'Z': ('zh', 'Pythia'),
-        'W': ('wh', 'Pythia'),
+        'gg': ('ggf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),
+        'VBF': ('vbf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),
+        'Z': ('zh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
+        'W': ('wh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
     }
 
     def __init__(self, year=2011,
@@ -938,8 +937,10 @@ class Higgs(MC, Signal):
         self._label = r'%sH%s' % (str_mode, str_mass)
         if year == 2011:
             suffix = 'mc11c'
+            generator_index = 1
         elif year == 2012:
             suffix = 'mc12a'
+            generator_index = 2
         else:
             raise ValueError('No Higgs defined for year %d' % year)
 
@@ -947,7 +948,7 @@ class Higgs(MC, Signal):
         self.masses = []
         self.modes = []
         for mode in modes:
-            generator = Higgs.MODES_DICT[mode][1]
+            generator = Higgs.MODES_DICT[mode][generator_index]
             for mass in masses:
                 self.samples.append('%s%sH%d_tautauhh.%s' % (
                     generator, mode, mass, suffix))
