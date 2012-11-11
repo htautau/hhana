@@ -13,7 +13,7 @@ from numpy.lib import recfunctions
 import tables
 
 # higgstautau imports
-from higgstautau.hadhad.periods import total_lumi
+from higgstautau.hadhad.periods import LUMI
 from higgstautau import datasets
 from higgstautau.decorators import cached_property, memoize_method
 from higgstautau import samples as samples_db
@@ -40,7 +40,6 @@ if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
 NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad', 'finished')
 DEFAULT_STUDENT = 'HHProcessor'
-TOTAL_LUMI = total_lumi()
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
 VERBOSE = False
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
@@ -99,14 +98,14 @@ def correlations(signal, signal_weight,
                      "correlation_background_%s" % category)
 
 
-def get_samples(masses=None, modes=None, embedding=True):
+def get_samples(year, masses=None, modes=None, embedding=True):
 
     if embedding:
-        ztautau = Embedded_Ztautau()
+        ztautau = Embedded_Ztautau(year=year)
     else:
-        ztautau = MC_Ztautau()
-    ewk = EWK()
-    others = Others()
+        ztautau = MC_Ztautau(year=year)
+    ewk = EWK(year=year)
+    others = Others(year=year)
 
     backgrounds = (
         ztautau,
@@ -115,7 +114,7 @@ def get_samples(masses=None, modes=None, embedding=True):
     )
 
     signals = (
-        Higgs(masses=masses, modes=modes)
+        Higgs(year=year, masses=masses, modes=modes)
     )
     return signals, backgrounds
 
@@ -173,9 +172,15 @@ class Sample(object):
     }
 
 
-    def __init__(self, scale=1., cuts=None,
+    def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
                  **hist_decor):
+
+        self.year = year
+        if year == 2011:
+            self.energy = 7
+        else:
+            self.energy = 8
 
         self.scale = scale
         if cuts is None:
@@ -308,16 +313,16 @@ class Sample(object):
 
 class Data(Sample):
 
-    def __init__(self, **kwargs):
+    def __init__(self, year, **kwargs):
 
-        super(Data, self).__init__(scale=1., **kwargs)
-
+        super(Data, self).__init__(year=year, scale=1., **kwargs)
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
         self.data = rfile.data_JetTauEtmiss
         self.h5data = h5file.root.data_JetTauEtmiss
-        self.label = ('2011 Data $\sqrt{s} = 7$ TeV\n'
-                      '$\int L dt = %.2f$ fb$^{-1}$' % (TOTAL_LUMI / 1e3))
+        self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
+                      '$\int L dt = %.2f$ fb$^{-1}$' % (
+                          self.year, self.energy, LUMI[self.year] / 1e3))
         self.name = 'Data'
 
     def draw_into(self, hist, expr, category, region, cuts=None):
@@ -416,12 +421,10 @@ class MC(Sample):
     ]
 
     def __init__(self,
-            year=2011,
+            year,
             db=DB_HH,
             systematics=True,
             **kwargs):
-
-        self.year = year
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
@@ -444,7 +447,7 @@ class MC(Sample):
                 'MC sample %s does not inherit from Signal or Background' %
                 self.__class__.__name__)
 
-        super(MC, self).__init__(**kwargs)
+        super(MC, self).__init__(year=year, **kwargs)
 
         self.db = db
         self.datasets = []
@@ -531,7 +534,7 @@ class MC(Sample):
             if isinstance(self, Higgs):
                 # use yellowhiggs for cross sections
                 xs, _ = yellowhiggs.xsbr(
-                        7, self.masses[i],
+                        self.energy, self.masses[i],
                         Higgs.MODES_DICT[self.modes[i]][0], 'tautau')
                 #print name, self.masses[i], self.modes[i], xs
                 xs *= TAUTAUHADHADBR
@@ -815,7 +818,7 @@ class MC(Sample):
             tree = sys_trees[systematic]
             events = sys_events[systematic]
 
-            weight = TOTAL_LUMI * self.scale * xs * kfact * effic / events
+            weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
 
             total += weight * tree.GetEntries(selection)
         return total
@@ -827,7 +830,7 @@ class MC(Sample):
             tree = sys_trees[systematic]
             events = sys_events[systematic]
 
-            weight = TOTAL_LUMI * self.scale * xs * kfact * effic / events
+            weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
 
             if selection:
                 selected_tree = asrootpy(tree.CopyTree(selection))
