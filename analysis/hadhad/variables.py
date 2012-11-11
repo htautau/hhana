@@ -256,7 +256,7 @@ VARIABLES = {
         'range': (-.5, 4.5),
         'cats': ['VBF', 'GGF', 'BOOSTED',]
     },
-    'tau1_ntrack_full': {
+    'tau1_numTrack_recounted': {
         'title': r'$\tau_{1}$ Number of Recounted Tracks',
         'root': '#tau_{1} Number of Recounted Tracks',
         'filename': 'tau1_numTrack_recounted',
@@ -264,7 +264,7 @@ VARIABLES = {
         'range': (-.5, 5.5),
         'cats': ['VBF', 'GGF', 'BOOSTED',]
     },
-    'tau2_ntrack_full': {
+    'tau2_numTrack_recounted': {
         'title': r'$\tau_{2}$ Number of Recounted Tracks',
         'root': '#tau_{2} Number of Recounted Tracks',
         'filename': 'tau2_numTrack_recounted',

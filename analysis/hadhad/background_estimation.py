@@ -251,7 +251,7 @@ def qcd_ztautau_norm(
     if param == 'BDT':
         xmin, xmax = .6, 1
         ymin, ymax = .55, 1
-        expr = 'tau2_BDTJetScore:tau1_BDTJetScore'
+        expr = 'tau1_BDTJetScore:tau2_BDTJetScore'
         xlabel = '#tau_{1} BDT Score'
         ylabel = '#tau_{2} BDT Score'
         name = 'BDT Score Grid'
@@ -260,7 +260,7 @@ def qcd_ztautau_norm(
         xmin, xmax = 1, 6
         ymin, ymax = 1, 6
         bins = 5 # ignore bins args above
-        expr = 'tau2_ntrack_full:tau1_ntrack_full'
+        expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
         xlabel = '#tau_{1} Number of Tracks'
         ylabel = '#tau_{2} Number of Tracks'
         name = 'Number of Tracks Grid'

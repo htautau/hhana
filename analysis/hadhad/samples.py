@@ -38,7 +38,7 @@ import yellowhiggs
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad', 'finished')
+NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
 DEFAULT_STUDENT = 'HHProcessor'
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
 VERBOSE = False
@@ -57,7 +57,7 @@ SS = Cut('tau1_charge * tau2_charge == 1')
 TEMPFILE = ropen('tempfile.root', 'recreate')
 
 
-def get_file(student, hdf=False, suffix='-current'):
+def get_file(student, hdf=False, suffix=''):
 
     if hdf:
         ext = '.h5'
