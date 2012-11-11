@@ -133,12 +133,6 @@ class Sample(object):
         '!OS-NOID': NOT_OS & NOID,
         'SS-NOID': SS & NOID}
 
-    CATEGORIES = dict(
-        [(name, Cut('category==%d' % info['code']))
-         for name, info in categories.CATEGORIES.items()] +
-        [(name, Cut(''))
-         for name, info in categories.CONTROLS.items()])
-
     WEIGHT_BRANCHES = [
         'mc_weight',
         'pileup_weight',
@@ -231,12 +225,10 @@ class Sample(object):
     def cuts(self, category, region):
 
         if category in categories.CATEGORIES:
-            return (Sample.CATEGORIES[category] &
-                    categories.CATEGORIES[category]['cuts'] &
+            return (categories.CATEGORIES[category]['cuts'] &
                     Sample.REGIONS[region] & self._cuts)
         elif category in categories.CONTROLS:
-            return (Sample.CATEGORIES[category] &
-                    categories.CONTROLS[category]['cuts'] &
+            return (categories.CONTROLS[category]['cuts'] &
                     Sample.REGIONS[region] & self._cuts)
         else:
             raise ValueError(
@@ -1144,13 +1136,14 @@ if __name__ == '__main__':
     shape_region = '!OS'
     target_region = 'OS'
 
-    ztautau = MC_Ztautau(systematics=False)
-    others = Others(systematics=False)
-    data = Data()
+    ztautau = MC_Ztautau(year=2011, systematics=False)
+    others = Others(year=2011, systematics=False)
+    data = Data(year=2011)
     qcd = QCD(data=data, mc=[others, ztautau],
           shape_region=shape_region)
 
     qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error = qcd_ztautau_norm(
+        year=2011,
         ztautau=ztautau,
         backgrounds=[others],
         data=data,

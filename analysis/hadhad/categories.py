@@ -1,5 +1,4 @@
 from rootpy.tree import Cut
-from higgstautau.hadhad import categories
 
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
 TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
@@ -34,11 +33,18 @@ MET = Cut('MET > 20000')
 
 COMMON_CUTS = MET & MASS_FIX & MAX_NJET & DR_CUT # DR CUT IS BACK!!
 
+LEAD_JET_50 = Cut('jet1_fourvect.Pt() > 50000')
+SUBLEAD_JET_30 = Cut('jet2_fourvect.Pt() > 30000')
+
+VBF_CUTS = LEAD_JET_50 & SUBLEAD_JET_30
+BOOSTED_CUTS = LEAD_JET_50 & (- SUBLEAD_JET_30)
+GGF_CUTS = - LEAD_JET_50
+
+
 CATEGORIES = {
     'vbf': {
         'name': r'$\tau_{had}\tau_{had}$: VBF Category',
-        'code': categories.CATEGORY_VBF,
-        'cuts': COMMON_CUTS & ID_MEDIUM,
+        'cuts': VBF_CUTS & COMMON_CUTS & ID_MEDIUM,
         'fitbins': 5,
         'limitbins': 12,
         'limitbinning': 'constant',
@@ -73,8 +79,7 @@ CATEGORIES = {
     },
     'boosted': {
         'name': r'$\tau_{had}\tau_{had}$: Boosted Category',
-        'code': categories.CATEGORY_BOOSTED,
-        'cuts': COMMON_CUTS & ID_MEDIUM,
+        'cuts': BOOSTED_CUTS & COMMON_CUTS & ID_MEDIUM,
         'fitbins': 5,
         'limitbins': 12,
         'limitbinning': 'constant',
@@ -100,8 +105,7 @@ CATEGORIES = {
     },
     'ggf': {
         'name': r'$\tau_{had}\tau_{had}$: Non-Boosted Category',
-        'code': categories.CATEGORY_GGF,
-        'cuts': COMMON_CUTS & ID_MEDIUM,
+        'cuts': GGF_CUTS & COMMON_CUTS & ID_MEDIUM,
         'fitbins': 8,
         'limitbins': 13,
         'limitbinning': 'constant',
@@ -123,7 +127,6 @@ CATEGORIES = {
 CONTROLS = {
     'preselection': {
         'name': r'$\tau_{had}\tau_{had}$: At Preselection',
-        'code': None,
         'cuts': COMMON_CUTS & ID_MEDIUM,
         'fitbins': 10,
         'qcd_shape_region': 'SS',
@@ -131,7 +134,6 @@ CONTROLS = {
     },
     'z': {
         'name': r'$\tau_{had}\tau_{had}$: Z Control Region',
-        'code': None,
         'cuts': MET & Cut('dR_tau1_tau2<2.8') & Z_PEAK & ID_MEDIUM_TIGHT,
         'fitbins': 8,
         'qcd_shape_region': 'SS',
