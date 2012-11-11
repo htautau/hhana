@@ -307,6 +307,7 @@ def qcd_ztautau_norm(
             expr,
             category, target_region,
             cuts=control)
+    print ztautau_hist.Integral()
 
     ztautau.draw_into(
             ztautau_hist_control,
@@ -331,6 +332,7 @@ def qcd_ztautau_norm(
             expr,
             category, target_region,
             cuts=control)
+    print data_hist.Integral()
 
     data.draw_into(
             data_hist_control,

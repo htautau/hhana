@@ -897,7 +897,7 @@ class Higgs(MC, Signal):
         'W': ('wh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
     }
 
-    def __init__(self, year=2011,
+    def __init__(self, year,
             mode=None, modes=None,
             mass=None, masses=None, **kwargs):
 

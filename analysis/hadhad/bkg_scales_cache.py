@@ -24,7 +24,7 @@ def read_scales(name='background_scales.cache'):
 
 def get_scales(year, category, embedded, param, verbose=True):
 
-    year %= 11
+    year %= 1E3
     category = category.upper()
     param = param.upper()
     if has_category(year, category, embedded, param):
@@ -46,7 +46,7 @@ def get_scales(year, category, embedded, param, verbose=True):
 
 def has_category(year, category, embedded, param):
 
-    year %= year
+    year %= 1E3
     category = category.upper()
     param = param.upper()
     return (year in SCALES and category in SCALES[year] and
@@ -59,7 +59,7 @@ def set_scales(year, category, embedded, param,
         ztautau_scale, ztautau_scale_error):
 
     global MODIFIED
-    year %= year
+    year %= 1E3
     param = param.upper()
     category = category.upper()
     print "background normalization for year %d" % year
