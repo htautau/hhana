@@ -22,14 +22,16 @@ def read_scales(name='background_scales.cache'):
             SCALES = pickle.load(cache)
 
 
-def get_scales(category, embedded, param, verbose=True):
+def get_scales(year, category, embedded, param, verbose=True):
 
+    year %= 11
     category = category.upper()
     param = param.upper()
-    if has_category(category, embedded, param):
+    if has_category(year, category, embedded, param):
         qcd_scale, qcd_scale_error, \
-        ztautau_scale, ztautau_scale_error = SCALES[category][embedded][param]
+        ztautau_scale, ztautau_scale_error = SCALES[year][category][embedded][param]
         if verbose:
+            print "background normalization for year %d" % year
             print "using the embedding scale factors: %s" % str(embedded)
             print "scale factors for %s category" % category
             print "fits were derived via %s parameters" % param
@@ -42,32 +44,35 @@ def get_scales(category, embedded, param, verbose=True):
         return None
 
 
-def has_category(category, embedded, param):
+def has_category(year, category, embedded, param):
 
+    year %= year
     category = category.upper()
     param = param.upper()
-    return (category in SCALES and
-            embedded in SCALES[category] and
-            param in SCALES[category][embedded])
+    return (year in SCALES and category in SCALES[year] and
+            embedded in SCALES[year][category] and
+            param in SCALES[year][category][embedded])
 
 
-def set_scales(category, embedded, param,
+def set_scales(year, category, embedded, param,
         qcd_scale, qcd_scale_error,
         ztautau_scale, ztautau_scale_error):
 
     global MODIFIED
+    year %= year
     param = param.upper()
     category = category.upper()
+    print "background normalization for year %d" % year
     print "setting the embedding scale factors: %s" % str(embedded)
     print "setting scale factors for %s category" % category
     print "fits were derived via %s parameters" % param
     print "    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error)
     print "    ztautau scale: %.3f +/- %.4f" % (ztautau_scale, ztautau_scale_error)
     print
-    if has_category(category, embedded, param):
+    if has_category(year, category, embedded, param):
         qcd_scale_old, qcd_scale_error_old, \
         ztautau_scale_old, ztautau_scale_error_old = get_scales(
-                category, embedded, param, verbose=False)
+                year, category, embedded, param, verbose=False)
         print "scale factors were previously:"
         print "    qcd scale: %.3f +/- %.4f" % (
                 qcd_scale_old,
@@ -76,11 +81,13 @@ def set_scales(category, embedded, param,
                 ztautau_scale_old,
                 ztautau_scale_error_old)
         print
+    if year not in SCALES:
+        SCALES[year] = {}
     if category not in SCALES:
-        SCALES[category] = {}
-    if embedded not in SCALES[category]:
-        SCALES[category][embedded] = {}
-    SCALES[category][embedded][param] = (
+        SCALES[year][category] = {}
+    if embedded not in SCALES[year][category]:
+        SCALES[year][category][embedded] = {}
+    SCALES[year][category][embedded][param] = (
             qcd_scale, qcd_scale_error,
             ztautau_scale, ztautau_scale_error)
     MODIFIED = True
@@ -96,34 +103,32 @@ if __name__ == '__main__':
     parser.add_argument('cache', default='background_scales.cache', nargs='?')
     args = parser.parse_args()
 
-    if args.plot:
-        from matplotlib import pyplot as plt
-
     z_norms = {}
     qcd_norms = {}
     read_scales(args.cache)
-    categories = sorted(SCALES.keys())
-    for category in categories:
-        for embedding in SCALES[category].keys():
-            if embedding != args.embedding:
-                    continue
-            params = sorted(SCALES[category][embedding].keys())
-            for param in params:
-                qcd_scale, qcd_scale_error, \
-                ztautau_scale, ztautau_scale_error = \
-                SCALES[category][embedding][param]
-                if param not in z_norms:
-                    z_norms[param] = []
-                    qcd_norms[param] = []
-                z_norms[param].append((ztautau_scale, ztautau_scale_error))
-                qcd_norms[param].append((qcd_scale, qcd_scale_error))
-                print "scale factors for embedding: %s" % str(embedding)
-                print "scale factors for %s category" % category
-                print "fits were derived via %s parameters" % param
-                print "    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error)
-                print "    ztautau scale: %.3f +/- %.4f" % (ztautau_scale, ztautau_scale_error)
-                print
+    for year in SCALES.keys():
+        for category in sorted(SCALES[year].keys()):
+            for embedding in SCALES[category].keys():
+                if embedding != args.embedding:
+                        continue
+                params = sorted(SCALES[category][embedding].keys())
+                for param in params:
+                    qcd_scale, qcd_scale_error, \
+                    ztautau_scale, ztautau_scale_error = \
+                    SCALES[category][embedding][param]
+                    if param not in z_norms:
+                        z_norms[param] = []
+                        qcd_norms[param] = []
+                    z_norms[param].append((ztautau_scale, ztautau_scale_error))
+                    qcd_norms[param].append((qcd_scale, qcd_scale_error))
+                    print "scale factors for embedding: %s" % str(embedding)
+                    print "scale factors for %s category" % category
+                    print "fits were derived via %s parameters" % param
+                    print "    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error)
+                    print "    ztautau scale: %.3f +/- %.4f" % (ztautau_scale, ztautau_scale_error)
+                    print
     if args.plot:
+        from matplotlib import pyplot as plt
 
         plt.figure()
         fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True)

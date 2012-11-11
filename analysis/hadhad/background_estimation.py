@@ -214,6 +214,7 @@ def draw_fit(
     """
 
 def qcd_ztautau_norm(
+        year,
         ztautau,
         others,
         qcd,
@@ -233,9 +234,9 @@ def qcd_ztautau_norm(
     param = param.upper()
 
     if use_cache and bkg_scales_cache.has_category(
-            category, is_embedded, param):
+            year, category, is_embedded, param):
         qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error = \
-                 bkg_scales_cache.get_scales(category, is_embedded, param)
+                 bkg_scales_cache.get_scales(year, category, is_embedded, param)
         qcd.scale = qcd_scale
         qcd.scale_error = qcd_scale_error
         ztautau.scale = ztautau_scale
@@ -517,6 +518,7 @@ def qcd_ztautau_norm(
                     root=root)
 
     bkg_scales_cache.set_scales(
+            year,
             category, is_embedded, param,
             qcd_scale, qcd_scale_error,
             ztautau_scale, ztautau_scale_error)

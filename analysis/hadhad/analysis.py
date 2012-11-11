@@ -33,6 +33,8 @@ parser.add_argument('--unblind', action='store_true', default=False,
         help='plot the data in the signal region of the classifier output')
 parser.add_argument('--embedding', action='store_true', default=False,
         help='use embedding instead of ALPGEN')
+parser.add_argument('--year', type=int, default=2011, choices=(2011, 2012),
+        help='the year')
 
 """
 Mass Regions Options
@@ -245,13 +247,22 @@ LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 PLOTS_DIR = plots_dir(__file__)
 
 if args.embedding:
-    ztautau = Embedded_Ztautau(systematics=args.systematics)
+    ztautau = Embedded_Ztautau(
+            year=year,
+            systematics=args.systematics)
 else:
-    ztautau = MC_Ztautau(systematics=args.systematics)
-others = Others(systematics=args.systematics)
-data = Data(markersize=1.2)
+    ztautau = MC_Ztautau(
+            year=year,
+            systematics=args.systematics)
+others = Others(
+        year=year,
+        systematics=args.systematics)
+data = Data(
+        year=year,
+        markersize=1.2)
 
 higgs_125 = Higgs(
+        year=year,
         mass=125,
         systematics=args.systematics,
         scale=50,
@@ -262,7 +273,9 @@ if 'train' in args.actions:
 
     # all modes, all masses
     signals_train = [
-        Higgs(systematics=args.systematics),
+        Higgs(
+            year=year,
+            systematics=args.systematics),
     ]
 
 figures = {}
@@ -322,6 +335,7 @@ for category, cat_info in categories_controls:
     # determine normalization of QCD and Ztautau
     # in each category separately
     qcd_ztautau_norm(
+        year=year,
         ztautau=ztautau,
         others=others,
         qcd=qcd,
@@ -759,7 +773,7 @@ for category, cat_info in categories_controls:
         sig_scores = []
         # signal scores
         for mode in Higgs.MODES:
-            sig = Higgs(mode=mode, mass=125,
+            sig = Higgs(year=year, mode=mode, mass=125,
                     systematics=args.systematics)
             scores_dict = sig.scores(clf,
                     branches,
@@ -924,7 +938,7 @@ for category, cat_info in categories_controls:
             sig_scores = []
             # signal scores
             for mode in Higgs.MODES:
-                sig = Higgs(mode=mode, mass=mass,
+                sig = Higgs(year=year, mode=mode, mass=mass,
                         systematics=args.systematics)
                 scores_dict = sig.scores(clf,
                         branches,
