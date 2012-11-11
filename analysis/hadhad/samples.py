@@ -309,8 +309,12 @@ class Data(Sample):
         super(Data, self).__init__(year=year, scale=1., **kwargs)
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
-        self.data = rfile.data_JetTauEtmiss
-        self.h5data = h5file.root.data_JetTauEtmiss
+        if year == 2011:
+            self.data = rfile.data11_JetTauEtmiss
+            self.h5data = h5file.root.data11_JetTauEtmiss
+        else:
+            self.data = rfile.data12_JetTauEtmiss
+            self.h5data = h5file.root.data12_JetTauEtmiss
         self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
                       '$\int L dt = %.2f$ fb$^{-1}$' % (
                           self.year, self.energy, LUMI[self.year] / 1e3))
@@ -569,7 +573,7 @@ class MC(Sample):
             nominal_events = sys_events['NOMINAL']
 
 
-            nominal_weight = (TOTAL_LUMI * self.scale *
+            nominal_weight = (LUMI[self.year] * self.scale *
                     xs * kfact * effic / nominal_events)
 
             #print nominal_tree.GetEntries(selection), nominal_weight, nominal_tree.GetWeight()
@@ -612,7 +616,7 @@ class MC(Sample):
 
                     sys_hist.Reset()
 
-                    sys_weight = (TOTAL_LUMI * self.scale *
+                    sys_weight = (LUMI[self.year] * self.scale *
                             xs * kfact * effic / sys_event)
 
                     sys_weighted_selection = (
@@ -740,7 +744,7 @@ class MC(Sample):
                     scale = self.scale + self.scale_error
                 elif systematic == ('ZFIT_DOWN',):
                     scale = self.scale - self.scale_error
-            weight = scale * TOTAL_LUMI * xs * kfact * effic / events
+            weight = scale * LUMI[self.year] * xs * kfact * effic / events
 
             selected_tree = asrootpy(tree.CopyTree(selection))
             #print selected_tree.GetEntries(), weight
@@ -783,7 +787,7 @@ class MC(Sample):
                     scale = self.scale + self.scale_error
                 elif systematic == ('ZFIT_DOWN',):
                     scale = self.scale - self.scale_error
-            weight = scale * TOTAL_LUMI * xs * kfact * effic / events
+            weight = scale * LUMI[self.year] * xs * kfact * effic / events
 
             # read the table with a selection
             table = table.readWhere(selection.where())
@@ -966,7 +970,7 @@ class QCD(Sample):
                  cuts=None,
                  color='#59d454'):
 
-        super(QCD, self).__init__(scale=scale, color=color)
+        super(QCD, self).__init__(year=data.year, scale=scale, color=color)
         self.data = data
         self.mc = mc
         self.name = 'QCD'
