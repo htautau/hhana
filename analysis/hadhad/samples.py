@@ -139,6 +139,8 @@ class Sample(object):
         # effic high and low already accounted for in TAUBDT_UP/DOWN
         'tau1_efficiency_scale_factor',
         'tau2_efficiency_scale_factor',
+        'tau1_trigger_scale_factor',
+        'tau2_trigger_scale_factor',
     ]
 
     WEIGHT_SYSTEMATICS = {
@@ -194,9 +196,9 @@ class Sample(object):
 
     def get_weight_branches(self, systematic):
 
-        return ['1.']
         self.check_systematic(systematic)
         weight_branches = Sample.WEIGHT_BRANCHES[:]
+        return weight_branches
         if systematic == 'NOMINAL':
             systerm = None
             variation = 'NOMINAL'
