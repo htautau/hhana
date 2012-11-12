@@ -34,6 +34,7 @@ import systematics
 # Higgs cross sections
 import yellowhiggs
 
+VERBOSE = False
 
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
@@ -41,7 +42,6 @@ if not NTUPLE_PATH:
 NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
 DEFAULT_STUDENT = 'HHProcessor'
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
-VERBOSE = False
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
@@ -194,6 +194,7 @@ class Sample(object):
 
     def get_weight_branches(self, systematic):
 
+        return ['1.']
         self.check_systematic(systematic)
         weight_branches = Sample.WEIGHT_BRANCHES[:]
         if systematic == 'NOMINAL':
@@ -309,12 +310,9 @@ class Data(Sample):
         super(Data, self).__init__(year=year, scale=1., **kwargs)
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
-        if year == 2011:
-            self.data = rfile.data11_JetTauEtmiss
-            self.h5data = h5file.root.data11_JetTauEtmiss
-        else:
-            self.data = rfile.data12_JetTauEtmiss
-            self.h5data = h5file.root.data12_JetTauEtmiss
+        dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
+        self.data = getattr(rfile, dataname)
+        self.h5data = getattr(h5file.root, dataname)
         self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
                       '$\int L dt = %.2f$ fb$^{-1}$' % (
                           self.year, self.energy, LUMI[self.year] / 1e3))
@@ -421,6 +419,7 @@ class MC(Sample):
             systematics=True,
             **kwargs):
 
+        print year
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
             sample_info = samples_db.get_sample(
@@ -460,12 +459,9 @@ class MC(Sample):
             tables = {}
             weighted_events = {}
 
-            if isinstance(self, Embedded_Ztautau):
-                events_bin = 0
-                events_hist_suffix = '_cutflow_event'
-            else:
-                events_bin = 1
-                events_hist_suffix = '_cutflow'
+            # use mc_weighted second bin
+            events_bin = 1
+            events_hist_suffix = '_cutflow'
 
             trees['NOMINAL'] = rfile.Get(treename)
             tables['NOMINAL'] = getattr(h5file.root, treename)
@@ -539,8 +535,8 @@ class MC(Sample):
                 xs, kfact, effic = 100., 1., 1.
             else:
                 xs, kfact, effic = ds.xsec_kfact_effic
-            if VERBOSE:
-                print ds.name, xs, kfact, effic,
+            #if VERBOSE:
+            print ds.name, xs, kfact, effic
             self.datasets.append(
                     (ds, trees, tables, weighted_events, xs, kfact, effic))
 
