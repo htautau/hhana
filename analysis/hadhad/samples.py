@@ -139,8 +139,8 @@ class Sample(object):
         # effic high and low already accounted for in TAUBDT_UP/DOWN
         'tau1_efficiency_scale_factor',
         'tau2_efficiency_scale_factor',
-        'tau1_trigger_scale_factor',
-        'tau2_trigger_scale_factor',
+        'tau1_fakerate_scale_factor',
+        'tau2_fakerate_scale_factor',
     ]
 
     WEIGHT_SYSTEMATICS = {
