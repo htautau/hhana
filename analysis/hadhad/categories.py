@@ -47,7 +47,10 @@ GGF_CUTS = (- LEAD_JET_50)
 CATEGORIES = {
     'vbf': {
         'name': r'$\tau_{had}\tau_{had}$: VBF Category',
-        'cuts': VBF_CUTS & COMMON_CUTS & ID_MEDIUM,
+        'cuts': VBF_CUTS & COMMON_CUTS,
+        'year_cuts': {
+            2011: ID_MEDIUM,
+            2012: ID_MEDIUM_TIGHT},
         'fitbins': 5,
         'limitbins': 12,
         'limitbinning': 'constant',
@@ -82,7 +85,10 @@ CATEGORIES = {
     },
     'boosted': {
         'name': r'$\tau_{had}\tau_{had}$: Boosted Category',
-        'cuts': BOOSTED_CUTS & COMMON_CUTS & ID_MEDIUM,
+        'cuts': BOOSTED_CUTS & COMMON_CUTS,
+        'year_cuts': {
+            2011: ID_MEDIUM,
+            2012: ID_MEDIUM_TIGHT},
         'fitbins': 5,
         'limitbins': 12,
         'limitbinning': 'constant',
@@ -108,7 +114,10 @@ CATEGORIES = {
     },
     'ggf': {
         'name': r'$\tau_{had}\tau_{had}$: Non-Boosted Category',
-        'cuts': GGF_CUTS & COMMON_CUTS & ID_MEDIUM,
+        'cuts': GGF_CUTS & COMMON_CUTS,
+        'year_cuts': {
+            2011: ID_MEDIUM,
+            2012: ID_MEDIUM_TIGHT},
         'fitbins': 8,
         'limitbins': 13,
         'limitbinning': 'constant',
@@ -130,14 +139,20 @@ CATEGORIES = {
 CONTROLS = {
     'preselection': {
         'name': r'$\tau_{had}\tau_{had}$: At Preselection',
-        'cuts': COMMON_CUTS & ID_MEDIUM,
+        'cuts': COMMON_CUTS,
+        'year_cuts': {
+            2011: ID_MEDIUM,
+            2012: ID_MEDIUM_TIGHT},
         'fitbins': 10,
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
     },
     'z': {
         'name': r'$\tau_{had}\tau_{had}$: Z Control Region',
-        'cuts': MET & Cut('dR_tau1_tau2<2.8') & Z_PEAK & ID_MEDIUM_TIGHT,
+        'cuts': MET & Cut('dR_tau1_tau2<2.8') & Z_PEAK,
+        'year_cuts': {
+            2011: ID_MEDIUM,
+            2012: ID_MEDIUM_TIGHT},
         'fitbins': 8,
         'qcd_shape_region': 'SS',
         'target_region': 'OS',

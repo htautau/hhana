@@ -290,6 +290,7 @@ if args.embedding:
     output_suffix += '_embedding'
 if args.suffix:
     output_suffix += '_%s' % args.suffix
+output_suffix += '_%d' % (year % 1E3)
 
 mass_regions = MassRegions(
         low=args.low_mass_cut,

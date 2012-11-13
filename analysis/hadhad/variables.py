@@ -135,26 +135,10 @@ VARIABLES = {
         'range': (0, 1),
         'cats': ['VBF', 'BOOSTED']
     },
-    'sphericity_full': {
-        'title': r'sphericity (all)',
-        'root': 'sphericity (all)',
-        'filename': 'sphericity_full',
-        'bins': 20,
-        'range': (0, 1),
-        'cats': ['VBF', 'BOOSTED']
-    },
     'aplanarity': {
         'title': r'aplanarity',
         'root': 'aplanarity',
         'filename': 'aplanarity',
-        'bins': 20,
-        'range': (0, .15),
-        'cats': ['VBF', 'BOOSTED']
-    },
-    'aplanarity_full': {
-        'title': r'aplanarity (all)',
-        'root': 'aplanarity (all)',
-        'filename': 'aplanarity_full',
         'bins': 20,
         'range': (0, .15),
         'cats': ['VBF', 'BOOSTED']

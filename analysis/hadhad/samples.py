@@ -45,11 +45,6 @@ TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
-WORKING_POINT = 'Tight'
-ID = Cut('(tau1_JetBDTSig%s==1) && (tau2_JetBDTSig%s==1)' %
-         (WORKING_POINT, WORKING_POINT))
-NOID = Cut('(tau1_JetBDTSig%s!=1) && (tau2_JetBDTSig%s!=1)' %
-           (WORKING_POINT, WORKING_POINT))
 OS = Cut('tau1_charge * tau2_charge == -1')
 NOT_OS = Cut('tau1_charge * tau2_charge != -1')
 SS = Cut('tau1_charge * tau2_charge == 1')
@@ -124,13 +119,7 @@ class Sample(object):
         'ALL': Cut(),
         'OS': OS,
         '!OS': NOT_OS,
-        'SS': SS,
-        'OS-ID': OS & ID,
-        '!OS-ID': NOT_OS & ID,
-        'SS-ID': SS & ID,
-        'OS-NOID': OS & NOID,
-        '!OS-NOID': NOT_OS & NOID,
-        'SS-NOID': SS & NOID}
+        'SS': SS}
 
     WEIGHT_BRANCHES = [
         'mc_weight',
@@ -141,6 +130,8 @@ class Sample(object):
         'tau2_efficiency_scale_factor',
         'tau1_fakerate_scale_factor',
         'tau2_fakerate_scale_factor',
+        'tau1_trigger_scale_factor',
+        'tau2_trigger_scale_factor',
     ]
 
     WEIGHT_SYSTEMATICS = {
@@ -228,9 +219,11 @@ class Sample(object):
 
         if category in categories.CATEGORIES:
             return (categories.CATEGORIES[category]['cuts'] &
+                    categories.CATEGORIES[category]['year_cuts'][self.year] &
                     Sample.REGIONS[region] & self._cuts)
         elif category in categories.CONTROLS:
             return (categories.CONTROLS[category]['cuts'] &
+                    categories.CONTROLS[category]['year_cuts'][self.year] &
                     Sample.REGIONS[region] & self._cuts)
         else:
             raise ValueError(
