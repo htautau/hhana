@@ -158,7 +158,9 @@ def plot_clf(
         min_score=0,
         max_score=1,
         signal_on_top=False,
+        signal_colour_map=cm.spring,
         plot_signal_significance=True,
+        fill_signal=True,
         systematics=None):
 
     if hasattr(bins, '__iter__'):
@@ -233,7 +235,9 @@ def plot_clf(
              range=(min_score, max_score),
              show_ratio=data_hist is not None,
              model_colour_map=None,
+             signal_colour_map=signal_colour_map,
              signal_on_top=signal_on_top,
+             fill_signal=fill_signal,
              systematics=systematics)
     return bkg_hists, sig_hists, data_hist
 

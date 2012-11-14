@@ -130,8 +130,8 @@ class Sample(object):
         'tau2_efficiency_scale_factor',
         'tau1_fakerate_scale_factor',
         'tau2_fakerate_scale_factor',
-        'tau1_trigger_scale_factor',
-        'tau2_trigger_scale_factor',
+        #'tau1_trigger_scale_factor', leave out trigger SF in 2012 until fixed
+        #'tau2_trigger_scale_factor',
     ]
 
     WEIGHT_SYSTEMATICS = {
@@ -414,7 +414,6 @@ class MC(Sample):
             systematics=True,
             **kwargs):
 
-        print year
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
             sample_info = samples_db.get_sample(

@@ -163,7 +163,8 @@ def draw(model,
          units=None,
          range=None,
          model_colour_map=None,
-         signal_colour_map=cm.spring,
+         signal_colour_map=None,
+         fill_signal=False,
          show_ratio=False,
          show_qq=False,
          output_formats=None,
@@ -285,6 +286,16 @@ def draw(model,
             scaled_signal = signal
         if signal_colour_map is not None:
             set_colours(scaled_signal, signal_colour_map)
+        for s in signal:
+            if fill_signal:
+                s.fillstyle = 'solid'
+                s.linewidth = 0
+                alpha = .75
+            else:
+                s.fillstyle = 'hollow'
+                s.linewidth = 2
+                s.linestyle = 'dashed'
+                alpha = 1.
 
     if root:
         # plot model stack with ROOT
@@ -303,6 +314,7 @@ def draw(model,
                 stacked=True,
                 axes=hist_ax,
                 ypadding=ypadding)
+
         if signal is not None and signal_on_top:
             signal_bars = model_bars[len(model):]
             model_bars = model_bars[:len(model)]
@@ -311,13 +323,20 @@ def draw(model,
         if root:
             pass
         elif len(signal) > 1:
-            signal_bars = rplt.bar(scaled_signal, linewidth=0,
+            signal_bars = rplt.bar(
+                    scaled_signal,
                     stacked=True, #yerr='quadratic',
-                    axes=hist_ax, alpha=.8, ypadding=ypadding)
+                    axes=hist_ax,
+                    alpha=alpha,
+                    ypadding=ypadding)
         else:
-            _, _, signal_bars = rplt.hist(scaled_signal[0],
+            _, _, signal_bars = rplt.hist(
+                    scaled_signal[0],
                     histtype='stepfilled',
-                    axes=hist_ax, ypadding=ypadding)
+                    alpha=alpha,
+                    axes=hist_ax,
+                    ypadding=ypadding)
+
         if plot_signal_significance:
             plot_significance(signal, model, ax=hist_ax)
 
