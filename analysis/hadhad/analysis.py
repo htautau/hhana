@@ -267,8 +267,7 @@ higgs_125 = Higgs(
         mass=125,
         systematics=args.systematics,
         scale=50,
-        linecolor='red',
-        linestyle='dashed')
+        linecolor='red')
 
 if 'train' in args.actions:
 
