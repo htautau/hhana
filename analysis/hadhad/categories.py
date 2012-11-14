@@ -31,13 +31,13 @@ MET = Cut('MET > 20000')
 # possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
 
-LEAD_TAU_35 = Cut('tau1_fourvect.Pt() > 35000')
-SUBLEAD_TAU_25 = Cut('tau2_fourvect.Pt() > 25000')
+LEAD_TAU_35 = Cut('tau1_pt > 35000')
+SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
 COMMON_CUTS = LEAD_TAU_35 & SUBLEAD_TAU_25 & MET & MASS_FIX & DR_CUT
 
-LEAD_JET_50 = Cut('jet1_fourvect.Pt() > 50000')
-SUBLEAD_JET_30 = Cut('jet2_fourvect.Pt() > 30000')
+LEAD_JET_50 = Cut('jet1_pt > 50000')
+SUBLEAD_JET_30 = Cut('jet2_pt > 30000')
 
 VBF_CUTS = LEAD_JET_50 & SUBLEAD_JET_30
 BOOSTED_CUTS = LEAD_JET_50 & (- SUBLEAD_JET_30)

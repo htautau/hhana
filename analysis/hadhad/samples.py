@@ -39,7 +39,7 @@ VERBOSE = False
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
+NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad_running')
 DEFAULT_STUDENT = 'HHProcessor'
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
