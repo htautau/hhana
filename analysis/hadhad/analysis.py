@@ -95,7 +95,7 @@ parser.add_argument('--grid-search', action='store_true', default=False,
 parser.add_argument('--forest-feature-ranking',
         action='store_true', default=False,
         help='Use a random forest to perform a feature ranking.')
-parser.add_argument('--cor', action='store_true', default=False,
+parser.add_argument('--correlations', action='store_true', default=False,
         help='draw correlation plots')
 parser.add_argument('--ranking', action='store_true', default=False,
         help='only show the variable rankings')
@@ -486,7 +486,7 @@ for category, cat_info in categories_controls:
                 print branch
             print
 
-            if args.cor:
+            if args.correlations:
                 branches = branches + ['mass_mmc_tau1_tau2']
 
             # split into testing and training samples
@@ -510,7 +510,7 @@ for category, cat_info in categories_controls:
                 standardize=False,
                 cuts=train_region)
 
-            if args.cor:
+            if args.correlations:
                 # draw a linear correlation matrix
                 samples.correlations(
                     signal=sample_test[labels_test==1],
@@ -545,7 +545,8 @@ for category, cat_info in categories_controls:
                     label += ' [%s]' % variables.VARIABLES[branch]['units']
                 plt.xlabel(label)
                 plt.legend()
-                plt.savefig('train_var_%s_%s.png' % (category, branch))
+                plt.savefig('train_var_%s_%s%s.png' % (
+                    category, branch, output_suffix))
 
             print "plotting sample weights ..."
             _min, _max = sample_weight_train.min(), sample_weight_train.max()
@@ -559,7 +560,8 @@ for category, cat_info in categories_controls:
                     label='Signal', histtype='stepfilled', alpha=.5)
             plt.xlabel('sample weight')
             plt.legend()
-            plt.savefig('train_sample_weight_%s.png' % category)
+            plt.savefig('train_sample_weight_%s%s.png' % (
+                category, output_suffix))
 
             # train a new BDT
 
@@ -607,9 +609,9 @@ for category, cat_info in categories_controls:
                 plt.xticks(range(len(latex_names)),
                         [latex_names[idx] for idx in indices], rotation=-30,
                           rotation_mode='anchor', ha='left', va='top')
-                plt.savefig('ranking_random_forest_%s.png' % category,
+                plt.savefig('ranking_random_forest_%s%s.png' % (
+                    category, output_suffix),
                         bbox_inches='tight')
-                continue
 
             if args.grid_search:
                 if args.quick_train:
@@ -679,7 +681,7 @@ for category, cat_info in categories_controls:
                         'min leaf',
                         'n_estimators':
                         'trees'},
-                    name=category)
+                    name=category + output_suffix)
 
                 """
                 if 'base_estimator__min_samples_leaf' in grid_params:
