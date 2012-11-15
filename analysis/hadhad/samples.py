@@ -46,7 +46,7 @@ DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
 OS = Cut('tau1_charge * tau2_charge == -1')
-NOT_OS = Cut('tau1_charge * tau2_charge != -1')
+NOT_OS = Cut('tau1_charge * tau2_charge >= 0') # changed by Zinonas
 SS = Cut('tau1_charge * tau2_charge == 1')
 # mass_jet1_jet2 > 100000
 TEMPFILE = ropen('tempfile.root', 'recreate')
