@@ -1,11 +1,12 @@
 
 CHANNEL ?= comb
 MASS ?=
+CONFIG ?=
 
 default: limit
 
 xml-config: clean-config
-	./config/render $(CHANNEL)
+	./config/render $(CONFIG) $(CHANNEL)
 
 clean-config:
 	rm -f ./config/*.xml
