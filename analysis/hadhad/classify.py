@@ -161,7 +161,8 @@ def plot_clf(
         signal_colour_map=cm.spring,
         plot_signal_significance=True,
         fill_signal=True,
-        systematics=None):
+        systematics=None,
+        **kwargs):
 
     if hasattr(bins, '__iter__'):
         # variable width bins
@@ -238,7 +239,8 @@ def plot_clf(
              signal_colour_map=signal_colour_map,
              signal_on_top=signal_on_top,
              fill_signal=fill_signal,
-             systematics=systematics)
+             systematics=systematics,
+             **kwargs)
     return bkg_hists, sig_hists, data_hist
 
 

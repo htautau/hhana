@@ -162,6 +162,7 @@ def draw(model,
          plot_signal_significance=True,
          units=None,
          range=None,
+         plot_label=None,
          model_colour_map=None,
          signal_colour_map=None,
          fill_signal=False,
@@ -512,7 +513,8 @@ def draw(model,
     else:
         model_legend = hist_ax.legend(
                 reversed(model_bars), [h.title for h in reversed(model)],
-                prop=prop, title=category_name,
+                prop=prop,
+                title=category_name + '\n' + plot_label if plot_label else category_name,
                 loc='upper left',
                 numpoints=1)
         format_legend(model_legend)

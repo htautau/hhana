@@ -518,7 +518,8 @@ for category, cat_info in categories_controls:
                     background=sample_test[labels_test==0],
                     background_weight=sample_weight_test[labels_test==0],
                     branches=branches,
-                    category=category)
+                    category=category,
+                    output_suffix=output_suffix)
                 continue
 
             print
@@ -810,11 +811,12 @@ for category, cat_info in categories_controls:
         min_score -= bin_width
         max_score += bin_width
 
-        # compare data and the model in a low mass control region
+        # compare data and the model in a mass control region
         plot_clf(
             background_scores=bkg_scores,
             category=category,
             category_name=cat_info['name'],
+            plot_label='full mass range',
             signal_scores=sig_scores,
             signal_scale=50,
             draw_data=True,
@@ -886,6 +888,7 @@ for category, cat_info in categories_controls:
             background_scores=bkg_scores,
             category=category,
             category_name=cat_info['name'],
+            plot_label='mass control region',
             signal_scores=None,
             data_scores=(data, data_scores),
             draw_data=True,
@@ -979,6 +982,7 @@ for category, cat_info in categories_controls:
                 signal_scores=sig_scores,
                 category=category,
                 category_name=cat_info['name'],
+                plot_label='mass signal region',
                 signal_scale=50,
                 name='%d_ROI%s' % (mass, output_suffix),
                 bins=args.bins + 2,
@@ -1024,6 +1028,7 @@ for category, cat_info in categories_controls:
                     signal_scores=sig_scores,
                     category=category,
                     category_name=cat_info['name'],
+                    plot_label='mass signal region',
                     signal_scale=50,
                     name='%d_ROI_flat%s' % (mass, output_suffix),
                     bins=flat_bins,
