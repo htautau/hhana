@@ -4,6 +4,8 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('comb', nargs='*')
+parser.add_argument('--year', type=int, choices=(11, 12), default=11)
+parser.add_argument('--stat-only', action='store_true', default=False)
 args = parser.parse_args()
 
 if not args.comb:
@@ -23,6 +25,8 @@ masses = range(100, 155, 5)
 lumi = '1.'
 lumi_rel_err = '0.039'
 workspace = 'SYSTEMATICS'
+year = args.year
+systematics = not args.stat_only
 
 
 def read_template(name):

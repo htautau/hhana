@@ -3,16 +3,17 @@
 <Channel Name="hh_{{ category }}_{{ mass }}" >
 
     <Data HistoName="Data_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root" />
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root" />
 
     <StatErrorConfig RelErrorThreshold="0.05" ConstraintType="Poisson"/>
 
     <Sample Name="Signal_gg_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="Signal_gg_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
         <StatError Activate="False" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="Signal_gg_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="Signal_gg_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -31,14 +32,16 @@
 
         <OverallSys Name="pdf_gg" High="1.079" Low="0.923"/>
         <OverallSys Name="QCDscale_ggH1in" High="1.133" Low="0.914"/>
+        {% endif %}
     </Sample>
 
     <Sample Name="Signal_VBF_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="Signal_VBF_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
         <StatError Activate="False" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="Signal_VBF_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="Signal_VBF_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -57,14 +60,16 @@
 
         <OverallSys Name="pdf_qqbar" High="1.027" Low="0.979"/>
         <OverallSys Name="QCDscale_qqH" High="1.004" Low="0.996"/>
+        {% endif %}
     </Sample>
 
     <Sample Name="Signal_Z_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="Signal_Z_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
         <StatError Activate="False" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="Signal_Z_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="Signal_Z_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -83,14 +88,16 @@
 
         <OverallSys Name="pdf_qqbar" High="1.039" Low="0.961"/>
         <OverallSys Name="QCDscale_VH" High="1.007" Low="0.992"/>
+        {% endif %}
     </Sample>
 
     <Sample Name="Signal_W_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="Signal_W_{{ mass }}"
         NormalizeByTheory="True" >
         <NormFactor Name="SigXsecOverSM" Val="0" Low="0." High="60."/>
         <StatError Activate="False" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="Signal_W_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="Signal_W_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -109,13 +116,15 @@
 
         <OverallSys Name="pdf_qqbar" High="1.039" Low="0.961"/>
         <OverallSys Name="QCDscale_VH" High="1.007" Low="0.992"/>
+        {% endif %}
     </Sample>
 
     <Sample Name="Ztautau_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="Ztautau_{{ mass }}"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="Ztautau_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="Ztautau_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -141,13 +150,15 @@
         <HistoSys Name="MFS"
             HistoNameHigh="Ztautau_MFS_UP"
             HistoNameLow="Ztautau_MFS_DOWN" />-->
+        {% endif %}
     </Sample>
 
     <Sample Name="QCD_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="QCD_{{ mass }}"
         NormalizeByTheory="False" >
         <StatError Activate="True" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="QCD_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="QCD_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -166,13 +177,15 @@
         <HistoSys Name="QCDFIT"
             HistoNameHigh="QCD_{{ mass }}_QCDFIT_UP"
             HistoNameLow="QCD_{{ mass }}_QCDFIT_DOWN" />
+        {% endif %}
     </Sample>
 
     <Sample Name="Others_{{ mass }}"
-        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}.root"
+        InputFile="./data/hadhad/{{ category }}_{{ fitmethod }}_{{ year }}.root"
         HistoName="Others_{{ mass }}"
         NormalizeByTheory="True" >
         <StatError Activate="True" />
+        {% if systematics == True %}
         <HistoSys Name="JES_TES"
             HistoNameHigh="Others_{{ mass }}_JES_UP_TES_UP"
             HistoNameLow="Others_{{ mass }}_JES_DOWN_TES_DOWN" />
@@ -188,6 +201,7 @@
         <HistoSys Name="TAUBDT"
             HistoNameHigh="Others_{{ mass }}_TAUBDT_UP"
             HistoNameLow="Others_{{ mass }}_TAUBDT_DOWN" />
+        {% endif %}
     </Sample>
 
 </Channel>
