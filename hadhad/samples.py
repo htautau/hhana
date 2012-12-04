@@ -22,7 +22,7 @@ from higgstautau import samples as samples_db
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.io import open as ropen
 from rootpy.tree import Tree, Cut
-from rootpy.utils import asrootpy
+from rootpy import asrootpy
 from rootpy import root2array as r2a
 from rootpy.math.stats.correlation import correlation_plot
 
@@ -39,7 +39,7 @@ VERBOSE = False
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad_running')
+NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
 DEFAULT_STUDENT = 'HHProcessor'
 TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
@@ -132,8 +132,8 @@ class Sample(object):
         # effic high and low already accounted for in TAUBDT_UP/DOWN
         'tau1_efficiency_scale_factor',
         'tau2_efficiency_scale_factor',
-        'tau1_fakerate_scale_factor',
-        'tau2_fakerate_scale_factor',
+        #'tau1_fakerate_scale_factor',
+        #'tau2_fakerate_scale_factor',
         #'tau1_trigger_scale_factor', leave out trigger SF in 2012 until fixed
         #'tau2_trigger_scale_factor',
     ]
@@ -161,6 +161,13 @@ class Sample(object):
                 'tau2_fakerate_scale_factor']},
     }
 
+    EMBEDDING_SYSTEMATICS = {
+        'ISOL': { # MUON ISOLATION
+            'UP': ['embedding_isolation == 2',],
+            'DOWN': ['1',],
+            'NOMINAL': ['embedding_isolation >= 1'],
+        }
+    }
 
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
@@ -193,7 +200,6 @@ class Sample(object):
 
         self.check_systematic(systematic)
         weight_branches = Sample.WEIGHT_BRANCHES[:]
-        return weight_branches
         if systematic == 'NOMINAL':
             systerm = None
             variation = 'NOMINAL'
@@ -208,6 +214,12 @@ class Sample(object):
                 weight_branches += variations[variation]
             else:
                 weight_branches += variations['NOMINAL']
+        if isinstance(self, Embedded_Ztautau):
+            for term, variations in Sample.EMBEDDING_SYSTEMATICS.items():
+                if term == systerm:
+                    weight_branches += variations[variation]
+                else:
+                    weight_branches += variations['NOMINAL']
         return weight_branches
 
     def iter_weight_branches(self):
@@ -218,6 +230,13 @@ class Sample(object):
                     continue
                 term = ('%s_%s' % (type, variation),)
                 yield self.get_weight_branches(term), term
+        if isinstance(self, Embedded_Ztautau):
+            for type, variations in Sample.EMBEDDING_SYSTEMATICS.items():
+                for variation in variations:
+                    if variation == 'NOMINAL':
+                        continue
+                    term = ('%s_%s' % (type, variation),)
+                    yield self.get_weight_branches(term), term
 
     def cuts(self, category, region):
 
@@ -457,8 +476,11 @@ class MC(Sample):
             tables = {}
             weighted_events = {}
 
-            # use mc_weighted second bin
-            events_bin = 1
+            if isinstance(self, Embedded_Ztautau):
+                events_bin = 0
+            else:
+                # use mc_weighted second bin
+                events_bin = 1
             events_hist_suffix = '_cutflow'
 
             trees['NOMINAL'] = rfile.Get(treename)
@@ -530,11 +552,11 @@ class MC(Sample):
                 kfact = 1.
                 effic = 1.
             elif isinstance(self, Embedded_Ztautau):
-                xs, kfact, effic = 100., 1., 1.
+                xs, kfact, effic = 1., 1., 1.
             else:
                 xs, kfact, effic = ds.xsec_kfact_effic
             #if VERBOSE:
-            print ds.name, xs, kfact, effic
+            #print ds.name, xs, kfact, effic
             self.datasets.append(
                     (ds, trees, tables, weighted_events, xs, kfact, effic))
 
@@ -565,7 +587,6 @@ class MC(Sample):
 
             nominal_tree = sys_trees['NOMINAL']
             nominal_events = sys_events['NOMINAL']
-
 
             nominal_weight = (LUMI[self.year] * self.scale *
                     xs * kfact * effic / nominal_events)

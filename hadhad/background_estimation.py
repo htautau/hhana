@@ -307,7 +307,6 @@ def qcd_ztautau_norm(
             expr,
             category, target_region,
             cuts=control)
-    print ztautau_hist.Integral()
 
     ztautau.draw_into(
             ztautau_hist_control,
@@ -332,13 +331,19 @@ def qcd_ztautau_norm(
             expr,
             category, target_region,
             cuts=control)
-    print data_hist.Integral()
 
     data.draw_into(
             data_hist_control,
             expr,
             category, qcd_shape_region,
             cuts=control)
+
+    # initialize Ztautau to OS data - SS data
+
+    ztautau_init_factor = (data_hist - data_hist_control).Integral() / ztautau_hist.Integral()
+    print ztautau_init_factor
+    ztautau_hist *= ztautau_init_factor
+    ztautau_hist_control *= ztautau_init_factor
 
     if draw:
         if ndim == 1:
@@ -411,6 +416,11 @@ def qcd_ztautau_norm(
     qcd_scale_error = model_func.GetParError(0)
     ztautau_scale = model_func.GetParameter('Ztautau_scale')
     ztautau_scale_error = model_func.GetParError(1)
+
+    # scale by ztautau_init
+    ztautau_scale *= ztautau_init_factor
+    ztautau_scale_error *= ztautau_init_factor
+
     #data_hist.GetFunction('model_%s' % category).Delete()
 
     # check norm in control region
