@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from rootpy.extern.argparse import ArgumentParser
 from rootpy.tree import Cut
 from samples import *
 
