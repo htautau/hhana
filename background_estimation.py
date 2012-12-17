@@ -243,12 +243,12 @@ def qcd_ztautau_norm(
 
     # initialize Ztautau to OS data - SS data
 
-    """
-    ztautau_init_factor = (data_hist - data_hist_control).Integral() / ztautau_hist.Integral()
+    ztautau_init_factor = ((data_hist.Integral() - data_hist_control.Integral())
+            / ztautau_hist.Integral())
     log.debug(ztautau_init_factor)
     ztautau_hist *= ztautau_init_factor
     ztautau_hist_control *= ztautau_init_factor
-    """
+    ztautau.scale = ztautau_init_factor
 
     log.debug(ztautau_hist.Integral())
     log.debug(data_hist.Integral())
@@ -320,14 +320,25 @@ def qcd_ztautau_norm(
     model_func.SetLineWidth(0)
     fit_result = data_hist.Fit(model_func, 'WL')
 
+    ztautau_hist /= ztautau_init_factor
+    ztautau_hist_control /= ztautau_init_factor
+
     qcd_scale = model_func.GetParameter('QCD_scale')
     qcd_scale_error = model_func.GetParError(0)
     ztautau_scale = model_func.GetParameter('Ztautau_scale')
     ztautau_scale_error = model_func.GetParError(1)
 
     # scale by ztautau_init
-    #ztautau_scale *= ztautau_init_factor
-    #ztautau_scale_error *= ztautau_init_factor
+    ztautau_scale *= ztautau_init_factor
+    ztautau_scale_error *= ztautau_init_factor
+
+    #qcd_scale *= factor
+    #ztautau_scale *= factor
+
+    qcd.scale = qcd_scale
+    qcd.scale_error = qcd_scale_error
+    ztautau.scale = ztautau_scale
+    ztautau.scale_error = ztautau_scale_error
 
     #data_hist.GetFunction('model_%s' % category).Delete()
 
@@ -380,24 +391,16 @@ def qcd_ztautau_norm(
             category, qcd_shape_region)
 
     qcd_hist_overall = (data_hist_control_overall
-                - ztautau_hist_control_overall * ztautau_scale
+                - ztautau_hist_control_overall
                 - bkg_hist_control_overall) * qcd_scale
 
     overall_factor = data_hist_overall.Integral() / (qcd_hist_overall +
-            ztautau_hist_overall * ztautau_scale + bkg_hist_overall).Integral()
+            ztautau_hist_overall + bkg_hist_overall).Integral()
 
     log.info("")
     log.info("data / model in this control region: %.3f" % factor)
     log.info("data / model overall: %.3f" % overall_factor)
     log.info("")
-
-    #qcd_scale *= factor
-    #ztautau_scale *= factor
-
-    qcd.scale = qcd_scale
-    qcd.scale_error = qcd_scale_error
-    ztautau.scale = ztautau_scale
-    ztautau.scale_error = ztautau_scale_error
 
     if draw:
         if ndim == 1:

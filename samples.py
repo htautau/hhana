@@ -161,9 +161,9 @@ class Sample(object):
 
     EMBEDDING_SYSTEMATICS = {
         'ISOL': { # MUON ISOLATION
-            'UP': ['embedding_isolation == 2',],
+            'UP': ['(embedding_isolation == 2)',],
             'DOWN': ['1',],
-            'NOMINAL': ['embedding_isolation >= 1'],
+            'NOMINAL': ['(embedding_isolation >= 1)'],
         }
     }
 

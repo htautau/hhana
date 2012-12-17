@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import rootpy
+rootpy.log.basic_config_colorized()
+
 import logging
 logging.captureWarnings(True) 
 
@@ -27,12 +30,14 @@ parser.add_argument('--no-systematics', action='store_false',
         default=True)
 parser.add_argument('--categories', nargs='*', default=CATEGORIES.keys(),
         help='which categories to draw plot or train in')
+"""
 parser.add_argument('--controls', nargs='*', default=CONTROLS.keys(),
         help='which controls to draw plots in')
 parser.add_argument('--only-controls', action='store_true', default=False,
         help='only draw control plots. no category plots.')
-parser.add_argument('--no-controls', action='store_true', default=False,
-        help='do not plot controls')
+parser.add_argument('--enable-controls', action='store_true', default=False,
+        help='plot in controls')
+"""
 parser.add_argument('--unblind', action='store_true', default=False,
         help='plot the data in the signal region of the classifier output')
 parser.add_argument('--embedding', action='store_true', default=False,
@@ -139,8 +144,6 @@ from pprint import pprint
 import os
 
 # rootpy imports
-import rootpy
-rootpy.log.basic_config_colorized()
 from rootpy.plotting import Hist
 from rootpy.io import open as ropen
 from rootpy.extern.tabulartext import PrettyTable
@@ -209,10 +212,6 @@ if 'train' in args.actions:
 
 figures = {}
 
-categories_controls = (
-        sorted(CATEGORIES.items(), key=lambda item: item[0]) +
-        sorted(CONTROLS.items(), key=lambda item: item[0]))
-
 output_suffix = '_%sfit' % args.fit_param
 if args.embedding:
     output_suffix += '_embedding'
@@ -229,23 +228,14 @@ control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
 train_region = mass_regions.train_region
 
-for category, cat_info in categories_controls:
+for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
-    if category not in args.categories and category not in args.controls:
-        continue
-
-    if args.only_controls and category not in args.controls:
-        continue
-
-    if args.no_controls and category in args.controls:
+    if category not in args.categories:
         continue
 
     log.info("")
     log.info("=" * 40)
-    if category in args.categories:
-        log.info("%s category" % category)
-    else:
-        log.info("%s control region" % category)
+    log.info("%s category" % category)
     log.info("=" * 40)
     log.info("Cuts: %s" % cat_info['cuts'])
     
@@ -254,64 +244,6 @@ for category, cat_info in categories_controls:
     target_region = cat_info['target_region']
     
     figures[category] = {}
-
-    # data validation
-    if 'validate' in args.actions:
-        cuts = Cut(args.plot_cut)
-
-        for expr, var_info in VARIABLES.items():
-
-            if category in args.controls and 'GGF' not in var_info['cats']:
-                continue
-            elif category in args.categories and category.upper() not in var_info['cats']:
-                continue
-            elif args.plots and expr not in args.plots:
-                continue
-
-            log.info("")
-            log.info("plotting %s in %s category" % (expr, category))
-            log.info(cat_info['cuts'] & cuts)
-
-            bins = var_info['bins']
-            min, max = var_info['range']
-
-            if 'scale' in var_info:
-                expr = "%s * %f" % (expr, var_info['scale'])
-
-            data_hist = data.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
-            signal_hist = higgs_125.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
-            output_name = var_info['filename'] + output_suffix
-            if cuts:
-                output_name += '_' + cuts.safe()
-
-            fig = draw(
-                    data=data_hist,
-                    signal=signal_hist,
-                    name=var_info['root'] if args.root else var_info['title'],
-                    output_name=output_name + '_validate',
-                    category_name=cat_info['name'],
-                    category=category,
-                    units=var_info.get('units', None),
-                    range=var_info['range'],
-                    show_ratio=False,
-                    show_qq=False,
-                    plot_signal_significance=False,
-                    dir=PLOTS_DIR,
-                    systematics=None,
-                    root=args.root,
-                    output_formats=args.output_formats)
-            figures[category][expr] = fig
-        continue
 
     qcd = QCD(data=data, mc=[others, ztautau],
           shape_region=qcd_shape_region)
@@ -352,9 +284,7 @@ for category, cat_info in categories_controls:
 
         for expr, var_info in VARS.items():
 
-            if category in args.controls and 'GGF' not in var_info['cats']:
-                continue
-            elif category in args.categories and category.upper() not in var_info['cats']:
+            if category in args.categories and category.upper() not in var_info['cats']:
                 continue
             elif args.plots and expr not in args.plots:
                 continue
@@ -404,7 +334,7 @@ for category, cat_info in categories_controls:
             log.info("Data events: %d" % sum(data_hist))
             log.info("Model events: %f" % sum(sum(bkg_hists)))
             for hist in bkg_hists:
-                log.info(hist.GetTitle(), sum(hist))
+                log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
             log.info("Data / Model: %f" % (sum(data_hist) /
                 sum(sum(bkg_hists))))
 
@@ -430,10 +360,6 @@ for category, cat_info in categories_controls:
                     root=args.root,
                     output_formats=args.output_formats)
             figures[category][expr] = fig
-
-    if category not in args.categories:
-        # don't train a classifier in a control region
-        continue
 
     if 'train' in args.actions:
 
