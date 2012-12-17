@@ -11,6 +11,7 @@ from rootpy.plotting import Hist, Hist2D, HistStack, Legend, Canvas
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
+from logger import log; log = log[__name__]
 from utils import set_colours, draw
 import categories
 import bkg_scales_cache
@@ -80,26 +81,6 @@ def draw_fit(
 
     PLOTS_DIR = plots_dir(__file__)
 
-    """
-    bkg_hist = bkg_hist.ravel()
-    bkg_control_hist = bkg_control_hist.ravel()
-
-    ztautau_hist = ztautau_hist.ravel()
-    ztautau_hist *= ztautau_scale
-
-    ztautau_control_hist = ztautau_control_hist.ravel()
-    ztautau_control_hist *= ztautau_scale
-
-    data_hist = data_hist.ravel()
-    data_control_hist = data_control_hist.ravel()
-
-    qcd_hist = (data_control_hist
-                - ztautau_control_hist
-                - bkg_control_hist) * qcd_scale
-
-    qcd_hist.title = 'QCD Multi-jet'
-    """
-
     model_hists = []
     for sample in model:
         hist2d = sample.draw2d(expr, category, region,
@@ -135,84 +116,6 @@ def draw_fit(
         output_name=output_name)
 
 
-    """
-    c = Canvas()
-    hists = [qcd_hist, bkg_hist, ztautau_hist]
-    set_colours(hists)
-    for h in hists:
-        h.SetFillStyle('solid')
-
-    stack = HistStack()
-    stack.Add(qcd_hist)
-    stack.Add(bkg_hist)
-    stack.Add(ztautau_hist)
-    legend = Legend(4, leftmargin=.6)
-    #legend.SetHeader(categories.CATEGORIES[category]['name'])
-    legend.SetBorderSize(0)
-    legend.AddEntry(ztautau_hist, 'F')
-    legend.AddEntry(bkg_hist, 'F')
-    legend.AddEntry(qcd_hist, 'F')
-
-    if False:
-        legend.AddEntry(data_hist, 'F')
-        stack.Draw('lego1 0')
-        data_hist.Draw('lego 0 same')
-
-        axis_max = max(stack.GetMaximum(), data_hist.GetMaximum())
-
-        stack[0].GetZaxis().SetLimits(0, axis_max * 1.1)
-        stack[0].GetZaxis().SetRangeUser(0, axis_max * 1.1)
-        if xlabel is not None:
-            stack.GetXaxis().SetTitle(xlabel)
-            stack.GetXaxis().SetTitleOffset(2.5)
-        if ylabel is not None:
-            stack.GetYaxis().SetTitle(ylabel)
-            stack.GetYaxis().SetTitleOffset(2.5)
-    else:
-        legend.AddEntry(data_hist, 'LEP')
-        stack.Draw('hist E1')
-        data_hist.Draw('same E1')
-
-        axis_max = max(stack.maximum(), data_hist.maximum())
-
-        stack.GetYaxis().SetLimits(0, axis_max * 1.1)
-        stack.GetYaxis().SetRangeUser(0, axis_max * 1.1)
-        if xlabel is not None:
-            stack[0].SetXTitle(xlabel)
-
-    stack.SetMinimum(0)
-    stack.SetMaximum(axis_max * 1.1)
-    data_hist.SetMinimum(0)
-    data_hist.SetMaximum(axis_max * 1.1)
-    for f in data_hist.GetListOfFunctions():
-        f.SetMinimum(0)
-        f.SetMaximum(axis_max * 1.1)
-
-    legend.Draw()
-
-    if model_func is not None:
-        chi2 = model_func.GetChisquare()
-        ndf = model_func.GetNDF()
-        qcd_scale = model_func.GetParameter('QCD_scale')
-        qcd_scale_error = model_func.GetParError(0)
-        ztautau_scale = model_func.GetParameter('Ztautau_scale')
-        ztautau_scale_error = model_func.GetParError(1)
-        fit_stats1 = TLatex(.2, .8, '#frac{#chi^{2}}{dof} = %.3f' % (chi2 / ndf))
-        fit_stats2 = TLatex(.2, .6, 'QCD Scale = %.3f #pm %.3f' % (qcd_scale, qcd_scale_error))
-        fit_stats3 = TLatex(.2, .4, 'Ztautau Scale = %.3f #pm %.3f' % (ztautau_scale, ztautau_scale_error))
-        fit_stats1.Draw()
-        fit_stats2.Draw()
-        fit_stats3.Draw()
-        name += '_after'
-
-    c.Modified()
-    c.Update()
-    c.OwnMembers()
-    c.Draw()
-    for format in formats:
-        c.SaveAs(os.path.join(PLOTS_DIR, "%s.%s" % (name, format)))
-    """
-
 def qcd_ztautau_norm(
         year,
         ztautau,
@@ -245,8 +148,8 @@ def qcd_ztautau_norm(
 
     qcd_shape_region = qcd.shape_region
 
-    print "fitting scale factors for embedding: %s" % str(is_embedded)
-    print "fitting scale factors for %s category" % category
+    log.info("fitting scale factors for embedding: %s" % str(is_embedded))
+    log.info("fitting scale factors for %s category" % category)
 
     if param == 'BDT':
         xmin, xmax = .6, 1
@@ -279,14 +182,14 @@ def qcd_ztautau_norm(
     if is_embedded:
         output_name += '_embedding'
 
-    print "performing %d-dimensional fit using %s" % (ndim, expr)
-    print "using %d bins on each axis" % bins
+    log.info("performing %d-dimensional fit using %s" % (ndim, expr))
+    log.info("using %d bins on each axis" % bins)
 
     assert(ndim in (1, 2))
     control = mass_regions.control_region
     control &= cuts
 
-    print "fitting scale factors in control region: %s" % control
+    log.info("fitting scale factors in control region: %s" % control)
 
     if ndim == 1:
         hist = Hist(bins, min, max, name='fit_%s' % category)
@@ -340,10 +243,15 @@ def qcd_ztautau_norm(
 
     # initialize Ztautau to OS data - SS data
 
+    """
     ztautau_init_factor = (data_hist - data_hist_control).Integral() / ztautau_hist.Integral()
-    print ztautau_init_factor
+    log.debug(ztautau_init_factor)
     ztautau_hist *= ztautau_init_factor
     ztautau_hist_control *= ztautau_init_factor
+    """
+
+    log.debug(ztautau_hist.Integral())
+    log.debug(data_hist.Integral())
 
     if draw:
         if ndim == 1:
@@ -389,14 +297,14 @@ def qcd_ztautau_norm(
 
             self.ndim=ndim
             if ndim == 1:
-                self.func = TF1('model_%s' % category, self, 0, 1, 2)
+                self.func = TF1('model_%s' % category, self, 0, 10, 2)
             else:
-                self.func = TF2('model_%s' % category, self, 0, 1, 0, 1, 2)
+                self.func = TF2('model_%s' % category, self, 0, 10, 0, 10, 2)
 
             self.func.SetParName(0, 'QCD_scale')
             self.func.SetParName(1, 'Ztautau_scale')
             self.func.SetParameter(0, 1.)
-            self.func.SetParameter(1, 1.2)
+            self.func.SetParameter(1, 1.)
 
         def __call__(self, args, p):
 
@@ -418,8 +326,8 @@ def qcd_ztautau_norm(
     ztautau_scale_error = model_func.GetParError(1)
 
     # scale by ztautau_init
-    ztautau_scale *= ztautau_init_factor
-    ztautau_scale_error *= ztautau_init_factor
+    #ztautau_scale *= ztautau_init_factor
+    #ztautau_scale_error *= ztautau_init_factor
 
     #data_hist.GetFunction('model_%s' % category).Delete()
 
@@ -478,10 +386,10 @@ def qcd_ztautau_norm(
     overall_factor = data_hist_overall.Integral() / (qcd_hist_overall +
             ztautau_hist_overall * ztautau_scale + bkg_hist_overall).Integral()
 
-    print
-    print "data / model in this control region: %.3f" % factor
-    print "data / model overall: %.3f" % overall_factor
-    print
+    log.info("")
+    log.info("data / model in this control region: %.3f" % factor)
+    log.info("data / model overall: %.3f" % overall_factor)
+    log.info("")
 
     #qcd_scale *= factor
     #ztautau_scale *= factor

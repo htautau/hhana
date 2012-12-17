@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-import argparse
+import logging
+logging.captureWarnings(True) 
+
+from rootpy.extern import argparse
 from categories import CATEGORIES, CONTROLS, DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from variables import VARIABLES
 
@@ -14,7 +17,8 @@ parser = argparse.ArgumentParser(formatter_class=formatter_class)
 """
 General Options
 """
-parser.add_argument('--actions', nargs='*', choices=['plot', 'train'],
+parser.add_argument('--actions', nargs='*',
+        choices=['validate', 'plot', 'train'],
         default=[],
         help='only perform these actions')
 parser.add_argument('--no-systematics', action='store_false',
@@ -129,11 +133,30 @@ parser.add_argument('--output-formats', default=['png'], nargs='+',
 args = parser.parse_args()
 year = args.year
 
+# stdlib imports
+import pickle
+from pprint import pprint
+import os
+
+# rootpy imports
+import rootpy
+rootpy.log.basic_config_colorized()
+from rootpy.plotting import Hist
+from rootpy.io import open as ropen
+from rootpy.extern.tabulartext import PrettyTable
+
 # root imports
 import ROOT
 ROOT.gROOT.SetBatch(True)
 
+# numpy imports
+import numpy as np
+
+# matplotlib imports
+from matplotlib import pyplot as plt
+
 # local imports
+from logger import log
 from utils import *
 from samples import *
 import samples
@@ -144,100 +167,6 @@ from utils import *
 import variables
 from systematics import SYSTEMATICS
 from categories import MassRegions
-
-# stdlib imports
-import pickle
-import os
-from pprint import pprint
-
-# numpy imports
-import numpy as np
-
-# matplotlib imports
-from matplotlib import pyplot as plt
-
-# rootpy imports
-from rootpy.plotting import Hist
-from rootpy.io import open as ropen
-from rootpy.extern.tabulartext import PrettyTable
-
-
-def staged_score(self, X, y, sample_weight, n_estimators=-1):
-    """
-    calculate maximum signal significance
-    """
-    bins = 50
-    for p in self.staged_predict_proba(X, n_estimators=n_estimators):
-
-        scores = p[:,-1]
-
-        # weighted mean accuracy
-        y_pred = scores >= .5
-        acc = np.average((y_pred == y), weights=sample_weight)
-
-        min_score, max_score = scores.min(), scores.max()
-        b_hist = Hist(bins, min_score, max_score + 0.0001)
-        s_hist = b_hist.Clone()
-
-        scores_s, w_s = scores[y==1], sample_weight[y==1]
-        scores_b, w_b = scores[y==0], sample_weight[y==0]
-
-        # fill the histograms
-        s_hist.fill_array(scores_s, w_s)
-        b_hist.fill_array(scores_b, w_b)
-
-        # reverse cumsum
-        #bins = list(b_hist.xedges())[:-1]
-        s_counts = np.array(s_hist)
-        b_counts = np.array(b_hist)
-        S = s_counts[::-1].cumsum()[::-1]
-        B = b_counts[::-1].cumsum()[::-1]
-
-        # S / sqrt(S + B)
-        s_sig = np.divide(list(S), np.sqrt(list(S + B)))
-
-        #max_bin = np.argmax(np.ma.masked_invalid(significance)) #+ 1
-        #max_sig = significance[max_bin]
-        #max_cut = bins[max_bin]
-
-        s_sig_max = np.max(np.ma.masked_invalid(s_sig))
-        yield s_sig_max * acc
-
-
-def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
-
-    sys_hists = {}
-    for samp, scores_dict in scores_list:
-        for sys_term, (scores, weights) in scores_dict.items():
-            if sys_term == 'NOMINAL':
-                suffix = ''
-            else:
-                suffix = '_' + '_'.join(sys_term)
-            hist = hist_template.Clone(
-                    name=samp.name + ('_%d' % mass) + suffix)
-            hist.fill_array(scores, weights)
-            if sys_term not in sys_hists:
-                sys_hists[sys_term] = []
-            sys_hists[sys_term].append(hist)
-    f.cd()
-    for sys_term, hists in sys_hists.items():
-        bad_bins = []
-        if no_neg_bins:
-            # check for negative bins over all systematics and zero them out
-            # negative bins cause lots of problem in the limit setting
-            # negative bin contents effectively means
-            # the same as "no events here..."
-            total_hist = sum(hists)
-            for bin, content in enumerate(total_hist):
-                if content < 0:
-                    print "Found negative bin %d (%f) for systematic %s" % (
-                            bin, content, sys_term)
-                    bad_bins.append(bin)
-        for hist in hists:
-            for bin in bad_bins:
-                # zero out bad bins
-                hist[bin] = 0.
-            hist.Write()
 
 
 LIMITS_DIR = os.getenv('HIGGSTAUTAU_LIMITS_DIR')
@@ -311,25 +240,82 @@ for category, cat_info in categories_controls:
     if args.no_controls and category in args.controls:
         continue
 
-    print
-    print "=" * 40
+    log.info("")
+    log.info("=" * 40)
     if category in args.categories:
-        print "%s category" % category
+        log.info("%s category" % category)
     else:
-        print "%s control region" % category
-    print "=" * 40
-
-    print "Cuts: %s" % cat_info['cuts']
-
+        log.info("%s control region" % category)
+    log.info("=" * 40)
+    log.info("Cuts: %s" % cat_info['cuts'])
+    
     # QCD shape region SS or !OS
     qcd_shape_region = cat_info['qcd_shape_region']
     target_region = cat_info['target_region']
+    
+    figures[category] = {}
+
+    # data validation
+    if 'validate' in args.actions:
+        cuts = Cut(args.plot_cut)
+
+        for expr, var_info in VARIABLES.items():
+
+            if category in args.controls and 'GGF' not in var_info['cats']:
+                continue
+            elif category in args.categories and category.upper() not in var_info['cats']:
+                continue
+            elif args.plots and expr not in args.plots:
+                continue
+
+            log.info("")
+            log.info("plotting %s in %s category" % (expr, category))
+            log.info(cat_info['cuts'] & cuts)
+
+            bins = var_info['bins']
+            min, max = var_info['range']
+
+            if 'scale' in var_info:
+                expr = "%s * %f" % (expr, var_info['scale'])
+
+            data_hist = data.draw(
+                    expr,
+                    category, target_region,
+                    bins, min, max,
+                    cuts=cuts)
+
+            signal_hist = higgs_125.draw(
+                    expr,
+                    category, target_region,
+                    bins, min, max,
+                    cuts=cuts)
+
+            output_name = var_info['filename'] + output_suffix
+            if cuts:
+                output_name += '_' + cuts.safe()
+
+            fig = draw(
+                    data=data_hist,
+                    signal=signal_hist,
+                    name=var_info['root'] if args.root else var_info['title'],
+                    output_name=output_name + '_validate',
+                    category_name=cat_info['name'],
+                    category=category,
+                    units=var_info.get('units', None),
+                    range=var_info['range'],
+                    show_ratio=False,
+                    show_qq=False,
+                    plot_signal_significance=False,
+                    dir=PLOTS_DIR,
+                    systematics=None,
+                    root=args.root,
+                    output_formats=args.output_formats)
+            figures[category][expr] = fig
+        continue
 
     qcd = QCD(data=data, mc=[others, ztautau],
           shape_region=qcd_shape_region)
-
-    figures[category] = {}
-
+    
     qcd.scale = 1.
     ztautau.scale = 1.
 
@@ -373,9 +359,9 @@ for category, cat_info in categories_controls:
             elif args.plots and expr not in args.plots:
                 continue
 
-            print
-            print "plotting %s in %s category" % (expr, category)
-            print cat_info['cuts'] & cuts
+            log.info("")
+            log.info("plotting %s in %s category" % (expr, category))
+            log.info(cat_info['cuts'] & cuts)
 
             bins = var_info['bins']
             min, max = var_info['range']
@@ -415,11 +401,12 @@ for category, cat_info in categories_controls:
                     bins, min, max,
                     cuts=cuts)
 
-            print "Data events: %d" % sum(data_hist)
-            print "Model events: %f" % sum(sum(bkg_hists))
+            log.info("Data events: %d" % sum(data_hist))
+            log.info("Model events: %f" % sum(sum(bkg_hists)))
             for hist in bkg_hists:
-                print hist.GetTitle(), sum(hist)
-            print "Data / Model: %f" % (sum(data_hist) / sum(sum(bkg_hists)))
+                log.info(hist.GetTitle(), sum(hist))
+            log.info("Data / Model: %f" % (sum(data_hist) /
+                sum(sum(bkg_hists))))
 
             output_name = var_info['filename'] + output_suffix
             if cuts:
@@ -474,17 +461,15 @@ for category, cat_info in categories_controls:
                 and (category not in args.train_categories)
                 and os.path.isfile(clf_filename)):
             # use a previously trained classifier
-            print "using a previously trained classifier..."
+            log.info("using a previously trained classifier...")
             with open(clf_filename, 'r') as f:
                 clf = pickle.load(f)
-            print clf
+            log.info(clf)
         else:
-            print "training a new classifier..."
-            print "using these features:"
-            print
+            log.info("training a new classifier...")
+            log.info("using these features:")
             for branch in branches:
-                print branch
-            print
+                log.info(branch)
 
             if args.correlations:
                 branches = branches + ['mass_mmc_tau1_tau2']
@@ -522,11 +507,11 @@ for category, cat_info in categories_controls:
                     output_suffix=output_suffix)
                 continue
 
-            print
-            print "plotting input variables as they are given to the BDT"
+            log.info("")
+            log.info("plotting input variables as they are given to the BDT")
             # draw plots of the input variables
             for i, branch in enumerate(branches):
-                print "plotting %s ..." % branch
+                log.info("plotting %s ..." % branch)
                 branch_data = sample_train[:,i]
                 if 'scale' in variables.VARIABLES[branch]:
                     branch_data *= variables.VARIABLES[branch]['scale']
@@ -549,7 +534,7 @@ for category, cat_info in categories_controls:
                 plt.savefig('train_var_%s_%s%s.png' % (
                     category, branch, output_suffix))
 
-            print "plotting sample weights ..."
+            log.info("plotting sample weights ...")
             _min, _max = sample_weight_train.min(), sample_weight_train.max()
             plt.figure()
             plt.hist(sample_weight_train[labels_train==0],
@@ -590,13 +575,13 @@ for category, cat_info in categories_controls:
                         for branch in branches]
 
                 # Print the feature ranking
-                print "random forest feature ranking:"
+                log.info("random forest feature ranking:")
 
                 n_features = len(branches)
 
                 for i, idx in enumerate(indices):
-                    print "%d. %s (%f)" % (
-                            i + 1, branches[idx], importances[idx])
+                    log.info("%d. %s (%f)" % (
+                            i + 1, branches[idx], importances[idx]))
 
                 # plot the feature importances of the trees and of the forest
                 plt.figure()
@@ -650,24 +635,24 @@ for category, cat_info in categories_controls:
                         cv = StratifiedKFold(labels_train, args.nfold),
                         n_jobs=-1)
 
-                print
-                print "performing a grid search over these parameter values:"
+                log.info("")
+                log.info("performing a grid search over these parameter values:")
                 for param, values in grid_params.items():
-                    print param.split('__')[-1], values
-                    print '--'
-                print "Minimum number of classifiers: %d" % MIN_N_ESTIMATORS
-                print "Maximum number of classifiers: %d" % MAX_N_ESTIMATORS
-                print
-                print "training new classifiers ..."
+                    log.info(param.split('__')[-1], values)
+                    log.info('--')
+                log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
+                log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
+                log.info("")
+                log.info("training new classifiers ...")
                 grid_clf.fit(
                         sample_train, labels_train,
                         sample_weight=sample_weight_train)
                 clf = grid_clf.best_estimator_
                 grid_scores = grid_clf.grid_scores_
 
-                print "Best score: %f" % grid_clf.best_score_
-                print "Best Parameters:"
-                print grid_clf.best_params_
+                log.info("Best score: %f" % grid_clf.best_score_)
+                log.info("Best Parameters:")
+                log.info(grid_clf.best_params_)
 
                 # plot a grid of the scores
                 plot_grid_scores(
@@ -701,7 +686,7 @@ for category, cat_info in categories_controls:
                     print clf
                 """
             else:
-                print "training a new classifier ..."
+                log.info("training a new classifier ...")
 
                 if category == 'vbf':
                     min_samples_leaf=200
@@ -726,7 +711,7 @@ for category, cat_info in categories_controls:
         if hasattr(clf, 'feature_importances_'):
             importances = clf.feature_importances_
             indices = np.argsort(importances)[::-1]
-            print "Feature ranking:"
+            log.info("Feature ranking:")
             print r"\begin{tabular}{c|c|c}"
             table = PrettyTable(["Rank", "Variable", "Importance"])
             print r"\hline\hline"
@@ -746,7 +731,7 @@ for category, cat_info in categories_controls:
             continue
 
         # show the background model and 125 GeV signal over the full mass range
-        print "plotting classifier output over all mass..."
+        log.info("plotting classifier output over all mass...")
 
         # determine min and max scores
         min_score = 1.
@@ -798,8 +783,8 @@ for category, cat_info in categories_controls:
 
             sig_scores.append((sig, scores_dict))
 
-        print "minimum score: %f" % min_score
-        print "maximum score: %f" % max_score
+        log.info("minimum score: %f" % min_score)
+        log.info("maximum score: %f" % max_score)
 
         # prevent bin threshold effects
         min_score -= 0.00001
@@ -827,8 +812,8 @@ for category, cat_info in categories_controls:
             systematics=SYSTEMATICS if args.systematics else None)
 
         # show the background model and data in the control region
-        print "plotting classifier output in control region..."
-        print control_region
+        log.info("plotting classifier output in control region...")
+        log.info(control_region)
         # data scores
         data_scores, _ = data.scores(clf,
                 branches,
@@ -870,8 +855,8 @@ for category, cat_info in categories_controls:
 
             bkg_scores.append((bkg, scores_dict))
 
-        print "minimum score: %f" % min_score
-        print "maximum score: %f" % max_score
+        log.info("minimum score: %f" % min_score)
+        log.info("maximum score: %f" % max_score)
 
         # prevent bin threshold effects
         min_score -= 0.00001
@@ -899,8 +884,8 @@ for category, cat_info in categories_controls:
             systematics=SYSTEMATICS if args.systematics else None)
 
         # plot the signal region and save histograms for limit-setting
-        print "Plotting classifier output in signal region..."
-        print signal_region
+        log.info("Plotting classifier output in signal region...")
+        log.info(signal_region)
 
         if args.unblind:
             # data scores
@@ -930,7 +915,7 @@ for category, cat_info in categories_controls:
         f = ropen(os.path.join(LIMITS_DIR, root_filename), 'recreate')
 
         for mass in Higgs.MASS_POINTS:
-            print "%d GeV mass hypothesis" % mass
+            log.info("%d GeV mass hypothesis" % mass)
             # create separate signal. background and data histograms for each
             # mass hypothesis since the binning is optimized for each mass
             # individually.
@@ -966,8 +951,8 @@ for category, cat_info in categories_controls:
 
                 sig_scores.append((sig, scores_dict))
 
-            print "minimum signal score: %f" % min_score_signal
-            print "maximum signal score: %f" % max_score_signal
+            log.info("minimum signal score: %f" % min_score_signal)
+            log.info("maximum signal score: %f" % max_score_signal)
 
             # prevent bin threshold effects
             min_score_signal -= 0.00001
@@ -991,7 +976,7 @@ for category, cat_info in categories_controls:
                 systematics=SYSTEMATICS if args.systematics else None)
 
             if cat_info['limitbinning'] == 'variable':
-                print "variable-width bins"
+                log.info("variable-width bins")
                 # determine location that maximizes signal significance
                 bkg_hist = Hist(100, min_score_signal, max_score_signal)
                 sig_hist = bkg_hist.Clone()
@@ -1006,8 +991,8 @@ for category, cat_info in categories_controls:
 
                 # determine maximum significance
                 sig, max_sig, max_cut = significance(sig_hist, bkg_hist, min_bkg=1)
-                print "maximum signal significance of %f at score > %f" % (
-                        max_sig, max_cut)
+                log.info("maximum signal significance of %f at score > %f" % (
+                        max_sig, max_cut))
 
                 # determine N bins below max_cut or N+1 bins over the whole signal
                 # score range such that the background is flat
@@ -1038,7 +1023,7 @@ for category, cat_info in categories_controls:
 
                 hist_template = Hist(flat_bins)
             else:
-                print "constant-width bins"
+                log.info("constant-width bins")
                 hist_template = Hist(cat_info['limitbins'],
                         min_score_signal, max_score_signal)
 
@@ -1058,7 +1043,7 @@ for category, cat_info in categories_controls:
         f.close()
 
 # save all variable plots in one large multipage pdf
-if 'plot' in args.actions and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
+if figures and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
     # only create multipage pdf of all plots if we created all plots
     from matplotlib.backends.backend_pdf import PdfPages
     import datetime

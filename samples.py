@@ -23,10 +23,10 @@ from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.io import open as ropen
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
-from rootpy import root2array as r2a
 from rootpy.math.stats.correlation import correlation_plot
 
 # local imports
+from logger import log; log = log[__name__]
 import categories
 import variables
 import systematics
@@ -41,7 +41,7 @@ if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
 NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
 DEFAULT_STUDENT = 'HHProcessor'
-TAUTAUHADHADBR = 0.4197744 # (1. - 0.3521) ** 2
+TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
@@ -62,7 +62,7 @@ def get_file(student, hdf=False, suffix=''):
     if filename in FILES:
         return FILES[filename]
     file_path = os.path.join(NTUPLE_PATH, student + suffix, filename)
-    print "opening %s ..." % file_path
+    log.info("opening %s ..." % file_path)
     if hdf:
         student_file = tables.openFile(file_path)
     else:
@@ -132,14 +132,11 @@ class Sample(object):
         # effic high and low already accounted for in TAUBDT_UP/DOWN
         'tau1_efficiency_scale_factor',
         'tau2_efficiency_scale_factor',
-        #'tau1_fakerate_scale_factor',
-        #'tau2_fakerate_scale_factor',
-        #'tau1_trigger_scale_factor', leave out trigger SF in 2012 until fixed
-        #'tau2_trigger_scale_factor',
     ]
 
-    WEIGHT_SYSTEMATICS = {
-        'TRIGGER': {
+    WEIGHT_SYSTEMATICS = {}
+    """
+            'TRIGGER': {
             'UP': [
                 'tau1_trigger_scale_factor_high',
                 'tau2_trigger_scale_factor_high'],
@@ -160,6 +157,7 @@ class Sample(object):
             	'tau1_fakerate_scale_factor',
                 'tau2_fakerate_scale_factor']},
     }
+    """
 
     EMBEDDING_SYSTEMATICS = {
         'ISOL': { # MUON ISOLATION
@@ -504,7 +502,8 @@ class MC(Sample):
                         for term in unused_terms:
                             if set(term) & set(sys_term):
                                 if len(sys_term) < len(term):
-                                    print "merging %s and %s" % (term, sys_term)
+                                    log.info("merging %s and %s" % (
+                                        term, sys_term))
                                     sys_term = term
                                 break
 
@@ -519,7 +518,7 @@ class MC(Sample):
                 if systematics_samples:
                     for sample_name, sys_term in systematics_samples.items():
 
-                        print "%s -> %s %s" % (name, sample_name, sys_term)
+                        log.info("%s -> %s %s" % (name, sample_name, sys_term))
 
                         sys_term = tuple(sys_term.split(','))
                         sys_ds = self.db[sample_name]
@@ -534,8 +533,8 @@ class MC(Sample):
                         unused_terms.remove(sys_term)
 
                 if unused_terms:
-                    #print "UNUSED TERMS for %s:" % self.name
-                    #print unused_terms
+                    log.debug("UNUSED TERMS for %s:" % self.name)
+                    log.debug(unused_terms)
 
                     for term in unused_terms:
                         trees[term] = None # flag to use NOMINAL
@@ -547,7 +546,8 @@ class MC(Sample):
                 xs, _ = yellowhiggs.xsbr(
                         self.energy, self.masses[i],
                         Higgs.MODES_DICT[self.modes[i]][0], 'tautau')
-                #print name, self.masses[i], self.modes[i], xs
+                log.debug("{0} {1} {2} {3}".format(
+                    name, self.masses[i], self.modes[i], xs))
                 xs *= TAUTAUHADHADBR
                 kfact = 1.
                 effic = 1.
@@ -555,8 +555,7 @@ class MC(Sample):
                 xs, kfact, effic = 1., 1., 1.
             else:
                 xs, kfact, effic = ds.xsec_kfact_effic
-            #if VERBOSE:
-            #print ds.name, xs, kfact, effic
+            log.debug("{0} {1} {2} {3}".format(ds.name, xs, kfact, effic))
             self.datasets.append(
                     (ds, trees, tables, weighted_events, xs, kfact, effic))
 
@@ -591,16 +590,13 @@ class MC(Sample):
             nominal_weight = (LUMI[self.year] * self.scale *
                     xs * kfact * effic / nominal_events)
 
-            #print nominal_tree.GetEntries(selection), nominal_weight, nominal_tree.GetWeight()
-
             nominal_weighted_selection = (
                 '%f * %s * (%s)' %
                 (nominal_weight,
                  ' * '.join(self.get_weight_branches('NOMINAL')),
                  selection))
 
-            if VERBOSE:
-                print nominal_weighted_selection
+            log.debug(nominal_weighted_selection)
 
             current_hist = hist.Clone()
             current_hist.Reset()
@@ -762,10 +758,12 @@ class MC(Sample):
             weight = scale * LUMI[self.year] * xs * kfact * effic / events
 
             selected_tree = asrootpy(tree.CopyTree(selection))
-            #print selected_tree.GetEntries(), weight
+            log.debug("{0} {1}".format(selected_tree.GetEntries(), weight))
             selected_tree.SetWeight(weight)
             selected_tree.userdata.weight_branches = weight_branches
-            #print self.name, selected_tree.GetEntries(), selected_tree.GetWeight()
+            log.debug("{0} {1} {2}".format(
+                self.name, selected_tree.GetEntries(),
+                selected_tree.GetWeight()))
             trees.append(selected_tree)
         return trees
 
@@ -985,6 +983,8 @@ class QCD(Sample):
                  cuts=None,
                  color='#59d454'):
 
+        assert len(mc) > 0
+        assert data.year == mc[0].year
         super(QCD, self).__init__(year=data.year, scale=scale, color=color)
         self.data = data
         self.mc = mc

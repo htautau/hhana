@@ -1,6 +1,12 @@
 #!/usr/bin/env python
-import cPickle as pickle
+from logger import log
 import os
+import cPickle as pickle
+
+if __name__ == '__main__':
+    log = log[os.path.splitext(os.path.basename(__file__))[0]]
+else:
+    log = log[__name__]
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,7 +21,7 @@ def read_scales(name='background_scales.cache'):
     global SCALES
 
     SCALES_FILE = os.path.join(HERE, name)
-    print "reading background scale factors from %s" % SCALES_FILE
+    log.info("reading background scale factors from %s" % SCALES_FILE)
 
     if os.path.isfile(SCALES_FILE):
         with open(SCALES_FILE) as cache:
@@ -31,14 +37,14 @@ def get_scales(year, category, embedded, param, verbose=True):
         qcd_scale, qcd_scale_error, \
         ztautau_scale, ztautau_scale_error = SCALES[year][category][embedded][param]
         if verbose:
-            print "background normalization for year %d" % year
-            print "using the embedding scale factors: %s" % str(embedded)
-            print "scale factors for %s category" % category
-            print "fits were derived via %s parameters" % param
-            print "    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error)
-            print "    ztautau scale: %.3f +/- %.4f" % (
-                    ztautau_scale, ztautau_scale_error)
-            print
+            log.info("background normalization for year %d" % year)
+            log.info("using the embedding scale factors: %s" % str(embedded))
+            log.info("scale factors for %s category" % category)
+            log.info("fits were derived via %s parameters" % param)
+            log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
+                qcd_scale_error))
+            log.info("    ztautau scale: %.3f +/- %.4f" % (
+                    ztautau_scale, ztautau_scale_error))
         return qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error
     else:
         return None
@@ -62,25 +68,24 @@ def set_scales(year, category, embedded, param,
     year %= 1E3
     param = param.upper()
     category = category.upper()
-    print "background normalization for year %d" % year
-    print "setting the embedding scale factors: %s" % str(embedded)
-    print "setting scale factors for %s category" % category
-    print "fits were derived via %s parameters" % param
-    print "    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error)
-    print "    ztautau scale: %.3f +/- %.4f" % (ztautau_scale, ztautau_scale_error)
-    print
+    log.info("background normalization for year %d" % year)
+    log.info("setting the embedding scale factors: %s" % str(embedded))
+    log.info("setting scale factors for %s category" % category)
+    log.info("fits were derived via %s parameters" % param)
+    log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
+    log.info("    ztautau scale: %.3f +/- %.4f" % (ztautau_scale,
+        ztautau_scale_error))
     if has_category(year, category, embedded, param):
         qcd_scale_old, qcd_scale_error_old, \
         ztautau_scale_old, ztautau_scale_error_old = get_scales(
                 year, category, embedded, param, verbose=False)
-        print "scale factors were previously:"
-        print "    qcd scale: %.3f +/- %.4f" % (
+        log.info("scale factors were previously:")
+        log.info("    qcd scale: %.3f +/- %.4f" % (
                 qcd_scale_old,
-                qcd_scale_error_old)
-        print "    ztautau scale: %.3f +/- %.4f" % (
+                qcd_scale_error_old))
+        log.info("    ztautau scale: %.3f +/- %.4f" % (
                 ztautau_scale_old,
-                ztautau_scale_error_old)
-        print
+                ztautau_scale_error_old))
     if year not in SCALES:
         SCALES[year] = {}
     if category not in SCALES:
@@ -121,12 +126,13 @@ if __name__ == '__main__':
                         qcd_norms[param] = []
                     z_norms[param].append((ztautau_scale, ztautau_scale_error))
                     qcd_norms[param].append((qcd_scale, qcd_scale_error))
-                    print "scale factors for embedding: %s" % str(embedding)
-                    print "scale factors for %s category" % category
-                    print "fits were derived via %s parameters" % param
-                    print "    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error)
-                    print "    ztautau scale: %.3f +/- %.4f" % (ztautau_scale, ztautau_scale_error)
-                    print
+                    log.info("scale factors for embedding: %s" % str(embedding))
+                    log.info("scale factors for %s category" % category)
+                    log.info("fits were derived via %s parameters" % param)
+                    log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
+                        qcd_scale_error))
+                    log.info("    ztautau scale: %.3f +/- %.4f" %
+                        (ztautau_scale, ztautau_scale_error))
     if args.plot:
         from matplotlib import pyplot as plt
 

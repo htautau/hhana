@@ -57,6 +57,7 @@ CATEGORIES = {
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
+            # !!! mass ditau + leading jet?
             'dEta_jets',
             #'dEta_jets_boosted', #
             'eta_product_jets',
@@ -81,6 +82,7 @@ CATEGORIES = {
             'MET_centrality',
             'mmc_resonance_pt',
             #'sum_pt', #
+            # !!! eta centrality of 3rd jet
         ]
     },
     'boosted': {
@@ -95,6 +97,7 @@ CATEGORIES = {
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
+            # !!! mass ditau + leading jet?
             'sphericity',
             #'sphericity_boosted',
             #'sphericity_full',

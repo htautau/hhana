@@ -1,3 +1,5 @@
+from logger import log; log = log[__name__]
+
 import numpy as np
 # for reproducibilty
 # especially for test/train set selection
@@ -212,11 +214,11 @@ def plot_clf(
         data_hist = hist_template.Clone(title=data.label)
         data_hist.decorate(**data.hist_decor)
         data_hist.fill_array(data_scores)
-        print "Data events: %d" % sum(data_hist)
-        print "Model events: %f" % sum(sum(bkg_hists))
+        log.info("Data events: %d" % sum(data_hist))
+        log.info("Model events: %f" % sum(sum(bkg_hists)))
         for hist in bkg_hists:
-            print hist.GetTitle(), sum(hist)
-        print "Data / Model: %f" % (sum(data_hist) / sum(sum(bkg_hists)))
+            log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+        log.info("Data / Model: %f" % (sum(data_hist) / sum(sum(bkg_hists))))
     else:
         data_hist = None
 
@@ -387,17 +389,17 @@ def make_classification(
         signal_weight_test *= (
             background_weight_test.sum() / signal_weight_test.sum())
 
-    print "Training Samples:"
-    print "Signal: %d events, %s features" % signal_train.shape
-    print "Sum(signal weights): %f" % signal_weight_train.sum()
-    print "Background: %d events, %s features" % background_train.shape
-    print "Sum(background weight): %f" % background_weight_train.sum()
-    print
-    print "Test Samples:"
-    print "Signal: %d events, %s features" % signal_test.shape
-    print "Sum(signal weights): %f" % signal_weight_test.sum()
-    print "Background: %d events, %s features" % background_test.shape
-    print "Sum(background weight): %f" % background_weight_test.sum()
+    log.info("Training Samples:")
+    log.info("Signal: %d events, %s features" % signal_train.shape)
+    log.info("Sum(signal weights): %f" % signal_weight_train.sum())
+    log.info("Background: %d events, %s features" % background_train.shape)
+    log.info("Sum(background weight): %f" % background_weight_train.sum())
+    log.info("")
+    log.info("Test Samples:")
+    log.info("Signal: %d events, %s features" % signal_test.shape)
+    log.info("Sum(signal weights): %f" % signal_weight_test.sum())
+    log.info("Background: %d events, %s features" % background_test.shape)
+    log.info("Sum(background weight): %f" % background_weight_test.sum())
 
     # create training/testing samples
     sample_train = np.concatenate((background_train, signal_train))
@@ -426,3 +428,82 @@ def make_classification(
     return sample_train, sample_test,\
         sample_weight_train, sample_weight_test,\
         labels_train, labels_test
+
+
+def staged_score(self, X, y, sample_weight, n_estimators=-1):
+    """
+    calculate maximum signal significance
+    """
+    bins = 50
+    for p in self.staged_predict_proba(X, n_estimators=n_estimators):
+
+        scores = p[:,-1]
+
+        # weighted mean accuracy
+        y_pred = scores >= .5
+        acc = np.average((y_pred == y), weights=sample_weight)
+
+        min_score, max_score = scores.min(), scores.max()
+        b_hist = Hist(bins, min_score, max_score + 0.0001)
+        s_hist = b_hist.Clone()
+
+        scores_s, w_s = scores[y==1], sample_weight[y==1]
+        scores_b, w_b = scores[y==0], sample_weight[y==0]
+
+        # fill the histograms
+        s_hist.fill_array(scores_s, w_s)
+        b_hist.fill_array(scores_b, w_b)
+
+        # reverse cumsum
+        #bins = list(b_hist.xedges())[:-1]
+        s_counts = np.array(s_hist)
+        b_counts = np.array(b_hist)
+        S = s_counts[::-1].cumsum()[::-1]
+        B = b_counts[::-1].cumsum()[::-1]
+
+        # S / sqrt(S + B)
+        s_sig = np.divide(list(S), np.sqrt(list(S + B)))
+
+        #max_bin = np.argmax(np.ma.masked_invalid(significance)) #+ 1
+        #max_sig = significance[max_bin]
+        #max_cut = bins[max_bin]
+
+        s_sig_max = np.max(np.ma.masked_invalid(s_sig))
+        yield s_sig_max * acc
+
+
+def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
+
+    sys_hists = {}
+    for samp, scores_dict in scores_list:
+        for sys_term, (scores, weights) in scores_dict.items():
+            if sys_term == 'NOMINAL':
+                suffix = ''
+            else:
+                suffix = '_' + '_'.join(sys_term)
+            hist = hist_template.Clone(
+                    name=samp.name + ('_%d' % mass) + suffix)
+            hist.fill_array(scores, weights)
+            if sys_term not in sys_hists:
+                sys_hists[sys_term] = []
+            sys_hists[sys_term].append(hist)
+    f.cd()
+    for sys_term, hists in sys_hists.items():
+        bad_bins = []
+        if no_neg_bins:
+            # check for negative bins over all systematics and zero them out
+            # negative bins cause lots of problem in the limit setting
+            # negative bin contents effectively means
+            # the same as "no events here..."
+            total_hist = sum(hists)
+            for bin, content in enumerate(total_hist):
+                if content < 0:
+                    log.warning("Found negative bin %d (%f) for systematic %s" % (
+                            bin, content, sys_term))
+                    bad_bins.append(bin)
+        for hist in hists:
+            for bin in bad_bins:
+                # zero out bad bins
+                hist[bin] = 0.
+            hist.Write()
+
