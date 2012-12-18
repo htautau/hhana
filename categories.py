@@ -22,6 +22,8 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
 # low cut fixes mass, high cut removes QCD
 #DR_FIX = Cut('1.0 < dR_tau1_tau2 < 3.2')
 DR_CUT = Cut('dR_tau1_tau2 < 3.2')
+DETA_CUT = Cut('fabs(tau1_eta - tau2_eta) < 1.5')
+SAME_VERTEX = Cut('tau_same_vertex')
 BAD_MASS = 80
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
@@ -34,7 +36,10 @@ MET = Cut('MET > 20000')
 LEAD_TAU_35 = Cut('tau1_pt > 35000')
 SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
-COMMON_CUTS = LEAD_TAU_35 & SUBLEAD_TAU_25 & MET & MASS_FIX & DR_CUT
+COMMON_CUTS = (
+        LEAD_TAU_35 & SUBLEAD_TAU_25 &
+        MET & MASS_FIX & DR_CUT & DETA_CUT &
+        SAME_VERTEX)
 
 LEAD_JET_50 = Cut('jet1_pt > 50000')
 SUBLEAD_JET_30 = Cut('jet2_pt > 30000')
