@@ -146,6 +146,8 @@ def qcd_ztautau_norm(
         ztautau.scale_error = ztautau_scale_error
         return
 
+    assert ROOT.TH1.GetDefaultSumw2() == True
+
     qcd_shape_region = qcd.shape_region
 
     log.info("fitting scale factors for embedding: %s" % str(is_embedded))
@@ -162,7 +164,7 @@ def qcd_ztautau_norm(
     elif param == 'TRACK':
         xmin, xmax = 1, 6
         ymin, ymax = 1, 6
-        bins = 5 # ignore bins args above
+        bins = ymax - ymin # ignore bins args above
         expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
         xlabel = '#tau_{1} Number of Tracks'
         ylabel = '#tau_{2} Number of Tracks'
@@ -170,7 +172,7 @@ def qcd_ztautau_norm(
         ndim = 2
     elif param == 'TRACK1D':
         min, max = 1, 6
-        bins = 5 # ignore bins args above
+        bins = max - min # ignore bins args above
         expr = 'tau1_ntrack_full'
         xlabel = '#tau_{1} Number of Tracks'
         name = 'Number of Tracks Grid'
@@ -318,7 +320,7 @@ def qcd_ztautau_norm(
     model = Model(ndim=ndim)
     model_func = model.func
     model_func.SetLineWidth(0)
-    fit_result = data_hist.Fit(model_func, 'WL')
+    fit_result = data_hist.Fit(model_func, 'WLMN')
 
     ztautau_hist /= ztautau_init_factor
     ztautau_hist_control /= ztautau_init_factor
