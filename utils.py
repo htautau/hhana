@@ -325,6 +325,7 @@ def draw(name,
                     else model,
                     linewidth=0,
                     stacked=True,
+                    yerr='quadratic' if not systematics else False,
                     axes=hist_ax,
                     ypadding=ypadding)
 

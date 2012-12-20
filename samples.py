@@ -128,15 +128,14 @@ class Sample(object):
     WEIGHT_BRANCHES = [
         'mc_weight',
         'pileup_weight',
-        'ggf_weight', # <= affects limits a lot!
+        'ggf_weight',
         # effic high and low already accounted for in TAUBDT_UP/DOWN
         'tau1_efficiency_scale_factor',
         'tau2_efficiency_scale_factor',
     ]
 
-    WEIGHT_SYSTEMATICS = {}
-    """
-            'TRIGGER': {
+    WEIGHT_SYSTEMATICS = {
+        'TRIGGER': {
             'UP': [
                 'tau1_trigger_scale_factor_high',
                 'tau2_trigger_scale_factor_high'],
@@ -157,13 +156,12 @@ class Sample(object):
             	'tau1_fakerate_scale_factor',
                 'tau2_fakerate_scale_factor']},
     }
-    """
 
     EMBEDDING_SYSTEMATICS = {
         'ISOL': { # MUON ISOLATION
-            'UP': ['(embedding_isolation == 2)',],
-            'DOWN': ['1',],
-            'NOMINAL': ['(embedding_isolation >= 1)'],
+            'UP': Cut('(embedding_isolation == 2)'),
+            'DOWN': Cut(),
+            'NOMINAL': Cut('(embedding_isolation >= 1)'),
         }
     }
 
@@ -189,15 +187,16 @@ class Sample(object):
         #else:
         self.hist_decor['fillstyle'] = 'solid'
 
-    def check_systematic(self, systematic):
+    @classmethod
+    def check_systematic(cls, systematic):
 
-        if systematic != 'NOMINAL' and isinstance(self, Data):
+        if systematic != 'NOMINAL' and issubclass(cls, Data):
             raise TypeError('Do not apply systematics on data!')
 
-    def get_weight_branches(self, systematic):
+    @classmethod
+    def get_sys_term_variation(cls, systematic):
 
-        self.check_systematic(systematic)
-        weight_branches = Sample.WEIGHT_BRANCHES[:]
+        Sample.check_systematic(systematic)
         if systematic == 'NOMINAL':
             systerm = None
             variation = 'NOMINAL'
@@ -207,17 +206,25 @@ class Sample(object):
             variation = 'NOMINAL'
         else:
             systerm, variation = systematic[0].split('_')
+        return systerm, variation
+
+    def get_weight_branches(self, systematic, no_cuts=False):
+
+        systerm, variation = Sample.get_sys_term_variation(systematic)
+        weight_branches = Sample.WEIGHT_BRANCHES[:]
         for term, variations in Sample.WEIGHT_SYSTEMATICS.items():
             if term == systerm:
                 weight_branches += variations[variation]
             else:
                 weight_branches += variations['NOMINAL']
-        if isinstance(self, Embedded_Ztautau):
+        if not no_cuts and isinstance(self, Embedded_Ztautau):
             for term, variations in Sample.EMBEDDING_SYSTEMATICS.items():
                 if term == systerm:
-                    weight_branches += variations[variation]
+                    if variations[variation]:
+                        weight_branches.append(variations[variation])
                 else:
-                    weight_branches += variations['NOMINAL']
+                    if variations['NOMINAL']:
+                        weight_branches.append(variations['NOMINAL'])
         return weight_branches
 
     def iter_weight_branches(self):
@@ -236,16 +243,26 @@ class Sample(object):
                     term = ('%s_%s' % (type, variation),)
                     yield self.get_weight_branches(term), term
 
-    def cuts(self, category, region):
+    def cuts(self, category, region, systematic=None):
+
+        sys_cut = Cut()
+        if systematic is not None:
+            systerm, variation = Sample.get_sys_term_variation(systematic)
+            if isinstance(self, Embedded_Ztautau):
+                for term, variations in Sample.EMBEDDING_SYSTEMATICS.items():
+                    if term == systerm:
+                        sys_cut &= variations[variation]
+                    else:
+                        sys_cut &= variations['NOMINAL']
 
         if category in categories.CATEGORIES:
             return (categories.CATEGORIES[category]['cuts'] &
                     categories.CATEGORIES[category]['year_cuts'][self.year] &
-                    Sample.REGIONS[region] & self._cuts)
+                    Sample.REGIONS[region] & self._cuts & sys_cut)
         elif category in categories.CONTROLS:
             return (categories.CONTROLS[category]['cuts'] &
                     categories.CONTROLS[category]['year_cuts'][self.year] &
-                    Sample.REGIONS[region] & self._cuts)
+                    Sample.REGIONS[region] & self._cuts & sys_cut)
         else:
             raise ValueError(
                     'no such category or control region: %s' % category)
@@ -260,7 +277,7 @@ class Sample(object):
         """
         Return recarray for training and for testing
         """
-        self.check_systematic(systematic)
+        Sample.check_systematic(systematic)
         assert 0 < train_fraction < 1, "Train fraction must be between 0 and 1"
         arrays = self.tables(
                 branches,
@@ -292,7 +309,7 @@ class Sample(object):
                  cuts=None,
                  systematic='NOMINAL'):
 
-        self.check_systematic(systematic)
+        Sample.check_systematic(systematic)
         arrays = self.tables(
                 branches,
                 category,
@@ -369,7 +386,7 @@ class Data(Sample):
               cuts=None,
               systematic='NOMINAL'):
 
-        self.check_systematic(systematic)
+        Sample.check_systematic(systematic)
         TEMPFILE.cd()
         tree = asrootpy(self.data.CopyTree(self.cuts(category, region) & cuts))
         tree.userdata.weight_branches = []
@@ -383,7 +400,7 @@ class Data(Sample):
               include_weight=True,
               systematic='NOMINAL'):
 
-        self.check_systematic(systematic)
+        Sample.check_systematic(systematic)
         selection = self.cuts(category, region) & cuts
         # read the table with a selection
         table = self.h5data.readWhere(selection.where())
@@ -411,11 +428,11 @@ class Background:
 class MC(Sample):
 
     SYSTEMATICS = [
-        ('TAUBDT_UP',),
-        ('TAUBDT_DOWN',),
-        ('JES_UP', 'TES_UP'),
-        ('JES_DOWN','TES_DOWN'),
-        ('JER_UP',),
+        #('TAUBDT_UP',),
+        #('TAUBDT_DOWN',),
+        #('JES_UP', 'TES_UP'),
+        #('JES_DOWN','TES_DOWN'),
+        #('JER_UP',),
         ('MFS_UP',),
         ('MFS_DOWN',),
         ('ISOL_UP',),
@@ -493,7 +510,7 @@ class MC(Sample):
 
                 unused_terms = MC.SYSTEMATICS[:]
 
-                if systematics_terms:
+                if False and systematics_terms:
                     for sys_term in systematics_terms:
 
                         # merge terms such as JES_UP,TES_UP (embedding)
@@ -584,6 +601,8 @@ class MC(Sample):
 
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
+            log.debug(ds)
+
             nominal_tree = sys_trees['NOMINAL']
             nominal_events = sys_events['NOMINAL']
 
@@ -636,6 +655,8 @@ class MC(Sample):
                          ' * '.join(self.get_weight_branches('NOMINAL')),
                          selection))
 
+                    log.debug(sys_weighted_selection)
+
                     for expr in exprs:
                         sys_tree.Draw(expr, sys_weighted_selection, hist=sys_hist)
 
@@ -655,6 +676,8 @@ class MC(Sample):
                     (nominal_weight,
                      ' * '.join(weight_branches),
                      selection))
+
+                log.debug(weighted_selection)
 
                 for expr in exprs:
                     nominal_tree.Draw(expr, weighted_selection, hist=sys_hist)
@@ -773,8 +796,8 @@ class MC(Sample):
         This is where all the magic happens...
         """
         TEMPFILE.cd()
-        selection = self.cuts(category, region) & cuts
-        weight_branches = self.get_weight_branches(systematic)
+        selection = self.cuts(category, region, systematic) & cuts
+        weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in MC.SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
         if include_weight:
@@ -802,8 +825,10 @@ class MC(Sample):
                     scale = self.scale - self.scale_error
             weight = scale * LUMI[self.year] * xs * kfact * effic / events
 
+            table_selection = selection.where()
+            log.debug(table_selection)
             # read the table with a selection
-            table = table.readWhere(selection.where())
+            table = table.readWhere(table_selection)
             # add weight field
             if include_weight:
                 weights = np.ones(table.shape[0], dtype='f4') * weight

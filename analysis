@@ -550,7 +550,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 clf = AdaBoostClassifier(
                         DecisionTreeClassifier(),
                         compute_importances=True,
-                        learn_rate=.5)
+                        learning_rate=.5)
 
                 grid_clf = BoostGridSearchCV(
                         clf, grid_params,
@@ -564,7 +564,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 log.info("")
                 log.info("performing a grid search over these parameter values:")
                 for param, values in grid_params.items():
-                    log.info(param.split('__')[-1], values)
+                    log.info('{0} {1}'.format(param.split('__')[-1], values))
                     log.info('--')
                 log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
                 log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
@@ -625,7 +625,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                     DecisionTreeClassifier(
                         min_samples_leaf=min_samples_leaf),
                     compute_importances=True,
-                    learn_rate=.5,
+                    learning_rate=.5,
                     n_estimators=n_estimators)
 
                 clf.fit(sample_train, labels_train,
