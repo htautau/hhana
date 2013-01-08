@@ -187,6 +187,34 @@ class Sample(object):
         #else:
         self.hist_decor['fillstyle'] = 'solid'
 
+    def split(self,
+              fields,
+              category,
+              region,
+              cuts=None,
+              systematic='NOMINAL'):
+
+        if 'weight' not in fields:
+            fields = fields + ['weight']
+
+        # split using parity of EventNumber
+        left_arrays = self.tables(
+                category,
+                region,
+                fields=fields,
+                include_weight=True,
+                cuts=Cut('EventNumber%2==0') & cuts, # even events
+                systematic=systematic)
+        right_arrays = self.tables(
+                category,
+                region,
+                fields=fields,
+                include_weight=True,
+                cuts=Cut('EventNumber%2==1') & cuts, # odd events
+                systematic=systematic)
+
+        return np.hstack(left_arrays), np.hstack(right_arrays)
+
     @classmethod
     def check_systematic(cls, systematic):
 
@@ -267,58 +295,6 @@ class Sample(object):
             raise ValueError(
                     'no such category or control region: %s' % category)
 
-    def train_test(self,
-                   branches,
-                   category,
-                   region,
-                   train_fraction,
-                   cuts=None,
-                   systematic='NOMINAL'):
-        """
-        Return recarray for training and for testing
-        """
-        Sample.check_systematic(systematic)
-        assert 0 < train_fraction < 1, "Train fraction must be between 0 and 1"
-        arrays = self.tables(
-                branches,
-                category,
-                region,
-                include_weight=True,
-                cuts=cuts,
-                systematic=systematic)
-        test_arrs = []
-        train_arrs = []
-        for arr in arrays:
-            # split into test and train samples
-            split_idx = int(train_fraction * arr.shape[0])
-            arr_train, arr_test = arr[:split_idx], arr[split_idx:]
-            test_arrs.append(arr_test)
-            train_arrs.append(arr_train)
-        arr_train = np.concatenate(train_arrs)
-        arr_test = np.concatenate(test_arrs)
-        # scale the weights to account for train_fraction
-        arr_train['weight'] *= (1. / train_fraction)
-        arr_test['weight'] *= (1. / (1. - train_fraction))
-        return arr_train, arr_test
-
-    def recarray(self,
-                 branches,
-                 category,
-                 region,
-                 include_weight=True,
-                 cuts=None,
-                 systematic='NOMINAL'):
-
-        Sample.check_systematic(systematic)
-        arrays = self.tables(
-                branches,
-                category,
-                region,
-                include_weight=include_weight,
-                cuts=cuts,
-                systematic=systematic)
-        return np.concatenate(arrays)
-
     def draw(self, expr, category, region, bins, min, max, cuts=None):
 
         hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
@@ -355,30 +331,11 @@ class Data(Sample):
 
         self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
 
-    def scores(self, clf, branches, train_fraction,
-            category, region, cuts=None):
+    def scores(self, clf, region, cuts=None):
 
-        if region == 'OS':
-            # target region. Not trained on, so use all of it
-            data_recarray = self.recarray(
-                    branches=branches,
-                    category=category,
+        return clf.classify(self,
                     region=region,
-                    include_weight=True,
-                    cuts=cuts,
-                    systematic='NOMINAL')
-        else:
-            # ignore training sample
-            _, data_recarray = self.train_test(
-                    branches=branches,
-                    category=category,
-                    region=region,
-                    train_fraction=train_fraction,
                     cuts=cuts)
-        data_weights = data_recarray['weight']
-        data_sample = np.vstack(data_recarray[branch] for branch in branches).T
-        data_scores = clf.predict_proba(data_sample)[:,-1]
-        return data_scores, data_weights
 
     def trees(self,
               category,
@@ -393,9 +350,9 @@ class Data(Sample):
         return [tree]
 
     def tables(self,
-              branches,
               category,
               region,
+              fields=None,
               cuts=None,
               include_weight=True,
               systematic='NOMINAL'):
@@ -408,12 +365,12 @@ class Data(Sample):
         if include_weight:
             # data is not weighted
             weights = np.ones(table.shape[0], dtype='f4')
-            table = recfunctions.rec_append_fields(table, names='weight',
+            table = recfunctions.rec_append_fields(table,
+                    names='weight',
                     data=weights,
                     dtypes='f4')
-            branches = branches + ['weight']
-        # drop all branches except branches (+ weight)
-        table = table[branches]
+        if fields is not None:
+            table = table[fields]
         return [table]
 
 
@@ -715,8 +672,7 @@ class MC(Sample):
         # set the systematics
         hist.systematics = sys_hists
 
-    def scores(self, clf, branches, train_fraction,
-            category, region, cuts=None, scores_dict=None):
+    def scores(self, clf, region, cuts=None, scores_dict=None):
 
         if scores_dict is None:
             scores_dict = {}
@@ -726,17 +682,10 @@ class MC(Sample):
             if not self.systematics and systematic != 'NOMINAL':
                 continue
 
-            arr_train, arr_test = self.train_test(
-                    branches=branches,
-                    category=category,
+            scores, weights = clf.classify(self,
                     region=region,
-                    train_fraction=train_fraction,
                     cuts=cuts,
                     systematic=systematic)
-
-            sample = np.vstack(arr_test[branch] for branch in branches).T
-            scores = clf.predict_proba(sample)[:,-1]
-            weights = arr_test['weight']
 
             if systematic not in scores_dict:
                 scores_dict[systematic] = (scores, weights)
@@ -790,18 +739,16 @@ class MC(Sample):
             trees.append(selected_tree)
         return trees
 
-    def tables(self, branches, category, region, cuts=None,
+    def tables(self,
+            category,
+            region,
+            fields=None,
+            cuts=None,
             include_weight=True, systematic='NOMINAL'):
-        """
-        This is where all the magic happens...
-        """
-        TEMPFILE.cd()
         selection = self.cuts(category, region, systematic) & cuts
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in MC.SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
-        if include_weight:
-            branches = branches + ['weight']
         tables = []
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
@@ -831,16 +778,19 @@ class MC(Sample):
             table = table.readWhere(table_selection)
             # add weight field
             if include_weight:
-                weights = np.ones(table.shape[0], dtype='f4') * weight
+                weights = np.empty(table.shape[0], dtype='f4')
+                weights.fill(weight)
                 table = recfunctions.rec_append_fields(table,
                         names='weight',
                         data=weights,
                         dtypes='f4')
-                # merge the weight columns
+                # merge the weight fields
                 table['weight'] *= reduce(np.multiply,
                         [table[br] for br in weight_branches])
-            # drop all branches except branches (+ weight)
-            table = table[branches]
+                # drop other weight fields
+                table = recfunctions.rec_drop_fields(table, weight_branches)
+            if fields is not None:
+                table = table[fields]
             tables.append(table)
         return tables
 
@@ -1051,18 +1001,12 @@ class QCD(Sample):
 
     def scores(self,
                clf,
-               branches,
-               train_fraction,
-               category,
                region,
                cuts=None):
 
         # SS data
         data_scores, data_weights = self.data.scores(
                 clf,
-                branches,
-                train_fraction,
-                category,
                 region=self.shape_region,
                 cuts=cuts)
 
@@ -1071,9 +1015,6 @@ class QCD(Sample):
         for mc in self.mc:
             mc.scores(
                     clf,
-                    branches,
-                    train_fraction,
-                    category,
                     region=self.shape_region,
                     cuts=cuts,
                     scores_dict=scores_dict)
@@ -1124,15 +1065,20 @@ class QCD(Sample):
             tree.Scale(scale)
         return trees
 
-    def tables(self, branches, category, region, cuts=None,
-            include_weight=True, systematic='NOMINAL'):
+    def tables(self,
+            category,
+            region,
+            fields=None,
+            cuts=None,
+            include_weight=True,
+            systematic='NOMINAL'):
 
         assert include_weight == True
 
         data_tables = self.data.tables(
-                branches=branches,
                 category=category,
                 region=self.shape_region,
+                fields=fields,
                 cuts=cuts,
                 include_weight=include_weight,
                 systematic='NOMINAL')
@@ -1140,12 +1086,13 @@ class QCD(Sample):
 
         for mc in self.mc:
             _arrays = mc.tables(
-                    branches=branches,
                     category=category,
                     region=self.shape_region,
+                    fields=fields,
                     cuts=cuts,
                     include_weight=include_weight,
                     systematic=systematic)
+            # FIX: weight may not be present if include_weight=False
             for array in _arrays:
                 array['weight'] *= -1
             arrays.extend(_arrays)
@@ -1156,6 +1103,7 @@ class QCD(Sample):
         elif systematic == ('QCDFIT_DOWN',):
             scale -= self.scale_error
 
+        # FIX: weight may not be present if include_weight=False
         for array in arrays:
             array['weight'] *= scale
         return arrays

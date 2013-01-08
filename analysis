@@ -363,15 +363,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
     if 'train' in args.actions:
 
-        # scikit-learn imports
-        from sklearn.cross_validation import StratifiedKFold
-        from sklearn.grid_search import GridSearchCV
-        from sklearn.ensemble.grid_search import BoostGridSearchCV
-        from sklearn.metrics import classification_report
-        from sklearn.metrics import precision_score
-        from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
-        from sklearn.tree import DecisionTreeClassifier
-
         backgrounds = [
             qcd,
             others,
@@ -380,281 +371,59 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
         # define training and test samples
         branches = cat_info['features']
-        clf_filename = 'clf_%s%s.pickle' % (category, output_suffix)
+        
+        """
+        if args.correlations:
+                    branches = branches + ['mass_mmc_tau1_tau2']
 
-        # train a classifier
-        if (args.use_clf_cache
-                and (category not in args.train_categories)
-                and os.path.isfile(clf_filename)):
-            # use a previously trained classifier
-            log.info("using a previously trained classifier...")
-            with open(clf_filename, 'r') as f:
-                clf = pickle.load(f)
-            log.info(clf)
-        else:
-            log.info("training a new classifier...")
-            log.info("using these features:")
-            for branch in branches:
-                log.info(branch)
+                # split into testing and training samples
+                sample_train, sample_test,\
+                sample_weight_train, sample_weight_test,\
+                labels_train, labels_test = make_classification(
+                    signals_train, backgrounds,
+                    category=category,
+                    region=target_region,
+                    branches=branches,
+                    train_fraction=args.train_fraction,
+                    max_sig_train=None,
+                    max_bkg_train=None,
+                    max_sig_test=None,
+                    max_bkg_test=None,
+                    norm_sig_to_bkg_train=True,
+                    norm_sig_to_bkg_test=False,
+                    same_size_train=True,
+                    same_size_test=False,
+                    remove_negative_train_weights=True,
+                    standardize=False,
+                    cuts=train_region)
 
-            if args.correlations:
-                branches = branches + ['mass_mmc_tau1_tau2']
+                if args.correlations:
+                    # draw a linear correlation matrix
+                    samples.correlations(
+                        signal=sample_test[labels_test==1],
+                        signal_weight=sample_weight_test[labels_test==1],
+                        background=sample_test[labels_test==0],
+                        background_weight=sample_weight_test[labels_test==0],
+                        branches=branches,
+                        category=category,
+                        output_suffix=output_suffix)
+                    continue
+        """
 
-            # split into testing and training samples
-            sample_train, sample_test,\
-            sample_weight_train, sample_weight_test,\
-            labels_train, labels_test = make_classification(
-                signals_train, backgrounds,
+        clf = ClassificationProblem(
+                signals=signals_train,
+                backgrounds=backgrounds,
+                fields=branches,
                 category=category,
                 region=target_region,
-                branches=branches,
-                train_fraction=args.train_fraction,
-                max_sig_train=None,
-                max_bkg_train=None,
-                max_sig_test=None,
-                max_bkg_test=None,
-                norm_sig_to_bkg_train=True,
-                norm_sig_to_bkg_test=False,
-                same_size_train=True,
-                same_size_test=False,
-                remove_negative_train_weights=True,
-                standardize=False,
-                cuts=train_region)
+                cuts=None,
+                output_suffix=output_suffix)
 
-            if args.correlations:
-                # draw a linear correlation matrix
-                samples.correlations(
-                    signal=sample_test[labels_test==1],
-                    signal_weight=sample_weight_test[labels_test==1],
-                    background=sample_test[labels_test==0],
-                    background_weight=sample_weight_test[labels_test==0],
-                    branches=branches,
-                    category=category,
-                    output_suffix=output_suffix)
-                continue
-
-            log.info("")
-            log.info("plotting input variables as they are given to the BDT")
-            # draw plots of the input variables
-            for i, branch in enumerate(branches):
-                log.info("plotting %s ..." % branch)
-                branch_data = sample_train[:,i]
-                if 'scale' in variables.VARIABLES[branch]:
-                    branch_data *= variables.VARIABLES[branch]['scale']
-                _min, _max = branch_data.min(), branch_data.max()
-                plt.figure()
-                plt.hist(branch_data[labels_train==0],
-                        bins=20, range=(_min, _max),
-                        weights=sample_weight_train[labels_train==0],
-                        label='Background', histtype='stepfilled',
-                        alpha=.5)
-                plt.hist(branch_data[labels_train==1],
-                        bins=20, range=(_min, _max),
-                        weights=sample_weight_train[labels_train==1],
-                        label='Signal', histtype='stepfilled', alpha=.5)
-                label = variables.VARIABLES[branch]['title']
-                if 'units' in variables.VARIABLES[branch]:
-                    label += ' [%s]' % variables.VARIABLES[branch]['units']
-                plt.xlabel(label)
-                plt.legend()
-                plt.savefig('train_var_%s_%s%s.png' % (
-                    category, branch, output_suffix))
-
-            log.info("plotting sample weights ...")
-            _min, _max = sample_weight_train.min(), sample_weight_train.max()
-            plt.figure()
-            plt.hist(sample_weight_train[labels_train==0],
-                    bins=20, range=(_min, _max),
-                    label='Background', histtype='stepfilled',
-                    alpha=.5)
-            plt.hist(sample_weight_train[labels_train==1],
-                    bins=20, range=(_min, _max),
-                    label='Signal', histtype='stepfilled', alpha=.5)
-            plt.xlabel('sample weight')
-            plt.legend()
-            plt.savefig('train_sample_weight_%s%s.png' % (
-                category, output_suffix))
-
-            # train a new BDT
-
-            # grid search params
-            min_leaf_high = int((sample_train.shape[0] / 4.) *
-                    (args.nfold - 1.) / args.nfold)
-            min_leaf_low = max(10, int(min_leaf_high / 100.))
-
-            if args.forest_feature_ranking:
-                # perform a feature ranking with random forests
-                # Build a forest and compute the feature importances
-                forest = ExtraTreesClassifier(
-                        n_estimators=200,
-                        n_jobs=-1,
-                        min_samples_leaf=(min_leaf_high + min_leaf_low) / 2,
-                        compute_importances=True,
-                        random_state=0)
-
-                forest.fit(sample_train, labels_train,
-                        sample_weight=sample_weight_train)
-                importances = forest.feature_importances_
-                indices = np.argsort(importances)[::-1]
-
-                latex_names = [variables.VARIABLES[branch]['title']
-                        for branch in branches]
-
-                # Print the feature ranking
-                log.info("random forest feature ranking:")
-
-                n_features = len(branches)
-
-                for i, idx in enumerate(indices):
-                    log.info("%d. %s (%f)" % (
-                            i + 1, branches[idx], importances[idx]))
-
-                # plot the feature importances of the trees and of the forest
-                plt.figure()
-                plt.title("Feature importances")
-
-                for tree in forest.estimators_:
-                    plt.plot(xrange(n_features),
-                            tree.feature_importances_[indices], "r")
-
-                plt.plot(xrange(n_features), importances[indices], "b")
-                plt.xticks(range(len(latex_names)),
-                        [latex_names[idx] for idx in indices], rotation=-30,
-                          rotation_mode='anchor', ha='left', va='top')
-                plt.savefig('ranking_random_forest_%s%s.png' % (
-                    category, output_suffix),
-                        bbox_inches='tight')
-
-            if args.grid_search:
-                if args.quick_train:
-                    # quick search for testing
-                    min_leaf_step = max((min_leaf_high - min_leaf_low) / 20, 1)
-                    MAX_N_ESTIMATORS = 500
-                    MIN_N_ESTIMATORS = 10
-
-                else:
-                    # larger search
-                    min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
-                    MAX_N_ESTIMATORS = 1000
-                    MIN_N_ESTIMATORS = 10
-
-                MIN_SAMPLES_LEAF = range(
-                        min_leaf_low, min_leaf_high, min_leaf_step)
-
-                grid_params = {
-                    'base_estimator__min_samples_leaf': MIN_SAMPLES_LEAF,
-                }
-
-                #AdaBoostClassifier.staged_score = staged_score
-
-                clf = AdaBoostClassifier(
-                        DecisionTreeClassifier(),
-                        compute_importances=True,
-                        learning_rate=.5)
-
-                grid_clf = BoostGridSearchCV(
-                        clf, grid_params,
-                        max_n_estimators=MAX_N_ESTIMATORS,
-                        min_n_estimators=MIN_N_ESTIMATORS,
-                        # can use default ClassifierMixin score
-                        #score_func=precision_score,
-                        cv = StratifiedKFold(labels_train, args.nfold),
-                        n_jobs=-1)
-
-                log.info("")
-                log.info("performing a grid search over these parameter values:")
-                for param, values in grid_params.items():
-                    log.info('{0} {1}'.format(param.split('__')[-1], values))
-                    log.info('--')
-                log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
-                log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
-                log.info("")
-                log.info("training new classifiers ...")
-                grid_clf.fit(
-                        sample_train, labels_train,
-                        sample_weight=sample_weight_train)
-                clf = grid_clf.best_estimator_
-                grid_scores = grid_clf.grid_scores_
-
-                log.info("Best score: %f" % grid_clf.best_score_)
-                log.info("Best Parameters:")
-                log.info(grid_clf.best_params_)
-
-                # plot a grid of the scores
-                plot_grid_scores(
-                    grid_scores,
-                    best_point={
-                        'base_estimator__min_samples_leaf':
-                        clf.base_estimator.min_samples_leaf,
-                        'n_estimators':
-                        clf.n_estimators},
-                    params={
-                        'base_estimator__min_samples_leaf':
-                        'min leaf',
-                        'n_estimators':
-                        'trees'},
-                    name=category + output_suffix)
-
-                """
-                if 'base_estimator__min_samples_leaf' in grid_params:
-                    # scale up the min-leaf and retrain on the whole set
-                    min_samples_leaf = grid_clf.best_estimator_.base_estimator.min_samples_leaf
-                    n_estimators=grid_clf.best_estimator_.n_estimators
-                    clf = AdaBoostClassifier(
-                            DecisionTreeClassifier(
-                                min_samples_leaf=int(min_samples_leaf * args.nfold / float(args.nfold - 1))),
-                            n_estimators=n_estimators,
-                            compute_importances=True)
-                    clf.fit(sample_train, labels_train,
-                            sample_weight=sample_weight_train)
-                    print
-                    print "After scaling up min_leaf"
-                    print clf
-                """
-            else:
-                log.info("training a new classifier ...")
-
-                if category == 'vbf':
-                    min_samples_leaf=200
-                    n_estimators=50
-                else:
-                    min_samples_leaf=150
-                    n_estimators=20
-
-                clf = AdaBoostClassifier(
-                    DecisionTreeClassifier(
-                        min_samples_leaf=min_samples_leaf),
-                    compute_importances=True,
-                    learning_rate=.5,
-                    n_estimators=n_estimators)
-
-                clf.fit(sample_train, labels_train,
-                        sample_weight=sample_weight_train)
-
-            with open(clf_filename, 'w') as f:
-                pickle.dump(clf, f)
-
-        if hasattr(clf, 'feature_importances_'):
-            importances = clf.feature_importances_
-            indices = np.argsort(importances)[::-1]
-            log.info("Feature ranking:")
-            print r"\begin{tabular}{c|c|c}"
-            table = PrettyTable(["Rank", "Variable", "Importance"])
-            print r"\hline\hline"
-            print r"Rank & Variable & Importance\\"
-            for f, idx in enumerate(indices):
-                table.add_row([f + 1,
-                    branches[idx],
-                    '%.3f' % importances[idx]])
-                print r"%d & %s & %.3f\\" % (f + 1,
-                    VARIABLES[branches[idx]]['title'],
-                    importances[idx])
-            print r"\end{tabular}"
-            print
-            print table.get_string(hrules=1)
-
-        if args.ranking:
-            continue
+        clf.train(
+                grid_search=args.grid_search,
+                quick=args.quick_train,
+                cv_nfold=args.nfold,
+                use_cache=args.use_clf_cache)
 
         # show the background model and 125 GeV signal over the full mass range
         log.info("plotting classifier output over all mass...")
@@ -667,9 +436,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(clf,
-                    branches,
-                    train_fraction=args.train_fraction,
-                    category=category,
                     region=target_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
@@ -691,9 +457,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
             sig = Higgs(year=year, mode=mode, mass=125,
                     systematics=args.systematics)
             scores_dict = sig.scores(clf,
-                    branches,
-                    train_fraction=args.train_fraction,
-                    category=category,
                     region=target_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
@@ -742,9 +505,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         log.info(control_region)
         # data scores
         data_scores, _ = data.scores(clf,
-                branches,
-                train_fraction=args.train_fraction,
-                category=category,
                 region=target_region,
                 cuts=control_region)
 
@@ -762,9 +522,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(clf,
-                    branches,
-                    train_fraction=args.train_fraction,
-                    category=category,
                     region=target_region,
                     cuts=control_region)
 
@@ -816,9 +573,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         if args.unblind:
             # data scores
             data_scores, _ = data.scores(clf,
-                    branches,
-                    train_fraction=args.train_fraction,
-                    category=category,
                     region=target_region,
                     cuts=signal_region)
 
@@ -826,9 +580,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(clf,
-                    branches,
-                    train_fraction=args.train_fraction,
-                    category=category,
                     region=target_region,
                     cuts=signal_region)
 
@@ -858,9 +609,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 sig = Higgs(year=year, mode=mode, mass=mass,
                         systematics=args.systematics)
                 scores_dict = sig.scores(clf,
-                        branches,
-                        train_fraction=args.train_fraction,
-                        category=category,
                         region=target_region,
                         cuts=signal_region)
 

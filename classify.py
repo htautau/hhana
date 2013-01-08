@@ -1,5 +1,8 @@
 from logger import log; log = log[__name__]
 
+import pickle
+from operator import itemgetter
+
 import numpy as np
 # for reproducibilty
 # especially for test/train set selection
@@ -9,11 +12,21 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator, FuncFormatter
 
+# scikit-learn imports
+from sklearn.cross_validation import StratifiedKFold
+from sklearn.grid_search import GridSearchCV
+from sklearn.ensemble.grid_search import BoostGridSearchCV
+from sklearn.metrics import classification_report
+from sklearn.metrics import precision_score
+from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
+from sklearn.tree import DecisionTreeClassifier
+
 from rootpy.plotting import Hist
 from rootpy.io import open as ropen
 
 from samples import *
 from utils import draw
+import variables
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
@@ -251,183 +264,359 @@ def std(X):
     return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 
 
-def make_classification(
-        signals,
-        backgrounds,
-        category,
-        region,
-        branches,
-        train_fraction,
-        cuts=None,
-        max_sig_train=None,
-        max_bkg_train=None,
-        max_sig_test=None,
-        max_bkg_test=None,
-        norm_sig_to_bkg_train=True,
-        norm_sig_to_bkg_test=False,
-        same_size_train=True,
-        same_size_test=False,
-        standardize=False,
-        remove_negative_train_weights=False,
-        systematic='NOMINAL'):
+class ClassificationProblem(object):
 
-    signal_train_arrs = []
-    signal_weight_train_arrs = []
-    signal_test_arrs = []
-    signal_weight_test_arrs = []
+    def __init__(self,
+            signals,
+            backgrounds,
+            fields,
+            category,
+            region,
+            cuts=None,
+            standardize=False,
+            output_suffix=""):
 
-    for signal in signals:
-        train, test = signal.train_test(
-            category=category,
-            region=region,
-            branches=branches,
-            train_fraction=train_fraction,
-            cuts=cuts,
-            systematic=systematic)
-        signal_weight_train_arrs.append(train['weight'])
-        signal_weight_test_arrs.append(test['weight'])
+        self.signals = signals
+        self.backgrounds = backgrounds
+        self.fields = fields
+        self.category = category
+        self.region = region
+        self.cuts = cuts
+        self.standardize = standardize
+        self.output_suffix = output_suffix
 
-        signal_train_arrs.append(
-            np.vstack(train[branch] for branch in branches).T)
-        signal_test_arrs.append(
-            np.vstack(test[branch] for branch in branches).T)
+        assert 'weight' not in fields
 
-    background_train_arrs = []
-    background_weight_train_arrs = []
-    background_test_arrs = []
-    background_weight_test_arrs = []
+        self.signal_arrs = []
+        self.signal_weight_arrs = []
 
-    for background in backgrounds:
-        train, test = background.train_test(
-            category=category,
-            region=region,
-            branches=branches,
-            train_fraction=train_fraction,
-            cuts=cuts,
-            systematic=systematic)
-        background_weight_train_arrs.append(train['weight'])
-        background_weight_test_arrs.append(test['weight'])
+        for signal in signals:
+            left, right = signal.split(
+                category=category,
+                region=region,
+                fields=fields,
+                cuts=cuts)
+            self.signal_weight_arrs.append(
+                    (left['weight'], right['weight']))
+            self.signal_arrs.append(
+                    (left[fields], right[fields]))
 
-        background_train_arrs.append(
-            np.vstack(train[branch] for branch in branches).T)
-        background_test_arrs.append(
-            np.vstack(test[branch] for branch in branches).T)
+        self.background_arrs = []
+        self.background_weight_arrs = []
 
-    signal_train = np.concatenate(signal_train_arrs)
-    signal_weight_train = np.concatenate(signal_weight_train_arrs)
-    signal_test = np.concatenate(signal_test_arrs)
-    signal_weight_test = np.concatenate(signal_weight_test_arrs)
+        for background in backgrounds:
+            left, right = background.split(
+                category=category,
+                region=region,
+                fields=fields,
+                cuts=cuts)
+            self.background_weight_arrs.append(
+                    (left['weight'], right['weight']))
+            self.background_arrs.append(
+                    (left[fields], right[fields]))
 
-    background_train = np.concatenate(background_train_arrs)
-    background_weight_train = np.concatenate(background_weight_train_arrs)
-    background_test = np.concatenate(background_test_arrs)
-    background_weight_test = np.concatenate(background_weight_test_arrs)
+        # classifiers for the left and right partitions
+        # each trained on the opposite partition
+        self.clfs = None
 
-    if remove_negative_train_weights:
-        # remove samples from the training sample with a negative weight
-        signal_train = signal_train[signal_weight_train >= 0]
-        background_train = background_train[background_weight_train >= 0]
+    def train(self,
+            max_sig=None,
+            max_bkg=None,
+            norm_sig_to_bkg=True,
+            same_size_sig_bkg=True,
+            remove_negative_weights=False,
+            grid_search=True,
+            quick=False,
+            cv_nfold=5,
+            use_cache=True,
+            **clf_params):
+        """
+        Determine best BDTs on left and right partitions. Each BDT will then be
+        used on the other partition.
+        """
+        self.clfs = [None, None]
 
-        signal_weight_train = signal_weight_train[signal_weight_train >= 0]
-        background_weight_train = background_weight_train[background_weight_train >= 0]
+        for partition_idx in range(2):
 
-    if max_sig_train is not None and max_sig_train < len(signal_train):
-        subsample = np.random.permutation(len(signal_train))[:max_sig_train]
-        signal_train = signal_train[subsample]
-        signal_weight_train = signal_weight_train[subsample]
+            # recarray -> ndarray
+            signal_train = np.concatenate(map(itemgetter(partition_idx),
+                self.signal_arrs))
+            signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
+                self.signal_weight_arrs))
+            background_train = np.concatenate(map(itemgetter(partition_idx),
+                self.background_arrs))
+            background_weight_train = np.concatenate(map(itemgetter(partition_idx),
+                self.background_weight_arrs))
 
-    if max_bkg_train is not None and max_bkg_train < len(background_train):
-        subsample = np.random.permutation(len(background_train))[:max_bkg_train]
-        background_train = background_train[subsample]
-        background_weight_train = background_weight_train[subsample]
+            if remove_negative_weights:
+                # remove samples from the training sample with a negative weight
+                signal_train = signal_train[signal_weight_train >= 0]
+                background_train = background_train[background_weight_train >= 0]
+                signal_weight_train = signal_weight_train[signal_weight_train >= 0]
+                background_weight_train = background_weight_train[background_weight_train >= 0]
 
-    if max_sig_test is not None and max_sig_test < len(signal_test):
-        subsample = np.random.permutation(len(signal_test))[:max_sig_test]
-        signal_test = signal_test[subsample]
-        signal_weight_test = signal_weight_test[subsample]
+            if max_sig is not None and max_sig < len(signal_train):
+                subsample = np.random.permutation(len(signal_train))[:max_sig_train]
+                signal_train = signal_train[subsample]
+                signal_weight_train = signal_weight_train[subsample]
 
-    if max_bkg_test is not None and max_bkg_test < len(background_test):
-        subsample = np.random.permutation(len(background_test))[:max_bkg_test]
-        background_test = background_test[subsample]
-        background_weight_test = background_weight_test[subsample]
+            if max_bkg is not None and max_bkg < len(background_train):
+                subsample = np.random.permutation(len(background_train))[:max_bkg_train]
+                background_train = background_train[subsample]
+                background_weight_train = background_weight_train[subsample]
 
-    if same_size_train:
-        if len(background_train) > len(signal_train):
-            # random subsample of background so it's the same size as signal
-            subsample = np.random.permutation(
-                len(background_train))[:len(signal_train)]
-            background_train = background_train[subsample]
-            background_weight_train = background_weight_train[subsample]
-        elif len(background_train) < len(signal_train):
-            # random subsample of signal so it's the same size as background
-            subsample = np.random.permutation(
-                len(signal_train))[:len(background_train)]
-            signal_train = signal_train[subsample]
-            signal_weight_train = signal_weight_train[subsample]
+            if same_size_sig_bkg:
+                if len(background_train) > len(signal_train):
+                    # random subsample of background so it's the same size as signal
+                    subsample = np.random.permutation(
+                        len(background_train))[:len(signal_train)]
+                    background_train = background_train[subsample]
+                    background_weight_train = background_weight_train[subsample]
+                elif len(background_train) < len(signal_train):
+                    # random subsample of signal so it's the same size as background
+                    subsample = np.random.permutation(
+                        len(signal_train))[:len(background_train)]
+                    signal_train = signal_train[subsample]
+                    signal_weight_train = signal_weight_train[subsample]
 
-    if same_size_test:
-        if len(background_test) > len(signal_test):
-            # random subsample of background so it's the same size as signal
-            subsample = np.random.permutation(
-                len(background_test))[:len(signal_test)]
-            background_test = background_test[subsample]
-            background_weight_test = background_weight_test[subsample]
-        elif len(background_test) < len(signal_test):
-            # random subsample of signal so it's the same size as background
-            subsample = np.random.permutation(
-                len(signal_test))[:len(background_test)]
-            signal_test = signal_test[subsample]
-            signal_weight_test = signal_weight_test[subsample]
+            if norm_sig_to_bkg:
+                # normalize signal to background
+                signal_weight_train *= (
+                    background_weight_train.sum() / signal_weight_train.sum())
 
-    if norm_sig_to_bkg_train:
-        # normalize signal to background
-        signal_weight_train *= (
-            background_weight_train.sum() / signal_weight_train.sum())
+            log.info("Training Samples:")
+            log.info("Signal: %d events, %s features" % signal_train.shape)
+            log.info("Sum(signal weights): %f" % signal_weight_train.sum())
+            log.info("Background: %d events, %s features" % background_train.shape)
+            log.info("Sum(background weight): %f" % background_weight_train.sum())
 
-    if norm_sig_to_bkg_test:
-        # normalize signal to background
-        signal_weight_test *= (
-            background_weight_test.sum() / signal_weight_test.sum())
+            sample_train = np.concatenate((background_train, signal_train))
+            sample_weight_train = np.concatenate(
+                (background_weight_train, signal_weight_train))
+            labels_train = np.concatenate(
+                (np.zeros(len(background_train)), np.ones(len(signal_train))))
 
-    log.info("Training Samples:")
-    log.info("Signal: %d events, %s features" % signal_train.shape)
-    log.info("Sum(signal weights): %f" % signal_weight_train.sum())
-    log.info("Background: %d events, %s features" % background_train.shape)
-    log.info("Sum(background weight): %f" % background_weight_train.sum())
-    log.info("")
-    log.info("Test Samples:")
-    log.info("Signal: %d events, %s features" % signal_test.shape)
-    log.info("Sum(signal weights): %f" % signal_weight_test.sum())
-    log.info("Background: %d events, %s features" % background_test.shape)
-    log.info("Sum(background weight): %f" % background_weight_test.sum())
+            if self.standardize: # TODO use same std for classification
+                sample_train = std(sample_train)
 
-    # create training/testing samples
-    sample_train = np.concatenate((background_train, signal_train))
-    sample_test = np.concatenate((background_test, signal_test))
+            # random permutation of training sample
+            perm = np.random.permutation(len(labels_train))
+            sample_train = sample_train[perm]
+            sample_weight_train = sample_weight_train[perm]
+            labels_train = labels_train[perm]
 
-    sample_weight_train = np.concatenate(
-        (background_weight_train, signal_weight_train))
-    sample_weight_test = np.concatenate(
-        (background_weight_test, signal_weight_test))
+            clf_filename = 'clf_%s%s_%d.pickle' % (
+                    self.category, self.output_suffix, partition_idx)
 
-    if standardize:
-        sample_train = std(sample_train)
-        sample_test = std(sample_test)
+            # train a classifier
+            if clf_cache and os.path.isfile(clf_filename):
+                # use a previously trained classifier
+                log.info("using a previously trained classifier...")
+                with open(clf_filename, 'r') as f:
+                    clf = pickle.load(f)
+                log.info(clf)
+            else:
+                log.info("training a new classifier...")
+                log.info("plotting input variables as they are given to the BDT")
+                # draw plots of the input variables
+                for i, branch in enumerate(self.fields):
+                    log.info("plotting %s ..." % branch)
+                    branch_data = sample_train[:,i]
+                    if 'scale' in variables.VARIABLES[branch]:
+                        branch_data *= variables.VARIABLES[branch]['scale']
+                    _min, _max = branch_data.min(), branch_data.max()
+                    plt.figure()
+                    plt.hist(branch_data[labels_train==0],
+                            bins=20, range=(_min, _max),
+                            weights=sample_weight_train[labels_train==0],
+                            label='Background', histtype='stepfilled',
+                            alpha=.5)
+                    plt.hist(branch_data[labels_train==1],
+                            bins=20, range=(_min, _max),
+                            weights=sample_weight_train[labels_train==1],
+                            label='Signal', histtype='stepfilled', alpha=.5)
+                    label = variables.VARIABLES[branch]['title']
+                    if 'units' in variables.VARIABLES[branch]:
+                        label += ' [%s]' % variables.VARIABLES[branch]['units']
+                    plt.xlabel(label)
+                    plt.legend()
+                    plt.savefig('train_var_%s_%s%s.png' % (
+                        category, branch, output_suffix))
 
-    labels_train = np.concatenate(
-        (np.zeros(len(background_train)), np.ones(len(signal_train))))
-    labels_test = np.concatenate(
-        (np.zeros(len(background_test)), np.ones(len(signal_test))))
+                log.info("plotting sample weights ...")
+                _min, _max = sample_weight_train.min(), sample_weight_train.max()
+                plt.figure()
+                plt.hist(sample_weight_train[labels_train==0],
+                        bins=20, range=(_min, _max),
+                        label='Background', histtype='stepfilled',
+                        alpha=.5)
+                plt.hist(sample_weight_train[labels_train==1],
+                        bins=20, range=(_min, _max),
+                        label='Signal', histtype='stepfilled', alpha=.5)
+                plt.xlabel('sample weight')
+                plt.legend()
+                plt.savefig('train_sample_weight_%s%s.png' % (
+                    category, output_suffix))
 
-    # random permutation of training sample
-    perm = np.random.permutation(len(labels_train))
-    sample_train = sample_train[perm]
-    sample_weight_train = sample_weight_train[perm]
-    labels_train = labels_train[perm]
+                if grid_search:
+                    # grid search params
+                    min_leaf_high = int((sample_train.shape[0] / 4.) *
+                            (cv_nfold - 1.) / cv_nfold)
+                    min_leaf_low = max(10, int(min_leaf_high / 100.))
 
-    return sample_train, sample_test,\
-        sample_weight_train, sample_weight_test,\
-        labels_train, labels_test
+                    if quick:
+                        # quick search for testing
+                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 20, 1)
+                        MAX_N_ESTIMATORS = 500
+                        MIN_N_ESTIMATORS = 10
+
+                    else:
+                        # larger search
+                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
+                        MAX_N_ESTIMATORS = 1000
+                        MIN_N_ESTIMATORS = 10
+
+                    MIN_SAMPLES_LEAF = range(
+                            min_leaf_low, min_leaf_high, min_leaf_step)
+
+                    grid_params = {
+                        'base_estimator__min_samples_leaf': MIN_SAMPLES_LEAF,
+                    }
+
+                    #AdaBoostClassifier.staged_score = staged_score
+
+                    clf = AdaBoostClassifier(
+                            DecisionTreeClassifier(),
+                            compute_importances=True,
+                            learning_rate=.5)
+
+                    grid_clf = BoostGridSearchCV(
+                            clf, grid_params,
+                            max_n_estimators=MAX_N_ESTIMATORS,
+                            min_n_estimators=MIN_N_ESTIMATORS,
+                            # can use default ClassifierMixin score
+                            #score_func=precision_score,
+                            cv = StratifiedKFold(labels_train, cv_nfold),
+                            n_jobs=-1)
+
+                    log.info("")
+                    log.info("performing a grid search over these parameter values:")
+                    for param, values in grid_params.items():
+                        log.info('{0} {1}'.format(param.split('__')[-1], values))
+                        log.info('--')
+                    log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
+                    log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
+                    log.info("")
+                    log.info("training new classifiers ...")
+                    grid_clf.fit(
+                            sample_train, labels_train,
+                            sample_weight=sample_weight_train)
+                    clf = grid_clf.best_estimator_
+                    grid_scores = grid_clf.grid_scores_
+
+                    log.info("Best score: %f" % grid_clf.best_score_)
+                    log.info("Best Parameters:")
+                    log.info(grid_clf.best_params_)
+
+                    # plot a grid of the scores
+                    plot_grid_scores(
+                        grid_scores,
+                        best_point={
+                            'base_estimator__min_samples_leaf':
+                            clf.base_estimator.min_samples_leaf,
+                            'n_estimators':
+                            clf.n_estimators},
+                        params={
+                            'base_estimator__min_samples_leaf':
+                            'min leaf',
+                            'n_estimators':
+                            'trees'},
+                        name=category + self.output_suffix + "_%d" % partition_idx)
+
+                    """
+                    if 'base_estimator__min_samples_leaf' in grid_params:
+                        # scale up the min-leaf and retrain on the whole set
+                        min_samples_leaf = grid_clf.best_estimator_.base_estimator.min_samples_leaf
+                        n_estimators=grid_clf.best_estimator_.n_estimators
+                        clf = AdaBoostClassifier(
+                                DecisionTreeClassifier(
+                                    min_samples_leaf=int(min_samples_leaf *
+                                    cv_nfold / float(cv_nfold - 1))),
+                                n_estimators=n_estimators,
+                                compute_importances=True)
+                        clf.fit(sample_train, labels_train,
+                                sample_weight=sample_weight_train)
+                        print
+                        print "After scaling up min_leaf"
+                        print clf
+                    """
+                else: # TODO: use clf_params
+                    log.info("training a new classifier ...")
+
+                    if self.category == 'vbf':
+                        min_samples_leaf=200
+                        n_estimators=50
+                    else:
+                        min_samples_leaf=150
+                        n_estimators=20
+
+                    clf = AdaBoostClassifier(
+                        DecisionTreeClassifier(
+                            min_samples_leaf=min_samples_leaf),
+                        compute_importances=True,
+                        learning_rate=.5,
+                        n_estimators=n_estimators)
+
+                    clf.fit(sample_train, labels_train,
+                            sample_weight=sample_weight_train)
+
+                with open(clf_filename, 'w') as f:
+                    pickle.dump(clf, f)
+
+            if hasattr(clf, 'feature_importances_'):
+                importances = clf.feature_importances_
+                indices = np.argsort(importances)[::-1]
+                log.info("Feature ranking:")
+                print r"\begin{tabular}{c|c|c}"
+                table = PrettyTable(["Rank", "Variable", "Importance"])
+                print r"\hline\hline"
+                print r"Rank & Variable & Importance\\"
+                for f, idx in enumerate(indices):
+                    table.add_row([f + 1,
+                        branches[idx],
+                        '%.3f' % importances[idx]])
+                    print r"%d & %s & %.3f\\" % (f + 1,
+                        variables.VARIABLES[branches[idx]]['title'],
+                        importances[idx])
+                print r"\end{tabular}"
+                print
+                print table.get_string(hrules=1)
+
+            self.clfs[(partition_idx + 1) % 2] = clf
+
+    def classify(self, sample, region, cuts=None, systematic='NOMINAL'):
+
+        if self.clfs == None:
+            raise RuntimeError("you must train the classifiers first")
+
+        left, right = sample.split(
+                category=self.category,
+                region=region,
+                fields=self.fields,
+                cuts=cuts,
+                systematic=systematic)
+
+        left_weight = left['weight']
+        right_weight = right['weight']
+        left = left[self.fields]
+        right = right[self.fields]
+
+        # each classifier is never used on the partition that trained it
+        left_scores = self.clfs[0].predict_proba(left)[:,-1]
+        right_scores = self.clfs[1].predict_proba(right)[:,-1]
+
+        return np.concatenate((left_scores, right_scores)), \
+               np.concatenate((left_weight, right_weight))
 
 
 def staged_score(self, X, y, sample_weight, n_estimators=-1):
