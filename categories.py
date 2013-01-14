@@ -80,8 +80,8 @@ CATEGORIES = {
             #'tau2_centrality_boosted', #
             #'cos_theta_tau1_tau2', #
             'dR_tau1_tau2',
-            'tau1_BDTJetScore',
-            'tau2_BDTJetScore',
+            #'tau1_BDTJetScore',
+            #'tau2_BDTJetScore',
             #'tau1_x', #
             #'tau2_x', #
             'MET_centrality',
@@ -111,8 +111,8 @@ CATEGORIES = {
             #'aplanarity_full',
             #'cos_theta_tau1_tau2',
             'dR_tau1_tau2',
-            'tau1_BDTJetScore',
-            'tau2_BDTJetScore',
+            #'tau1_BDTJetScore',
+            #'tau2_BDTJetScore',
             'tau1_x',
             'tau2_x',
             'MET_centrality',
@@ -134,8 +134,8 @@ CATEGORIES = {
         'features': [
             #'cos_theta_tau1_tau2',
             'dR_tau1_tau2',
-            'tau1_BDTJetScore',
-            'tau2_BDTJetScore',
+            #'tau1_BDTJetScore',
+            #'tau2_BDTJetScore',
             'tau1_x',
             'tau2_x',
             'MET_centrality',

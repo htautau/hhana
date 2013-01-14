@@ -23,6 +23,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from rootpy.plotting import Hist
 from rootpy.io import open as ropen
+from rootpy.extern.tabulartext import PrettyTable
 
 from samples import *
 from utils import draw
@@ -264,6 +265,12 @@ def std(X):
     return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 
 
+def rec_to_ndarray(rec, fields):
+
+    # Creates a copy and recasts data to a consistent datatype
+    return np.vstack([rec[field] for field in fields]).T
+
+
 class ClassificationProblem(object):
 
     def __init__(self,
@@ -299,7 +306,8 @@ class ClassificationProblem(object):
             self.signal_weight_arrs.append(
                     (left['weight'], right['weight']))
             self.signal_arrs.append(
-                    (left[fields], right[fields]))
+                    (rec_to_ndarray(left, fields),
+                     rec_to_ndarray(right, fields)))
 
         self.background_arrs = []
         self.background_weight_arrs = []
@@ -313,7 +321,8 @@ class ClassificationProblem(object):
             self.background_weight_arrs.append(
                     (left['weight'], right['weight']))
             self.background_arrs.append(
-                    (left[fields], right[fields]))
+                    (rec_to_ndarray(left, fields),
+                     rec_to_ndarray(right, fields)))
 
         # classifiers for the left and right partitions
         # each trained on the opposite partition
@@ -409,7 +418,7 @@ class ClassificationProblem(object):
                     self.category, self.output_suffix, partition_idx)
 
             # train a classifier
-            if clf_cache and os.path.isfile(clf_filename):
+            if use_cache and os.path.isfile(clf_filename):
                 # use a previously trained classifier
                 log.info("using a previously trained classifier...")
                 with open(clf_filename, 'r') as f:
@@ -441,7 +450,7 @@ class ClassificationProblem(object):
                     plt.xlabel(label)
                     plt.legend()
                     plt.savefig('train_var_%s_%s%s.png' % (
-                        category, branch, output_suffix))
+                        self.category, branch, self.output_suffix))
 
                 log.info("plotting sample weights ...")
                 _min, _max = sample_weight_train.min(), sample_weight_train.max()
@@ -456,7 +465,7 @@ class ClassificationProblem(object):
                 plt.xlabel('sample weight')
                 plt.legend()
                 plt.savefig('train_sample_weight_%s%s.png' % (
-                    category, output_suffix))
+                    self.category, self.output_suffix))
 
                 if grid_search:
                     # grid search params
@@ -531,7 +540,7 @@ class ClassificationProblem(object):
                             'min leaf',
                             'n_estimators':
                             'trees'},
-                        name=category + self.output_suffix + "_%d" % partition_idx)
+                        name=self.category + self.output_suffix + "_%d" % partition_idx)
 
                     """
                     if 'base_estimator__min_samples_leaf' in grid_params:
@@ -583,10 +592,10 @@ class ClassificationProblem(object):
                 print r"Rank & Variable & Importance\\"
                 for f, idx in enumerate(indices):
                     table.add_row([f + 1,
-                        branches[idx],
+                        self.fields[idx],
                         '%.3f' % importances[idx]])
                     print r"%d & %s & %.3f\\" % (f + 1,
-                        variables.VARIABLES[branches[idx]]['title'],
+                        variables.VARIABLES[self.fields[idx]]['title'],
                         importances[idx])
                 print r"\end{tabular}"
                 print
@@ -608,8 +617,8 @@ class ClassificationProblem(object):
 
         left_weight = left['weight']
         right_weight = right['weight']
-        left = left[self.fields]
-        right = right[self.fields]
+        left = rec_to_ndarray(left, self.fields)
+        right = rec_to_ndarray(right, self.fields)
 
         # each classifier is never used on the partition that trained it
         left_scores = self.clfs[0].predict_proba(left)[:,-1]
