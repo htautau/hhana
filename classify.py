@@ -497,7 +497,8 @@ class ClassificationProblem(object):
                     clf = AdaBoostClassifier(
                             DecisionTreeClassifier(),
                             compute_importances=True,
-                            learning_rate=.5)
+                            learning_rate=1,
+                            real=False)
 
                     grid_clf = BoostGridSearchCV(
                             clf, grid_params,
@@ -574,6 +575,7 @@ class ClassificationProblem(object):
                             min_samples_leaf=min_samples_leaf),
                         compute_importances=True,
                         learning_rate=.5,
+                        real=False,
                         n_estimators=n_estimators)
 
                     clf.fit(sample_train, labels_train,
@@ -621,8 +623,8 @@ class ClassificationProblem(object):
         right = rec_to_ndarray(right, self.fields)
 
         # each classifier is never used on the partition that trained it
-        left_scores = self.clfs[0].predict_proba(left)[:,-1]
-        right_scores = self.clfs[1].predict_proba(right)[:,-1]
+        left_scores = self.clfs[0].predict_twoclass(left)
+        right_scores = self.clfs[1].predict_twoclass(right)
 
         return np.concatenate((left_scores, right_scores)), \
                np.concatenate((left_weight, right_weight))
