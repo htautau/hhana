@@ -502,8 +502,9 @@ class ClassificationProblem(object):
 
                     grid_clf = BoostGridSearchCV(
                             clf, grid_params,
-                            max_n_estimators=MAX_N_ESTIMATORS,
-                            min_n_estimators=MIN_N_ESTIMATORS,
+                            n_estimators_max=MAX_N_ESTIMATORS,
+                            n_estimators_min=MIN_N_ESTIMATORS,
+                            n_estimators_step=20,
                             # can use default ClassifierMixin score
                             #score_func=precision_score,
                             cv = StratifiedKFold(labels_train, cv_nfold),
