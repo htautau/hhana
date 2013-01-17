@@ -129,9 +129,6 @@ class Sample(object):
         'mc_weight',
         'pileup_weight',
         'ggf_weight',
-        # effic high and low already accounted for in TAUBDT_UP/DOWN
-        'tau1_efficiency_scale_factor',
-        'tau2_efficiency_scale_factor',
     ]
 
     WEIGHT_SYSTEMATICS = {
@@ -155,6 +152,16 @@ class Sample(object):
             'NOMINAL': [
             	'tau1_fakerate_scale_factor',
                 'tau2_fakerate_scale_factor']},
+        'TAUID': {
+            'UP': [
+                'tau1_efficiency_scale_factor_high',
+                'tau2_efficiency_scale_factor_high'],
+            'DOWN': [
+                'tau1_efficiency_scale_factor_low',
+                'tau2_efficiency_scale_factor_low'],
+            'NOMINAL': [
+                'tau1_efficiency_scale_factor',
+                'tau2_efficiency_scale_factor']},
     }
 
     EMBEDDING_SYSTEMATICS = {
