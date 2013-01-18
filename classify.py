@@ -337,7 +337,7 @@ class ClassificationProblem(object):
             remove_negative_weights=False,
             grid_search=True,
             quick=False,
-            cv_nfold=3,
+            cv_nfold=5,
             use_cache=True,
             **clf_params):
         """
@@ -506,7 +506,7 @@ class ClassificationProblem(object):
                             clf, grid_params,
                             n_estimators_max=MAX_N_ESTIMATORS,
                             n_estimators_min=MIN_N_ESTIMATORS,
-                            n_estimators_step=5,
+                            n_estimators_step=20,
                             # can use default ClassifierMixin score
                             #score_func=precision_score,
                             cv = StratifiedKFold(labels_train, cv_nfold),
