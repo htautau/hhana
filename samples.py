@@ -392,11 +392,11 @@ class Background:
 class MC(Sample):
 
     SYSTEMATICS = [
-        #('TAUBDT_UP',),
-        #('TAUBDT_DOWN',),
-        #('JES_UP', 'TES_UP'),
-        #('JES_DOWN','TES_DOWN'),
-        #('JER_UP',),
+        ('JES_UP',),
+        ('JES_DOWN',),
+        ('TES_UP',),
+        ('TES_DOWN',),
+        ('JER_UP',),
         ('MFS_UP',),
         ('MFS_DOWN',),
         ('ISOL_UP',),
@@ -408,6 +408,8 @@ class MC(Sample):
         ('TRIGGER_DOWN',),
         ('FAKERATE_UP',),
         ('FAKERATE_DOWN',),
+        ('TAUID_UP',),
+        ('TAUID_DOWN',),
     ]
 
     def __init__(self,
@@ -576,7 +578,7 @@ class MC(Sample):
             nominal_weighted_selection = (
                 '%f * %s * (%s)' %
                 (nominal_weight,
-                 ' * '.join(self.get_weight_branches('NOMINAL')),
+                 ' * '.join(map(str, self.get_weight_branches('NOMINAL'))),
                  selection))
 
             log.debug(nominal_weighted_selection)
@@ -616,7 +618,8 @@ class MC(Sample):
                     sys_weighted_selection = (
                         '%f * %s * (%s)' %
                         (sys_weight,
-                         ' * '.join(self.get_weight_branches('NOMINAL')),
+                         ' * '.join(map(str,
+                             self.get_weight_branches('NOMINAL'))),
                          selection))
 
                     log.debug(sys_weighted_selection)
@@ -638,7 +641,7 @@ class MC(Sample):
                 weighted_selection = (
                     '%f * %s * (%s)' %
                     (nominal_weight,
-                     ' * '.join(weight_branches),
+                     ' * '.join(map(str, weight_branches)),
                      selection))
 
                 log.debug(weighted_selection)

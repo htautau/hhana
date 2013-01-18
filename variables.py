@@ -519,5 +519,3 @@ VARIABLES = {
         'cats': ['VBF']
     },
 }
-
-
