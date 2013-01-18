@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator, FuncFormatter
 
 # scikit-learn imports
+import sklearn
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble.grid_search import BoostGridSearchCV
@@ -505,7 +506,7 @@ class ClassificationProblem(object):
                             clf, grid_params,
                             n_estimators_max=MAX_N_ESTIMATORS,
                             n_estimators_min=MIN_N_ESTIMATORS,
-                            n_estimators_step=20,
+                            n_estimators_step=5,
                             # can use default ClassifierMixin score
                             #score_func=precision_score,
                             cv = StratifiedKFold(labels_train, cv_nfold),
@@ -567,7 +568,7 @@ class ClassificationProblem(object):
                     log.info("training a new classifier ...")
 
                     # use same params as in first partition
-                    clf = clf.clone()
+                    clf = sklearn.clone(clf)
                     print clf
 
                     clf.fit(sample_train, labels_train,
