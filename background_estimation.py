@@ -162,8 +162,8 @@ def qcd_ztautau_norm(
         name = 'BDT Score Grid'
         ndim = 2
     elif param == 'TRACK':
-        xmin, xmax = .5, 6.5
-        ymin, ymax = .5, 6.5
+        xmin, xmax = .5, 5.5
+        ymin, ymax = .5, 5.5
         bins = int(ymax - ymin) # ignore bins args above
         expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
         xlabel = '#tau_{1} Number of Tracks'
@@ -171,7 +171,7 @@ def qcd_ztautau_norm(
         name = 'Number of Tracks Grid'
         ndim = 2
     elif param == 'TRACK1D':
-        min, max = .5, 6.5
+        min, max = .5, 5.5
         bins = int(max - min) # ignore bins args above
         expr = 'tau1_ntrack_full'
         xlabel = '#tau_{1} Number of Tracks'
