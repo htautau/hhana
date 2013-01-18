@@ -336,7 +336,7 @@ class ClassificationProblem(object):
             remove_negative_weights=False,
             grid_search=True,
             quick=False,
-            cv_nfold=5,
+            cv_nfold=3,
             use_cache=True,
             **clf_params):
         """
@@ -467,7 +467,8 @@ class ClassificationProblem(object):
                 plt.savefig('train_sample_weight_%s%s.png' % (
                     self.category, self.output_suffix))
 
-                if grid_search:
+                if partition_idx == 0:
+
                     # grid search params
                     min_leaf_high = int((sample_train.shape[0] / 4.) *
                             (cv_nfold - 1.) / cv_nfold)
@@ -544,40 +545,30 @@ class ClassificationProblem(object):
                             'trees'},
                         name=self.category + self.output_suffix + "_%d" % partition_idx)
 
-                    """
-                    if 'base_estimator__min_samples_leaf' in grid_params:
-                        # scale up the min-leaf and retrain on the whole set
-                        min_samples_leaf = grid_clf.best_estimator_.base_estimator.min_samples_leaf
-                        n_estimators=grid_clf.best_estimator_.n_estimators
-                        clf = AdaBoostClassifier(
-                                DecisionTreeClassifier(
-                                    min_samples_leaf=int(min_samples_leaf *
-                                    cv_nfold / float(cv_nfold - 1))),
-                                n_estimators=n_estimators,
-                                compute_importances=True)
-                        clf.fit(sample_train, labels_train,
-                                sample_weight=sample_weight_train)
-                        print
-                        print "After scaling up min_leaf"
-                        print clf
-                    """
-                else: # TODO: use clf_params
+                    # scale up the min-leaf and retrain on the whole set
+                    min_samples_leaf = grid_clf.best_estimator_.base_estimator.min_samples_leaf
+                    n_estimators=grid_clf.best_estimator_.n_estimators
+                    clf = AdaBoostClassifier(
+                            DecisionTreeClassifier(
+                                min_samples_leaf=int(min_samples_leaf *
+                                cv_nfold / float(cv_nfold - 1))),
+                            n_estimators=n_estimators,
+                            learning_rate=1,
+                            real=False,
+                            compute_importances=True)
+
+                    clf.fit(sample_train, labels_train,
+                            sample_weight=sample_weight_train)
+                    print
+                    print "After scaling up min_leaf"
+                    print clf
+
+                else: # training on the other partition
                     log.info("training a new classifier ...")
 
-                    if self.category == 'vbf':
-                        min_samples_leaf=200
-                        n_estimators=50
-                    else:
-                        min_samples_leaf=150
-                        n_estimators=20
-
-                    clf = AdaBoostClassifier(
-                        DecisionTreeClassifier(
-                            min_samples_leaf=min_samples_leaf),
-                        compute_importances=True,
-                        learning_rate=.5,
-                        real=False,
-                        n_estimators=n_estimators)
+                    # use same params as in first partition
+                    clf = clf.clone()
+                    print clf
 
                     clf.fit(sample_train, labels_train,
                             sample_weight=sample_weight_train)
