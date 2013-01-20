@@ -471,7 +471,7 @@ class ClassificationProblem(object):
                 if partition_idx == 0:
 
                     # grid search params
-                    min_leaf_high = int((sample_train.shape[0] / 4.) *
+                    min_leaf_high = int((sample_train.shape[0] / 2.) *
                             (cv_nfold - 1.) / cv_nfold)
                     min_leaf_low = max(10, int(min_leaf_high / 100.))
 
@@ -506,7 +506,7 @@ class ClassificationProblem(object):
                             clf, grid_params,
                             n_estimators_max=MAX_N_ESTIMATORS,
                             n_estimators_min=MIN_N_ESTIMATORS,
-                            n_estimators_step=20,
+                            n_estimators_step=1,
                             # can use default ClassifierMixin score
                             #score_func=precision_score,
                             cv = StratifiedKFold(labels_train, cv_nfold),

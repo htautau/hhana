@@ -2,7 +2,7 @@
 import os
 import sys
 import atexit
-from operator import add
+from operator import add, itemgetter
 import math
 
 # numpy imports
@@ -205,22 +205,16 @@ class Sample(object):
             fields = fields + ['weight']
 
         # split using parity of EventNumber
-        left_arrays = self.tables(
+        arrays = self.tables(
                 category,
                 region,
                 fields=fields,
                 include_weight=True,
-                cuts=Cut('EventNumber%2==0') & cuts, # even events
-                systematic=systematic)
-        right_arrays = self.tables(
-                category,
-                region,
-                fields=fields,
-                include_weight=True,
-                cuts=Cut('EventNumber%2==1') & cuts, # odd events
+                cuts=cuts,
                 systematic=systematic)
 
-        return np.hstack(left_arrays), np.hstack(right_arrays)
+        return np.hstack(map(itemgetter(0), arrays)), \
+               np.hstack(map(itemgetter(1), arrays))
 
     @classmethod
     def check_systematic(cls, systematic):
@@ -328,7 +322,11 @@ class Data(Sample):
         h5file = get_file(self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
         self.data = getattr(rfile, dataname)
-        self.h5data = getattr(h5file.root, dataname)
+        self.h5data = []
+        for i in xrange(2):
+            self.h5data.append(
+                getattr(h5file.root, dataname + "_%d" % i))
+
         self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
                       '$\int L dt = %.2f$ fb$^{-1}$' % (
                           self.year, self.energy, LUMI[self.year] / 1e3))
@@ -367,18 +365,21 @@ class Data(Sample):
         Sample.check_systematic(systematic)
         selection = self.cuts(category, region) & cuts
         # read the table with a selection
-        table = self.h5data.readWhere(selection.where())
-        # add weight field
-        if include_weight:
-            # data is not weighted
-            weights = np.ones(table.shape[0], dtype='f4')
-            table = recfunctions.rec_append_fields(table,
-                    names='weight',
-                    data=weights,
-                    dtypes='f4')
-        if fields is not None:
-            table = table[fields]
-        return [table]
+        tables = []
+        for partition in self.h5data:
+            table = partition.readWhere(selection.where())
+            # add weight field
+            if include_weight:
+                # data is not weighted
+                weights = np.ones(table.shape[0], dtype='f4')
+                table = recfunctions.rec_append_fields(table,
+                        names='weight',
+                        data=weights,
+                        dtypes='f4')
+            if fields is not None:
+                table = table[fields]
+            tables.append(table)
+        return [tables]
 
 
 class Signal:
@@ -465,7 +466,10 @@ class MC(Sample):
             events_hist_suffix = '_cutflow'
 
             trees['NOMINAL'] = rfile.Get(treename)
-            tables['NOMINAL'] = getattr(h5file.root, treename)
+            tables['NOMINAL'] = (
+                    getattr(h5file.root, treename + "_0"),
+                    getattr(h5file.root, treename + "_1"))
+
             weighted_events['NOMINAL'] = rfile.Get(
                     treename + events_hist_suffix)[events_bin]
 
@@ -492,7 +496,10 @@ class MC(Sample):
 
                         sys_name = treename + '_' + '_'.join(actual_sys_term)
                         trees[sys_term] = rfile.Get(sys_name)
-                        tables[sys_term] = getattr(h5file.root, sys_name)
+                        tables[sys_term] = (
+                                getattr(h5file.root, sys_name + "_0"),
+                                getattr(h5file.root, sys_name + "_1"))
+
                         weighted_events[sys_term] = rfile.Get(
                                 sys_name + events_hist_suffix)[events_bin]
 
@@ -509,7 +516,10 @@ class MC(Sample):
                         sample_name = sample_name.replace('-', '_')
 
                         trees[sys_term] = rfile.Get(sample_name)
-                        tables[sys_term] = getattr(h5file.root, sample_name)
+                        tables[sys_term] = (
+                                getattr(h5file.root, sample_name + "_0"),
+                                getattr(h5file.root, sample_name + "_1"))
+
                         weighted_events[sys_term] = getattr(rfile,
                                 sample_name + events_hist_suffix)[events_bin]
 
@@ -534,10 +544,13 @@ class MC(Sample):
                 xs *= TAUTAUHADHADBR
                 kfact = 1.
                 effic = 1.
+
             elif isinstance(self, Embedded_Ztautau):
                 xs, kfact, effic = 1., 1., 1.
+
             else:
                 xs, kfact, effic = ds.xsec_kfact_effic
+
             log.debug("{0} {1} {2} {3}".format(ds.name, xs, kfact, effic))
             self.datasets.append(
                     (ds, trees, tables, weighted_events, xs, kfact, effic))
@@ -750,11 +763,13 @@ class MC(Sample):
         return trees
 
     def tables(self,
-            category,
-            region,
-            fields=None,
-            cuts=None,
-            include_weight=True, systematic='NOMINAL'):
+               category,
+               region,
+               fields=None,
+               cuts=None,
+               include_weight=True,
+               systematic='NOMINAL'):
+
         selection = self.cuts(category, region, systematic) & cuts
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in MC.SYSTEMATICS_BY_WEIGHT:
@@ -764,15 +779,17 @@ class MC(Sample):
 
             if systematic in (('ZFIT_UP',), ('ZFIT_DOWN',),
                               ('QCDFIT_UP',), ('QCDFIT_DOWN',)):
-                table = sys_tables['NOMINAL']
+                left_table, right_table = sys_tables['NOMINAL']
                 events = sys_events['NOMINAL']
             else:
                 table = sys_tables[systematic]
                 events = sys_events[systematic]
 
                 if table is None:
-                    table = sys_tables['NOMINAL']
+                    left_table, right_table = sys_tables['NOMINAL']
                     events = sys_events['NOMINAL']
+                else:
+                    left_table, right_table = table
 
             scale = self.scale
             if isinstance(self, Ztautau):
@@ -784,24 +801,29 @@ class MC(Sample):
 
             table_selection = selection.where()
             log.debug(table_selection)
-            # read the table with a selection
-            table = table.readWhere(table_selection)
-            # add weight field
-            if include_weight:
-                weights = np.empty(table.shape[0], dtype='f4')
-                weights.fill(weight)
-                table = recfunctions.rec_append_fields(table,
-                        names='weight',
-                        data=weights,
-                        dtypes='f4')
-                # merge the weight fields
-                table['weight'] *= reduce(np.multiply,
-                        [table[br] for br in weight_branches])
-                # drop other weight fields
-                table = recfunctions.rec_drop_fields(table, weight_branches)
-            if fields is not None:
-                table = table[fields]
-            tables.append(table)
+
+            partitions = []
+            for i, table in enumerate([left_table, right_table]):
+                # read the table with a selection
+                table = table.readWhere(table_selection)
+
+                # add weight field
+                if include_weight:
+                    weights = np.empty(table.shape[0], dtype='f4')
+                    weights.fill(weight)
+                    table = recfunctions.rec_append_fields(table,
+                            names='weight',
+                            data=weights,
+                            dtypes='f4')
+                    # merge the weight fields
+                    table['weight'] *= reduce(np.multiply,
+                            [table[br] for br in weight_branches])
+                    # drop other weight fields
+                    table = recfunctions.rec_drop_fields(table, weight_branches)
+                if fields is not None:
+                    table = table[fields]
+                partitions.append(table)
+            tables.append(partitions)
         return tables
 
     def events(self, selection='', systematic='NOMINAL'):
@@ -1104,7 +1126,8 @@ class QCD(Sample):
                     systematic=systematic)
             # FIX: weight may not be present if include_weight=False
             for array in _arrays:
-                array['weight'] *= -1
+                for partition in array:
+                    partition['weight'] *= -1
             arrays.extend(_arrays)
 
         scale = self.scale
@@ -1115,7 +1138,8 @@ class QCD(Sample):
 
         # FIX: weight may not be present if include_weight=False
         for array in arrays:
-            array['weight'] *= scale
+            for partition in array:
+                partition['weight'] *= scale
         return arrays
 
 
