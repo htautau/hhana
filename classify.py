@@ -499,7 +499,7 @@ class ClassificationProblem(object):
                     clf = AdaBoostClassifier(
                             DecisionTreeClassifier(),
                             compute_importances=True,
-                            learning_rate=1,
+                            learning_rate=.5,
                             real=False)
 
                     grid_clf = BoostGridSearchCV(
@@ -521,9 +521,11 @@ class ClassificationProblem(object):
                     log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
                     log.info("")
                     log.info("training new classifiers ...")
+
                     grid_clf.fit(
                             sample_train, labels_train,
                             sample_weight=sample_weight_train)
+
                     clf = grid_clf.best_estimator_
                     grid_scores = grid_clf.grid_scores_
 
@@ -547,16 +549,12 @@ class ClassificationProblem(object):
                         name=self.category + self.output_suffix + "_%d" % partition_idx)
 
                     # scale up the min-leaf and retrain on the whole set
-                    min_samples_leaf = grid_clf.best_estimator_.base_estimator.min_samples_leaf
-                    n_estimators=grid_clf.best_estimator_.n_estimators
-                    clf = AdaBoostClassifier(
-                            DecisionTreeClassifier(
-                                min_samples_leaf=int(min_samples_leaf *
-                                cv_nfold / float(cv_nfold - 1))),
-                            n_estimators=n_estimators,
-                            learning_rate=1,
-                            real=False,
-                            compute_importances=True)
+                    min_samples_leaf = clf.base_estimator.min_samples_leaf
+
+                    clf = sklearn.clone(clf)
+                    clf.base_estimator.min_samples_leaf = int(
+                            min_samples_leaf *
+                                cv_nfold / float(cv_nfold - 1))
 
                     clf.fit(sample_train, labels_train,
                             sample_weight=sample_weight_train)
