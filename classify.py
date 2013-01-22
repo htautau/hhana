@@ -504,13 +504,13 @@ class ClassificationProblem(object):
 
                     grid_clf = BoostGridSearchCV(
                             clf, grid_params,
-                            n_estimators_max=MAX_N_ESTIMATORS,
-                            n_estimators_min=MIN_N_ESTIMATORS,
-                            n_estimators_step=1,
+                            max_n_estimators=MAX_N_ESTIMATORS,
+                            min_n_estimators=MIN_N_ESTIMATORS,
+                            #n_estimators_step=1,
                             # can use default ClassifierMixin score
                             #score_func=precision_score,
                             cv = StratifiedKFold(labels_train, cv_nfold),
-                            n_jobs=-1)
+                            n_jobs=20)
 
                     log.info("")
                     log.info("performing a grid search over these parameter values:")
@@ -614,11 +614,27 @@ class ClassificationProblem(object):
         right = rec_to_ndarray(right, self.fields)
 
         # each classifier is never used on the partition that trained it
-        left_scores = self.clfs[0].predict_twoclass(left)
-        right_scores = self.clfs[1].predict_twoclass(right)
+        left_scores = self.clfs[0].decision_function(left)
+        right_scores = self.clfs[1].decision_function(right)
 
         return np.concatenate((left_scores, right_scores)), \
                np.concatenate((left_weight, right_weight))
+
+
+def purity_score(bdt, X):
+
+    norm = 0.
+    total = None
+    for w, est ∈ zip(bdt.weights_, bdt.estimators_):
+        norm += w
+        probs = est.predict_proba(X)
+        purity = probs[:, 0]
+        if total is None:
+            total = purity * w
+        else:
+            total += purity * w
+    total /= norm
+    return total
 
 
 def staged_score(self, X, y, sample_weight, n_estimators=-1):

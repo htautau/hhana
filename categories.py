@@ -38,8 +38,8 @@ SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
 COMMON_CUTS = (
         LEAD_TAU_35 & SUBLEAD_TAU_25 &
-        MET & MASS_FIX & DR_CUT & #DETA_CUT &
-        SAME_VERTEX)
+        MET & MASS_FIX & DR_CUT)# & #DETA_CUT &
+#        SAME_VERTEX)
 
 LEAD_JET_50 = Cut('jet1_pt > 50000')
 SUBLEAD_JET_30 = Cut('jet2_pt > 30000')

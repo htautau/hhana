@@ -132,16 +132,16 @@ class Sample(object):
     ]
 
     WEIGHT_SYSTEMATICS = {
-        'TRIGGER': {
-            'UP': [
-                'tau1_trigger_scale_factor_high',
-                'tau2_trigger_scale_factor_high'],
-            'DOWN': [
-                'tau1_trigger_scale_factor_low',
-                'tau2_trigger_scale_factor_low'],
-            'NOMINAL': [
-                'tau1_trigger_scale_factor',
-                'tau2_trigger_scale_factor']},
+        #'TRIGGER': {
+        #    'UP': [
+        #        'tau1_trigger_scale_factor_high',
+        #        'tau2_trigger_scale_factor_high'],
+        #    'DOWN': [
+        #        'tau1_trigger_scale_factor_low',
+        #        'tau2_trigger_scale_factor_low'],
+        #    'NOMINAL': [
+        #        'tau1_trigger_scale_factor',
+        #        'tau2_trigger_scale_factor']},
         'FAKERATE': {
             'UP': [
                 'tau1_fakerate_scale_factor_high',
@@ -539,8 +539,13 @@ class MC(Sample):
                 xs, _ = yellowhiggs.xsbr(
                         self.energy, self.masses[i],
                         Higgs.MODES_DICT[self.modes[i]][0], 'tautau')
-                log.debug("{0} {1} {2} {3}".format(
-                    name, self.masses[i], self.modes[i], xs))
+                log.debug("{0} {1} {2} {3} {4} {5}".format(
+                    name,
+                    self.masses[i],
+                    self.modes[i],
+                    Higgs.MODES_DICT[self.modes[i]][0],
+                    self.energy,
+                    xs))
                 xs *= TAUTAUHADHADBR
                 kfact = 1.
                 effic = 1.
