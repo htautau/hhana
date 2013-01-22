@@ -500,7 +500,7 @@ class ClassificationProblem(object):
                             DecisionTreeClassifier(),
                             compute_importances=True,
                             learning_rate=.5,
-                            real=False)
+                            real=True)
 
                     grid_clf = BoostGridSearchCV(
                             clf, grid_params,
@@ -625,7 +625,7 @@ def purity_score(bdt, X):
 
     norm = 0.
     total = None
-    for w, est ∈ zip(bdt.weights_, bdt.estimators_):
+    for w, est in zip(bdt.weights_, bdt.estimators_):
         norm += w
         probs = est.predict_proba(X)
         purity = probs[:, 0]

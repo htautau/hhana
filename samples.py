@@ -776,6 +776,8 @@ class MC(Sample):
                systematic='NOMINAL'):
 
         selection = self.cuts(category, region, systematic) & cuts
+        log.info("requesting table from %s with selection: %s" %
+                (self.__class__.__name__, selection))
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in MC.SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
