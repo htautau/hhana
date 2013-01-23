@@ -513,6 +513,7 @@ class ClassificationProblem(object):
                             n_jobs=20)
 
                     log.info("")
+                    log.info("using a %d-fold cross validation" % cv_nfold)
                     log.info("performing a grid search over these parameter values:")
                     for param, values in grid_params.items():
                         log.info('{0} {1}'.format(param.split('__')[-1], values))

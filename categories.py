@@ -19,6 +19,7 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
 
+
 # low cut fixes mass, high cut removes QCD
 #DR_FIX = Cut('1.0 < dR_tau1_tau2 < 3.2')
 DR_CUT = Cut('dR_tau1_tau2 < 3.2')
@@ -28,6 +29,10 @@ BAD_MASS = 80
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
+P1P3_RECOUNTED = (
+    (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
+    &
+    (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
 
 # TODO: require 1 or 3 (recounted) tracks after track fit or even after BDT training
 # possible new variable: ratio of core tracks to recounted tracks
@@ -38,6 +43,7 @@ SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
 COMMON_CUTS = (
         LEAD_TAU_35 & SUBLEAD_TAU_25 &
+        P1P3_RECOUNTED &
         MET & MASS_FIX & DR_CUT)# & #DETA_CUT &
 #        SAME_VERTEX)
 
@@ -48,6 +54,15 @@ VBF_CUTS = LEAD_JET_50 & SUBLEAD_JET_30
 BOOSTED_CUTS = LEAD_JET_50 & (- SUBLEAD_JET_30)
 GGF_CUTS = (- LEAD_JET_50)
 
+# test with Swagato
+# 3P vs 3P
+#P3P3 = Cut('tau1_numTrack==3 && tau2_numTrack==3')
+#ID_MEDIUM = Cut()
+#ID_MEDIUM_TIGHT = Cut()
+#COMMON_CUTS = P3P3
+#VBF_CUTS = Cut()
+#BOOSTED_CUTS = Cut()
+#GGF_CUTS = Cut()
 
 CATEGORIES = {
     'vbf': {
@@ -57,8 +72,8 @@ CATEGORIES = {
             2011: ID_MEDIUM,
             2012: ID_MEDIUM_TIGHT},
         'fitbins': 5,
-        'limitbins': 12,
-        'limitbinning': 'constant',
+        'limitbins': 10,
+        'limitbinning': 'onebkg',
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
@@ -97,8 +112,8 @@ CATEGORIES = {
             2011: ID_MEDIUM,
             2012: ID_MEDIUM_TIGHT},
         'fitbins': 5,
-        'limitbins': 12,
-        'limitbinning': 'constant',
+        'limitbins': 10,
+        'limitbinning': 'onebkg',
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
@@ -127,8 +142,8 @@ CATEGORIES = {
             2011: ID_MEDIUM,
             2012: ID_MEDIUM_TIGHT},
         'fitbins': 8,
-        'limitbins': 13,
-        'limitbinning': 'constant',
+        'limitbins': 10,
+        'limitbinning': 'onebkg',
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
