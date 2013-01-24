@@ -30,3 +30,8 @@ def plots_dir(script):
     if not os.path.exists(dir):
         mkdir_p(dir)
     return dir
+
+import numpy
+# for reproducibilty
+# especially for test/train set selection
+np.random.seed(1987) # my birth year ;)

@@ -27,9 +27,9 @@ from rootpy.math.stats.correlation import correlation_plot
 
 # local imports
 from . import log; log = log[__name__]
-import categories
-import variables
-import systematics
+from . import categories
+from . import variables
+from . import systematics
 
 # Higgs cross sections
 import yellowhiggs

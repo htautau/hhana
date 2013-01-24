@@ -673,3 +673,198 @@ def significance(signal, background, min_bkg=0):
     max_cut = bins[max_bin]
     return sig, max_sig, max_cut
 
+
+def plot_grid_scores(
+        grid_scores, best_point, params, name,
+        label_all_bins=False,
+        label_all_ticks=False,
+        n_ticks=10,
+        title=None,
+        format='png'):
+
+    param_names = sorted(grid_scores[0][0].keys())
+    param_values = dict([(pname, []) for pname in param_names])
+    for pvalues, score, cv_scores in grid_scores:
+        for pname in param_names:
+            param_values[pname].append(pvalues[pname])
+
+    # remove duplicates
+    for pname in param_names:
+        param_values[pname] = np.unique(param_values[pname]).tolist()
+
+    scores = np.empty(shape=[len(param_values[pname]) for pname in param_names])
+
+    for pvalues, score, cv_scores in grid_scores:
+        index = []
+        for pname in param_names:
+            index.append(param_values[pname].index(pvalues[pname]))
+        scores.itemset(tuple(index), score)
+
+    fig = plt.figure(figsize=(7, 5), dpi=100)
+    ax = plt.axes([.12, .15, .8, .75])
+    cmap = cm.get_cmap('jet', 100)
+    img = ax.imshow(scores, interpolation="nearest", cmap=cmap,
+            aspect='auto',
+            origin='lower')
+
+    if label_all_ticks:
+        plt.xticks(range(len(param_values[param_names[1]])),
+                param_values[param_names[1]])
+        plt.yticks(range(len(param_values[param_names[0]])),
+                param_values[param_names[0]])
+    else:
+        trees = param_values[param_names[1]]
+        def tree_formatter(x, pos):
+            if x < 0 or x >= len(trees):
+                return ''
+            return str(trees[int(x)])
+
+        leaves = param_values[param_names[0]]
+        def leaf_formatter(x, pos):
+            if x < 0 or x >= len(leaves):
+                return ''
+            return str(leaves[int(x)])
+
+        ax.xaxis.set_major_formatter(FuncFormatter(tree_formatter))
+        ax.yaxis.set_major_formatter(FuncFormatter(leaf_formatter))
+        ax.xaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
+            prune='lower', steps=[1, 2, 5, 10]))
+        ax.yaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
+            steps=[1, 2, 5, 10]))
+        xlabels = ax.get_xticklabels()
+        for label in xlabels:
+            label.set_rotation(45)
+
+    ax.set_xlabel(params[param_names[1]], fontsize=12,
+            position=(1., 0.), ha='right')
+    ax.set_ylabel(params[param_names[0]], fontsize=12,
+            position=(0., 1.), va='top')
+
+    ax.set_frame_on(False)
+    ax.xaxis.set_ticks_position('none')
+    ax.yaxis.set_ticks_position('none')
+
+    for row in range(scores.shape[0]):
+        for col in range(scores.shape[1]):
+            decor={}
+            if ((param_values[param_names[0]].index(best_point[param_names[0]])
+                 == row) and
+                (param_values[param_names[1]].index(best_point[param_names[1]])
+                 == col)):
+                decor = dict(weight='bold',
+                             bbox=dict(boxstyle="round,pad=0.5",
+                                       ec='black',
+                                       fill=False))
+            if label_all_bins or decor:
+                plt.text(col, row, "%.3f" % (scores[row][col]), ha='center',
+                         va='center', **decor)
+    if title:
+        plt.suptitle(title)
+
+    plt.colorbar(img, fraction=.06, pad=0.03)
+    plt.axis("tight")
+    plt.savefig("grid_scores_%s.%s" % (name, format), bbox_inches='tight')
+    plt.clf()
+
+
+def plot_clf(
+        background_scores,
+        category,
+        category_name,
+        signal_scores=None,
+        signal_scale=1.,
+        data_scores=None,
+        name=None,
+        draw_histograms=True,
+        draw_data=False,
+        save_histograms=False,
+        bins=10,
+        min_score=0,
+        max_score=1,
+        signal_on_top=False,
+        signal_colour_map=cm.spring,
+        plot_signal_significance=True,
+        fill_signal=True,
+        systematics=None,
+        **kwargs):
+
+    if hasattr(bins, '__iter__'):
+        # variable width bins
+        hist_template = Hist(bins)
+        min_score = min(bins)
+        max_score = max(bins)
+    else:
+        hist_template = Hist(bins, min_score, max_score)
+
+    bkg_hists = []
+    for bkg, scores_dict in background_scores:
+        hist = hist_template.Clone(title=bkg.label)
+        scores, weight = scores_dict['NOMINAL']
+        hist.fill_array(scores, weight)
+        hist.decorate(**bkg.hist_decor)
+        hist.systematics = {}
+        for sys_term in scores_dict.keys():
+            if sys_term == 'NOMINAL':
+                continue
+            sys_hist = hist_template.Clone()
+            scores, weight = scores_dict[sys_term]
+            sys_hist.fill_array(scores, weight)
+            hist.systematics[sys_term] = sys_hist
+        bkg_hists.append(hist)
+
+    if signal_scores is not None:
+        sig_hists = []
+        for sig, scores_dict in signal_scores:
+            sig_hist = hist_template.Clone(title=sig.label)
+            scores, weight = scores_dict['NOMINAL']
+            sig_hist.fill_array(scores, weight)
+            sig_hist.decorate(**sig.hist_decor)
+            sig_hist.systematics = {}
+            for sys_term in scores_dict.keys():
+                if sys_term == 'NOMINAL':
+                    continue
+                sys_hist = hist_template.Clone()
+                scores, weight = scores_dict[sys_term]
+                sys_hist.fill_array(scores, weight)
+                sig_hist.systematics[sys_term] = sys_hist
+            sig_hists.append(sig_hist)
+    else:
+        sig_hists = None
+
+    if data_scores is not None and draw_data:
+        data, data_scores = data_scores
+        data_hist = hist_template.Clone(title=data.label)
+        data_hist.decorate(**data.hist_decor)
+        data_hist.fill_array(data_scores)
+        log.info("Data events: %d" % sum(data_hist))
+        log.info("Model events: %f" % sum(sum(bkg_hists)))
+        for hist in bkg_hists:
+            log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+        log.info("Data / Model: %f" % (sum(data_hist) / sum(sum(bkg_hists))))
+    else:
+        data_hist = None
+
+    if draw_histograms:
+        output_name = 'event_bdt_score'
+        if name is not None:
+            output_name += '_' + name
+        draw(data=data_hist,
+             model=bkg_hists,
+             signal=sig_hists,
+             signal_scale=signal_scale,
+             plot_signal_significance=plot_signal_significance,
+             category=category,
+             category_name=category_name,
+             name="BDT Score",
+             output_name=output_name,
+             range=(min_score, max_score),
+             show_ratio=data_hist is not None,
+             model_colour_map=None,
+             signal_colour_map=signal_colour_map,
+             signal_on_top=signal_on_top,
+             fill_signal=fill_signal,
+             systematics=systematics,
+             **kwargs)
+    return bkg_hists, sig_hists, data_hist
+
+
