@@ -348,73 +348,6 @@ class ClassificationProblem(object):
 
         for partition_idx in range(2):
 
-            # recarray -> ndarray
-            signal_train = np.concatenate(map(itemgetter(partition_idx),
-                self.signal_arrs))
-            signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                self.signal_weight_arrs))
-            background_train = np.concatenate(map(itemgetter(partition_idx),
-                self.background_arrs))
-            background_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                self.background_weight_arrs))
-
-            if remove_negative_weights:
-                # remove samples from the training sample with a negative weight
-                signal_train = signal_train[signal_weight_train >= 0]
-                background_train = background_train[background_weight_train >= 0]
-                signal_weight_train = signal_weight_train[signal_weight_train >= 0]
-                background_weight_train = background_weight_train[background_weight_train >= 0]
-
-            if max_sig is not None and max_sig < len(signal_train):
-                subsample = np.random.permutation(len(signal_train))[:max_sig_train]
-                signal_train = signal_train[subsample]
-                signal_weight_train = signal_weight_train[subsample]
-
-            if max_bkg is not None and max_bkg < len(background_train):
-                subsample = np.random.permutation(len(background_train))[:max_bkg_train]
-                background_train = background_train[subsample]
-                background_weight_train = background_weight_train[subsample]
-
-            if same_size_sig_bkg:
-                if len(background_train) > len(signal_train):
-                    # random subsample of background so it's the same size as signal
-                    subsample = np.random.permutation(
-                        len(background_train))[:len(signal_train)]
-                    background_train = background_train[subsample]
-                    background_weight_train = background_weight_train[subsample]
-                elif len(background_train) < len(signal_train):
-                    # random subsample of signal so it's the same size as background
-                    subsample = np.random.permutation(
-                        len(signal_train))[:len(background_train)]
-                    signal_train = signal_train[subsample]
-                    signal_weight_train = signal_weight_train[subsample]
-
-            if norm_sig_to_bkg:
-                # normalize signal to background
-                signal_weight_train *= (
-                    background_weight_train.sum() / signal_weight_train.sum())
-
-            log.info("Training Samples:")
-            log.info("Signal: %d events, %s features" % signal_train.shape)
-            log.info("Sum(signal weights): %f" % signal_weight_train.sum())
-            log.info("Background: %d events, %s features" % background_train.shape)
-            log.info("Sum(background weight): %f" % background_weight_train.sum())
-
-            sample_train = np.concatenate((background_train, signal_train))
-            sample_weight_train = np.concatenate(
-                (background_weight_train, signal_weight_train))
-            labels_train = np.concatenate(
-                (np.zeros(len(background_train)), np.ones(len(signal_train))))
-
-            if self.standardize: # TODO use same std for classification
-                sample_train = std(sample_train)
-
-            # random permutation of training sample
-            perm = np.random.permutation(len(labels_train))
-            sample_train = sample_train[perm]
-            sample_weight_train = sample_weight_train[perm]
-            labels_train = labels_train[perm]
-
             clf_filename = 'clf_%s%s_%d.pickle' % (
                     self.category, self.output_suffix, partition_idx)
 
@@ -425,7 +358,75 @@ class ClassificationProblem(object):
                 with open(clf_filename, 'r') as f:
                     clf = pickle.load(f)
                 log.info(clf)
+
             else:
+                # recarray -> ndarray
+                signal_train = np.concatenate(map(itemgetter(partition_idx),
+                    self.signal_arrs))
+                signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
+                    self.signal_weight_arrs))
+                background_train = np.concatenate(map(itemgetter(partition_idx),
+                    self.background_arrs))
+                background_weight_train = np.concatenate(map(itemgetter(partition_idx),
+                    self.background_weight_arrs))
+
+                if remove_negative_weights:
+                    # remove samples from the training sample with a negative weight
+                    signal_train = signal_train[signal_weight_train >= 0]
+                    background_train = background_train[background_weight_train >= 0]
+                    signal_weight_train = signal_weight_train[signal_weight_train >= 0]
+                    background_weight_train = background_weight_train[background_weight_train >= 0]
+
+                if max_sig is not None and max_sig < len(signal_train):
+                    subsample = np.random.permutation(len(signal_train))[:max_sig_train]
+                    signal_train = signal_train[subsample]
+                    signal_weight_train = signal_weight_train[subsample]
+
+                if max_bkg is not None and max_bkg < len(background_train):
+                    subsample = np.random.permutation(len(background_train))[:max_bkg_train]
+                    background_train = background_train[subsample]
+                    background_weight_train = background_weight_train[subsample]
+
+                if same_size_sig_bkg:
+                    if len(background_train) > len(signal_train):
+                        # random subsample of background so it's the same size as signal
+                        subsample = np.random.permutation(
+                            len(background_train))[:len(signal_train)]
+                        background_train = background_train[subsample]
+                        background_weight_train = background_weight_train[subsample]
+                    elif len(background_train) < len(signal_train):
+                        # random subsample of signal so it's the same size as background
+                        subsample = np.random.permutation(
+                            len(signal_train))[:len(background_train)]
+                        signal_train = signal_train[subsample]
+                        signal_weight_train = signal_weight_train[subsample]
+
+                if norm_sig_to_bkg:
+                    # normalize signal to background
+                    signal_weight_train *= (
+                        background_weight_train.sum() / signal_weight_train.sum())
+
+                log.info("Training Samples:")
+                log.info("Signal: %d events, %s features" % signal_train.shape)
+                log.info("Sum(signal weights): %f" % signal_weight_train.sum())
+                log.info("Background: %d events, %s features" % background_train.shape)
+                log.info("Sum(background weight): %f" % background_weight_train.sum())
+
+                sample_train = np.concatenate((background_train, signal_train))
+                sample_weight_train = np.concatenate(
+                    (background_weight_train, signal_weight_train))
+                labels_train = np.concatenate(
+                    (np.zeros(len(background_train)), np.ones(len(signal_train))))
+
+                if self.standardize: # TODO use same std for classification
+                    sample_train = std(sample_train)
+
+                # random permutation of training sample
+                perm = np.random.permutation(len(labels_train))
+                sample_train = sample_train[perm]
+                sample_weight_train = sample_weight_train[perm]
+                labels_train = labels_train[perm]
+
                 log.info("training a new classifier...")
                 log.info("plotting input variables as they are given to the BDT")
                 # draw plots of the input variables

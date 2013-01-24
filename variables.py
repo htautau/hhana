@@ -6,7 +6,7 @@ VARIABLES = {
         'root': '#LT#mu#GT#cbar_{LB,BCID}',
         'filename': 'averageIntPerXing',
         'bins': 30,
-        'range': (1, 36),
+        'range': (1, 46),
         'cats': ['VBF', 'GGF', 'BOOSTED',]
     },
     'actualIntPerXing': {
@@ -14,7 +14,7 @@ VARIABLES = {
         'root': '#LT#mu#GT#cbar_{LB}(BCID)',
         'filename': 'actualIntPerXing',
         'bins': 30,
-        'range': (1, 36),
+        'range': (1, 46),
         'cats': ['VBF', 'GGF', 'BOOSTED',]
     },
     'sum_pt': {
