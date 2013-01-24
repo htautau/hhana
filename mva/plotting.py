@@ -674,13 +674,12 @@ def significance(signal, background, min_bkg=0):
     return sig, max_sig, max_cut
 
 
-def plot_grid_scores(
-        grid_scores, best_point, params, name,
-        label_all_bins=False,
-        label_all_ticks=False,
-        n_ticks=10,
-        title=None,
-        format='png'):
+def plot_grid_scores(grid_scores, best_point, params, name,
+                     label_all_bins=False,
+                     label_all_ticks=False,
+                     n_ticks=10,
+                     title=None,
+                     format='png'):
 
     param_names = sorted(grid_scores[0][0].keys())
     param_values = dict([(pname, []) for pname in param_names])
@@ -767,26 +766,25 @@ def plot_grid_scores(
     plt.clf()
 
 
-def plot_clf(
-        background_scores,
-        category,
-        category_name,
-        signal_scores=None,
-        signal_scale=1.,
-        data_scores=None,
-        name=None,
-        draw_histograms=True,
-        draw_data=False,
-        save_histograms=False,
-        bins=10,
-        min_score=0,
-        max_score=1,
-        signal_on_top=False,
-        signal_colour_map=cm.spring,
-        plot_signal_significance=True,
-        fill_signal=True,
-        systematics=None,
-        **kwargs):
+def plot_clf(background_scores,
+             category,
+             category_name,
+             signal_scores=None,
+             signal_scale=1.,
+             data_scores=None,
+             name=None,
+             draw_histograms=True,
+             draw_data=False,
+             save_histograms=False,
+             bins=10,
+             min_score=0,
+             max_score=1,
+             signal_on_top=False,
+             signal_colour_map=cm.spring,
+             plot_signal_significance=True,
+             fill_signal=True,
+             systematics=None,
+             **kwargs):
 
     if hasattr(bins, '__iter__'):
         # variable width bins
@@ -866,5 +864,3 @@ def plot_clf(
              systematics=systematics,
              **kwargs)
     return bkg_hists, sig_hists, data_hist
-
-
