@@ -15,7 +15,7 @@ SCALES = {}
 MODIFIED = False
 
 
-def read_scales(name='etc/background_scales.cache'):
+def read_scales(name='etc/norm.cache'):
 
     global SCALES_FILE
     global SCALES
