@@ -26,7 +26,7 @@ from rootpy import asrootpy
 from rootpy.math.stats.correlation import correlation_plot
 
 # local imports
-from logger import log; log = log[__name__]
+from . import log; log = log[__name__]
 import categories
 import variables
 import systematics

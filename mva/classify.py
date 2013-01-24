@@ -1,4 +1,4 @@
-from logger import log; log = log[__name__]
+from . import log; log = log[__name__]
 
 import pickle
 from operator import itemgetter
