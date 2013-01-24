@@ -4,13 +4,16 @@ import sys
 import atexit
 from operator import add, itemgetter
 import math
+import warnings
 
 # numpy imports
 import numpy as np
 from numpy.lib import recfunctions
 
 # pytables imports
-import tables
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import tables
 
 # higgstautau imports
 from higgstautau.hadhad.periods import LUMI

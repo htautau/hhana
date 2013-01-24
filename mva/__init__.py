@@ -9,7 +9,7 @@ import ROOT
 import rootpy
 import logging
 
-ROOT.SetBatch(True)
+ROOT.gROOT.SetBatch(True)
 rootpy.log.basic_config_colorized()
 
 log = logging.getLogger('mva')
@@ -31,7 +31,7 @@ def plots_dir(script):
         mkdir_p(dir)
     return dir
 
-import numpy
+import numpy as np
 # for reproducibilty
 # especially for test/train set selection
 np.random.seed(1987) # my birth year ;)
