@@ -9,9 +9,9 @@ from rootpy.plotting import Hist, Hist2D, HistStack, Legend, Canvas
 
 import numpy as np
 
-from ..logger import log; log = log[__name__]
-from ..utils import set_colours, draw
-from ..config import plots_dir
+from .. import log; log = log[__name__]
+from ..plotting import set_colours, draw
+from .. import plots_dir
 
 from .. import categories
 from .. import samples

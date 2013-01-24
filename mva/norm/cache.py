@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from logger import log
+from .. import log
 import os
 import cPickle as pickle
 
@@ -15,7 +15,7 @@ SCALES = {}
 MODIFIED = False
 
 
-def read_scales(name='background_scales.cache'):
+def read_scales(name='etc/background_scales.cache'):
 
     global SCALES_FILE
     global SCALES

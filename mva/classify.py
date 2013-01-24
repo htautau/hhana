@@ -430,7 +430,7 @@ def purity_score(bdt, X):
 
     norm = 0.
     total = None
-    for w, est in zip(bdt.weights_, bdt.estimators_):
+    for w, est in zip(bdt.estimator_weights_, bdt.estimators_):
         norm += w
         probs = est.predict_proba(X)
         purity = probs[:, 0]
