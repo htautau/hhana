@@ -1,5 +1,4 @@
 import os
-from array import array
 
 import ROOT
 ROOT.gROOT.SetBatch(True)
@@ -9,14 +8,15 @@ from rootpy.tree import Cut
 from rootpy.plotting import Hist, Hist2D, HistStack, Legend, Canvas
 
 import numpy as np
-from scipy.optimize import fmin_l_bfgs_b
 
-from logger import log; log = log[__name__]
-from utils import set_colours, draw
-import categories
-import bkg_scales_cache
-from config import plots_dir
-import samples
+from ..logger import log; log = log[__name__]
+from ..utils import set_colours, draw
+from ..config import plots_dir
+
+from .. import categories
+from .. import samples
+
+from . import cache
 
 
 class FitError(Exception):
@@ -136,10 +136,10 @@ def qcd_ztautau_norm(
     is_embedded = isinstance(ztautau, samples.Embedded_Ztautau)
     param = param.upper()
 
-    if use_cache and bkg_scales_cache.has_category(
+    if use_cache and cache.has_category(
             year, category, is_embedded, param):
         qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error = \
-                 bkg_scales_cache.get_scales(year, category, is_embedded, param)
+                 cache.get_scales(year, category, is_embedded, param)
         qcd.scale = qcd_scale
         qcd.scale_error = qcd_scale_error
         ztautau.scale = ztautau_scale
@@ -442,7 +442,7 @@ def qcd_ztautau_norm(
                     cuts=control,
                     root=root)
 
-    bkg_scales_cache.set_scales(
+    cache.set_scales(
             year,
             category, is_embedded, param,
             qcd_scale, qcd_scale_error,
