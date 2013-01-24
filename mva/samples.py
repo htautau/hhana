@@ -43,6 +43,7 @@ NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
 NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
+
 DEFAULT_STUDENT = 'HHProcessor'
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
@@ -306,9 +307,9 @@ class Sample(object):
         return hist
 
     def draw2d(self, expr, category, region,
-            xbins, xmin, xmax,
-            ybins, ymin, ymax,
-            cuts=None):
+               xbins, xmin, xmax,
+               ybins, ymin, ymax,
+               cuts=None):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
                 title=self.label, **self.hist_decor)
@@ -358,15 +359,19 @@ class Data(Sample):
         return [tree]
 
     def tables(self,
-              category,
-              region,
-              fields=None,
-              cuts=None,
-              include_weight=True,
-              systematic='NOMINAL'):
+               category,
+               region,
+               fields=None,
+               cuts=None,
+               include_weight=True,
+               systematic='NOMINAL'):
 
         Sample.check_systematic(systematic)
         selection = self.cuts(category, region) & cuts
+
+        log.info("requesting table from %s %d with selection: %s" %
+                 (self.__class__.__name__, self.year, selection))
+
         # read the table with a selection
         tables = []
         for partition in self.h5data:
@@ -416,11 +421,7 @@ class MC(Sample):
         ('TAUID_DOWN',),
     ]
 
-    def __init__(self,
-            year,
-            db=DB_HH,
-            systematics=True,
-            **kwargs):
+    def __init__(self, year, db=DB_HH, systematics=True, **kwargs):
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
