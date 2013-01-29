@@ -5,10 +5,10 @@ TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
 TAU1_TIGHT = Cut('tau1_JetBDTSigTight==1')
 TAU2_TIGHT = Cut('tau2_JetBDTSigTight==1')
 
-TAU1_CENTRAL = Cut('fabs(tau1_fourvect.Eta()) < 1.5')
-TAU1_FORWARD = Cut('fabs(tau1_fourvect.Eta()) > 1.5')
-TAU2_CENTRAL = Cut('fabs(tau2_fourvect.Eta()) < 1.5')
-TAU2_FORWARD = Cut('fabs(tau2_fourvect.Eta()) > 1.5')
+TAU1_CENTRAL = Cut('fabs(tau1_eta) < 1.5')
+TAU1_FORWARD = Cut('fabs(tau1_eta) > 1.5')
+TAU2_CENTRAL = Cut('fabs(tau2_eta) < 1.5')
+TAU2_FORWARD = Cut('fabs(tau2_eta) > 1.5')
 
 ID_MEDIUM = TAU1_MEDIUM & TAU2_MEDIUM
 ID_TIGHT = TAU1_TIGHT & TAU2_TIGHT
