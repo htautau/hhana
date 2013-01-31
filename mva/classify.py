@@ -1,4 +1,5 @@
 from . import log; log = log[__name__]
+from . import CACHE_DIR
 
 import pickle
 from operator import itemgetter
@@ -151,8 +152,9 @@ class ClassificationProblem(object):
 
         for partition_idx in range(2):
 
-            clf_filename = 'clf_%s%s_%d.pickle' % (
-                    self.category, self.output_suffix, partition_idx)
+            clf_filename = os.path.join(CACHE_DIR, 'classify',
+                    'clf_%s%s_%d.pickle' % (
+                    self.category, self.output_suffix, partition_idx))
 
             # train a classifier
             if use_cache and os.path.isfile(clf_filename):

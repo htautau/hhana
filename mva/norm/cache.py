@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from .. import log, BASE_DIR
+from .. import log, CACHE_DIR
 import os
 import cPickle as pickle
 
@@ -13,12 +13,12 @@ SCALES = {}
 MODIFIED = False
 
 
-def read_scales(name='cache/norm.cache'):
+def read_scales(name='norm.cache'):
 
     global SCALES_FILE
     global SCALES
 
-    SCALES_FILE = os.path.join(BASE_DIR, name)
+    SCALES_FILE = os.path.join(CACHE_DIR, name)
     log.info("reading background scale factors from %s" % SCALES_FILE)
 
     if os.path.isfile(SCALES_FILE):

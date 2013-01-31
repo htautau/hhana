@@ -7,6 +7,10 @@ if not LIMITS_DIR:
 LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 
 BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
+CACHE_DIR = os.path.join(BASE_DIR, 'cache')
+
+if not os.path.exists(CACHE_DIR):
+    os.mkdir(CACHE_DIR)
 
 import ROOT
 import rootpy
