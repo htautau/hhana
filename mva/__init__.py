@@ -6,6 +6,8 @@ if not LIMITS_DIR:
     sys.exit('You did not source setup.sh!')
 LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 
+BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
+
 import ROOT
 import rootpy
 import logging
@@ -19,7 +21,7 @@ if not os.environ.get("DEBUG", False):
 
 logging.captureWarnings(True)
 
-PLOTS_DIR = './plots'
+PLOTS_DIR = os.path.join(BASE_DIR, 'plots')
 
 from .utils import mkdir_p
 
