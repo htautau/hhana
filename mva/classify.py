@@ -159,7 +159,7 @@ class ClassificationProblem(object):
             # train a classifier
             if use_cache and os.path.isfile(clf_filename):
                 # use a previously trained classifier
-                log.info("using a previously trained classifier...")
+                log.info("using the existing classifier in %s" % clf_filename)
                 with open(clf_filename, 'r') as f:
                     clf = pickle.load(f)
                 log.info(clf)

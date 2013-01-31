@@ -1,3 +1,4 @@
+from . import log; log = log[__name__]
 import os
 import sys
 import math
