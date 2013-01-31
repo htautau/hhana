@@ -1,0 +1,12 @@
+optimal params: #trees, leaf size, sample sizes
+ROC comparing the different categories
+
+Typical BDT in control and signal blinded
+MMC mass full mass range (no cuts on MVA)
+
+Compare to current cut-based. Compare limits.
+Kinematic plots (highly ranked variables)
+
+Implemented new recommendations.
+Skims submitted, can analyze soon.
+Refactoring limit code.
