@@ -32,10 +32,10 @@ from . import variables
 
 def correlations(signal, signal_weight,
                  background, background_weight,
-                 branches, category, output_suffix=''):
+                 fields, category, output_suffix=''):
 
     # draw correlation plots
-    names = [variables.VARIABLES[branch]['title'] for branch in branches]
+    names = [variables.VARIABLES[field]['title'] for field in fields]
     correlation_plot(signal, signal_weight, names,
                      "correlation_signal_%s%s" % (
                          category, output_suffix),
@@ -96,15 +96,15 @@ def rec_to_ndarray(rec, fields):
 class ClassificationProblem(object):
 
     def __init__(self,
-            signals,
-            backgrounds,
-            fields,
-            category,
-            region,
-            cuts=None,
-            spectators=None,
-            standardize=False,
-            output_suffix=""):
+                 signals,
+                 backgrounds,
+                 fields,
+                 category,
+                 region,
+                 cuts=None,
+                 spectators=None,
+                 standardize=False,
+                 output_suffix=""):
 
         self.signals = signals
         self.backgrounds = backgrounds
@@ -116,8 +116,17 @@ class ClassificationProblem(object):
         self.standardize = standardize
         self.output_suffix = output_suffix
 
+        self.background_label = 0
+        self.signal_label = 1
+
+        if spectators is not None:
+            self.all_fields = fields + spectators
+        else:
+            self.all_fields = fields[:]
+
         assert 'weight' not in fields
 
+        self.signal_recs = []
         self.signal_arrs = []
         self.signal_weight_arrs = []
 
@@ -125,14 +134,16 @@ class ClassificationProblem(object):
             left, right = signal.split(
                 category=category,
                 region=region,
-                fields=fields,
+                fields=self.all_fields,
                 cuts=cuts)
             self.signal_weight_arrs.append(
                     (left['weight'], right['weight']))
             self.signal_arrs.append(
                     (rec_to_ndarray(left, fields),
                      rec_to_ndarray(right, fields)))
+            self.signal_recs.append((left, right))
 
+        self.background_recs = []
         self.background_arrs = []
         self.background_weight_arrs = []
 
@@ -140,42 +151,57 @@ class ClassificationProblem(object):
             left, right = background.split(
                 category=category,
                 region=region,
-                fields=fields,
+                fields=self.all_fields,
                 cuts=cuts)
             self.background_weight_arrs.append(
                     (left['weight'], right['weight']))
             self.background_arrs.append(
                     (rec_to_ndarray(left, fields),
                      rec_to_ndarray(right, fields)))
+            self.background_recs.append((left, right))
 
         # classifiers for the left and right partitions
         # each trained on the opposite partition
         self.clfs = None
 
-    def correlations(self, with_spectators=True, with_clf_output=False):
+    def correlations(self,
+                     with_spectators=True,
+                     with_clf_output=False,
+                     partition=None):
 
-        branches = branches + ['mass_mmc_tau1_tau2']
+        if with_spectators:
+            fields = self.all_fields
+        else:
+            fields = self.fields
+
+        signal = np.hstack(map(np.hstack, self.signal_recs))
+        signal_weight = np.concatenate(map(np.concatenate,
+            self.signal_weight_arrs))
+        background = np.hstack(map(np.hstack, self.background_recs))
+        background_weight = np.concatenate(map(np.concatenate,
+            self.background_weight_arrs))
+
         # draw a linear correlation matrix
-        samples.correlations(
-            signal=sample_test[labels_test==1],
-            signal_weight=sample_weight_test[labels_test==1],
-            background=sample_test[labels_test==0],
-            background_weight=sample_weight_test[labels_test==0],
-            branches=branches,
-            category=category,
-            output_suffix=output_suffix)
+        correlations(
+            signal=rec_to_ndarray(signal, fields),
+            signal_weight=signal_weight,
+            background=rec_to_ndarray(background, fields),
+            background_weight=background_weight,
+            fields=fields,
+            category=self.category,
+            output_suffix=self.output_suffix)
 
     def train(self,
-            max_sig=None,
-            max_bkg=None,
-            norm_sig_to_bkg=True,
-            same_size_sig_bkg=True,
-            remove_negative_weights=False,
-            grid_search=True,
-            quick=False,
-            cv_nfold=5,
-            use_cache=True,
-            **clf_params):
+              max_sig=None,
+              max_bkg=None,
+              norm_sig_to_bkg=True,
+              same_size_sig_bkg=True,
+              remove_negative_weights=False,
+              grid_search=True,
+              quick=False,
+              cv_nfold=5,
+              use_cache=True,
+              **clf_params):
         """
         Determine best BDTs on left and right partitions. Each BDT will then be
         used on the other partition.
@@ -197,7 +223,7 @@ class ClassificationProblem(object):
                 log.info(clf)
 
             else:
-                # recarray -> ndarray
+                # merge arrays and create training samples
                 signal_train = np.concatenate(map(itemgetter(partition_idx),
                     self.signal_arrs))
                 signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
