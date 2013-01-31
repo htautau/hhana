@@ -1,4 +1,5 @@
 import os
+import sys
 
 LIMITS_DIR = os.getenv('HIGGSTAUTAU_LIMITS_DIR')
 if not LIMITS_DIR:
