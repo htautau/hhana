@@ -26,7 +26,6 @@ from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.io import open as ropen
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
-from rootpy.math.stats.correlation import correlation_plot
 
 # local imports
 from . import log; log = log[__name__]
@@ -82,22 +81,6 @@ def cleanup():
     os.unlink(TEMPFILE.GetName())
     for filehandle in FILES.values():
         filehandle.close()
-
-
-def correlations(signal, signal_weight,
-                 background, background_weight,
-                 branches, category, output_suffix=''):
-
-    # draw correlation plots
-    names = [variables.VARIABLES[branch]['title'] for branch in branches]
-    correlation_plot(signal, signal_weight, names,
-                     "correlation_signal_%s%s" % (
-                         category, output_suffix),
-                     title='%s signal' % category)
-    correlation_plot(background, background_weight, names,
-                     "correlation_background_%s%s" % (
-                         category, output_suffix),
-                     title='%s background' % category)
 
 
 def get_samples(year, masses=None, modes=None, embedding=True):

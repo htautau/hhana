@@ -23,10 +23,27 @@ from sklearn.tree import DecisionTreeClassifier
 from rootpy.plotting import Hist
 from rootpy.io import open as ropen
 from rootpy.extern.tabulartext import PrettyTable
+from rootpy.math.stats.correlation import correlation_plot
 
 from .samples import *
 from .plotting import draw
 from . import variables
+
+
+def correlations(signal, signal_weight,
+                 background, background_weight,
+                 branches, category, output_suffix=''):
+
+    # draw correlation plots
+    names = [variables.VARIABLES[branch]['title'] for branch in branches]
+    correlation_plot(signal, signal_weight, names,
+                     "correlation_signal_%s%s" % (
+                         category, output_suffix),
+                     title='%s signal' % category)
+    correlation_plot(background, background_weight, names,
+                     "correlation_background_%s%s" % (
+                         category, output_suffix),
+                     title='%s background' % category)
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
@@ -85,6 +102,7 @@ class ClassificationProblem(object):
             category,
             region,
             cuts=None,
+            spectators=None,
             standardize=False,
             output_suffix=""):
 
@@ -94,6 +112,7 @@ class ClassificationProblem(object):
         self.category = category
         self.region = region
         self.cuts = cuts
+        self.spectators = spectators
         self.standardize = standardize
         self.output_suffix = output_suffix
 
@@ -132,6 +151,19 @@ class ClassificationProblem(object):
         # classifiers for the left and right partitions
         # each trained on the opposite partition
         self.clfs = None
+
+    def correlations(self, with_spectators=True, with_clf_output=False):
+
+        branches = branches + ['mass_mmc_tau1_tau2']
+        # draw a linear correlation matrix
+        samples.correlations(
+            signal=sample_test[labels_test==1],
+            signal_weight=sample_weight_test[labels_test==1],
+            background=sample_test[labels_test==0],
+            background_weight=sample_weight_test[labels_test==0],
+            branches=branches,
+            category=category,
+            output_suffix=output_suffix)
 
     def train(self,
             max_sig=None,
