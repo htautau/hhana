@@ -1,15 +1,12 @@
-#!/usr/bin/env python
-
-from rootpy.extern.argparse import ArgumentParser
 from rootpy.tree import Cut
-from samples import *
+from mva.samples import *
 
 tau1_matched = Cut('tau1_matched')
 tau2_matched = Cut('tau2_matched')
 both_taus_matched = tau1_matched & tau2_matched
 
 
-def matching_test(sample):
+def matching(sample):
 
     print sample.label
     total_events = sample.events()
@@ -19,21 +16,23 @@ def matching_test(sample):
     print "both matched: ", sample.events(both_taus_matched) / total_events
 
 
-def fakerate_test(sample):
+def fakerate(sample):
 
     assert sample.events(-tau1_matched) == sample.events('tau1_fakerate_scale_factor < 1')
     assert sample.events(tau1_matched) == sample.events('tau1_fakerate_scale_factor == 1')
 
 
-ztautau = MC_Ztautau(systematics=False)
-matching_test(ztautau)
-fakerate_test(ztautau)
+def test_mva():
 
-signals = []
-for mass in Higgs.MASS_POINTS:
-    for mode in Higgs.MODES:
-        signal = Higgs(mass=mass, mode=mode,
-                systematics=False)
-        matching_test(signal)
-        fakerate_test(signal)
+    ztautau = MC_Ztautau(year=2012, systematics=False)
+    matching(ztautau)
+    fakerate(ztautau)
+
+    signals = []
+    for mass in Higgs.MASS_POINTS:
+        for mode in Higgs.MODES:
+            signal = Higgs(year=2012, mass=mass, mode=mode,
+                    systematics=False)
+            matching(signal)
+            fakerate(signal)
 
