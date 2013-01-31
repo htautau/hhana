@@ -1,7 +1,25 @@
 import ROOT
 
+"""
+# Create the signal sample
+signal = ROOT.RooStats.HistFactory.Sample("signal", "signal", InputFile)
+signal.AddOverallSys("syst1",  0.95, 1.05)
+signal.AddNormFactor("SigXsecOverSM", 1, 0, 3)
+chan.AddSample(signal)
 
-def make_channel(name, data=None):
+# Background 1
+background1 = ROOT.RooStats.HistFactory.Sample("background1", "background1", InputFile)
+background1.ActivateStatError("background1_statUncert", InputFile)
+background1.AddOverallSys("syst2", 0.95, 1.05 )
+chan.AddSample(background1)
+
+# Background 1
+background2 = ROOT.RooStats.HistFactory.Sample("background2", "background2", InputFile)
+background2.ActivateStatError()
+background2.AddOverallSys("syst3", 0.95, 1.05 )
+"""
+
+def make_channel(name, samples, data=None):
 
     chan = ROOT.RooStats.HistFactory.Channel(name)
     if data is not None:
@@ -9,23 +27,8 @@ def make_channel(name, data=None):
         chan.SetData(data)
     chan.SetStatErrorConfig(0.05, "Poisson")
 
-    # Create the signal sample
-    signal = ROOT.RooStats.HistFactory.Sample("signal", "signal", InputFile)
-    signal.AddOverallSys("syst1",  0.95, 1.05)
-    signal.AddNormFactor("SigXsecOverSM", 1, 0, 3)
-    chan.AddSample(signal)
-
-    # Background 1
-    background1 = ROOT.RooStats.HistFactory.Sample("background1", "background1", InputFile)
-    background1.ActivateStatError("background1_statUncert", InputFile)
-    background1.AddOverallSys("syst2", 0.95, 1.05 )
-    chan.AddSample(background1)
-
-    # Background 1
-    background2 = ROOT.RooStats.HistFactory.Sample("background2", "background2", InputFile)
-    background2.ActivateStatError()
-    background2.AddOverallSys("syst3", 0.95, 1.05 )
-    chan.AddSample(background2)
+    for sample in samples:
+        chan.AddSample(sample)
 
     return chan
 
