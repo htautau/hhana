@@ -57,6 +57,7 @@ higgs_125 = Higgs(
         linecolor='red')
 
 figures = {}
+category_scores = {}
 
 output_suffix = '_%sfit' % args.fit_param
 if args.embedding:
@@ -248,7 +249,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
         
-        clf.evaluate(
+        bkg_scores, sig_scores = clf.evaluate(
                 data,
                 mass_regions,
                 unblind=args.unblind,
@@ -256,7 +257,39 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 bins=args.bins,
                 limitbins=cat_info['limitbins'],
                 limitbinning=cat_info['limitbinning'])
-        
+
+        category_scores[category] = (bkg_scores, sig_scores)
+
+
+if 'train' in args.actions and set(args.categories) == set(CATEGORIES.keys()):
+    # draw ROC curves for all categories
+    hist_template = Hist(100, -1, 1)
+    from matplotlib import pyplot as plt
+    plt.figure()
+    for category, (bkg_scores, sig_scores) in category_scores.items():
+        bkg_hist = hist_template.Clone()
+        sig_hist = hist_template.Clone()
+        hist_scores(bkg_hist, bkg_scores)
+        hist_scores(sig_hist, sig_scores)
+        bkg_array = np.array(bkg_hist)
+        sig_array = np.array(sig_hist)
+        # reverse cumsum
+        bkg_eff = bkg_array[::-1].cumsum()[::-1] 
+        sig_eff = sig_array[::-1].cumsum()[::-1]
+        bkg_eff /= bkg_array.sum()
+        sig_eff /= sig_array.sum()
+        plt.plot(sig_eff, 1. - bkg_eff,
+                 linestyle='-',
+                 linewidth=2.,
+                 label=category)
+    plt.legend(loc='lower left')
+    plt.ylabel('Background Rejection')
+    plt.xlabel('Signal Efficiency')
+    plt.ylim(0, 1)
+    plt.xlim(0, 1)
+    plt.savefig('ROC.png', bbox_inches='tight')
+    
+
 # save all variable plots in one large multipage pdf
 if figures and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
     # only create multipage pdf of all plots if we created all plots

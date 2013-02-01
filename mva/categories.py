@@ -65,8 +65,8 @@ GGF_CUTS = (- LEAD_JET_50)
 #GGF_CUTS = Cut()
 
 CATEGORIES = {
-    'vbf': {
-        'name': r'$\tau_{had}\tau_{had}$: VBF Category',
+    '2j': {
+        'name': r'$\tau_{had}\tau_{had}$: 2-Jet Category',
         'cuts': VBF_CUTS & COMMON_CUTS,
         'year_cuts': {
             2011: ID_MEDIUM,
@@ -105,8 +105,8 @@ CATEGORIES = {
             # !!! eta centrality of 3rd jet
         ]
     },
-    'boosted': {
-        'name': r'$\tau_{had}\tau_{had}$: Boosted Category',
+    '1j': {
+        'name': r'$\tau_{had}\tau_{had}$: 1-Jet Category',
         'cuts': BOOSTED_CUTS & COMMON_CUTS,
         'year_cuts': {
             2011: ID_MEDIUM,
@@ -135,8 +135,8 @@ CATEGORIES = {
             'mmc_resonance_pt',
         ]
     },
-    'ggf': {
-        'name': r'$\tau_{had}\tau_{had}$: Non-Boosted Category',
+    '0j': {
+        'name': r'$\tau_{had}\tau_{had}$: 0-Jet Category',
         'cuts': GGF_CUTS & COMMON_CUTS,
         'year_cuts': {
             2011: ID_MEDIUM,

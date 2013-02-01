@@ -6,3 +6,4 @@ clean-pyc:
 
 clean: clean-pyc
 	rm -f nohup.out
+	rm -rf *.png

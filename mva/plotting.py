@@ -767,6 +767,13 @@ def plot_grid_scores(grid_scores, best_point, params, name,
     plt.clf()
 
 
+def hist_scores(hist, scores):
+
+    for sample, scores_dict in scores:
+        scores, weight = scores_dict['NOMINAL']
+        hist.fill_array(scores, weight)
+
+
 def plot_clf(background_scores,
              category,
              category_name,

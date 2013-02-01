@@ -500,7 +500,8 @@ class ClassificationProblem(object):
                  unblind=False,
                  bins=20,
                  limitbins=10,
-                 limitbinning='flat'):
+                 limitbinning='flat',
+                 quick=False):
 
         control_region = mass_regions.control_region
         signal_region = mass_regions.signal_region
@@ -508,146 +509,147 @@ class ClassificationProblem(object):
 
         year = self.signals[0].year
 
-        # show the background model and 125 GeV signal over the full mass range
-        log.info("plotting classifier output over all mass...")
+        if not quick:
+            # show the background model and 125 GeV signal over the full mass range
+            log.info("plotting classifier output over all mass...")
 
-        # determine min and max scores
-        min_score = 1.
-        max_score = -1.
+            # determine min and max scores
+            min_score = 1.
+            max_score = -1.
 
-        # background model scores
-        bkg_scores = []
-        for bkg in self.backgrounds:
-            scores_dict = bkg.scores(self,
-                    region=self.region)
+            # background model scores
+            bkg_scores = []
+            for bkg in self.backgrounds:
+                scores_dict = bkg.scores(self,
+                        region=self.region)
 
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
+                for sys_term, (scores, weights) in scores_dict.items():
+                    assert len(scores) == len(weights)
+                    if len(scores) == 0:
+                        continue
+                    _min = np.min(scores)
+                    _max = np.max(scores)
+                    if _min < min_score:
+                        min_score = _min
+                    if _max > max_score:
+                        max_score = _max
 
-            bkg_scores.append((bkg, scores_dict))
+                bkg_scores.append((bkg, scores_dict))
 
-        sig_scores = []
-        # signal scores
-        for mode in Higgs.MODES:
-            sig = Higgs(year=year, mode=mode, mass=125,
-                    systematics=systematics)
-            scores_dict = sig.scores(self,
-                    region=self.region)
+            sig_scores = []
+            # signal scores
+            for mode in Higgs.MODES:
+                sig = Higgs(year=year, mode=mode, mass=125,
+                        systematics=systematics)
+                scores_dict = sig.scores(self,
+                        region=self.region)
 
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
+                for sys_term, (scores, weights) in scores_dict.items():
+                    assert len(scores) == len(weights)
+                    if len(scores) == 0:
+                        continue
+                    _min = np.min(scores)
+                    _max = np.max(scores)
+                    if _min < min_score:
+                        min_score = _min
+                    if _max > max_score:
+                        max_score = _max
 
-            sig_scores.append((sig, scores_dict))
+                sig_scores.append((sig, scores_dict))
 
-        log.info("minimum score: %f" % min_score)
-        log.info("maximum score: %f" % max_score)
+            log.info("minimum score: %f" % min_score)
+            log.info("maximum score: %f" % max_score)
 
-        # prevent bin threshold effects
-        min_score -= 0.00001
-        max_score += 0.00001
+            # prevent bin threshold effects
+            min_score -= 0.00001
+            max_score += 0.00001
 
-        # add a bin above max score and below min score for extra beauty
-        score_width = max_score - min_score
-        bin_width = score_width / bins
-        min_score -= bin_width
-        max_score += bin_width
+            # add a bin above max score and below min score for extra beauty
+            score_width = max_score - min_score
+            bin_width = score_width / bins
+            min_score -= bin_width
+            max_score += bin_width
 
-        # compare data and the model in a mass control region
-        plot_clf(
-            background_scores=bkg_scores,
-            category=self.category,
-            category_name=self.category_name,
-            plot_label='full mass range',
-            signal_scores=sig_scores,
-            signal_scale=signal_scale,
-            draw_data=True,
-            name='full_range' + self.output_suffix,
-            bins=bins + 2,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=SYSTEMATICS if systematics else None)
+            # compare data and the model in a mass control region
+            plot_clf(
+                background_scores=bkg_scores,
+                category=self.category,
+                category_name=self.category_name,
+                plot_label='full mass range',
+                signal_scores=sig_scores,
+                signal_scale=signal_scale,
+                draw_data=True,
+                name='full_range' + self.output_suffix,
+                bins=bins + 2,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=SYSTEMATICS if systematics else None)
 
-        # show the background model and data in the control region
-        log.info("plotting classifier output in control region...")
-        log.info(control_region)
-        # data scores
-        data_scores, _ = data.scores(self,
-                region=self.region,
-                cuts=control_region)
-
-        # determine min and max scores
-        min_score = 1.
-        max_score = -1.
-        _min = data_scores.min()
-        _max = data_scores.max()
-        if _min < min_score:
-            min_score = _min
-        if _max > max_score:
-            max_score = _max
-
-        # background model scores
-        bkg_scores = []
-        for bkg in self.backgrounds:
-            scores_dict = bkg.scores(self,
+            # show the background model and data in the control region
+            log.info("plotting classifier output in control region...")
+            log.info(control_region)
+            # data scores
+            data_scores, _ = data.scores(self,
                     region=self.region,
                     cuts=control_region)
 
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
+            # determine min and max scores
+            min_score = 1.
+            max_score = -1.
+            _min = data_scores.min()
+            _max = data_scores.max()
+            if _min < min_score:
+                min_score = _min
+            if _max > max_score:
+                max_score = _max
 
-            bkg_scores.append((bkg, scores_dict))
+            # background model scores
+            bkg_scores = []
+            for bkg in self.backgrounds:
+                scores_dict = bkg.scores(self,
+                        region=self.region,
+                        cuts=control_region)
 
-        log.info("minimum score: %f" % min_score)
-        log.info("maximum score: %f" % max_score)
+                for sys_term, (scores, weights) in scores_dict.items():
+                    assert len(scores) == len(weights)
+                    if len(scores) == 0:
+                        continue
+                    _min = np.min(scores)
+                    _max = np.max(scores)
+                    if _min < min_score:
+                        min_score = _min
+                    if _max > max_score:
+                        max_score = _max
 
-        # prevent bin threshold effects
-        min_score -= 0.00001
-        max_score += 0.00001
+                bkg_scores.append((bkg, scores_dict))
 
-        # add a bin above max score and below min score for extra beauty
-        score_width = max_score - min_score
-        bin_width = score_width / bins
-        min_score -= bin_width
-        max_score += bin_width
+            log.info("minimum score: %f" % min_score)
+            log.info("maximum score: %f" % max_score)
 
-        # compare data and the model in a low mass control region
-        plot_clf(
-            background_scores=bkg_scores,
-            category=self.category,
-            category_name=self.category_name,
-            plot_label='mass control region',
-            signal_scores=None,
-            data_scores=(data, data_scores),
-            draw_data=True,
-            name='control' + self.output_suffix,
-            bins=bins + 2,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=SYSTEMATICS if systematics else None)
+            # prevent bin threshold effects
+            min_score -= 0.00001
+            max_score += 0.00001
+
+            # add a bin above max score and below min score for extra beauty
+            score_width = max_score - min_score
+            bin_width = score_width / bins
+            min_score -= bin_width
+            max_score += bin_width
+
+            # compare data and the model in a low mass control region
+            plot_clf(
+                background_scores=bkg_scores,
+                category=self.category,
+                category_name=self.category_name,
+                plot_label='mass control region',
+                signal_scores=None,
+                data_scores=(data, data_scores),
+                draw_data=True,
+                name='control' + self.output_suffix,
+                bins=bins + 2,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=SYSTEMATICS if systematics else None)
 
         # plot the signal region and save histograms for limit-setting
         log.info("Plotting classifier output in signal region...")
@@ -674,7 +676,13 @@ class ClassificationProblem(object):
         root_filename = '%s%s.root' % (self.category, self.output_suffix)
         f = ropen(os.path.join(LIMITS_DIR, root_filename), 'recreate')
 
+        sig_scores_125 = None
+
         for mass in Higgs.MASS_POINTS:
+
+            if quick and mass != 125:
+                continue
+
             log.info('=' * 20)
             log.info("%d GeV mass hypothesis" % mass)
             # create separate signal. background and data histograms for each
@@ -708,6 +716,9 @@ class ClassificationProblem(object):
                         max_score_signal = _max
 
                 sig_scores.append((sig, scores_dict))
+
+            if mass == 125:
+                sig_scores_125 = sig_scores
 
             log.info("minimum signal score: %f" % min_score_signal)
             log.info("maximum signal score: %f" % max_score_signal)
@@ -886,6 +897,7 @@ class ClassificationProblem(object):
             write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
 
         f.close()
+        return bkg_scores, sig_scores_125
 
 
 def purity_score(bdt, X):
