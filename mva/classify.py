@@ -220,6 +220,58 @@ class ClassificationProblem(object):
                     'clf_%s%s_%d.pickle' % (
                     self.category, self.output_suffix, partition_idx))
 
+            # merge arrays and create training samples
+            signal_train = np.concatenate(map(itemgetter(partition_idx),
+                self.signal_arrs))
+            signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
+                self.signal_weight_arrs))
+            background_train = np.concatenate(map(itemgetter(partition_idx),
+                self.background_arrs))
+            background_weight_train = np.concatenate(map(itemgetter(partition_idx),
+                self.background_weight_arrs))
+
+            if remove_negative_weights:
+                # remove samples from the training sample with a negative weight
+                signal_train = signal_train[signal_weight_train >= 0]
+                background_train = background_train[background_weight_train >= 0]
+                signal_weight_train = signal_weight_train[signal_weight_train >= 0]
+                background_weight_train = background_weight_train[background_weight_train >= 0]
+
+            if max_sig is not None and max_sig < len(signal_train):
+                subsample = np.random.permutation(len(signal_train))[:max_sig_train]
+                signal_train = signal_train[subsample]
+                signal_weight_train = signal_weight_train[subsample]
+
+            if max_bkg is not None and max_bkg < len(background_train):
+                subsample = np.random.permutation(len(background_train))[:max_bkg_train]
+                background_train = background_train[subsample]
+                background_weight_train = background_weight_train[subsample]
+
+            if same_size_sig_bkg:
+                if len(background_train) > len(signal_train):
+                    # random subsample of background so it's the same size as signal
+                    subsample = np.random.permutation(
+                        len(background_train))[:len(signal_train)]
+                    background_train = background_train[subsample]
+                    background_weight_train = background_weight_train[subsample]
+                elif len(background_train) < len(signal_train):
+                    # random subsample of signal so it's the same size as background
+                    subsample = np.random.permutation(
+                        len(signal_train))[:len(background_train)]
+                    signal_train = signal_train[subsample]
+                    signal_weight_train = signal_weight_train[subsample]
+
+            if norm_sig_to_bkg:
+                # normalize signal to background
+                signal_weight_train *= (
+                    background_weight_train.sum() / signal_weight_train.sum())
+
+            log.info("Training Samples:")
+            log.info("Signal: %d events, %s features" % signal_train.shape)
+            log.info("Sum(signal weights): %f" % signal_weight_train.sum())
+            log.info("Background: %d events, %s features" % background_train.shape)
+            log.info("Sum(background weight): %f" % background_weight_train.sum())
+
             # train a classifier
             if use_cache and os.path.isfile(clf_filename):
                 # use a previously trained classifier
@@ -229,58 +281,6 @@ class ClassificationProblem(object):
                 log.info(clf)
 
             else:
-                # merge arrays and create training samples
-                signal_train = np.concatenate(map(itemgetter(partition_idx),
-                    self.signal_arrs))
-                signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                    self.signal_weight_arrs))
-                background_train = np.concatenate(map(itemgetter(partition_idx),
-                    self.background_arrs))
-                background_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                    self.background_weight_arrs))
-
-                if remove_negative_weights:
-                    # remove samples from the training sample with a negative weight
-                    signal_train = signal_train[signal_weight_train >= 0]
-                    background_train = background_train[background_weight_train >= 0]
-                    signal_weight_train = signal_weight_train[signal_weight_train >= 0]
-                    background_weight_train = background_weight_train[background_weight_train >= 0]
-
-                if max_sig is not None and max_sig < len(signal_train):
-                    subsample = np.random.permutation(len(signal_train))[:max_sig_train]
-                    signal_train = signal_train[subsample]
-                    signal_weight_train = signal_weight_train[subsample]
-
-                if max_bkg is not None and max_bkg < len(background_train):
-                    subsample = np.random.permutation(len(background_train))[:max_bkg_train]
-                    background_train = background_train[subsample]
-                    background_weight_train = background_weight_train[subsample]
-
-                if same_size_sig_bkg:
-                    if len(background_train) > len(signal_train):
-                        # random subsample of background so it's the same size as signal
-                        subsample = np.random.permutation(
-                            len(background_train))[:len(signal_train)]
-                        background_train = background_train[subsample]
-                        background_weight_train = background_weight_train[subsample]
-                    elif len(background_train) < len(signal_train):
-                        # random subsample of signal so it's the same size as background
-                        subsample = np.random.permutation(
-                            len(signal_train))[:len(background_train)]
-                        signal_train = signal_train[subsample]
-                        signal_weight_train = signal_weight_train[subsample]
-
-                if norm_sig_to_bkg:
-                    # normalize signal to background
-                    signal_weight_train *= (
-                        background_weight_train.sum() / signal_weight_train.sum())
-
-                log.info("Training Samples:")
-                log.info("Signal: %d events, %s features" % signal_train.shape)
-                log.info("Sum(signal weights): %f" % signal_weight_train.sum())
-                log.info("Background: %d events, %s features" % background_train.shape)
-                log.info("Sum(background weight): %f" % background_weight_train.sum())
-
                 sample_train = np.concatenate((background_train, signal_train))
                 sample_weight_train = np.concatenate(
                     (background_weight_train, signal_weight_train))
