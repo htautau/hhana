@@ -288,6 +288,7 @@ if 'train' in args.actions and set(args.categories) == set(CATEGORIES.keys()):
     plt.xlabel('Signal Efficiency')
     plt.ylim(0, 1)
     plt.xlim(0, 1)
+    plt.grid()
     plt.savefig('ROC.png', bbox_inches='tight')
     
 
