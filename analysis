@@ -165,27 +165,31 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                     cuts=cuts)
 
             bkg_hists = [qcd_hist, other_hist, ztautau_hist]
-
-            data_hist = data.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
+            
             signal_hist = higgs_125.draw(
                     expr,
                     category, target_region,
                     bins, min, max,
                     cuts=cuts)
 
-            log.info("Data events: %d" % sum(data_hist))
-            log.info("Model events: %f" % sum(sum(bkg_hists)))
-            for hist in bkg_hists:
-                log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
-            log.info("Signal events: %f" % sum(signal_hist))
-            log.info("Data / Model: %f" % (sum(data_hist) /
-                sum(sum(bkg_hists))))
+            if not var_info.get('blind', False):
 
+                data_hist = data.draw(
+                        expr,
+                        category, target_region,
+                        bins, min, max,
+                        cuts=cuts)
+                
+                log.info("Data events: %d" % sum(data_hist))
+                log.info("Model events: %f" % sum(sum(bkg_hists)))
+                for hist in bkg_hists:
+                    log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+                log.info("Signal events: %f" % sum(signal_hist))
+                log.info("Data / Model: %f" % (sum(data_hist) /
+                    sum(sum(bkg_hists))))
+            else:
+                data_hist = None
+            
             output_name = var_info['filename'] + output_suffix
             if cuts:
                 output_name += '_' + cuts.safe()
