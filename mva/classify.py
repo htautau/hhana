@@ -201,7 +201,7 @@ class ClassificationProblem(object):
               max_sig=None,
               max_bkg=None,
               norm_sig_to_bkg=True,
-              same_size_sig_bkg=True,
+              same_size_sig_bkg=True, # NOTE: this crops signal a lot!!
               remove_negative_weights=False,
               grid_search=True,
               quick=False,
@@ -271,6 +271,9 @@ class ClassificationProblem(object):
             log.info("Sum(signal weights): %f" % signal_weight_train.sum())
             log.info("Background: %d events, %s features" % background_train.shape)
             log.info("Sum(background weight): %f" % background_weight_train.sum())
+            log.info("Total: %d events" % (
+                signal_train.shape[0] +
+                background_train.shape[0]))
 
             # train a classifier
             if use_cache and os.path.isfile(clf_filename):

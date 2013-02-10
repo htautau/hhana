@@ -225,6 +225,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         signals_train = [
             Higgs(
                 year=year,
+                #mass=125,
                 systematics=args.systematics),
         ]
 
