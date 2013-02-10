@@ -83,27 +83,6 @@ def cleanup():
         filehandle.close()
 
 
-def get_samples(year, masses=None, modes=None, embedding=True):
-
-    if embedding:
-        ztautau = Embedded_Ztautau(year=year)
-    else:
-        ztautau = MC_Ztautau(year=year)
-    ewk = EWK(year=year)
-    others = Others(year=year)
-
-    backgrounds = (
-        ztautau,
-        ewk,
-        others,
-    )
-
-    signals = (
-        Higgs(year=year, masses=masses, modes=modes)
-    )
-    return signals, backgrounds
-
-
 class Sample(object):
 
     REGIONS = {
@@ -117,6 +96,49 @@ class Sample(object):
         #'pileup_weight', OFF FOR NOW: 2012 PROBLEM
         'ggf_weight',
     ]
+
+    SYSTEMATICS_TERMS = [
+        ('JES_UP',),
+        ('JES_DOWN',),
+        ('TES_UP',),
+        ('TES_DOWN',),
+        ('JER_UP',),
+        ('MFS_UP',),
+        ('MFS_DOWN',),
+        ('ISOL_UP',),
+        ('ISOL_DOWN',),
+    ]
+
+    SYSTEMATICS_BY_WEIGHT = [
+        ('TRIGGER_UP',),
+        ('TRIGGER_DOWN',),
+        ('FAKERATE_UP',),
+        ('FAKERATE_DOWN',),
+        ('TAUID_UP',),
+        ('TAUID_DOWN',),
+    ]
+
+    SYSTEMATICS = [
+        (('JES_UP',), ('JES_DOWN',)),
+        (('TES_UP',), ('TES_DOWN',)),
+        (('JER_UP',),),
+        (('MFS_UP',), ('MFS_DOWN',)),
+        (('ISOL_UP',), ('ISOL_DOWN',)),
+        #(('TRIGGER_UP',), ('TRIGGER_DOWN',)),
+        (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
+        (('TAUID_UP',), ('TAUID_DOWN',)),
+        (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
+        (('ZFIT_UP',), ('ZFIT_DOWN',)),
+    ]
+
+    @classmethod
+    def iter_systematics(cls, include_nominal=False):
+
+        if include_nominal:
+            yield 'NOMINAL'
+        for variations in cls.SYSTEMATICS:
+            for var in variations:
+                yield var
 
     WEIGHT_SYSTEMATICS = {
         #'TRIGGER': {
@@ -180,6 +202,20 @@ class Sample(object):
         #    self.hist_decor['fillstyle'] = 'hollow'
         #else:
         self.hist_decor['fillstyle'] = 'solid'
+
+    def get_histfactory_sample(self, expr, category, region,
+                               bins, min, max,
+                               cuts=None):
+
+        sample = ROOT.RooStats.HistFactory.Sample(name)
+        hist = self.draw(expr, category, region, bins, min, max, cuts)
+        if isinstance(self, MC):
+            if self.systematics:
+                for terms in systematics.SYSTEMATICS:
+                # add systematics terms
+
+
+
 
     def split(self,
               fields,
@@ -383,27 +419,6 @@ class Background:
 
 class MC(Sample):
 
-    SYSTEMATICS = [
-        ('JES_UP',),
-        ('JES_DOWN',),
-        ('TES_UP',),
-        ('TES_DOWN',),
-        ('JER_UP',),
-        ('MFS_UP',),
-        ('MFS_DOWN',),
-        ('ISOL_UP',),
-        ('ISOL_DOWN',),
-    ]
-
-    SYSTEMATICS_BY_WEIGHT = [
-        ('TRIGGER_UP',),
-        ('TRIGGER_DOWN',),
-        ('FAKERATE_UP',),
-        ('FAKERATE_DOWN',),
-        ('TAUID_UP',),
-        ('TAUID_DOWN',),
-    ]
-
     def __init__(self, year, db=DB_HH, systematics=True, **kwargs):
 
         if isinstance(self, Background):
@@ -465,7 +480,7 @@ class MC(Sample):
                 systematics_terms, systematics_samples = \
                     samples_db.get_systematics('hadhad', self.year, name)
 
-                unused_terms = MC.SYSTEMATICS[:]
+                unused_terms = Sample.SYSTEMATICS_TERMS[:]
 
                 if False and systematics_terms:
                     for sys_term in systematics_terms:
@@ -916,6 +931,22 @@ class Higgs(MC, Signal):
         'VBF': ('vbf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),
         'Z': ('zh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
         'W': ('wh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
+    }
+
+    # constant uncert term, high, low
+    UNCERT_GGF = {
+        'pdf_gg': (1.079, 0.923),
+        'QCDscale_ggH1in': (1.133, 0.914),
+    }
+
+    UNCERT_VBF = {
+        'pdf_qqbar': (1.027, 0.979),
+        'QCDscale_qqH': (1.004, 0.996),
+    }
+
+    UNCERT_WZH = {
+        'pdf_qqbar': (1.039, 0.961),
+        'QCDscale_VH': (1.007, 0.992),
     }
 
     def __init__(self, year,
