@@ -23,7 +23,8 @@ log = logging.getLogger('mva')
 if not os.environ.get("DEBUG", False):
     log.setLevel(logging.INFO)
 
-logging.captureWarnings(True)
+if hasattr(logging, 'captureWarnings'):
+    logging.captureWarnings(True)
 
 PLOTS_DIR = os.path.join(BASE_DIR, 'plots')
 
