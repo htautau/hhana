@@ -16,12 +16,12 @@ with warnings.catch_warnings():
     import tables
 
 # higgstautau imports
-from higgstautau.hadhad.periods import LUMI
 from higgstautau import datasets
 from higgstautau.decorators import cached_property, memoize_method
 from higgstautau import samples as samples_db
 
 # rootpy imports
+import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.io import open as ropen
 from rootpy.tree import Tree, Cut
@@ -31,7 +31,7 @@ from rootpy import asrootpy
 from . import log; log = log[__name__]
 from . import categories
 from . import variables
-from . import systematics
+from .periods import LUMI
 
 # Higgs cross sections
 import yellowhiggs
@@ -118,18 +118,18 @@ class Sample(object):
         ('TAUID_DOWN',),
     ]
 
-    SYSTEMATICS = [
-        (('JES_UP',), ('JES_DOWN',)),
-        (('TES_UP',), ('TES_DOWN',)),
-        (('JER_UP',),),
-        (('MFS_UP',), ('MFS_DOWN',)),
-        (('ISOL_UP',), ('ISOL_DOWN',)),
+    SYSTEMATICS = {
+        'JES': (('JES_UP',), ('JES_DOWN',)),
+        'TES': (('TES_UP',), ('TES_DOWN',)),
+        'JER': (('JER_UP',),),
+        #(('MFS_UP',), ('MFS_DOWN',)),
+        #(('ISOL_UP',), ('ISOL_DOWN',)),
         #(('TRIGGER_UP',), ('TRIGGER_DOWN',)),
-        (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
-        (('TAUID_UP',), ('TAUID_DOWN',)),
-        (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
-        (('ZFIT_UP',), ('ZFIT_DOWN',)),
-    ]
+        'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
+        'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
+        #(('QCDFIT_UP',), ('QCDFIT_DOWN',)),
+        #(('ZFIT_UP',), ('ZFIT_DOWN',)),
+    }
 
     @classmethod
     def iter_systematics(cls, include_nominal=False):
@@ -207,15 +207,41 @@ class Sample(object):
                                bins, min, max,
                                cuts=None):
 
-        sample = ROOT.RooStats.HistFactory.Sample(name)
-        hist = self.draw(expr, category, region, bins, min, max, cuts)
+        log.info("creating histfactory sample for %s" % self.name)
+        sample = ROOT.RooStats.HistFactory.Sample(self.name)
+        if ':' in expr:
+            hist = self.draw2d(expr, category, region,
+                               bins, min, max,
+                               bins, min, max,
+                               cuts)
+        else:
+            hist = self.draw(expr, category, region, bins, min, max, cuts)
+        # set the nominal histogram
+        sample.SetHisto(hist)
         if isinstance(self, MC):
             if self.systematics:
-                for terms in systematics.SYSTEMATICS:
-                # add systematics terms
-
-
-
+                for sys_name, terms in self.SYSTEMATICS.items():
+                    # add systematics terms
+                    if len(terms) == 1:
+                        up_term = terms[0]
+                        down_term = terms[0]
+                    else:
+                        up_term, down_term = terms
+                    log.debug("adding histosys for %s" % sys_name)
+                    histsys = ROOT.RooStats.HistFactory.HistoSys(sys_name)
+                    histsys.SetHistoHigh(hist.systematics[up_term])
+                    histsys.SetHistoLow(hist.systematics[down_term])
+                    sample.AddHistoSys(histsys)
+            if isinstance(self, Signal):
+                log.debug("defining SigXsecOverSM POI")
+                sample.AddNormFactor('SigXsecOverSM', 0., 0., 60.)
+            else:
+                log.debug("activating stat error")
+                sample.ActivateStatError()
+        if hasattr(self, 'histfactory'):
+            # perform sample-specific histfactory operations
+            self.histfactory(sample)
+        return sample
 
     def split(self,
               fields,
@@ -587,7 +613,7 @@ class MC(Sample):
 
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
-            log.debug(ds)
+            log.debug(ds.name)
 
             nominal_tree = sys_trees['NOMINAL']
             nominal_events = sys_events['NOMINAL']
@@ -948,6 +974,27 @@ class Higgs(MC, Signal):
         'pdf_qqbar': (1.039, 0.961),
         'QCDscale_VH': (1.007, 0.992),
     }
+
+    def histfactory(self, sample):
+
+        if len(self.modes) != 1:
+            raise TypeError(
+                    'histfactory sample only valid for single production mode')
+        if len(self.masses) != 1:
+            raise TypeError(
+                    'histfactory sample only valid for single mass point')
+        mode = self.modes[0]
+        if mode == 'gg':
+            overall_dict = self.UNCERT_GGF
+        elif mode == 'VBF':
+            overall_dict = self.UNCERT_VBF
+        elif mode in ('Z', 'W'):
+            overall_dict = self.UNCERT_WZH
+        else:
+            raise ValueError('mode %s is not valid' % mode)
+        for term, (high, low) in overall_dict.items():
+            log.debug("defining overall sys %s" % term)
+            sample.AddOverallSys(term, low, high)
 
     def __init__(self, year,
             mode=None, modes=None,
