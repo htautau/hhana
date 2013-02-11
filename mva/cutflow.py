@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 from higgstautau import datasets
 from rootpy.extern.tabulartext import PrettyTable, TextTable
 from rootpy.io import open as ropen
+from . import log; log = log[__name__]
 
 
 def get_parser():
@@ -16,7 +17,7 @@ def get_parser():
     parser.add_argument('--errors', action='store_true', default=False)
     parser.add_argument('--precision', default=2)
     parser.add_argument('--proc', default='HHProcessor')
-    parser.add_argument('--db')
+    parser.add_argument('--db', default='datasets_hh')
     parser.add_argument('--noweight', action='store_true', default=False)
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--rst', action='store_true', default=False)
@@ -37,8 +38,6 @@ def make_cutflow(samples, args):
 
 def make_cutflow_table(samples, args):
 
-    lumi = total_lumi()
-
     filters = None
     db = datasets.Database(args.db)
 
@@ -50,46 +49,45 @@ def make_cutflow_table(samples, args):
         if not matched_samples:
             raise datasets.NoMatchingDatasetsFound(sample)
         total_cutflow = None
-        total = 0
         for ds in matched_samples:
-            with ropen(os.path.join(args.dir, '.'.join([args.proc, ds.name, 'root']))) as rfile:
-                cutflow = rfile.cutflow_event
-                cutflow.SetDirectory(0)
-                ds_total = rfile.cutflow[0]
+            log.info(ds.name)
+            for filename in ds.files:
+                log.debug(filename)
+                os.stat(filename)
+                with ropen(filename) as rfile:
+                    cutflow = rfile.cutflow_event
+                    cutflow.SetDirectory(0)
 
-                if filters is None:
-                    filters = [cutflow.GetXaxis().GetBinLabel(j + 1) for j in xrange(len(cutflow))]
+                    if filters is None:
+                        filters = [cutflow.GetXaxis().GetBinLabel(j + 1) for j in xrange(len(cutflow))]
 
-                # scale MC by lumi and xsec
-                if ds.datatype != datasets.DATA and not args.noweight:
-                    events = rfile.cutflow[0]
-                    xsec, xsec_min, xsec_max, effic = ds.xsec_effic
-                    weight = 1E3 * lumi * xsec * ds.xsec_factor / (effic * events)
-                    if args.verbose:
-                        print '-' * 30
-                        print ds.name
-                        print "xsec: %f [nb]" % xsec
-                        print "effic: %f" % effic
-                        print "events: %d" % events
-                        print "lumi: %f [1/pb]" % lumi
-                        print "weight (1E3 * lumi * xsec / (effic * events)): %f" % weight
-                    cutflow *= weight
-                    ds_total *= weight
+                    # scale MC by lumi and xsec
+                    if ds.datatype != datasets.DATA and not args.noweight:
+                        lumi = total_lumi()
+                        events = rfile.cutflow[0]
+                        xsec, xsec_min, xsec_max, effic = ds.xsec_effic
+                        weight = 1E3 * lumi * xsec * ds.xsec_factor / (effic * events)
+                        if args.verbose:
+                            print '-' * 30
+                            print ds.name
+                            print "xsec: %f [nb]" % xsec
+                            print "effic: %f" % effic
+                            print "events: %d" % events
+                            print "lumi: %f [1/pb]" % lumi
+                            print "weight (1E3 * lumi * xsec / (effic * events)): %f" % weight
+                        cutflow *= weight
 
-                if ds.datatype == datasets.DATA:
-                    data_index.append(i)
+                    if ds.datatype == datasets.DATA:
+                        data_index.append(i)
 
-                total += ds_total
-                if total_cutflow is None:
-                    total_cutflow = cutflow
-                else:
-                    total_cutflow += cutflow
+                    if total_cutflow is None:
+                        total_cutflow = cutflow
+                    else:
+                        total_cutflow += cutflow
         if args.errors:
             cutflow_table[i] = list(zip(total_cutflow, total_cutflow.yerrh()))
-            cutflow_table[i].insert(0, (total, math.sqrt(total)))
         else:
             cutflow_table[i] = list(total_cutflow)
-            cutflow_table[i].insert(0, total)
 
 
     filters[0] = 'Skim'
