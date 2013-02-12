@@ -33,10 +33,10 @@ def make_channel(name, samples, data=None):
     return chan
 
 
-def make_measurement(name, title='',
+def make_measurement(name, title,
                      channels,
-                     lumi=1.0, lumi_rel_err=0.,
-                     output_prefix='./results',
+                     lumi=1.0, lumi_rel_error=0.,
+                     output_prefix='./histfactory',
                      POI='SigXsecOverSM'):
     """
     Note: to use the workspace in-memory use::
@@ -58,3 +58,8 @@ def make_measurement(name, title='',
         meas.AddChannel(channel)
 
     return meas
+
+
+def make_workspace(measurement):
+
+    return ROOT.RooStats.HistFactory.HistoToWorkspaceFactory.MakeCombinedModel(measurement)
