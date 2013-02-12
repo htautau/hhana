@@ -11,11 +11,10 @@ from pyAMI.query import get_periods
 
 
 periods = get_periods(AMIClient(), year=args.year)
-# only keep top-level periods
-periods = [p for p in periods if len(p.name) == 1 and p.status == 'frozen']
+# only keep top-level periods (skip M)
+periods = [p for p in periods if len(p.name) == 1 and p.status == 'frozen'][:-1]
 data_name = 'data%d-JetTauEtmiss' % (args.year % 1e3)
 
 samples = [(p.name, p.name, "{0}-{1}".format(data_name, p.name)) for p in periods]
-samples.append(('Total', 'Total', data_name))
 
 make_cutflow(samples, args)

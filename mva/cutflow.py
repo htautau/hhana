@@ -22,6 +22,7 @@ def get_parser():
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--rst', action='store_true', default=False)
     parser.add_argument('--rst-class', default='cutflow')
+    parser.add_argument('--total', action='store_true', default=False)
     return parser
 
 
@@ -53,7 +54,6 @@ def make_cutflow_table(samples, args):
             log.info(ds.name)
             for filename in ds.files:
                 log.debug(filename)
-                os.stat(filename)
                 with ropen(filename) as rfile:
                     cutflow = rfile.cutflow_event
                     cutflow.SetDirectory(0)
