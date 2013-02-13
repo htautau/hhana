@@ -11,7 +11,7 @@ ntup-clean:
 
 ntup-merge: ntup-clean
 	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)
-	(cd $(HHNTUP) && root2hd5 $(HHSTUDENT).root)
+	root2hd5 --quiet --script treesplit.py $(HHNTUP)/$(HHSTUDENT).root
 
 clean-pyc:                                                                      
 	find . -name "*.pyc" | xargs rm -f
