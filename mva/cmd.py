@@ -44,7 +44,7 @@ def general_parser(parser=None):
             help='plot the data in the signal region of the classifier output')
     parser.add_argument('--embedding', action='store_true', default=False,
             help='use embedding instead of ALPGEN')
-    parser.add_argument('--year', type=int, default=2011, choices=(2011, 2012),
+    parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
 
     return parser

@@ -1,7 +1,7 @@
 
 
 HHSTUDENT ?= HHProcessor
-HHNTUP ?= ntuples/hadhad/HHProcessor
+HHNTUP ?= ntuples/prod/HHProcessor
 
 default: clean
 
@@ -9,9 +9,11 @@ ntup-clean:
 	rm -f $(HHNTUP)/$(HHSTUDENT).root
 	rm -f $(HHNTUP)/$(HHSTUDENT).h5
 
-ntup-merge: ntup-clean
+$(HHNTUP)/$(HHSTUDENT).root:
 	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)
-	root2hd5 --quiet --script treesplit.py $(HHNTUP)/$(HHSTUDENT).root
+
+ntup: $(HHNTUP)/$(HHSTUDENT).root
+	root2hdf5 --quiet --script treesplit.py $^
 
 clean-pyc:                                                                      
 	find . -name "*.pyc" | xargs rm -f

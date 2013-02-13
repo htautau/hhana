@@ -32,6 +32,7 @@ from . import log; log = log[__name__]
 from . import categories
 from . import variables
 from .periods import LUMI
+from .systematics import *
 
 # Higgs cross sections
 import yellowhiggs
@@ -41,7 +42,7 @@ VERBOSE = False
 NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
 if not NTUPLE_PATH:
     sys.exit("You did not source higgtautau/setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'hadhad')
+NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'prod')
 
 DEFAULT_STUDENT = 'HHProcessor'
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
@@ -97,90 +98,6 @@ class Sample(object):
         'ggf_weight',
     ]
 
-    SYSTEMATICS_TERMS = [
-        ('JES_UP',),
-        ('JES_DOWN',),
-        ('TES_UP',),
-        ('TES_DOWN',),
-        ('JER_UP',),
-        ('MFS_UP',),
-        ('MFS_DOWN',),
-        ('ISOL_UP',),
-        ('ISOL_DOWN',),
-    ]
-
-    SYSTEMATICS_BY_WEIGHT = [
-        ('TRIGGER_UP',),
-        ('TRIGGER_DOWN',),
-        ('FAKERATE_UP',),
-        ('FAKERATE_DOWN',),
-        ('TAUID_UP',),
-        ('TAUID_DOWN',),
-    ]
-
-    SYSTEMATICS = {
-        'JES': (('JES_UP',), ('JES_DOWN',)),
-        'TES': (('TES_UP',), ('TES_DOWN',)),
-        'JER': (('JER_UP',),),
-        #(('MFS_UP',), ('MFS_DOWN',)),
-        #(('ISOL_UP',), ('ISOL_DOWN',)),
-        #(('TRIGGER_UP',), ('TRIGGER_DOWN',)),
-        'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
-        'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
-        #(('QCDFIT_UP',), ('QCDFIT_DOWN',)),
-        #(('ZFIT_UP',), ('ZFIT_DOWN',)),
-    }
-
-    @classmethod
-    def iter_systematics(cls, include_nominal=False):
-
-        if include_nominal:
-            yield 'NOMINAL'
-        for variations in cls.SYSTEMATICS:
-            for var in variations:
-                yield var
-
-    WEIGHT_SYSTEMATICS = {
-        #'TRIGGER': {
-        #    'UP': [
-        #        'tau1_trigger_scale_factor_high',
-        #        'tau2_trigger_scale_factor_high'],
-        #    'DOWN': [
-        #        'tau1_trigger_scale_factor_low',
-        #        'tau2_trigger_scale_factor_low'],
-        #    'NOMINAL': [
-        #        'tau1_trigger_scale_factor',
-        #        'tau2_trigger_scale_factor']},
-        'FAKERATE': {
-            'UP': [
-                'tau1_fakerate_scale_factor_high',
-                'tau2_fakerate_scale_factor_high'],
-            'DOWN': [
-                'tau1_fakerate_scale_factor_low',
-                'tau2_fakerate_scale_factor_low'],
-            'NOMINAL': [
-            	'tau1_fakerate_scale_factor',
-                'tau2_fakerate_scale_factor']},
-        'TAUID': {
-            'UP': [
-                'tau1_efficiency_scale_factor_high',
-                'tau2_efficiency_scale_factor_high'],
-            'DOWN': [
-                'tau1_efficiency_scale_factor_low',
-                'tau2_efficiency_scale_factor_low'],
-            'NOMINAL': [
-                'tau1_efficiency_scale_factor',
-                'tau2_efficiency_scale_factor']},
-    }
-
-    EMBEDDING_SYSTEMATICS = {
-        'ISOL': { # MUON ISOLATION
-            'UP': Cut('(embedding_isolation == 2)'),
-            'DOWN': Cut(),
-            'NOMINAL': Cut('(embedding_isolation >= 1)'),
-        }
-    }
-
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
                  **hist_decor):
@@ -229,7 +146,7 @@ class Sample(object):
         log.info("nominal hist integral: %f" % hist.Integral())
         if isinstance(self, MC):
             if self.systematics:
-                for sys_name, terms in self.SYSTEMATICS.items():
+                for sys_name, terms in SYSTEMATICS.items():
                     # add systematics terms
                     if len(terms) == 1:
                         up_term = terms[0]
@@ -308,13 +225,13 @@ class Sample(object):
 
         systerm, variation = Sample.get_sys_term_variation(systematic)
         weight_branches = Sample.WEIGHT_BRANCHES[:]
-        for term, variations in Sample.WEIGHT_SYSTEMATICS.items():
+        for term, variations in WEIGHT_SYSTEMATICS.items():
             if term == systerm:
                 weight_branches += variations[variation]
             else:
                 weight_branches += variations['NOMINAL']
         if not no_cuts and isinstance(self, Embedded_Ztautau):
-            for term, variations in Sample.EMBEDDING_SYSTEMATICS.items():
+            for term, variations in EMBEDDING_SYSTEMATICS.items():
                 if term == systerm:
                     if variations[variation]:
                         weight_branches.append(variations[variation])
@@ -325,14 +242,14 @@ class Sample(object):
 
     def iter_weight_branches(self):
 
-        for type, variations in Sample.WEIGHT_SYSTEMATICS.items():
+        for type, variations in WEIGHT_SYSTEMATICS.items():
             for variation in variations:
                 if variation == 'NOMINAL':
                     continue
                 term = ('%s_%s' % (type, variation),)
                 yield self.get_weight_branches(term), term
         if isinstance(self, Embedded_Ztautau):
-            for type, variations in Sample.EMBEDDING_SYSTEMATICS.items():
+            for type, variations in EMBEDDING_SYSTEMATICS.items():
                 for variation in variations:
                     if variation == 'NOMINAL':
                         continue
@@ -345,7 +262,7 @@ class Sample(object):
         if systematic is not None:
             systerm, variation = Sample.get_sys_term_variation(systematic)
             if isinstance(self, Embedded_Ztautau):
-                for term, variations in Sample.EMBEDDING_SYSTEMATICS.items():
+                for term, variations in EMBEDDING_SYSTEMATICS.items():
                     if term == systerm:
                         sys_cut &= variations[variation]
                     else:
@@ -524,7 +441,7 @@ class MC(Sample):
                 systematics_terms, systematics_samples = \
                     samples_db.get_systematics('hadhad', self.year, name)
 
-                unused_terms = Sample.SYSTEMATICS_TERMS[:]
+                unused_terms = SYSTEMATICS_TERMS[:]
 
                 if False and systematics_terms:
                     for sys_term in systematics_terms:
@@ -751,7 +668,7 @@ class MC(Sample):
         if scores_dict is None:
             scores_dict = {}
 
-        for systematic in systematics.iter_systematics(True):
+        for systematic in iter_systematics(True):
 
             if not self.systematics and systematic != 'NOMINAL':
                 continue
@@ -777,7 +694,7 @@ class MC(Sample):
         TEMPFILE.cd()
         selection = self.cuts(category, region) & cuts
         weight_branches = self.get_weight_branches(systematic)
-        if systematic in MC.SYSTEMATICS_BY_WEIGHT:
+        if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
 
         trees = []
@@ -832,7 +749,7 @@ class MC(Sample):
                       (self.__class__.__name__, systematic, selection))
 
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
-        if systematic in MC.SYSTEMATICS_BY_WEIGHT:
+        if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
         tables = []
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
