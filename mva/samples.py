@@ -209,15 +209,24 @@ class Sample(object):
 
         log.info("creating histfactory sample for %s" % self.name)
         sample = ROOT.RooStats.HistFactory.Sample(self.name)
+        ndim = 1
         if ':' in expr:
             hist = self.draw2d(expr, category, region,
                                bins, min, max,
                                bins, min, max,
                                cuts)
+            if isinstance(self, MC) and self.systematics:
+                syst = hist.systematics
+            hist = hist.ravel()
+            if isinstance(self, MC) and self.systematics:
+                hist.systematics = syst
+            ndim = 2
         else:
             hist = self.draw(expr, category, region, bins, min, max, cuts)
+        log.info(str(list(hist)))
         # set the nominal histogram
         sample.SetHisto(hist)
+        log.info("nominal hist integral: %f" % hist.Integral())
         if isinstance(self, MC):
             if self.systematics:
                 for sys_name, terms in self.SYSTEMATICS.items():
@@ -227,16 +236,25 @@ class Sample(object):
                         down_term = terms[0]
                     else:
                         up_term, down_term = terms
-                    log.debug("adding histosys for %s" % sys_name)
+                    log.info("adding histosys for %s" % sys_name)
                     histsys = ROOT.RooStats.HistFactory.HistoSys(sys_name)
-                    histsys.SetHistoHigh(hist.systematics[up_term])
-                    histsys.SetHistoLow(hist.systematics[down_term])
+
+                    hist_up = hist.systematics[up_term]
+                    hist_down = hist.systematics[down_term]
+
+                    if ndim == 2:
+                        hist_up = hist_up.ravel()
+                        hist_down = hist_down.ravel()
+
+                    histsys.SetHistoHigh(hist_up)
+                    histsys.SetHistoLow(hist_down)
+
                     sample.AddHistoSys(histsys)
             if isinstance(self, Signal):
-                log.debug("defining SigXsecOverSM POI")
+                log.info("defining SigXsecOverSM POI")
                 sample.AddNormFactor('SigXsecOverSM', 0., 0., 60.)
             else:
-                log.debug("activating stat error")
+                log.info("activating stat error")
                 sample.ActivateStatError()
         if hasattr(self, 'histfactory'):
             # perform sample-specific histfactory operations

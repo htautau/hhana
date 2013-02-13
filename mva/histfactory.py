@@ -1,3 +1,4 @@
+from . import log; log = log[__name__]
 import ROOT
 
 """
@@ -21,13 +22,15 @@ background2.AddOverallSys("syst3", 0.95, 1.05 )
 
 def make_channel(name, samples, data=None):
 
+    log.info("creating channel %s" % name)
     chan = ROOT.RooStats.HistFactory.Channel(name)
     if data is not None:
-        # data is a TF1
+        log.info("setting data")
         chan.SetData(data)
     chan.SetStatErrorConfig(0.05, "Poisson")
 
     for sample in samples:
+        log.info("adding sample %s" % sample.GetName())
         chan.AddSample(sample)
 
     return chan
@@ -37,24 +40,34 @@ def make_measurement(name, title,
                      channels,
                      lumi=1.0, lumi_rel_error=0.,
                      output_prefix='./histfactory',
-                     POI='SigXsecOverSM'):
+                     POI=None):
     """
     Note: to use the workspace in-memory use::
          static RooWorkspace* MakeCombinedModel(Measurement& measurement);
     """
 
     # Create the measurement
+    log.info("creating measurement %s" % name)
     meas = ROOT.RooStats.HistFactory.Measurement(name, title)
 
     meas.SetOutputFilePrefix(output_prefix)
-    meas.SetPOI(POI)
-    meas.AddConstantParam("Lumi")
+    if POI is not None:
+        if isinstance(POI, basestring):
+            log.info("setting POI %s" % POI)
+            meas.SetPOI(POI)
+        else:
+            for p in POI:
+                log.info("adding POI %s" % p)
+                meas.AddPOI(p)
 
+    log.info("setting lumi=%f +/- %f" % (lumi, lumi_rel_error))
+    meas.AddConstantParam("Lumi")
     meas.SetLumi(lumi)
     meas.SetLumiRelErr(lumi_rel_error)
-    meas.SetExportOnly(False)
+    meas.SetExportOnly(True)
 
     for channel in channels:
+        log.info("adding channel %s" % channel.GetName())
         meas.AddChannel(channel)
 
     return meas
