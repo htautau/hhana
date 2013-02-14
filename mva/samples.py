@@ -93,7 +93,7 @@ class Sample(object):
         'SS': SS}
 
     WEIGHT_BRANCHES = [
-        'mc_weight',
+        #'mc_weight',
         #'pileup_weight', OFF FOR NOW: 2012 PROBLEM
         'ggf_weight',
     ]

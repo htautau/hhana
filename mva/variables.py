@@ -5,7 +5,7 @@ VARIABLES = {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
         'root': '#LT#mu#GT#cbar_{LB,BCID}',
         'filename': 'averageIntPerXing',
-        'bins': 30,
+        'bins': 20,
         'range': (1, 46),
         'cats': ['2J', '0J', '1J',]
     },
@@ -13,7 +13,7 @@ VARIABLES = {
         'title': r'$\langle\mu\rangle|_{LB}(BCID)$',
         'root': '#LT#mu#GT#cbar_{LB}(BCID)',
         'filename': 'actualIntPerXing',
-        'bins': 30,
+        'bins': 20,
         'range': (1, 46),
         'cats': ['2J', '0J', '1J',]
     },
