@@ -9,7 +9,7 @@ others = Others(2012, systematics=False)
 qcd = QCD(data, (ztt, others))
 
 expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
-min, max = .5, 5.5
+min, max = .5, 4.5
 bins = int(max - min)
 category = '2j'
 region = 'OS'
@@ -27,7 +27,7 @@ channel = make_channel(category,
 measurement = make_measurement('trackfit', '', [channel], lumi_rel_error=0.039,
         POI=['z_scale', 'qcd_scale'])
 
-hist2workspace = ROOT.RooStats.HistFactory.HistoToWorkspaceFactoryFast()
+hist2workspace = ROOT.RooStats.HistFactory.HistoToWorkspaceFactoryFast(measurement)
 workspace = hist2workspace.MakeSingleChannelModel(
         measurement,
         channel)

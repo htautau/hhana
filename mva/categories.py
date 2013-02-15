@@ -19,9 +19,6 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
 
-
-# low cut fixes mass, high cut removes QCD
-#DR_FIX = Cut('1.0 < dR_tau1_tau2 < 3.2')
 DR_CUT = Cut('dR_tau1_tau2 < 3.2')
 DETA_CUT = Cut('fabs(tau1_eta - tau2_eta) < 1.5')
 SAME_VERTEX = Cut('tau_same_vertex')
@@ -29,21 +26,12 @@ BAD_MASS = 80
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
-P1P3_RECOUNTED = (
-    (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
-    &
-    (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
-
-# TODO: require 1 or 3 (recounted) tracks after track fit or even after BDT training
-# possible new variable: ratio of core tracks to recounted tracks
-# TODO: add new pi0 info (new variables?)
 
 LEAD_TAU_35 = Cut('tau1_pt > 35000')
 SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
 COMMON_CUTS = (
         LEAD_TAU_35 & SUBLEAD_TAU_25 &
-        P1P3_RECOUNTED &
         MET & MASS_FIX & DR_CUT)# & #DETA_CUT &
 #        SAME_VERTEX)
 
@@ -63,6 +51,16 @@ GGF_CUTS = (- LEAD_JET_50)
 #VBF_CUTS = Cut()
 #BOOSTED_CUTS = Cut()
 #GGF_CUTS = Cut()
+
+P1P3_RECOUNTED = (
+    (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
+    &
+    (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
+
+# TODO: require 1 or 3 (recounted) tracks after track fit
+# possible new variable: ratio of core tracks to recounted tracks
+# TODO: add new pi0 info (new variables?)
+
 
 CATEGORIES = {
     '2j': {

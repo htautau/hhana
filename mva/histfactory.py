@@ -61,7 +61,6 @@ def make_measurement(name, title,
                 meas.AddPOI(p)
 
     log.info("setting lumi=%f +/- %f" % (lumi, lumi_rel_error))
-    meas.AddConstantParam("Lumi")
     meas.SetLumi(lumi)
     meas.SetLumiRelErr(lumi_rel_error)
     meas.SetExportOnly(True)
