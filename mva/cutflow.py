@@ -26,6 +26,7 @@ def get_parser():
     parser.add_argument('--rst-class', default='cutflow')
     parser.add_argument('--total', action='store_true', default=False)
     parser.add_argument('--landscape', action='store_true', default=False)
+    parser.add_argument('--warn-missing', action='store_true', default=False)
     return parser
 
 
@@ -36,8 +37,8 @@ def tab(s, tabstr=4 * ' '):
 
 def make_cutflow(samples, args):
 
-    filters, cutflows, data_index = make_cutflow_table(samples, args)
-    print_cutflow(samples, filters, cutflows, data_index, args)
+    used_samples, filters, cutflows, data_index = make_cutflow_table(samples, args)
+    print_cutflow(used_samples, filters, cutflows, data_index, args)
 
 
 def make_cutflow_table(samples, args):
@@ -48,9 +49,14 @@ def make_cutflow_table(samples, args):
     # build table
     cutflow_table = {}
     data_index = []
-    for i, (latex_name, text_name, sample) in enumerate(samples):
+    used_samples = []
+    i = 0
+    for latex_name, text_name, sample in samples:
         matched_samples = db.search(sample)
         if not matched_samples:
+            if args.warn_missing:
+                log.warning("sample %s not found" % sample)
+                continue
             raise datasets.NoMatchingDatasetsFound(sample)
         total_cutflow = None
         for ds in matched_samples:
@@ -91,9 +97,11 @@ def make_cutflow_table(samples, args):
             cutflow_table[i] = list(zip(total_cutflow, total_cutflow.yerrh()))
         else:
             cutflow_table[i] = list(total_cutflow)
+        used_samples.append((latex_name, text_name, sample))
+        i += 1
 
-    cutflows = [cutflow_table[i] for i in xrange(len(samples))]
-    return filters, cutflows, data_index
+    cutflows = [cutflow_table[idx] for idx in xrange(i)]
+    return used_samples, filters, cutflows, data_index
 
 
 def print_cutflow(samples, filters, cutflows, data_index, args, stream=None):
