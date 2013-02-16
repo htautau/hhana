@@ -256,9 +256,11 @@ class Sample(object):
                     term = ('%s_%s' % (type, variation),)
                     yield self.get_weight_branches(term), term
 
-    def cuts(self, category, region, systematic=None):
+    def cuts(self, category, region, systematic=None, p1p3=True):
 
         sys_cut = Cut()
+        if p1p3:
+            sys_cut &= categories.P1P3_RECOUNTED
         if systematic is not None:
             systerm, variation = Sample.get_sys_term_variation(systematic)
             if isinstance(self, Embedded_Ztautau):
@@ -280,20 +282,20 @@ class Sample(object):
             raise ValueError(
                     'no such category or control region: %s' % category)
 
-    def draw(self, expr, category, region, bins, min, max, cuts=None):
+    def draw(self, expr, category, region, bins, min, max, cuts=None, p1p3=True):
 
         hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
-        self.draw_into(hist, expr, category, region, cuts=cuts)
+        self.draw_into(hist, expr, category, region, cuts=cuts, p1p3=p1p3)
         return hist
 
     def draw2d(self, expr, category, region,
                xbins, xmin, xmax,
                ybins, ymin, ymax,
-               cuts=None):
+               cuts=None, p1p3=True):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
                 title=self.label, **self.hist_decor)
-        self.draw_into(hist, expr, category, region, cuts=cuts)
+        self.draw_into(hist, expr, category, region, cuts=cuts, p1p3=p1p3)
         return hist
 
 
@@ -316,9 +318,9 @@ class Data(Sample):
                           self.year, self.energy, LUMI[self.year] / 1e3))
         self.name = 'Data'
 
-    def draw_into(self, hist, expr, category, region, cuts=None):
+    def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
 
-        self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
+        self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
 
     def scores(self, clf, region, cuts=None):
 
@@ -330,11 +332,12 @@ class Data(Sample):
               category,
               region,
               cuts=None,
-              systematic='NOMINAL'):
+              systematic='NOMINAL',
+              p1p3=True):
 
         Sample.check_systematic(systematic)
         TEMPFILE.cd()
-        tree = asrootpy(self.data.CopyTree(self.cuts(category, region) & cuts))
+        tree = asrootpy(self.data.CopyTree(self.cuts(category, region, p1p3=p1p3) & cuts))
         tree.userdata.weight_branches = []
         return [tree]
 
@@ -344,10 +347,11 @@ class Data(Sample):
                fields=None,
                cuts=None,
                include_weight=True,
-               systematic='NOMINAL'):
+               systematic='NOMINAL',
+               p1p3=True):
 
         Sample.check_systematic(systematic)
-        selection = self.cuts(category, region) & cuts
+        selection = self.cuts(category, region, p1p3=p1p3) & cuts
 
         log.info("requesting table from %s %d with selection: %s" %
                  (self.__class__.__name__, self.year, selection))
@@ -532,7 +536,7 @@ class MC(Sample):
             l += r' ($\sigma_{SM} \times %g$)' % self.scale
         return l
 
-    def draw_into(self, hist, expr, category, region, cuts=None):
+    def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
 
         if isinstance(expr, (list, tuple)):
             exprs = expr
@@ -544,7 +548,7 @@ class MC(Sample):
         else:
             sys_hists = {}
 
-        selection = self.cuts(category, region) & cuts
+        selection = self.cuts(category, region, p1p3=p1p3) & cuts
 
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
@@ -687,12 +691,12 @@ class MC(Sample):
                         np.concatenate((prev_weights, weights)))
         return scores_dict
 
-    def trees(self, category, region, cuts=None, systematic='NOMINAL'):
+    def trees(self, category, region, cuts=None, systematic='NOMINAL', p1p3=True):
         """
         This is where all the magic happens...
         """
         TEMPFILE.cd()
-        selection = self.cuts(category, region) & cuts
+        selection = self.cuts(category, region, p1p3=p1p3) & cuts
         weight_branches = self.get_weight_branches(systematic)
         if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
@@ -736,9 +740,10 @@ class MC(Sample):
                fields=None,
                cuts=None,
                include_weight=True,
-               systematic='NOMINAL'):
+               systematic='NOMINAL',
+               p1p3=True):
 
-        selection = self.cuts(category, region, systematic) & cuts
+        selection = self.cuts(category, region, systematic, p1p3) & cuts
 
         if systematic == 'NOMINAL':
             log.info("requesting table from %s with selection: %s" %
@@ -1015,16 +1020,16 @@ class QCD(Sample):
         self.scale_error = 0.
         self.shape_region = shape_region
 
-    def draw_into(self, hist, expr, category, region, cuts=None):
+    def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
 
         MC_bkg_notOS = hist.Clone()
         for mc in self.mc:
             mc.draw_into(MC_bkg_notOS, expr, category, self.shape_region,
-                         cuts=cuts)
+                         cuts=cuts, p1p3=p1p3)
 
         data_hist = hist.Clone()
         self.data.draw_into(data_hist, expr,
-                            category, self.shape_region, cuts=cuts)
+                            category, self.shape_region, cuts=cuts, p1p3=p1p3)
 
         hist += (data_hist - MC_bkg_notOS) * self.scale
 

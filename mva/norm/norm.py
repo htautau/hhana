@@ -44,7 +44,7 @@ def draw_fit(
     model_hists = []
     for sample in model:
         hist2d = sample.draw2d(expr, category, region,
-                bins, xmin, xmax, bins, ymin, ymax, cuts)
+                bins, xmin, xmax, bins, ymin, ymax, cuts, p1p3=False)
         hist = hist2d.ravel()
         if hasattr(hist2d, 'systematics'):
             hist.systematics = {}
@@ -53,7 +53,7 @@ def draw_fit(
         model_hists.append(hist)
 
     data_hist2d = data.draw2d(expr, category, region,
-            bins, xmin, xmax, bins, ymin, ymax, cuts)
+            bins, xmin, xmax, bins, ymin, ymax, cuts, p1p3=False)
     data_hist = data_hist2d.ravel()
     if hasattr(data_hist2d, 'systematics'):
         data_hist.systematics = {}
@@ -121,8 +121,8 @@ def qcd_ztautau_norm(
         ylabel = '#tau_{2} BDT Score'
         name = 'BDT Score Grid'
     elif param == 'TRACK':
-        xmin, xmax = .5, 5.5
-        ymin, ymax = .5, 5.5
+        xmin, xmax = .5, 4.5
+        ymin, ymax = .5, 4.5
         bins = int(ymax - ymin) # ignore bins args above
         expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
         xlabel = '#tau_{1} Number of Tracks'
@@ -131,11 +131,11 @@ def qcd_ztautau_norm(
     else:
         raise ValueError('No fit defined for %s parameters.' % param)
 
-    output_name = "%dd_%s_fit_%s" % (ndim, param, category)
+    output_name = "%s_fit_%s" % (param, category)
     if is_embedded:
         output_name += '_embedding'
 
-    log.info("performing %d-dimensional fit using %s" % (ndim, expr))
+    log.info("performing 2-dimensional fit using %s" % expr)
     log.info("using %d bins on each axis" % bins)
 
     control = mass_regions.control_region
@@ -158,37 +158,43 @@ def qcd_ztautau_norm(
             ztautau_hist,
             expr,
             category, target_region,
-            cuts=control)
+            cuts=control,
+            p1p3=False)
 
     ztautau.draw_into(
             ztautau_hist_control,
             expr,
             category, qcd_shape_region,
-            cuts=control)
+            cuts=control,
+            p1p3=False)
 
     others.draw_into(
             bkg_hist,
             expr,
             category, target_region,
-            cuts=control)
+            cuts=control,
+            p1p3=False)
 
     others.draw_into(
             bkg_hist_control,
             expr,
             category, qcd_shape_region,
-            cuts=control)
+            cuts=control,
+            p1p3=False)
 
     data.draw_into(
             data_hist,
             expr,
             category, target_region,
-            cuts=control)
+            cuts=control,
+            p1p3=False)
 
     data.draw_into(
             data_hist_control,
             expr,
             category, qcd_shape_region,
-            cuts=control)
+            cuts=control,
+            p1p3=False)
 
     # initialize Ztautau to OS data - SS data
 
@@ -237,7 +243,7 @@ def qcd_ztautau_norm(
                        - ztautau_hist_control * p[1]
                        - bkg_hist_control) * p[0]
                     + ztautau_hist * p[1] + bkg_hist)
-            bin = model.FindBin(*(list(args)[:self.ndim]))
+            bin = model.FindBin(*(list(args)[:2]))
             return model.GetBinContent(bin)
 
     model = Model()
@@ -288,32 +294,38 @@ def qcd_ztautau_norm(
     ztautau.draw_into(
             ztautau_hist_overall,
             expr,
-            category, target_region)
+            category, target_region,
+            p1p3=False)
 
     ztautau.draw_into(
             ztautau_hist_control_overall,
             expr,
-            category, qcd_shape_region)
+            category, qcd_shape_region,
+            p1p3=False)
 
     others.draw_into(
             bkg_hist_overall,
             expr,
-            category, target_region)
+            category, target_region,
+            p1p3=False)
 
     others.draw_into(
             bkg_hist_control_overall,
             expr,
-            category, qcd_shape_region)
+            category, qcd_shape_region,
+            p1p3=False)
 
     data.draw_into(
             data_hist_overall,
             expr,
-            category, target_region)
+            category, target_region,
+            p1p3=False)
 
     data.draw_into(
             data_hist_control_overall,
             expr,
-            category, qcd_shape_region)
+            category, qcd_shape_region,
+            p1p3=False)
 
     qcd_hist_overall = (data_hist_control_overall
                 - ztautau_hist_control_overall

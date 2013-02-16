@@ -9,7 +9,7 @@ others = Others(2012, systematics=False)
 qcd = QCD(data, (ztt, others))
 
 expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
-min, max = .5, 4.5
+min, max = .5, 5.5
 bins = int(max - min)
 category = '2j'
 region = 'OS'
@@ -34,3 +34,4 @@ workspace = hist2workspace.MakeSingleChannelModel(
 #workspace = make_workspace(measurement)
 
 print workspace
+

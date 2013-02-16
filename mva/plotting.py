@@ -92,6 +92,7 @@ def uncertainty_band(model, systematics):
             high = variations[0]
             low = 'NOMINAL'
         else:
+            print variations
             raise ValueError(
                     "only one or two variations per term are allowed")
         total_high = model[0].Clone()
