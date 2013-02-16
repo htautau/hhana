@@ -33,6 +33,7 @@ from . import categories
 from . import variables
 from .periods import LUMI
 from .systematics import *
+from .constants import *
 
 # Higgs cross sections
 import yellowhiggs
@@ -45,7 +46,6 @@ if not NTUPLE_PATH:
 NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'prod')
 
 DEFAULT_STUDENT = 'HHProcessor'
-TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}

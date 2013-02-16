@@ -1,0 +1,5 @@
+#!/bin/bash
+
+./cutflow-data --rst --short > cutflows/cutflow-data.txt
+./cutflow-bkg --rst > cutflows/cutflow-bkg.txt
+./cutflow-sig --rst > cutflows/cutflow-sig.txt

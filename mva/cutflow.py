@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 from higgstautau import datasets
 from rootpy.extern.tabulartext import PrettyTable, TextTable
 from rootpy.io import open as ropen
+from .periods import LUMI
 from . import log; log = log[__name__]
 
 
@@ -18,6 +19,7 @@ def get_parser():
     parser.add_argument('--precision', default=2)
     parser.add_argument('--proc', default='HHProcessor')
     parser.add_argument('--db', default='datasets_hh')
+    parser.add_argument('--year', type=int, default=2012)
     parser.add_argument('--noweight', action='store_true', default=False)
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--rst', action='store_true', default=False)
@@ -63,9 +65,9 @@ def make_cutflow_table(samples, args):
 
                     # scale MC by lumi and xsec
                     if ds.datatype != datasets.DATA and not args.noweight:
-                        lumi = total_lumi()
-                        events = rfile.cutflow[0]
-                        xsec, xsec_min, xsec_max, effic = ds.xsec_effic
+                        lumi = LUMI[args.year]
+                        events = cutflow[0]
+                        xsec, kfact, effic = ds.xsec_kfact_effic
                         weight = 1E3 * lumi * xsec * ds.xsec_factor / (effic * events)
                         if args.verbose:
                             print '-' * 30
