@@ -5,7 +5,7 @@ import sys
 from argparse import ArgumentParser
 
 from higgstautau import datasets
-from rootpy.extern.tabulartext import PrettyTable, TextTable
+from rootpy.extern.tabulartext import TextTable
 from rootpy.io import open as ropen
 from .periods import LUMI
 from . import log; log = log[__name__]
@@ -20,11 +20,12 @@ def get_parser():
     parser.add_argument('--proc', default='HHProcessor')
     parser.add_argument('--db', default='datasets_hh')
     parser.add_argument('--year', type=int, default=2012)
-    parser.add_argument('--noweight', action='store_true', default=False)
+    parser.add_argument('--no-weight', action='store_true', default=False)
     parser.add_argument('--verbose', action='store_true', default=False)
     parser.add_argument('--rst', action='store_true', default=False)
     parser.add_argument('--rst-class', default='cutflow')
     parser.add_argument('--total', action='store_true', default=False)
+    parser.add_argument('--landscape', action='store_true', default=False)
     return parser
 
 
@@ -64,7 +65,7 @@ def make_cutflow_table(samples, args):
                         filters = [cutflow.GetXaxis().GetBinLabel(j + 1) for j in xrange(len(cutflow))]
 
                     # scale MC by lumi and xsec
-                    if ds.datatype != datasets.DATA and not args.noweight:
+                    if ds.datatype != datasets.DATA and not args.no_weight:
                         lumi = LUMI[args.year]
                         events = cutflow[0]
                         xsec, kfact, effic = ds.xsec_kfact_effic
@@ -91,37 +92,51 @@ def make_cutflow_table(samples, args):
         else:
             cutflow_table[i] = list(total_cutflow)
 
-
-    filters[0] = 'Skim'
-    filters.insert(0, 'Total')
-
     cutflows = [cutflow_table[i] for i in xrange(len(samples))]
     return filters, cutflows, data_index
 
 
 def print_cutflow(samples, filters, cutflows, data_index, args, stream=None):
 
+    if args.landscape:
+        cutflows = zip(*cutflows)
     if stream is None:
         stream = sys.stdout
     print >> stream
     if args.format == 'text':
         sample_names = [sample[1] for sample in samples]
         table = TextTable(max_width=-1)
-        if args.noweight:
+        if args.no_weight:
             dtypes = ['t'] + ['i'] * len(cutflows)
         else:
             dtypes = ['t'] + ['f'] * len(cutflows)
-            for i in data_index:
-                dtypes[i + 1] = 'i'
+            if not args.landscape:
+                for i in data_index:
+                    dtypes[i + 1] = 'i'
         table.set_cols_dtype(dtypes)
         table.set_precision(args.precision)
-        if args.errors:
-            for i, row in enumerate(zip(*cutflows)):
-                table.add_row([filters[i]] + ["%s(%s)" % (num_format % passing,
-                                                          num_format % error)
-                                                          for passing, error in row])
+        if args.landscape:
+            if args.errors:
+                table.add_row(['Sample'] + filters)
+                for i, row in enumerate(zip(*cutflows)):
+                    table.add_row([sample_names[i]] +
+                                  ["%s(%s)" % (num_format % passing,
+                                               num_format % error)
+                                               for passing, error in row])
+            else:
+                table.add_rows([['Sample'] + filters] +
+                               zip(*([sample_names] + cutflows)))
         else:
-            table.add_rows([['Filter'] + sample_names] + zip(*([filters] + cutflows)))
+            if args.errors:
+                table.add_row(['Filter'] + sample_names)
+                for i, row in enumerate(zip(*cutflows)):
+                    table.add_row([filters[i]] +
+                                  ["%s(%s)" % (num_format % passing,
+                                               num_format % error)
+                                               for passing, error in row])
+            else:
+                table.add_rows([['Filter'] + sample_names] +
+                               zip(*([filters] + cutflows)))
         table_str = table.draw()
         if args.rst:
             print >> stream, ".. table::"
