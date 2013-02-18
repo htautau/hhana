@@ -141,7 +141,6 @@ class Sample(object):
         else:
             hist = self.draw(expr, category, region, bins, min, max, cuts,
                     p1p3=p1p3)
-        log.info(str(list(hist)))
         # set the nominal histogram
         sample.SetHisto(hist)
         log.info("nominal hist integral: %f" % hist.Integral())
