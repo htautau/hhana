@@ -122,7 +122,7 @@ class Sample(object):
 
     def get_histfactory_sample(self, expr, category, region,
                                bins, min, max,
-                               cuts=None):
+                               cuts=None, p1p3=True):
 
         log.info("creating histfactory sample for %s" % self.name)
         sample = ROOT.RooStats.HistFactory.Sample(self.name)
@@ -131,7 +131,7 @@ class Sample(object):
             hist = self.draw2d(expr, category, region,
                                bins, min, max,
                                bins, min, max,
-                               cuts)
+                               cuts, p1p3=p1p3)
             if isinstance(self, MC) and self.systematics:
                 syst = hist.systematics
             hist = hist.ravel()
@@ -139,7 +139,8 @@ class Sample(object):
                 hist.systematics = syst
             ndim = 2
         else:
-            hist = self.draw(expr, category, region, bins, min, max, cuts)
+            hist = self.draw(expr, category, region, bins, min, max, cuts,
+                    p1p3=p1p3)
         log.info(str(list(hist)))
         # set the nominal histogram
         sample.SetHisto(hist)
