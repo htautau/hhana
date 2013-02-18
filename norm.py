@@ -2,6 +2,7 @@ import ROOT
 
 from mva.samples import Data, MC_Ztautau, Others, QCD
 from mva.histfactory import make_channel, make_measurement, make_workspace
+from mva.categories import MassRegions
 
 from ROOT import RooMinimizer
 
@@ -16,17 +17,23 @@ bins = int(max_edge - min_edge)
 category = '2j'
 region = 'OS'
 
+mass_regions = MassRegions(110, 180, True)
+
 ztt_sample = ztt.get_histfactory_sample(expr, category, region, bins,
         min_edge, max_edge,
+        cuts=mass_regions.control_region,
         p1p3=False)
 others_sample = others.get_histfactory_sample(expr, category, region, bins,
         min_edge, max_edge,
+        cuts=mass_regions.control_region,
         p1p3=False)
 qcd_sample = qcd.get_histfactory_sample(expr, category, region, bins,
         min_edge, max_edge,
+        cuts=mass_regions.control_region,
         p1p3=False)
 data_sample = data.get_histfactory_sample(expr, category, region, bins,
         min_edge, max_edge,
+        cuts=mass_regions.control_region,
         p1p3=False)
 
 ztt_sample.AddNormFactor('z_scale', 1., 0.5, 2.0)
@@ -44,7 +51,7 @@ workspace = hist2workspace.MakeSingleChannelModel(
 #workspace = make_workspace(measurement)
 
 obs_data = workspace.data('obsData')
-pdf = workspace.pdf('model_2j')
+pdf = workspace.pdf('model_%s' % category)
 
 nll = pdf.createNLL(obs_data)
 minim = RooMinimizer(nll)
