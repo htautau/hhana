@@ -1,7 +1,9 @@
+#!/usr/bin/env python
+
 import ROOT
 
 from mva.samples import Data, MC_Ztautau, Others, QCD
-from mva.histfactory import make_channel, make_measurement, make_workspace
+from mva.stats.histfactory import make_channel, make_measurement, make_workspace
 from mva.categories import MassRegions
 from mva.norm import cache
 
