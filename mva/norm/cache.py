@@ -41,7 +41,7 @@ def get_scales(year, category, embedded, param, verbose=True):
             log.info("fits were derived via %s parameters" % param)
             log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
                 qcd_scale_error))
-            log.info("    ztautau scale: %.3f +/- %.4f" % (
+            log.info("    ztt scale: %.3f +/- %.4f" % (
                     ztautau_scale, ztautau_scale_error))
         return qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error
     else:
@@ -71,7 +71,7 @@ def set_scales(year, category, embedded, param,
     log.info("setting scale factors for %s category" % category)
     log.info("fits were derived via %s parameters" % param)
     log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
-    log.info("    ztautau scale: %.3f +/- %.4f" % (ztautau_scale,
+    log.info("    ztt scale: %.3f +/- %.4f" % (ztautau_scale,
         ztautau_scale_error))
     if has_category(year, category, embedded, param):
         qcd_scale_old, qcd_scale_error_old, \
@@ -81,7 +81,7 @@ def set_scales(year, category, embedded, param,
         log.info("    qcd scale: %.3f +/- %.4f" % (
                 qcd_scale_old,
                 qcd_scale_error_old))
-        log.info("    ztautau scale: %.3f +/- %.4f" % (
+        log.info("    ztt scale: %.3f +/- %.4f" % (
                 ztautau_scale_old,
                 ztautau_scale_error_old))
     if year not in SCALES:
