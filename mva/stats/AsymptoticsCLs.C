@@ -175,11 +175,10 @@ class AsymptoticsCLs
         target_CLs(0.05)
         {}
 
-    TH1D* run(
-            const char* modelConfigName,
-            const char* dataName,
-            const char* asimovDataName,
-            double CL)
+    TH1D* run(const char* modelConfigName,
+              const char* dataName,
+              const char* asimovDataName,
+              double CL = 0.95)
     {
         TStopwatch timer;
         timer.Start();
