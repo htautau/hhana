@@ -142,17 +142,10 @@ class Sample(object):
                 hist = hist.ravel()
                 if isinstance(self, MC) and self.systematics:
                     hist.systematics = syst
-        else:
-            # histogram classifier output
-            pass
 
-        # set the nominal histogram
-        sample.SetHisto(hist)
-        log.info("nominal hist integral: %f" % hist.Integral())
-        if isinstance(self, MC):
-            if self.systematics:
+            # add systematics samples
+            if isinstance(self, MC) and self.systematics:
                 for sys_name, terms in SYSTEMATICS.items():
-                    # add systematics terms
                     if len(terms) == 1:
                         up_term = terms[0]
                         down_term = terms[0]
@@ -173,15 +166,26 @@ class Sample(object):
                     histsys.SetHistoLow(hist_down)
 
                     sample.AddHistoSys(histsys)
-            if isinstance(self, Signal):
-                log.info("defining SigXsecOverSM POI")
-                sample.AddNormFactor('SigXsecOverSM', 0., 0., 60.)
-            else:
-                log.info("activating stat error")
-                sample.ActivateStatError()
+        else:
+            # histogram classifier output
+            pass
+
+        # set the nominal histogram
+        sample.SetHisto(hist)
+
+        if isinstance(self, Signal):
+            log.info("defining SigXsecOverSM POI for %s" % self.name)
+            sample.AddNormFactor('SigXsecOverSM', 0., 0., 60.)
+        elif isinstance(self, Background):
+            # only activate stat error on background samples
+            log.info("activating stat error for %s" % self.name)
+            sample.ActivateStatError()
+
         if hasattr(self, 'histfactory'):
-            # perform sample-specific histfactory operations
+            # perform sample-specific items
+            log.info("calling %s histfactory method" % self.name)
             self.histfactory(sample)
+
         return sample
 
     def split(self,
@@ -381,10 +385,12 @@ class Data(Sample):
 
 
 class Signal:
+    # mixin
     pass
 
 
 class Background:
+    # mixin
     pass
 
 
@@ -843,12 +849,12 @@ class MC(Sample):
                 yield weight, event
 
 
-class Ztautau:
+class Ztautau(Background):
 
     pass
 
 
-class MC_Ztautau(MC, Ztautau, Background):
+class MC_Ztautau(MC, Ztautau):
 
     def __init__(self, *args, **kwargs):
         """
@@ -860,7 +866,7 @@ class MC_Ztautau(MC, Ztautau, Background):
                 *args, **kwargs)
 
 
-class Embedded_Ztautau(MC, Ztautau, Background):
+class Embedded_Ztautau(MC, Ztautau):
 
     def __init__(self, *args, **kwargs):
         """
@@ -1007,7 +1013,7 @@ class Higgs(MC, Signal):
         super(Higgs, self).__init__(year=year, **kwargs)
 
 
-class QCD(Sample):
+class QCD(Sample, Background):
 
     def __init__(self, data, mc,
                  scale=1.,
