@@ -886,16 +886,11 @@ class ClassificationProblem(object):
                 hist_template = Hist(limitbins,
                         min_score_signal, max_score_signal)
 
-            data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
-            if unblind:
-                data_hist.fill_array(data_scores)
-            else:
-                # write out the sum of the background model as "data"
-                for bkg_sample, scores_dict in bkg_scores:
-                    score, w = scores_dict['NOMINAL']
-                    data_hist.fill_array(score, w)
             f.cd()
-            data_hist.Write()
+            if unblind:
+                data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
+                data_hist.fill_array(data_scores)
+                data_hist.Write()
             write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
             write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
 

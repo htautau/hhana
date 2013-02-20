@@ -232,8 +232,8 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         # define training and test samples
         branches = cat_info['features']
         spectators = [
-                'mass_mmc_tau1_tau2',
-                ]
+            'mass_mmc_tau1_tau2',
+        ]
         
         clf = ClassificationProblem(
                 signals=signals_train,

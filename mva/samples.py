@@ -120,27 +120,32 @@ class Sample(object):
         #else:
         self.hist_decor['fillstyle'] = 'solid'
 
-    def get_histfactory_sample(self, expr, category, region,
-                               bins, min, max,
+    def get_histfactory_sample(self, hist_template,
+                               expr_or_clf,
+                               category, region,
                                cuts=None, p1p3=True):
 
         log.info("creating histfactory sample for %s" % self.name)
         sample = ROOT.RooStats.HistFactory.Sample(self.name)
-        ndim = 1
-        if ':' in expr:
-            hist = self.draw2d(expr, category, region,
-                               bins, min, max,
-                               bins, min, max,
-                               cuts, p1p3=p1p3)
-            if isinstance(self, MC) and self.systematics:
-                syst = hist.systematics
-            hist = hist.ravel()
-            if isinstance(self, MC) and self.systematics:
-                hist.systematics = syst
-            ndim = 2
+
+        ndim = hist_template.GetDimension()
+
+        if isinstance(expr_or_clf, basestring):
+            expr = expr_or_clf
+            hist = hist_template.Clone()
+            hist.Reset()
+            self.draw_into(hist, expr, category, region, cuts, p1p3=p1p3)
+            if ndim > 1:
+                if isinstance(self, MC) and self.systematics:
+                    syst = hist.systematics
+                # convert to 1D hist
+                hist = hist.ravel()
+                if isinstance(self, MC) and self.systematics:
+                    hist.systematics = syst
         else:
-            hist = self.draw(expr, category, region, bins, min, max, cuts,
-                    p1p3=p1p3)
+            # histogram classifier output
+            pass
+
         # set the nominal histogram
         sample.SetHisto(hist)
         log.info("nominal hist integral: %f" % hist.Integral())
@@ -159,7 +164,8 @@ class Sample(object):
                     hist_up = hist.systematics[up_term]
                     hist_down = hist.systematics[down_term]
 
-                    if ndim == 2:
+                    if ndim > 1:
+                        # convert to 1D hists
                         hist_up = hist_up.ravel()
                         hist_down = hist_down.ravel()
 

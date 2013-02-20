@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import ROOT
+from rootpy.plotting import Hist2D
 
 from mva.samples import Data, MC_Ztautau, Others, QCD
 from mva.stats.histfactory import make_channel, make_measurement, make_workspace
 from mva.categories import MassRegions
 from mva.norm import cache
 
+import ROOT
 from ROOT import RooMinimizer
 
 data = Data(2012)
@@ -17,6 +18,10 @@ qcd = QCD(data, (ztt, others))
 expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
 min_edge, max_edge = .5, 5.5
 bins = int(max_edge - min_edge)
+
+hist_template = Hist2D(bins, min_edge, max_edge,
+                       bins, min_edge, max_edge)
+
 region = 'OS'
 year = 2012
 is_embedded = False
@@ -28,20 +33,20 @@ for njet in range(3):
 
     category = '%dj' % njet
 
-    ztt_sample = ztt.get_histfactory_sample(expr, category, region, bins,
-            min_edge, max_edge,
+    ztt_sample = ztt.get_histfactory_sample(
+            hist_template, expr, category, region,
             cuts=mass_regions.control_region,
             p1p3=False)
-    others_sample = others.get_histfactory_sample(expr, category, region, bins,
-            min_edge, max_edge,
+    others_sample = others.get_histfactory_sample(
+            hist_template, expr, category, region,
             cuts=mass_regions.control_region,
             p1p3=False)
-    qcd_sample = qcd.get_histfactory_sample(expr, category, region, bins,
-            min_edge, max_edge,
+    qcd_sample = qcd.get_histfactory_sample(
+            hist_template, expr, category, region,
             cuts=mass_regions.control_region,
             p1p3=False)
-    data_sample = data.get_histfactory_sample(expr, category, region, bins,
-            min_edge, max_edge,
+    data_sample = data.get_histfactory_sample(
+            hist_template, expr, category, region,
             cuts=mass_regions.control_region,
             p1p3=False)
 
