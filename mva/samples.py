@@ -34,6 +34,7 @@ from . import variables
 from .periods import LUMI
 from .systematics import *
 from .constants import *
+from .classify import histogram_scores
 
 # Higgs cross sections
 import yellowhiggs
@@ -129,6 +130,7 @@ class Sample(object):
         sample = ROOT.RooStats.HistFactory.Sample(self.name)
 
         ndim = hist_template.GetDimension()
+        do_systematics = not isinstance(self, Data) and self.systematics
 
         if isinstance(expr_or_clf, basestring):
             expr = expr_or_clf
@@ -136,42 +138,44 @@ class Sample(object):
             hist.Reset()
             self.draw_into(hist, expr, category, region, cuts, p1p3=p1p3)
             if ndim > 1:
-                if isinstance(self, MC) and self.systematics:
+                if do_systematics:
                     syst = hist.systematics
                 # convert to 1D hist
                 hist = hist.ravel()
-                if isinstance(self, MC) and self.systematics:
+                if do_systematics:
                     hist.systematics = syst
 
-            # add systematics samples
-            if isinstance(self, MC) and self.systematics:
-                for sys_name, terms in SYSTEMATICS.items():
-                    if len(terms) == 1:
-                        up_term = terms[0]
-                        down_term = terms[0]
-                    else:
-                        up_term, down_term = terms
-                    log.info("adding histosys for %s" % sys_name)
-                    histsys = ROOT.RooStats.HistFactory.HistoSys(sys_name)
-
-                    hist_up = hist.systematics[up_term]
-                    hist_down = hist.systematics[down_term]
-
-                    if ndim > 1:
-                        # convert to 1D hists
-                        hist_up = hist_up.ravel()
-                        hist_down = hist_down.ravel()
-
-                    histsys.SetHistoHigh(hist_up)
-                    histsys.SetHistoLow(hist_down)
-
-                    sample.AddHistoSys(histsys)
         else:
             # histogram classifier output
-            pass
+            scores = self.score(clf, category, region, cuts)
+            hist = histogram_scores(hist_template, scores)
 
         # set the nominal histogram
         sample.SetHisto(hist)
+
+        # add systematics samples
+        if do_systematics:
+            for sys_name, terms in SYSTEMATICS.items():
+                if len(terms) == 1:
+                    up_term = terms[0]
+                    down_term = terms[0]
+                else:
+                    up_term, down_term = terms
+                log.info("adding histosys for %s" % sys_name)
+                histsys = ROOT.RooStats.HistFactory.HistoSys(sys_name)
+
+                hist_up = hist.systematics[up_term]
+                hist_down = hist.systematics[down_term]
+
+                if ndim > 1:
+                    # convert to 1D hists
+                    hist_up = hist_up.ravel()
+                    hist_down = hist_down.ravel()
+
+                histsys.SetHistoHigh(hist_up)
+                histsys.SetHistoLow(hist_down)
+
+                sample.AddHistoSys(histsys)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
@@ -332,7 +336,11 @@ class Data(Sample):
 
         self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
 
-    def scores(self, clf, region, cuts=None):
+    def scores(self, clf, category, region, cuts=None):
+
+        if category != clf.category:
+            raise ValueError(
+                'classifier applied to category in which it was not trained')
 
         return clf.classify(self,
                     region=region,
@@ -679,7 +687,11 @@ class MC(Sample):
         # set the systematics
         hist.systematics = sys_hists
 
-    def scores(self, clf, region, cuts=None, scores_dict=None):
+    def scores(self, clf, category, region, cuts=None, scores_dict=None):
+
+        if category != clf.category:
+            raise ValueError(
+                'classifier applied to category in which it was not trained')
 
         if scores_dict is None:
             scores_dict = {}
@@ -1015,14 +1027,28 @@ class Higgs(MC, Signal):
 
 class QCD(Sample, Background):
 
+    @staticmethod
+    def sample_compatibility(data, mc):
+
+        if not isinstance(mc, (list, tuple)):
+            raise TypeError("mc must be a list or tuple of MC samples")
+        if not mc:
+            raise ValueError("mc must contain at least one MC sample")
+        systematics = mc[0].systematics
+        for m in mc:
+            if data.year != m.year:
+                raise ValueError("MC and Data years do not match")
+            if m.systematics != systematics:
+                raise ValueError(
+                    "two MC samples with inconsistent systematics setting")
+
     def __init__(self, data, mc,
                  scale=1.,
                  shape_region='SS',
                  cuts=None,
                  color='#59d454'):
 
-        assert len(mc) > 0
-        assert data.year == mc[0].year
+        QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(year=data.year, scale=scale, color=color)
         self.data = data
         self.mc = mc
@@ -1031,6 +1057,7 @@ class QCD(Sample, Background):
         self.scale = 1.
         self.scale_error = 0.
         self.shape_region = shape_region
+        self.systematics = mc[0].systematics
 
     def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
 
@@ -1062,14 +1089,16 @@ class QCD(Sample, Background):
 
         hist.SetTitle(self.label)
 
-    def scores(self,
-               clf,
-               region,
-               cuts=None):
+    def scores(self, clf, category, region, cuts=None):
+
+        if category != clf.category:
+            raise ValueError(
+                'classifier applied to category in which it was not trained')
 
         # SS data
         data_scores, data_weights = self.data.scores(
                 clf,
+                category,
                 region=self.shape_region,
                 cuts=cuts)
 
@@ -1078,6 +1107,7 @@ class QCD(Sample, Background):
         for mc in self.mc:
             mc.scores(
                     clf,
+                    category,
                     region=self.shape_region,
                     cuts=cuts,
                     scores_dict=scores_dict)
@@ -1095,6 +1125,7 @@ class QCD(Sample, Background):
             sys_scores = np.concatenate((sys_scores, np.copy(data_scores)))
             sys_weights = np.concatenate((sys_weights, data_weights * scale))
             scores_dict[sys_term] = (sys_scores, sys_weights)
+
         return scores_dict
 
     def trees(self, category, region, cuts=None,
@@ -1183,113 +1214,3 @@ class MC_TauID(MC):
         self.samples = ['PythiaWtaunu_incl.mc11c']
         super(MC_TauID, self).__init__(student='TauIDProcessor',
                 db=DB_TAUID, **kwargs)
-
-
-if __name__ == '__main__':
-
-    from background_estimation import qcd_ztautau_norm
-
-    # tests
-    category='boosted'
-    shape_region = '!OS'
-    target_region = 'OS'
-
-    ztautau = MC_Ztautau(year=2011, systematics=False)
-    others = Others(year=2011, systematics=False)
-    data = Data(year=2011)
-    qcd = QCD(data=data, mc=[others, ztautau],
-          shape_region=shape_region)
-
-    qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error = qcd_ztautau_norm(
-        year=2011,
-        ztautau=ztautau,
-        backgrounds=[others],
-        data=data,
-        category=category,
-        target_region=target_region,
-        qcd_shape_region=shape_region,
-        use_cache=True)
-
-    qcd.scale = qcd_scale
-    qcd.scale_error = qcd_scale_error
-    ztautau.scale = ztautau_scale
-    ztautau.scale_error = ztautau_scale_error
-
-    expr = 'tau1_BDTJetScore'
-    cuts = None
-    bins = 20
-    min, max = -0.5, 1.5
-
-    print '--- Others'
-    other_hist = others.draw(
-            expr,
-            category, target_region,
-            bins, min, max,
-            cuts=cuts)
-    print "--- QCD"
-    qcd_hist = qcd.draw(
-            expr,
-            category, target_region,
-            bins, min, max,
-            cuts=cuts)
-    print '--- Z'
-    ztautau_hist = ztautau.draw(
-            expr,
-            category, target_region,
-            bins, min, max,
-            cuts=cuts)
-    print '--- Data'
-    data_hist = data.draw(
-            expr,
-            category, target_region,
-            bins, min, max,
-            cuts=cuts)
-
-    print "Data: %f" % sum(data_hist)
-    print "QCD: %f" % sum(qcd_hist)
-    print "Z: %f" % sum(ztautau_hist)
-    print "Others: %f" % sum(other_hist)
-    print "Data / Model: %f" % (sum(data_hist) / (sum(qcd_hist) +
-        sum(ztautau_hist) + sum(other_hist)))
-
-    # test scores
-    from categories import CATEGORIES
-    import pickle
-    import numpy as np
-
-    branches = CATEGORIES[category]['features']
-
-    train_frac = .5
-
-    with open('clf_%s.pickle' % category, 'r') as f:
-        clf = pickle.load(f)
-        print clf
-    print '--- Others'
-    other_scores, other_weights = others.scores(
-            clf, branches,
-            train_frac,
-            category, target_region,
-            cuts=cuts)['NOMINAL']
-    print '--- QCD'
-    qcd_scores, qcd_weights = qcd.scores(
-            clf, branches,
-            train_frac,
-            category, target_region,
-            cuts=cuts)['NOMINAL']
-    print '--- Z'
-    ztautau_scores, ztautau_weights = ztautau.scores(
-            clf, branches,
-            train_frac,
-            category, target_region,
-            cuts=cuts)['NOMINAL']
-    print '--- Data'
-    data_scores, data_weights = data.scores(
-            clf, branches,
-            train_frac,
-            category, target_region,
-            cuts=cuts)
-
-    print "Data: %d" % (len(data_scores))
-    print "QCD: %f" % np.sum(qcd_weights)
-    print "Z: %f" % np.sum(ztautau_weights)
-    print "Others: %f" % np.sum(other_weights)

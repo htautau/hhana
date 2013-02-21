@@ -494,7 +494,6 @@ class ClassificationProblem(object):
         return np.concatenate((left_scores, right_scores)), \
                np.concatenate((left_weight, right_weight))
 
-
     def evaluate(self,
                  data,
                  mass_regions,
@@ -954,6 +953,37 @@ def staged_score(self, X, y, sample_weight, n_estimators=-1):
 
         s_sig_max = np.max(np.ma.masked_invalid(s_sig))
         yield s_sig_max * acc
+
+
+def histogram_scores(hist_template, scores):
+
+    hist_template = hist_template.Clone()
+    hist_template.Reset()
+
+    if isinstance(scores, tuple):
+        # data
+        scores, weight = scores
+        assert (weight == 1).all()
+        hist = hist_template.Clone()
+        hist.fill_array(scores)
+    elif isinstance(scores, dict):
+        # non-data with possible systematics
+        # nominal case:
+        nom_scores, nom_weight = scores['NOMINAL']
+        hist = hist_template.Clone()
+        hist.fill_array(nom_scores, nom_weight)
+        # systematics
+        sys_hists = {}
+        for sys_term, (sys_scores, sys_weights) in scores.items():
+            if sys_term == 'NOMINAL':
+                continue
+            sys_hist = hist_template.Clone()
+            sys_hist.fill_array(sys_scores, sys_weight)
+            sys_hists[sys_term] = sys_hist
+        hist.systematics = sys_hists
+    else:
+        raise TypeError("scores not a tuple or dict")
+    return hist
 
 
 def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
