@@ -22,6 +22,7 @@ import numpy as np
 
 # local imports
 from mva import log, variables, plots_dir, samples
+from mva.stats import hypotests
 from mva.plotting import *
 from mva.samples import *
 from mva.utils import make_multipage_pdf
@@ -265,6 +266,15 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 quick=True)
 
         category_scores[category] = (bkg_scores, sig_scores)
+
+        # run hypothesis tests
+        hypotests.limits(data, backgrounds,
+                category, region=target_region,
+                cuts=mass_regions.signal_region,
+                unblind=args.unblind,
+                systematics=args.systematics,
+                bins=cat_info['limitbins'],
+                binning=cat_info['limitbinning'])
 
 
 if 'train' in args.actions and set(args.categories) == set(CATEGORIES.keys()):
