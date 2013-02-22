@@ -72,6 +72,9 @@ def make_measurement(name, title,
     return meas
 
 
-def make_workspace(measurement):
+def make_model(measurement, channel=None):
 
-    return ROOT.RooStats.HistFactory.HistoToWorkspaceFactory.MakeCombinedModel(measurement)
+    hist2workspace = ROOT.RooStats.HistFactory.HistoToWorkspaceFactoryFast(measurement)
+    if channel is not None:
+        return hist2workspace.MakeSingleChannelModel(measurement, channel)
+    return hist2workspace.MakeCombinedModel(measurement)

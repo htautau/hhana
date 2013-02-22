@@ -124,7 +124,8 @@ class Sample(object):
     def get_histfactory_sample(self, hist_template,
                                expr_or_clf,
                                category, region,
-                               cuts=None, p1p3=True):
+                               cuts=None, p1p3=True,
+                               scores=None):
 
         log.info("creating histfactory sample for %s" % self.name)
         sample = ROOT.RooStats.HistFactory.Sample(self.name)
@@ -147,7 +148,8 @@ class Sample(object):
 
         else:
             # histogram classifier output
-            scores = self.score(clf, category, region, cuts)
+            if scores is not None:
+                scores = self.score(clf, category, region, cuts)
             hist = histogram_scores(hist_template, scores)
 
         # set the nominal histogram

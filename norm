@@ -3,7 +3,7 @@
 from rootpy.plotting import Hist2D
 
 from mva.samples import Data, MC_Ztautau, Others, QCD
-from mva.stats.histfactory import make_channel, make_measurement, make_workspace
+from mva.stats import histfactory
 from mva.categories import MassRegions
 from mva.norm import cache
 
@@ -53,16 +53,12 @@ for njet in range(3):
     ztt_sample.AddNormFactor('z_scale', 1., 0.5, 2.0)
     qcd_sample.AddNormFactor('qcd_scale', 1., 0.5, 2.0)
 
-    channel = make_channel(category,
+    channel = histfactory.make_channel(category,
             [ztt_sample, others_sample, qcd_sample], data_sample.GetHisto())
-    measurement = make_measurement('trackfit', '', [channel], lumi_rel_error=0.039,
+    measurement = histfactory.make_measurement('trackfit', '', [channel], lumi_rel_error=0.039,
             POI=['z_scale', 'qcd_scale'])
 
-    hist2workspace = ROOT.RooStats.HistFactory.HistoToWorkspaceFactoryFast(measurement)
-    workspace = hist2workspace.MakeSingleChannelModel(
-            measurement,
-            channel)
-    #workspace = make_workspace(measurement)
+    workspace = histfactory.make_model(measurement, channel=channel)
 
     obs_data = workspace.data('obsData')
     pdf = workspace.pdf('model_%s' % category)

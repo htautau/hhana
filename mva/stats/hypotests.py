@@ -3,13 +3,48 @@ from .asymptotics import AsymptoticsCLs
 from ..samples import Higgs
 
 
-def limits(data, backgrounds,
-           category, region=target_region,
-           cuts=None,
-           unblind=False,
-           systematics=False,
-           bins=10,
-           binning='constant'):
+def channels(clf, category, region, backgrounds,
+            data=None, cuts=None, hist_template=None,
+            bins=10, binning='constant'):
+    """
+    Return a HistFactory Channel for each mass hypothesis
+    """
+    channels = []
+    # TODO check for sample compatibility
+    year = backgrounds[0].year
+
+    # determine min and max scores
+    min_score = 1.
+    max_score = -1.
+
+    # background model scores
+    bkg_scores = []
+    for bkg in backgrounds:
+        scores_dict = bkg.scores(
+                clf,
+                category=category
+                region=region,
+                cuts=cuts)
+
+        for sys_term, (scores, weights) in scores_dict.items():
+            assert len(scores) == len(weights)
+            if len(scores) == 0:
+                continue
+            _min = np.min(scores)
+            _max = np.max(scores)
+            if _min < min_score:
+                min_score = _min
+            if _max > max_score:
+                max_score = _max
+
+        bkg_scores.append((bkg, scores_dict))
+
+    if data is not None:
+        data_scores, _ = data.scores(
+                clf,
+                category=category,
+                region=region,
+                cuts=cuts)
 
     for mass in Higgs.MASS_POINTS:
 
@@ -30,9 +65,12 @@ def limits(data, backgrounds,
         for mode in Higgs.MODES:
             sig = Higgs(year=year, mode=mode, mass=mass,
                     systematics=systematics)
-            scores_dict = sig.scores(self,
-                    region=self.region,
-                    cuts=signal_region)
+
+            scores_dict = sig.scores(
+                    clf,
+                    category=category,
+                    region=region,
+                    cuts=cuts)
 
             for sys_term, (scores, weights) in scores_dict.items():
                 assert len(scores) == len(weights)
@@ -47,32 +85,12 @@ def limits(data, backgrounds,
 
             sig_scores.append((sig, scores_dict))
 
-        if mass == 125:
-            sig_scores_125 = sig_scores
-
         log.info("minimum signal score: %f" % min_score_signal)
         log.info("maximum signal score: %f" % max_score_signal)
 
         # prevent bin threshold effects
         min_score_signal -= 0.00001
         max_score_signal += 0.00001
-
-        # add a bin above max score and below min score for extra beauty
-        score_width_signal = max_score_signal - min_score_signal
-        bin_width_signal = score_width_signal / bins
-
-        plot_clf(
-            background_scores=bkg_scores,
-            signal_scores=sig_scores,
-            category=self.category,
-            category_name=self.category_name,
-            plot_label='mass signal region',
-            signal_scale=signal_scale,
-            name='%d_ROI%s' % (mass, self.output_suffix),
-            bins=bins + 2,
-            min_score=min_score_signal - bin_width_signal,
-            max_score=max_score_signal + bin_width_signal,
-            systematics=SYSTEMATICS if systematics else None)
 
         if limitbinning == 'flat':
             log.info("variable-width bins")
@@ -108,20 +126,6 @@ def limits(data, backgrounds,
                     bkg_scores, min_score_signal, max_cut, 5)
             # one bin above max_cut
             flat_bins.append(max_score_signal)
-
-            plot_clf(
-                background_scores=bkg_scores,
-                signal_scores=sig_scores,
-                category=self.category,
-                category_name=self.category_name,
-                plot_label='mass signal region',
-                signal_scale=signal_scale,
-                name='%d_ROI_flat%s' % (mass, self.output_suffix),
-                bins=flat_bins,
-                plot_signal_significance=False,
-                signal_on_top=True,
-                systematics=SYSTEMATICS if systematics else None)
-
             hist_template = Hist(flat_bins)
 
         elif limitbinning == 'onebkg':
@@ -182,8 +186,7 @@ def limits(data, backgrounds,
             else:
                 log.info("adjusting last bin to contain >= one background")
                 log.info("original edge: %f  new edge: %f " %
-                        (default_bins[-2],
-                         bin_edge))
+                        (default_bins[-2], bin_edge))
 
                 # now define N-1 constant-width bins to the left of this edge
                 left_bins = np.linspace(
@@ -194,18 +197,6 @@ def limits(data, backgrounds,
                 one_bkg_bins = list(left_bins)
                 one_bkg_bins.append(max_score_signal)
 
-            plot_clf(
-                background_scores=bkg_scores,
-                signal_scores=sig_scores,
-                category=self.category,
-                category_name=self.category_name,
-                plot_label='mass signal region',
-                signal_scale=signal_scale,
-                name='%d_ROI_onebkg%s' % (mass, self.output_suffix),
-                bins=one_bkg_bins,
-                plot_signal_significance=True,
-                systematics=SYSTEMATICS if systematics else None)
-
             hist_template = Hist(one_bkg_bins)
 
         else:
@@ -213,11 +204,15 @@ def limits(data, backgrounds,
             hist_template = Hist(limitbins,
                     min_score_signal, max_score_signal)
 
-        f.cd()
-        if unblind:
+        if data is not None:
             data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
             data_hist.fill_array(data_scores)
             data_hist.Write()
+
         write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
         write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
 
+
+def limits(workspace, unblind=False):
+
+    for mass in Higgs.MASS_POINTS:
