@@ -204,6 +204,11 @@ def channels(clf, category, region, backgrounds,
             hist_template = Hist(limitbins,
                     min_score_signal, max_score_signal)
 
+        # create HistFactory samples
+        bkg_samples
+        for bkg, scores in bkg_scores:
+
+
         if data is not None:
             data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
             data_hist.fill_array(data_scores)
@@ -212,7 +217,10 @@ def channels(clf, category, region, backgrounds,
         write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
         write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
 
+        # create channel for this mass point
+
 
 def limits(workspace, unblind=False):
 
     for mass in Higgs.MASS_POINTS:
+        pass
