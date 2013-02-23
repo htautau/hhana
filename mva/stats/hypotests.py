@@ -1,15 +1,16 @@
 from . import log; log = log[__name__]
 from .asymptotics import AsymptoticsCLs
 from ..samples import Higgs
+from .histfactory import make_channel
 
 
 def channels(clf, category, region, backgrounds,
             data=None, cuts=None, hist_template=None,
-            bins=10, binning='constant'):
+            bins=10, binning='constant', mass_points=None):
     """
     Return a HistFactory Channel for each mass hypothesis
     """
-    channels = []
+    channels = dict()
     # TODO check for sample compatibility
     year = backgrounds[0].year
 
@@ -47,7 +48,8 @@ def channels(clf, category, region, backgrounds,
                 cuts=cuts)
 
     for mass in Higgs.MASS_POINTS:
-
+        if mass_points is not None and mass not in mass_points:
+            continue
         log.info('=' * 20)
         log.info("%d GeV mass hypothesis" % mass)
         # create separate signal. background and data histograms for each
@@ -205,22 +207,44 @@ def channels(clf, category, region, backgrounds,
                     min_score_signal, max_score_signal)
 
         # create HistFactory samples
-        bkg_samples
-        for bkg, scores in bkg_scores:
+        samples = []
+        for s, scores in bkg_scores + sig_scores:
+            sample = s.get_histfactory_sample(
+                    hist_template, clf,
+                    category, region,
+                    cuts=cuts, scores=scores)
+            samples.append(sample)
 
-
+        data_sample = None
         if data is not None:
-            data_hist = hist_template.Clone(name=data.name + '_%s' % mass)
-            data_hist.fill_array(data_scores)
-            data_hist.Write()
-
-        write_score_hists(f, mass, bkg_scores, hist_template, no_neg_bins=True)
-        write_score_hists(f, mass, sig_scores, hist_template, no_neg_bins=True)
+            data_sample = data.get_histfactory_sample(
+                    hist_template, clf,
+                    category, region,
+                    cuts=cuts, scores=data_scores)
 
         # create channel for this mass point
+        channel = make_channel("%s_%d" % (category, mass),
+                               samples, data=data_sample)
+        channels[mass] = channel
+    return channels
 
 
-def limits(workspace, unblind=False):
+def limits(channels, unblind=False, mass_points=None):
 
+    limit_hists = dict()
     for mass in Higgs.MASS_POINTS:
-        pass
+        if mass_points is not None and mass not in mass_points:
+            continue
+        if mass not in channels:
+            continue
+
+        channel = channels[mass]
+        measurement = histfactory.make_measurement(
+                'higgs', '', [channel], lumi_rel_error=0.039,
+                POI='SigXsecOverSM')
+        workspace = histfactory.make_model(measurement, channel=channel)
+        calculator = AsymptoticsCLs(workspace)
+        limit_hist = calculator.run('ModelConfig', 'obsData', 'asimovData')
+        limit_hists[mass] = limit_hist
+
+    return limit_hists
