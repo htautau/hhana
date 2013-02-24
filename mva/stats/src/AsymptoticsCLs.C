@@ -109,7 +109,7 @@ string defaultMinimizer    = "Minuit2";     // or "Minuit"
 int defaultPrintLevel      = -1;            // Minuit print level
 int defaultStrategy        = 1;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
 bool killBelowFatal        = 1;             // In case you want to suppress RooFit warnings further, set to 1
-bool doBlind               = 0;             // in case your analysis is blinded
+bool doBlind               = 1;             // in case your analysis is blinded
 bool conditionalExpected   = 1 && !doBlind; // Profiling mode for Asimov data: 0 = conditional MLEs, 1 = nominal MLEs
 bool doTilde               = 1;             // bound mu at zero if true and do the \tilde{q}_{mu} asymptotics
 bool doExp                 = 1;             // compute expected limit

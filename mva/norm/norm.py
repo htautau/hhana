@@ -23,59 +23,6 @@ class FitError(Exception):
     pass
 
 
-def draw_fit(
-        expr, bins,
-        xmin, xmax,
-        ymin, ymax,
-        model,
-        data,
-        category,
-        region,
-        name,
-        output_name,
-        output_formats=('png', 'eps', 'pdf'),
-        root=False,
-        systematics=None,
-        cuts=None,
-        after=False):
-
-    PLOTS_DIR = plots_dir(__file__)
-
-    model_hists = []
-    for sample in model:
-        hist2d = sample.draw2d(expr, category, region,
-                bins, xmin, xmax, bins, ymin, ymax, cuts, p1p3=False)
-        hist = hist2d.ravel()
-        if hasattr(hist2d, 'systematics'):
-            hist.systematics = {}
-            for term, _hist in hist2d.systematics.items():
-                hist.systematics[term] = _hist.ravel()
-        model_hists.append(hist)
-
-    data_hist2d = data.draw2d(expr, category, region,
-            bins, xmin, xmax, bins, ymin, ymax, cuts, p1p3=False)
-    data_hist = data_hist2d.ravel()
-    if hasattr(data_hist2d, 'systematics'):
-        data_hist.systematics = {}
-        for term, hist in data_hist2d.systematics.items():
-            data_hist.systematics[term] = hist.ravel()
-
-    if after:
-        output_name += '_after'
-
-    draw(model=model_hists,
-        data=data_hist,
-        name=name,
-        category_name=category,
-        category=category,
-        show_ratio=True,
-        systematics=systematics,
-        root=root,
-        dir=PLOTS_DIR,
-        output_formats=output_formats,
-        output_name=output_name)
-
-
 def qcd_ztautau_norm(
         year,
         ztautau,

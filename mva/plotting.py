@@ -136,6 +136,91 @@ def uncertainty_band(model, systematics):
     return total_model, high_band, low_band
 
 
+def draw_samples(
+        hist_template,
+        expr,
+        category,
+        region,
+        model,
+        data=None,
+        signal=None,
+        cuts=None,
+        ravel=True,
+        p1p3=True,
+        **kwargs):
+    """
+    extra kwargs are passed to draw()
+    """
+    hist_template = hist_template.Clone()
+    hist_template.Reset()
+    ndim = hist_template.GetDimension()
+
+    model_hists = []
+    for sample in model:
+        hist = hist_template.Clone()
+        sample.draw_into(hist, expr,
+                category, region, cuts,
+                p1p3=p1p3)
+        if ndim > 1 and ravel:
+            # ravel() the nominal and systematics histograms
+            sys_hists = getattr(hist, 'systematics', None)
+            hist = hist.ravel()
+            if sys_hists is not None:
+                hist.systematics = sys_hists
+            if hasattr(hist, 'systematics'):
+                sys_hists = {}
+                for term, _hist in hist.systematics.items():
+                    sys_hists[term] = _hist.ravel()
+                hist.systematics = sys_hists
+        model_hists.append(hist)
+
+    if signal is not None:
+        signal_hists = []
+        for sample in signal:
+            hist = hist_template.Clone()
+            sample.draw_into(hist, expr,
+                    category, region, cuts,
+                    p1p3=p1p3)
+            if ndim > 1 and ravel:
+                # ravel() the nominal and systematics histograms
+                sys_hists = getattr(hist, 'systematics', None)
+                hist = hist.ravel()
+                if sys_hists is not None:
+                    hist.systematics = sys_hists
+                if hasattr(hist, 'systematics'):
+                    sys_hists = {}
+                    for term, _hist in hist.systematics.items():
+                        sys_hists[term] = _hist.ravel()
+                    hist.systematics = sys_hists
+            signal_hists.append(hist)
+    else:
+        signal_hists = None
+
+    if data is not None:
+        data_hist = hist_template.Clone()
+        data.draw_into(data_hist, expr, category, region, cuts, p1p3=False)
+        if ndim > 1 and ravel:
+            data_hist = data_hist.ravel()
+
+        log.info("Data events: %d" % sum(data_hist))
+        log.info("Model events: %f" % sum(sum(model_hists)))
+        for hist in model_hists:
+            log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+        if signal is not None:
+            log.info("Signal events: %f" % sum(sum(signal_hists)))
+        log.info("Data / Model: %f" % (sum(data_hist) /
+            sum(sum(model_hists))))
+
+    else:
+        data_hist = None
+
+    draw(model=model_hists,
+         data=data_hist,
+         signal=signal_hists,
+         category=category,
+         **kwargs)
+
+
 def draw(name,
          category_name,
          output_name,
@@ -874,3 +959,32 @@ def plot_clf(background_scores,
              systematics=systematics,
              **kwargs)
     return bkg_hists, sig_hists, data_hist
+
+
+def draw_ROC(bkg_scores, sig_scores):
+    # draw ROC curves for all categories
+    hist_template = Hist(100, -1, 1)
+    plt.figure()
+    for category, (bkg_scores, sig_scores) in category_scores.items():
+        bkg_hist = hist_template.Clone()
+        sig_hist = hist_template.Clone()
+        hist_scores(bkg_hist, bkg_scores)
+        hist_scores(sig_hist, sig_scores)
+        bkg_array = np.array(bkg_hist)
+        sig_array = np.array(sig_hist)
+        # reverse cumsum
+        bkg_eff = bkg_array[::-1].cumsum()[::-1]
+        sig_eff = sig_array[::-1].cumsum()[::-1]
+        bkg_eff /= bkg_array.sum()
+        sig_eff /= sig_array.sum()
+        plt.plot(sig_eff, 1. - bkg_eff,
+                 linestyle='-',
+                 linewidth=2.,
+                 label=category)
+    plt.legend(loc='lower left')
+    plt.ylabel('Background Rejection')
+    plt.xlabel('Signal Efficiency')
+    plt.ylim(0, 1)
+    plt.xlim(0, 1)
+    plt.grid()
+    plt.savefig('ROC.png', bbox_inches='tight')

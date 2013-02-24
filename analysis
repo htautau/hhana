@@ -99,6 +99,12 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
     qcd.scale = 1.
     ztautau.scale = 1.
 
+    backgrounds = [
+        qcd,
+        others,
+        ztautau,
+    ]
+
     # determine normalization of QCD and Ztautau
     # in each category separately
     qcd_ztautau_norm(
@@ -143,66 +149,26 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
             bins = var_info['bins']
             min, max = var_info['range']
+            hist_template = Hist(bins, min, max)
 
             if 'scale' in var_info:
                 expr = "%s * %f" % (expr, var_info['scale'])
 
-            other_hist = others.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
-            qcd_hist = qcd.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
-            ztautau_hist = ztautau.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
-            bkg_hists = [qcd_hist, other_hist, ztautau_hist]
-            
-            signal_hist = higgs_125.draw(
-                    expr,
-                    category, target_region,
-                    bins, min, max,
-                    cuts=cuts)
-
-            if not var_info.get('blind', False):
-
-                data_hist = data.draw(
-                        expr,
-                        category, target_region,
-                        bins, min, max,
-                        cuts=cuts)
-                
-                log.info("Data events: %d" % sum(data_hist))
-                log.info("Model events: %f" % sum(sum(bkg_hists)))
-                for hist in bkg_hists:
-                    log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
-                log.info("Signal events: %f" % sum(signal_hist))
-                log.info("Data / Model: %f" % (sum(data_hist) /
-                    sum(sum(bkg_hists))))
-            else:
-                data_hist = None
-            
             output_name = var_info['filename'] + output_suffix
             if cuts:
                 output_name += '_' + cuts.safe()
 
-            fig = draw(
-                    data=data_hist,
-                    model=bkg_hists,
-                    signal=signal_hist,
+            fig = draw_samples(
+                    hist_template=hist_template,
+                    expr=expr,
+                    data=data if not var_info.get('blind', False) else None,
+                    model=backgrounds,
+                    signal=[higgs_125],
                     name=var_info['root'] if args.root else var_info['title'],
                     output_name=output_name,
                     category_name=cat_info['name'],
                     category=category,
+                    region=target_region,
                     units=var_info.get('units', None),
                     range=var_info['range'],
                     show_ratio=True,
@@ -214,13 +180,8 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                     output_formats=args.output_formats)
             figures[category][expr] = fig
 
-    if 'train' in args.actions:
 
-        backgrounds = [
-            qcd,
-            others,
-            ztautau,
-        ]
+    if 'train' in args.actions:
         
         # all modes, all masses
         signals_train = [
@@ -255,19 +216,15 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
         
-        """
-        bkg_scores, sig_scores = clf.evaluate(
+        clf.evaluate(
                 data,
                 mass_regions,
                 unblind=args.unblind,
                 systematics=args.systematics,
                 bins=args.bins,
-                limitbins=cat_info['limitbins'],
-                limitbinning=cat_info['limitbinning'],
                 quick=True)
 
-        category_scores[category] = (bkg_scores, sig_scores)
-        """
+        #category_scores[category] = (bkg_scores, sig_scores)
 
         # run hypothesis tests
         channels = hypotests.channels(
@@ -283,40 +240,11 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 channels, mass_points=[125])
 
 
-if 'train' in args.actions and set(args.categories) == set(CATEGORIES.keys()):
-    # draw ROC curves for all categories
-    hist_template = Hist(100, -1, 1)
-    from matplotlib import pyplot as plt
-    plt.figure()
-    for category, (bkg_scores, sig_scores) in category_scores.items():
-        bkg_hist = hist_template.Clone()
-        sig_hist = hist_template.Clone()
-        hist_scores(bkg_hist, bkg_scores)
-        hist_scores(sig_hist, sig_scores)
-        bkg_array = np.array(bkg_hist)
-        sig_array = np.array(sig_hist)
-        # reverse cumsum
-        bkg_eff = bkg_array[::-1].cumsum()[::-1] 
-        sig_eff = sig_array[::-1].cumsum()[::-1]
-        bkg_eff /= bkg_array.sum()
-        sig_eff /= sig_array.sum()
-        plt.plot(sig_eff, 1. - bkg_eff,
-                 linestyle='-',
-                 linewidth=2.,
-                 label=category)
-    plt.legend(loc='lower left')
-    plt.ylabel('Background Rejection')
-    plt.xlabel('Signal Efficiency')
-    plt.ylim(0, 1)
-    plt.xlim(0, 1)
-    plt.grid()
-    plt.savefig('ROC.png', bbox_inches='tight')
-    
-
 # save all variable plots in one large multipage pdf
 if figures and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
     # only create multipage pdf of all plots if we created all plots
     for category, exprs in figures.items():
         figs = sorted(exprs.items(), key=lambda x: x[0])
-        make_multipage_pdf([fig[1] for fig in figs], name=category,
+        make_multipage_pdf([fig[1] for fig in figs],
+                name=category,
                 dir=PLOTS_DIR)
