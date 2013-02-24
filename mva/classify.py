@@ -3,9 +3,7 @@ from operator import itemgetter
 
 import numpy as np
 
-from matplotlib import cm
 from matplotlib import pyplot as plt
-from matplotlib.ticker import MaxNLocator, FuncFormatter
 
 # scikit-learn imports
 import sklearn
@@ -26,7 +24,7 @@ from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from .systematics import SYSTEMATICS
-from .plotting import draw, plot_clf
+from .plotting import draw, plot_clf, plot_grid_scores
 from . import variables
 from . import LIMITS_DIR
 
@@ -350,8 +348,9 @@ class ClassificationProblem(object):
 
                     if quick:
                         # quick search for testing
-                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 20, 1)
-                        MAX_N_ESTIMATORS = 500
+                        min_leaf_low = max(10, int(min_leaf_high / 20.))
+                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 5, 1)
+                        MAX_N_ESTIMATORS = 300
                         MIN_N_ESTIMATORS = 10
 
                     else:
@@ -371,9 +370,8 @@ class ClassificationProblem(object):
 
                     clf = AdaBoostClassifier(
                             DecisionTreeClassifier(),
-                            compute_importances=True,
                             learning_rate=.5,
-                            real=False)
+                            algorithm='SAMME.R')
 
                     grid_clf = BoostGridSearchCV(
                             clf, grid_params,
@@ -978,7 +976,7 @@ def histogram_scores(hist_template, scores):
             if sys_term == 'NOMINAL':
                 continue
             sys_hist = hist_template.Clone()
-            sys_hist.fill_array(sys_scores, sys_weight)
+            sys_hist.fill_array(sys_scores, sys_weights)
             sys_hists[sys_term] = sys_hist
         hist.systematics = sys_hists
     else:

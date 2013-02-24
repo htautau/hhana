@@ -10,7 +10,8 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 import matplotlib.font_manager as fm
 from matplotlib import rc
-from matplotlib.ticker import AutoMinorLocator, NullFormatter
+from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
+                               MaxNLocator, FuncFormatter)
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 

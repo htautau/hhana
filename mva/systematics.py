@@ -76,10 +76,10 @@ EMBEDDING_SYSTEMATICS = {
 }
 
 
-def iter_systematics(cls, include_nominal=False):
+def iter_systematics(include_nominal=False):
 
     if include_nominal:
         yield 'NOMINAL'
-    for variations in SYSTEMATICS:
+    for term, variations in SYSTEMATICS.items():
         for var in variations:
             yield var

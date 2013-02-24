@@ -226,7 +226,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         signals_train = [
             Higgs(
                 year=year,
-                #mass=125,
+                mass=125,
                 systematics=args.systematics),
         ]
 
@@ -255,6 +255,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
         
+        """
         bkg_scores, sig_scores = clf.evaluate(
                 data,
                 mass_regions,
@@ -266,15 +267,20 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 quick=True)
 
         category_scores[category] = (bkg_scores, sig_scores)
+        """
 
         # run hypothesis tests
-        hypotests.limits(data, backgrounds,
-                category, region=target_region,
-                cuts=mass_regions.signal_region,
-                unblind=args.unblind,
-                systematics=args.systematics,
+        channels = hypotests.channels(
+                clf, category, target_region,
+                backgrounds, data=data, 
+                cuts=signal_region,
                 bins=cat_info['limitbins'],
-                binning=cat_info['limitbinning'])
+                binning=cat_info['limitbinning'],
+                mass_points=[125],
+                systematics=args.systematics)
+
+        limit_hists = hypotests.limits(
+                channels, mass_points=[125])
 
 
 if 'train' in args.actions and set(args.categories) == set(CATEGORIES.keys()):

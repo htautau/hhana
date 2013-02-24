@@ -1,12 +1,16 @@
 from . import log; log = log[__name__]
+import numpy as np
+from rootpy.plotting import Hist
 from .asymptotics import AsymptoticsCLs
 from ..samples import Higgs
-from .histfactory import make_channel
+from ..plotting import significance
+from . import histfactory
 
 
 def channels(clf, category, region, backgrounds,
             data=None, cuts=None, hist_template=None,
-            bins=10, binning='constant', mass_points=None):
+            bins=10, binning='constant', mass_points=None,
+            systematics=True):
     """
     Return a HistFactory Channel for each mass hypothesis
     """
@@ -23,7 +27,7 @@ def channels(clf, category, region, backgrounds,
     for bkg in backgrounds:
         scores_dict = bkg.scores(
                 clf,
-                category=category
+                category=category,
                 region=region,
                 cuts=cuts)
 
@@ -94,7 +98,7 @@ def channels(clf, category, region, backgrounds,
         min_score_signal -= 0.00001
         max_score_signal += 0.00001
 
-        if limitbinning == 'flat':
+        if binning == 'flat':
             log.info("variable-width bins")
             # determine location that maximizes signal significance
             bkg_hist = Hist(100, min_score_signal, max_score_signal)
@@ -130,7 +134,7 @@ def channels(clf, category, region, backgrounds,
             flat_bins.append(max_score_signal)
             hist_template = Hist(flat_bins)
 
-        elif limitbinning == 'onebkg':
+        elif binning == 'onebkg':
             # Define last bin such that it contains at least one background.
             # First histogram background with a very fine binning,
             # then sum from the right to the left up to a total of one
@@ -179,7 +183,7 @@ def channels(clf, category, region, backgrounds,
             default_bins = list(np.linspace(
                     min_score_signal,
                     max_score_signal,
-                    limitbins + 1))
+                    bins + 1))
 
             if bin_edge > default_bins[-2]:
                 log.info("constant-width bins are OK")
@@ -194,7 +198,7 @@ def channels(clf, category, region, backgrounds,
                 left_bins = np.linspace(
                         min_score_signal,
                         bin_edge,
-                        limitbins)
+                        bins)
 
                 one_bkg_bins = list(left_bins)
                 one_bkg_bins.append(max_score_signal)
@@ -203,7 +207,7 @@ def channels(clf, category, region, backgrounds,
 
         else:
             log.info("constant-width bins")
-            hist_template = Hist(limitbins,
+            hist_template = Hist(bins,
                     min_score_signal, max_score_signal)
 
         # create HistFactory samples
@@ -223,7 +227,7 @@ def channels(clf, category, region, backgrounds,
                     cuts=cuts, scores=data_scores)
 
         # create channel for this mass point
-        channel = make_channel("%s_%d" % (category, mass),
+        channel = histfactory.make_channel("%s_%d" % (category, mass),
                                samples, data=data_sample)
         channels[mass] = channel
     return channels

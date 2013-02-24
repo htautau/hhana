@@ -128,7 +128,10 @@ class Sample(object):
                                scores=None):
 
         log.info("creating histfactory sample for %s" % self.name)
-        sample = ROOT.RooStats.HistFactory.Sample(self.name)
+        if isinstance(self, Data):
+            sample = ROOT.RooStats.HistFactory.Data()
+        else:
+            sample = ROOT.RooStats.HistFactory.Sample(self.name)
 
         ndim = hist_template.GetDimension()
         do_systematics = not isinstance(self, Data) and self.systematics
@@ -149,7 +152,7 @@ class Sample(object):
         else:
             # histogram classifier output
             if scores is not None:
-                scores = self.score(clf, category, region, cuts)
+                scores = self.scores(expr_or_clf, category, region, cuts)
             hist = histogram_scores(hist_template, scores)
 
         # set the nominal histogram
@@ -1114,7 +1117,7 @@ class QCD(Sample, Background):
                     cuts=cuts,
                     scores_dict=scores_dict)
 
-        for sys_term in scores_dict.keys():
+        for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]
             scale = self.scale
             if sys_term == ('QCDFIT_UP',):
