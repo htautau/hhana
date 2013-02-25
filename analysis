@@ -193,9 +193,9 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
         # define training and test samples
         branches = cat_info['features']
-        spectators = [
-            'mass_mmc_tau1_tau2',
-        ]
+        #spectators = [
+        #    'mass_mmc_tau1_tau2',
+        #]
         
         clf = ClassificationProblem(
                 signals=signals_train,
@@ -206,7 +206,8 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 region=target_region,
                 cuts=None,
                 output_suffix=output_suffix,
-                spectators=spectators)
+                #spectators=spectators
+                )
         
         clf.correlations()
 

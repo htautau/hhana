@@ -75,6 +75,7 @@ CATEGORIES = {
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
+            'mass_mmc_tau1_tau2',
             # !!! mass ditau + leading jet?
             'dEta_jets',
             #'dEta_jets_boosted', #
@@ -115,6 +116,7 @@ CATEGORIES = {
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
+            'mass_mmc_tau1_tau2',
             # !!! mass ditau + leading jet?
             'sphericity',
             #'sphericity_boosted',
@@ -145,6 +147,7 @@ CATEGORIES = {
         'qcd_shape_region': 'SS',
         'target_region': 'OS',
         'features': [
+            'mass_mmc_tau1_tau2',
             #'cos_theta_tau1_tau2',
             'dR_tau1_tau2',
             #'tau1_BDTJetScore',

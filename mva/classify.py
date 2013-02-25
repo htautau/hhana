@@ -199,7 +199,7 @@ class ClassificationProblem(object):
               max_sig=None,
               max_bkg=None,
               norm_sig_to_bkg=True,
-              same_size_sig_bkg=True, # NOTE: this crops signal a lot!!
+              same_size_sig_bkg=False, # NOTE: if True this crops signal a lot!!
               remove_negative_weights=False,
               grid_search=True,
               quick=False,
@@ -348,9 +348,9 @@ class ClassificationProblem(object):
 
                     if quick:
                         # quick search for testing
-                        min_leaf_low = max(10, int(min_leaf_high / 20.))
-                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 5, 1)
-                        MAX_N_ESTIMATORS = 300
+                        min_leaf_low = max(10, int(min_leaf_high / 30.))
+                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
+                        MAX_N_ESTIMATORS = 200
                         MIN_N_ESTIMATORS = 10
 
                     else:
