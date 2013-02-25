@@ -357,7 +357,7 @@ class AsymptoticsCLs
         cout << "Observed: " << obs_limit << endl;
         cout << endl;
 
-        TH1D* h_lim = new TH1D("limit","limit",7,0,7);
+        TH1D* h_lim = new TH1D(w->GetName(),"limit",7,0,7);
         h_lim->SetBinContent(1, obs_limit);
         h_lim->SetBinContent(2, med_limit);
         h_lim->SetBinContent(3, mu_up_p2);

@@ -180,7 +180,6 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                     output_formats=args.output_formats)
             figures[category][expr] = fig
 
-
     if 'train' in args.actions:
         
         # all modes, all masses
@@ -191,41 +190,33 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 systematics=args.systematics),
         ]
 
-        # define training and test samples
-        branches = cat_info['features']
-        #spectators = [
-        #    'mass_mmc_tau1_tau2',
-        #]
-        
         clf = ClassificationProblem(
-                signals=signals_train,
-                backgrounds=backgrounds,
-                fields=branches,
+                fields=cat_info['features'],
                 category=category,
                 category_name=cat_info['name'],
                 region=target_region,
-                cuts=None,
-                output_suffix=output_suffix,
-                #spectators=spectators
-                )
+                output_suffix=output_suffix)
         
-        clf.correlations()
-
         clf.train(
+                signals=signals_train,
+                backgrounds=backgrounds,
+                cuts=None,
                 grid_search=args.grid_search,
                 quick=args.quick_train,
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
         
         clf.evaluate(
+                backgrounds,
                 data,
                 mass_regions,
                 unblind=args.unblind,
                 systematics=args.systematics,
-                bins=args.bins,
-                quick=True)
+                bins=args.bins)
 
         #category_scores[category] = (bkg_scores, sig_scores)
+
+    if 'limits' in args.actions:
 
         # run hypothesis tests
         channels = hypotests.channels(

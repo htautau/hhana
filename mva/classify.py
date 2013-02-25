@@ -95,8 +95,6 @@ def rec_to_ndarray(rec, fields):
 class ClassificationProblem(object):
 
     def __init__(self,
-                 signals,
-                 backgrounds,
                  fields,
                  category,
                  region,
@@ -106,12 +104,9 @@ class ClassificationProblem(object):
                  category_name=None,
                  output_suffix=""):
 
-        self.signals = signals
-        self.backgrounds = backgrounds
         self.fields = fields
         self.category = category
         self.region = region
-        self.cuts = cuts
         self.spectators = spectators
         self.standardize = standardize
         self.output_suffix = output_suffix
@@ -130,72 +125,14 @@ class ClassificationProblem(object):
 
         assert 'weight' not in fields
 
-        self.signal_recs = []
-        self.signal_arrs = []
-        self.signal_weight_arrs = []
-
-        for signal in signals:
-            left, right = signal.split(
-                category=category,
-                region=region,
-                fields=self.all_fields,
-                cuts=cuts)
-            self.signal_weight_arrs.append(
-                    (left['weight'], right['weight']))
-            self.signal_arrs.append(
-                    (rec_to_ndarray(left, fields),
-                     rec_to_ndarray(right, fields)))
-            self.signal_recs.append((left, right))
-
-        self.background_recs = []
-        self.background_arrs = []
-        self.background_weight_arrs = []
-
-        for background in backgrounds:
-            left, right = background.split(
-                category=category,
-                region=region,
-                fields=self.all_fields,
-                cuts=cuts)
-            self.background_weight_arrs.append(
-                    (left['weight'], right['weight']))
-            self.background_arrs.append(
-                    (rec_to_ndarray(left, fields),
-                     rec_to_ndarray(right, fields)))
-            self.background_recs.append((left, right))
-
         # classifiers for the left and right partitions
         # each trained on the opposite partition
         self.clfs = None
 
-    def correlations(self,
-                     with_spectators=True,
-                     with_clf_output=False,
-                     partition=None):
-
-        if with_spectators:
-            fields = self.all_fields
-        else:
-            fields = self.fields
-
-        signal = np.hstack(map(np.hstack, self.signal_recs))
-        signal_weight = np.concatenate(map(np.concatenate,
-            self.signal_weight_arrs))
-        background = np.hstack(map(np.hstack, self.background_recs))
-        background_weight = np.concatenate(map(np.concatenate,
-            self.background_weight_arrs))
-
-        # draw a linear correlation matrix
-        correlations(
-            signal=rec_to_ndarray(signal, fields),
-            signal_weight=signal_weight,
-            background=rec_to_ndarray(background, fields),
-            background_weight=background_weight,
-            fields=fields,
-            category=self.category,
-            output_suffix=self.output_suffix)
-
     def train(self,
+              signals,
+              backgrounds,
+              cuts=None,
               max_sig=None,
               max_bkg=None,
               norm_sig_to_bkg=True,
@@ -210,23 +147,101 @@ class ClassificationProblem(object):
         Determine best BDTs on left and right partitions. Each BDT will then be
         used on the other partition.
         """
+        if use_cache:
+            # attempt to load existing classifiers
+            clfs = [None, None]
+            for partition_idx in range(2):
+
+                clf_filename = os.path.join(CACHE_DIR, 'classify',
+                        'clf_%s%s_%d.pickle' % (
+                        self.category, self.output_suffix, partition_idx))
+
+                if os.path.isfile(clf_filename):
+                    # use a previously trained classifier
+                    log.info("found existing classifier in %s" % clf_filename)
+                    with open(clf_filename, 'r') as f:
+                        clf = pickle.load(f)
+                    log.info(clf)
+                    clfs[(partition_idx + 1) % 2] = clf
+                else:
+                    use_cache = False
+                    break
+            if use_cache:
+                self.clfs = clfs
+                log.info("using previously trained classifiers")
+                return
+            else:
+                log.warning(
+                    "unable to load previously trained "
+                    "classifiers; will train new ones")
+
+        signal_recs = []
+        signal_arrs = []
+        signal_weight_arrs = []
+
+        for signal in signals:
+            left, right = signal.split(
+                category=self.category,
+                region=self.region,
+                fields=self.all_fields,
+                cuts=cuts)
+            signal_weight_arrs.append(
+               (left['weight'], right['weight']))
+            signal_arrs.append(
+               (rec_to_ndarray(left, fields),
+                rec_to_ndarray(right, fields)))
+            signal_recs.append((left, right))
+
+        background_recs = []
+        background_arrs = []
+        background_weight_arrs = []
+
+        for background in backgrounds:
+            left, right = background.split(
+                category=self.category,
+                region=self.region,
+                fields=self.all_fields,
+                cuts=cuts)
+            background_weight_arrs.append(
+               (left['weight'], right['weight']))
+            background_arrs.append(
+               (rec_to_ndarray(left, fields),
+                rec_to_ndarray(right, fields)))
+            background_recs.append((left, right))
+
+        # draw correlation plots
+        corr_signal = np.hstack(map(np.hstack, signal_recs))
+        corr_signal_weight = np.concatenate(map(np.concatenate,
+            self.signal_weight_arrs))
+        corr_background = np.hstack(map(np.hstack, background_recs))
+        corr_background_weight = np.concatenate(map(np.concatenate,
+            self.background_weight_arrs))
+
+        # draw a linear correlation matrix
+        correlations(
+            signal=rec_to_ndarray(corr_signal, self.all_fields),
+            signal_weight=corr_signal_weight,
+            background=rec_to_ndarray(background, self.all_fields),
+            background_weight=background_weight,
+            fields=self.all_fields,
+            category=self.category,
+            output_suffix=self.output_suffix)
+
         self.clfs = [None, None]
 
         for partition_idx in range(2):
 
-            clf_filename = os.path.join(CACHE_DIR, 'classify',
-                    'clf_%s%s_%d.pickle' % (
-                    self.category, self.output_suffix, partition_idx))
 
+            # train a classifier
             # merge arrays and create training samples
             signal_train = np.concatenate(map(itemgetter(partition_idx),
-                self.signal_arrs))
+                signal_arrs))
             signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                self.signal_weight_arrs))
+                signal_weight_arrs))
             background_train = np.concatenate(map(itemgetter(partition_idx),
-                self.background_arrs))
+                background_arrs))
             background_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                self.background_weight_arrs))
+                background_weight_arrs))
 
             if remove_negative_weights:
                 # remove samples from the training sample with a negative weight
@@ -273,179 +288,174 @@ class ClassificationProblem(object):
                 signal_train.shape[0] +
                 background_train.shape[0]))
 
-            # train a classifier
-            if use_cache and os.path.isfile(clf_filename):
-                # use a previously trained classifier
-                log.info("using the existing classifier in %s" % clf_filename)
-                with open(clf_filename, 'r') as f:
-                    clf = pickle.load(f)
-                log.info(clf)
+            sample_train = np.concatenate((background_train, signal_train))
+            sample_weight_train = np.concatenate(
+                (background_weight_train, signal_weight_train))
+            labels_train = np.concatenate(
+                (np.zeros(len(background_train)), np.ones(len(signal_train))))
 
-            else:
-                sample_train = np.concatenate((background_train, signal_train))
-                sample_weight_train = np.concatenate(
-                    (background_weight_train, signal_weight_train))
-                labels_train = np.concatenate(
-                    (np.zeros(len(background_train)), np.ones(len(signal_train))))
+            if self.standardize: # TODO use same std for classification
+                sample_train = std(sample_train)
 
-                if self.standardize: # TODO use same std for classification
-                    sample_train = std(sample_train)
+            # random permutation of training sample
+            perm = np.random.permutation(len(labels_train))
+            sample_train = sample_train[perm]
+            sample_weight_train = sample_weight_train[perm]
+            labels_train = labels_train[perm]
 
-                # random permutation of training sample
-                perm = np.random.permutation(len(labels_train))
-                sample_train = sample_train[perm]
-                sample_weight_train = sample_weight_train[perm]
-                labels_train = labels_train[perm]
-
-                log.info("training a new classifier...")
-                log.info("plotting input variables as they are given to the BDT")
-                # draw plots of the input variables
-                for i, branch in enumerate(self.fields):
-                    log.info("plotting %s ..." % branch)
-                    branch_data = sample_train[:,i]
-                    if 'scale' in variables.VARIABLES[branch]:
-                        branch_data *= variables.VARIABLES[branch]['scale']
-                    _min, _max = branch_data.min(), branch_data.max()
-                    plt.figure()
-                    plt.hist(branch_data[labels_train==0],
-                            bins=20, range=(_min, _max),
-                            weights=sample_weight_train[labels_train==0],
-                            label='Background', histtype='stepfilled',
-                            alpha=.5)
-                    plt.hist(branch_data[labels_train==1],
-                            bins=20, range=(_min, _max),
-                            weights=sample_weight_train[labels_train==1],
-                            label='Signal', histtype='stepfilled', alpha=.5)
-                    label = variables.VARIABLES[branch]['title']
-                    if 'units' in variables.VARIABLES[branch]:
-                        label += ' [%s]' % variables.VARIABLES[branch]['units']
-                    plt.xlabel(label)
-                    plt.legend()
-                    plt.savefig('train_var_%s_%s%s.png' % (
-                        self.category, branch, self.output_suffix))
-
-                log.info("plotting sample weights ...")
-                _min, _max = sample_weight_train.min(), sample_weight_train.max()
+            log.info("training a new classifier...")
+            log.info("plotting input variables as they are given to the BDT")
+            # draw plots of the input variables
+            for i, branch in enumerate(self.fields):
+                log.info("plotting %s ..." % branch)
+                branch_data = sample_train[:,i]
+                if 'scale' in variables.VARIABLES[branch]:
+                    branch_data *= variables.VARIABLES[branch]['scale']
+                _min, _max = branch_data.min(), branch_data.max()
                 plt.figure()
-                plt.hist(sample_weight_train[labels_train==0],
+                plt.hist(branch_data[labels_train==0],
                         bins=20, range=(_min, _max),
+                        weights=sample_weight_train[labels_train==0],
                         label='Background', histtype='stepfilled',
                         alpha=.5)
-                plt.hist(sample_weight_train[labels_train==1],
+                plt.hist(branch_data[labels_train==1],
                         bins=20, range=(_min, _max),
+                        weights=sample_weight_train[labels_train==1],
                         label='Signal', histtype='stepfilled', alpha=.5)
-                plt.xlabel('sample weight')
+                label = variables.VARIABLES[branch]['title']
+                if 'units' in variables.VARIABLES[branch]:
+                    label += ' [%s]' % variables.VARIABLES[branch]['units']
+                plt.xlabel(label)
                 plt.legend()
-                plt.savefig('train_sample_weight_%s%s.png' % (
-                    self.category, self.output_suffix))
+                plt.savefig('train_var_%s_%s%s.png' % (
+                    self.category, branch, self.output_suffix))
 
-                if partition_idx == 0:
+            log.info("plotting sample weights ...")
+            _min, _max = sample_weight_train.min(), sample_weight_train.max()
+            plt.figure()
+            plt.hist(sample_weight_train[labels_train==0],
+                    bins=20, range=(_min, _max),
+                    label='Background', histtype='stepfilled',
+                    alpha=.5)
+            plt.hist(sample_weight_train[labels_train==1],
+                    bins=20, range=(_min, _max),
+                    label='Signal', histtype='stepfilled', alpha=.5)
+            plt.xlabel('sample weight')
+            plt.legend()
+            plt.savefig('train_sample_weight_%s%s.png' % (
+                self.category, self.output_suffix))
 
-                    # grid search params
-                    min_leaf_high = int((sample_train.shape[0] / 2.) *
-                            (cv_nfold - 1.) / cv_nfold)
-                    min_leaf_low = max(10, int(min_leaf_high / 100.))
+            if partition_idx == 0:
 
-                    if quick:
-                        # quick search for testing
-                        min_leaf_low = max(10, int(min_leaf_high / 30.))
-                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
-                        MAX_N_ESTIMATORS = 200
-                        MIN_N_ESTIMATORS = 10
+                # grid search params
+                min_leaf_high = int((sample_train.shape[0] / 2.) *
+                        (cv_nfold - 1.) / cv_nfold)
+                min_leaf_low = max(10, int(min_leaf_high / 100.))
 
-                    else:
-                        # larger search
-                        min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
-                        MAX_N_ESTIMATORS = 1000
-                        MIN_N_ESTIMATORS = 10
+                if quick:
+                    # quick search for testing
+                    min_leaf_low = max(10, int(min_leaf_high / 30.))
+                    min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
+                    MAX_N_ESTIMATORS = 200
+                    MIN_N_ESTIMATORS = 10
 
-                    MIN_SAMPLES_LEAF = range(
-                            min_leaf_low, min_leaf_high, min_leaf_step)
+                else:
+                    # larger search
+                    min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
+                    MAX_N_ESTIMATORS = 1000
+                    MIN_N_ESTIMATORS = 10
 
-                    grid_params = {
-                        'base_estimator__min_samples_leaf': MIN_SAMPLES_LEAF,
-                    }
+                MIN_SAMPLES_LEAF = range(
+                        min_leaf_low, min_leaf_high, min_leaf_step)
 
-                    #AdaBoostClassifier.staged_score = staged_score
+                grid_params = {
+                    'base_estimator__min_samples_leaf': MIN_SAMPLES_LEAF,
+                }
 
-                    clf = AdaBoostClassifier(
-                            DecisionTreeClassifier(),
-                            learning_rate=.5,
-                            algorithm='SAMME.R')
+                #AdaBoostClassifier.staged_score = staged_score
 
-                    grid_clf = BoostGridSearchCV(
-                            clf, grid_params,
-                            max_n_estimators=MAX_N_ESTIMATORS,
-                            min_n_estimators=MIN_N_ESTIMATORS,
-                            #n_estimators_step=1,
-                            # can use default ClassifierMixin score
-                            #score_func=precision_score,
-                            cv = StratifiedKFold(labels_train, cv_nfold),
-                            n_jobs=20)
+                clf = AdaBoostClassifier(
+                        DecisionTreeClassifier(),
+                        learning_rate=.5,
+                        algorithm='SAMME.R')
 
-                    log.info("")
-                    log.info("using a %d-fold cross validation" % cv_nfold)
-                    log.info("performing a grid search over these parameter values:")
-                    for param, values in grid_params.items():
-                        log.info('{0} {1}'.format(param.split('__')[-1], values))
-                        log.info('--')
-                    log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
-                    log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
-                    log.info("")
-                    log.info("training new classifiers ...")
+                grid_clf = BoostGridSearchCV(
+                        clf, grid_params,
+                        max_n_estimators=MAX_N_ESTIMATORS,
+                        min_n_estimators=MIN_N_ESTIMATORS,
+                        #n_estimators_step=1,
+                        # can use default ClassifierMixin score
+                        #score_func=precision_score,
+                        cv = StratifiedKFold(labels_train, cv_nfold),
+                        n_jobs=20)
 
-                    grid_clf.fit(
-                            sample_train, labels_train,
-                            sample_weight=sample_weight_train)
+                log.info("")
+                log.info("using a %d-fold cross validation" % cv_nfold)
+                log.info("performing a grid search over these parameter values:")
+                for param, values in grid_params.items():
+                    log.info('{0} {1}'.format(param.split('__')[-1], values))
+                    log.info('--')
+                log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
+                log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
+                log.info("")
+                log.info("training new classifiers ...")
 
-                    clf = grid_clf.best_estimator_
-                    grid_scores = grid_clf.grid_scores_
+                grid_clf.fit(
+                        sample_train, labels_train,
+                        sample_weight=sample_weight_train)
 
-                    log.info("Best score: %f" % grid_clf.best_score_)
-                    log.info("Best Parameters:")
-                    log.info(grid_clf.best_params_)
+                clf = grid_clf.best_estimator_
+                grid_scores = grid_clf.grid_scores_
 
-                    # plot a grid of the scores
-                    plot_grid_scores(
-                        grid_scores,
-                        best_point={
-                            'base_estimator__min_samples_leaf':
-                            clf.base_estimator.min_samples_leaf,
-                            'n_estimators':
-                            clf.n_estimators},
-                        params={
-                            'base_estimator__min_samples_leaf':
-                            'min leaf',
-                            'n_estimators':
-                            'trees'},
-                        name=self.category + self.output_suffix + "_%d" % partition_idx)
+                log.info("Best score: %f" % grid_clf.best_score_)
+                log.info("Best Parameters:")
+                log.info(grid_clf.best_params_)
 
-                    # scale up the min-leaf and retrain on the whole set
-                    min_samples_leaf = clf.base_estimator.min_samples_leaf
+                # plot a grid of the scores
+                plot_grid_scores(
+                    grid_scores,
+                    best_point={
+                        'base_estimator__min_samples_leaf':
+                        clf.base_estimator.min_samples_leaf,
+                        'n_estimators':
+                        clf.n_estimators},
+                    params={
+                        'base_estimator__min_samples_leaf':
+                        'min leaf',
+                        'n_estimators':
+                        'trees'},
+                    name=self.category + self.output_suffix + "_%d" % partition_idx)
 
-                    clf = sklearn.clone(clf)
-                    clf.base_estimator.min_samples_leaf = int(
-                            min_samples_leaf *
-                                cv_nfold / float(cv_nfold - 1))
+                # scale up the min-leaf and retrain on the whole set
+                min_samples_leaf = clf.base_estimator.min_samples_leaf
 
-                    clf.fit(sample_train, labels_train,
-                            sample_weight=sample_weight_train)
-                    print
-                    print "After scaling up min_leaf"
-                    print clf
+                clf = sklearn.clone(clf)
+                clf.base_estimator.min_samples_leaf = int(
+                        min_samples_leaf *
+                            cv_nfold / float(cv_nfold - 1))
 
-                else: # training on the other partition
-                    log.info("training a new classifier ...")
+                clf.fit(sample_train, labels_train,
+                        sample_weight=sample_weight_train)
+                print
+                print "After scaling up min_leaf"
+                print clf
 
-                    # use same params as in first partition
-                    clf = sklearn.clone(clf)
-                    print clf
+            else: # training on the other partition
+                log.info("training a new classifier ...")
 
-                    clf.fit(sample_train, labels_train,
-                            sample_weight=sample_weight_train)
+                # use same params as in first partition
+                clf = sklearn.clone(clf)
+                print clf
 
-                with open(clf_filename, 'w') as f:
-                    pickle.dump(clf, f)
+                clf.fit(sample_train, labels_train,
+                        sample_weight=sample_weight_train)
+
+            clf_filename = os.path.join(CACHE_DIR, 'classify',
+                    'clf_%s%s_%d.pickle' % (
+                    self.category, self.output_suffix, partition_idx))
+
+            with open(clf_filename, 'w') as f:
+                pickle.dump(clf, f)
 
             if hasattr(clf, 'feature_importances_'):
                 importances = clf.feature_importances_
@@ -493,6 +503,7 @@ class ClassificationProblem(object):
                np.concatenate((left_weight, right_weight))
 
     def evaluate(self,
+                 backgrounds,
                  data,
                  mass_regions,
                  systematics=False,
@@ -507,149 +518,153 @@ class ClassificationProblem(object):
         signal_region = mass_regions.signal_region
         train_region = mass_regions.train_region
 
-        year = self.signals[0].year
+        year = backgrounds[0].year
 
-        if not quick:
-            # show the background model and 125 GeV signal over the full mass range
-            log.info("plotting classifier output over all mass...")
+        # show the background model and 125 GeV signal over the full mass range
+        log.info("plotting classifier output over all mass...")
 
-            # determine min and max scores
-            min_score = 1.
-            max_score = -1.
+        # determine min and max scores
+        min_score = 1.
+        max_score = -1.
 
-            # background model scores
-            bkg_scores = []
-            for bkg in self.backgrounds:
-                scores_dict = bkg.scores(self,
-                        region=self.region)
+        # background model scores
+        bkg_scores = []
+        for bkg in backgrounds:
+            scores_dict = bkg.scores(self,
+                    category=self.category,
+                    region=self.region)
 
-                for sys_term, (scores, weights) in scores_dict.items():
-                    assert len(scores) == len(weights)
-                    if len(scores) == 0:
-                        continue
-                    _min = np.min(scores)
-                    _max = np.max(scores)
-                    if _min < min_score:
-                        min_score = _min
-                    if _max > max_score:
-                        max_score = _max
+            for sys_term, (scores, weights) in scores_dict.items():
+                assert len(scores) == len(weights)
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
 
-                bkg_scores.append((bkg, scores_dict))
+            bkg_scores.append((bkg, scores_dict))
 
-            sig_scores = []
-            # signal scores
-            for mode in Higgs.MODES:
-                sig = Higgs(year=year, mode=mode, mass=125,
-                        systematics=systematics)
-                scores_dict = sig.scores(self,
-                        region=self.region)
+        from .samples import Higgs
+        sig_scores = []
+        # signal scores
+        for mode in Higgs.MODES:
+            sig = Higgs(year=year, mode=mode, mass=125,
+                    systematics=systematics)
+            scores_dict = sig.scores(self,
+                    category=self.category,
+                    region=self.region)
 
-                for sys_term, (scores, weights) in scores_dict.items():
-                    assert len(scores) == len(weights)
-                    if len(scores) == 0:
-                        continue
-                    _min = np.min(scores)
-                    _max = np.max(scores)
-                    if _min < min_score:
-                        min_score = _min
-                    if _max > max_score:
-                        max_score = _max
+            for sys_term, (scores, weights) in scores_dict.items():
+                assert len(scores) == len(weights)
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
 
-                sig_scores.append((sig, scores_dict))
+            sig_scores.append((sig, scores_dict))
 
-            log.info("minimum score: %f" % min_score)
-            log.info("maximum score: %f" % max_score)
+        log.info("minimum score: %f" % min_score)
+        log.info("maximum score: %f" % max_score)
 
-            # prevent bin threshold effects
-            min_score -= 0.00001
-            max_score += 0.00001
+        # prevent bin threshold effects
+        min_score -= 0.00001
+        max_score += 0.00001
 
-            # add a bin above max score and below min score for extra beauty
-            score_width = max_score - min_score
-            bin_width = score_width / bins
-            min_score -= bin_width
-            max_score += bin_width
+        # add a bin above max score and below min score for extra beauty
+        score_width = max_score - min_score
+        bin_width = score_width / bins
+        min_score -= bin_width
+        max_score += bin_width
 
-            # compare data and the model in a mass control region
-            plot_clf(
-                background_scores=bkg_scores,
+        # compare data and the model in a mass control region
+        plot_clf(
+            background_scores=bkg_scores,
+            category=self.category,
+            category_name=self.category_name,
+            plot_label='full mass range',
+            signal_scores=sig_scores,
+            signal_scale=signal_scale,
+            draw_data=True,
+            name='full_range' + self.output_suffix,
+            bins=bins + 2,
+            min_score=min_score,
+            max_score=max_score)
+        #systematics=SYSTEMATICS if systematics else None)
+
+        # show the background model and data in the control region
+        log.info("plotting classifier output in control region...")
+        log.info(control_region)
+        # data scores
+        data_scores, _ = data.scores(self,
                 category=self.category,
-                category_name=self.category_name,
-                plot_label='full mass range',
-                signal_scores=sig_scores,
-                signal_scale=signal_scale,
-                draw_data=True,
-                name='full_range' + self.output_suffix,
-                bins=bins + 2,
-                min_score=min_score,
-                max_score=max_score,
-                systematics=SYSTEMATICS if systematics else None)
+                region=self.region,
+                cuts=control_region)
 
-            # show the background model and data in the control region
-            log.info("plotting classifier output in control region...")
-            log.info(control_region)
-            # data scores
-            data_scores, _ = data.scores(self,
+        # determine min and max scores
+        min_score = 1.
+        max_score = -1.
+        _min = data_scores.min()
+        _max = data_scores.max()
+        if _min < min_score:
+            min_score = _min
+        if _max > max_score:
+            max_score = _max
+
+        # background model scores
+        bkg_scores = []
+        for bkg in backgrounds:
+            scores_dict = bkg.scores(self,
+                    category=self.category,
                     region=self.region,
                     cuts=control_region)
 
-            # determine min and max scores
-            min_score = 1.
-            max_score = -1.
-            _min = data_scores.min()
-            _max = data_scores.max()
-            if _min < min_score:
-                min_score = _min
-            if _max > max_score:
-                max_score = _max
+            for sys_term, (scores, weights) in scores_dict.items():
+                assert len(scores) == len(weights)
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
 
-            # background model scores
-            bkg_scores = []
-            for bkg in self.backgrounds:
-                scores_dict = bkg.scores(self,
-                        region=self.region,
-                        cuts=control_region)
+            bkg_scores.append((bkg, scores_dict))
 
-                for sys_term, (scores, weights) in scores_dict.items():
-                    assert len(scores) == len(weights)
-                    if len(scores) == 0:
-                        continue
-                    _min = np.min(scores)
-                    _max = np.max(scores)
-                    if _min < min_score:
-                        min_score = _min
-                    if _max > max_score:
-                        max_score = _max
+        log.info("minimum score: %f" % min_score)
+        log.info("maximum score: %f" % max_score)
 
-                bkg_scores.append((bkg, scores_dict))
+        # prevent bin threshold effects
+        min_score -= 0.00001
+        max_score += 0.00001
 
-            log.info("minimum score: %f" % min_score)
-            log.info("maximum score: %f" % max_score)
+        # add a bin above max score and below min score for extra beauty
+        score_width = max_score - min_score
+        bin_width = score_width / bins
+        min_score -= bin_width
+        max_score += bin_width
 
-            # prevent bin threshold effects
-            min_score -= 0.00001
-            max_score += 0.00001
-
-            # add a bin above max score and below min score for extra beauty
-            score_width = max_score - min_score
-            bin_width = score_width / bins
-            min_score -= bin_width
-            max_score += bin_width
-
-            # compare data and the model in a low mass control region
-            plot_clf(
-                background_scores=bkg_scores,
-                category=self.category,
-                category_name=self.category_name,
-                plot_label='mass control region',
-                signal_scores=None,
-                data_scores=(data, data_scores),
-                draw_data=True,
-                name='control' + self.output_suffix,
-                bins=bins + 2,
-                min_score=min_score,
-                max_score=max_score,
-                systematics=SYSTEMATICS if systematics else None)
+        # compare data and the model in a low mass control region
+        plot_clf(
+            background_scores=bkg_scores,
+            category=self.category,
+            category_name=self.category_name,
+            plot_label='mass control region',
+            signal_scores=None,
+            data_scores=(data, data_scores),
+            draw_data=True,
+            name='control' + self.output_suffix,
+            bins=bins + 2,
+            min_score=min_score,
+            max_score=max_score)
+        #systematics=SYSTEMATICS if systematics else None)
 
         #return bkg_scores, sig_scores_125
 
