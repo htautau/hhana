@@ -157,7 +157,8 @@ def draw_samples(
 
     model_hists = []
     for sample in model:
-        hist = hist_template.Clone()
+        hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
+        hist.decorate(**sample.hist_decor)
         sample.draw_into(hist, expr,
                 category, region, cuts,
                 p1p3=p1p3)
@@ -165,6 +166,8 @@ def draw_samples(
             # ravel() the nominal and systematics histograms
             sys_hists = getattr(hist, 'systematics', None)
             hist = hist.ravel()
+            hist.title = sample.label
+            hist.decorate(**sample.hist_decor)
             if sys_hists is not None:
                 hist.systematics = sys_hists
             if hasattr(hist, 'systematics'):
@@ -177,7 +180,8 @@ def draw_samples(
     if signal is not None:
         signal_hists = []
         for sample in signal:
-            hist = hist_template.Clone()
+            hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
+            hist.decorate(**sample.hist_decor)
             sample.draw_into(hist, expr,
                     category, region, cuts,
                     p1p3=p1p3)
@@ -185,6 +189,8 @@ def draw_samples(
                 # ravel() the nominal and systematics histograms
                 sys_hists = getattr(hist, 'systematics', None)
                 hist = hist.ravel()
+                hist.title = sample.label
+                hist.decorate(**sample.hist_decor)
                 if sys_hists is not None:
                     hist.systematics = sys_hists
                 if hasattr(hist, 'systematics'):
@@ -197,8 +203,9 @@ def draw_samples(
         signal_hists = None
 
     if data is not None:
-        data_hist = hist_template.Clone()
-        data.draw_into(data_hist, expr, category, region, cuts, p1p3=False)
+        data_hist = hist_template.Clone(title=data.label, **data.hist_decor)
+        data_hist.decorate(**data.hist_decor)
+        data.draw_into(data_hist, expr, category, region, cuts, p1p3=p1p3)
         if ndim > 1 and ravel:
             data_hist = data_hist.ravel()
 

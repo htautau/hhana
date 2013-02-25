@@ -119,7 +119,8 @@ class Sample(object):
         #if isinstance(self, Higgs):
         #    self.hist_decor['fillstyle'] = 'hollow'
         #else:
-        self.hist_decor['fillstyle'] = 'solid'
+        if 'fillstyle' not in hist_decor:
+            self.hist_decor['fillstyle'] = 'solid'
 
     def get_histfactory_sample(self, hist_template,
                                expr_or_clf,
