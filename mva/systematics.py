@@ -23,8 +23,8 @@ SYSTEMATICS_BY_WEIGHT = [
 
 SYSTEMATICS = {
     'JES': (('JES_UP',), ('JES_DOWN',)),
-    'TES': (('TES_UP',), ('TES_DOWN',)),
     'JER': (('JER_UP',),),
+    'TES': (('TES_UP',), ('TES_DOWN',)),
     #'MFS': (('MFS_UP',), ('MFS_DOWN',)),
     #'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
     #'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),

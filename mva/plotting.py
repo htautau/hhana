@@ -79,6 +79,7 @@ def root_axes(ax, no_xlabels=False, vscale=1.):
 
 def uncertainty_band(model, systematics):
 
+    # TODO determine systematics from model itself
     if not isinstance(model, (list, tuple)):
         model = [model]
     # add separate variations in quadrature

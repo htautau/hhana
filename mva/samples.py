@@ -100,6 +100,8 @@ class Sample(object):
         'ggf_weight',
     ]
 
+    SYSTEMATICS_COMPONENTS = []
+
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
                  **hist_decor):
@@ -167,14 +169,15 @@ class Sample(object):
 
         # add systematics samples
         if do_systematics:
-            for sys_name, terms in SYSTEMATICS.items():
+            for sys_component in self.__class__.SYSTEMATICS_COMPONENTS:
+                terms = SYSTEMATICS[sys_component]
                 if len(terms) == 1:
                     up_term = terms[0]
                     down_term = terms[0]
                 else:
                     up_term, down_term = terms
-                log.info("adding histosys for %s" % sys_name)
-                histsys = ROOT.RooStats.HistFactory.HistoSys(sys_name)
+                log.info("adding histosys for %s" % sys_component)
+                histsys = ROOT.RooStats.HistFactory.HistoSys(sys_component)
 
                 hist_up = hist.systematics[up_term]
                 hist_down = hist.systematics[down_term]
@@ -421,6 +424,15 @@ class Background:
 
 class MC(Sample):
 
+    # TODO: remove 'JE[S|R]' here unless embedded classes should inherit from
+    # elsewhere
+    SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
+        'JES',
+        'JER',
+        'TES',
+        'TAUID',
+    ]
+
     def __init__(self, year, db=DB_HH, systematics=True, **kwargs):
 
         if isinstance(self, Background):
@@ -481,6 +493,9 @@ class MC(Sample):
 
                 systematics_terms, systematics_samples = \
                     samples_db.get_systematics('hadhad', self.year, name)
+
+                # TODO: check that all expected systematics components are
+                # included
 
                 unused_terms = SYSTEMATICS_TERMS[:]
 
@@ -879,11 +894,14 @@ class MC(Sample):
 
 
 class Ztautau(Background):
-
     pass
 
 
 class MC_Ztautau(MC, Ztautau):
+
+    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
+        'Z_FIT',
+    ]
 
     def __init__(self, *args, **kwargs):
         """
@@ -896,6 +914,10 @@ class MC_Ztautau(MC, Ztautau):
 
 
 class Embedded_Ztautau(MC, Ztautau):
+
+    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
+        'Z_FIT',
+    ]
 
     def __init__(self, *args, **kwargs):
         """
@@ -1043,6 +1065,10 @@ class Higgs(MC, Signal):
 
 
 class QCD(Sample, Background):
+
+    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
+        'QCD_FIT',
+    ]
 
     @staticmethod
     def sample_compatibility(data, mc):
