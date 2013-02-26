@@ -25,13 +25,13 @@ SYSTEMATICS = {
     'JES': (('JES_UP',), ('JES_DOWN',)),
     'TES': (('TES_UP',), ('TES_DOWN',)),
     'JER': (('JER_UP',),),
-    #(('MFS_UP',), ('MFS_DOWN',)),
-    #(('ISOL_UP',), ('ISOL_DOWN',)),
-    #(('TRIGGER_UP',), ('TRIGGER_DOWN',)),
+    #'MFS': (('MFS_UP',), ('MFS_DOWN',)),
+    #'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
+    #'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
     #'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
     'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
-    #(('QCDFIT_UP',), ('QCDFIT_DOWN',)),
-    #(('ZFIT_UP',), ('ZFIT_DOWN',)),
+    'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
+    'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
 }
 
 WEIGHT_SYSTEMATICS = {

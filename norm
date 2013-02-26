@@ -6,13 +6,15 @@ from mva.samples import Data, MC_Ztautau, Others, QCD
 from mva.stats import histfactory
 from mva.categories import MassRegions
 from mva.norm import cache
+from mva.plotting import draw_samples
+from mva.systematics import SYSTEMATICS
 
 import ROOT
 from ROOT import RooMinimizer
 
 data = Data(2012)
-ztt = MC_Ztautau(2012, systematics=False)
-others = Others(2012, systematics=False)
+ztt = MC_Ztautau(2012, systematics=True)
+others = Others(2012, systematics=True)
 qcd = QCD(data, (ztt, others))
 
 expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
@@ -30,21 +32,41 @@ param = 'TRACK'
 mass_regions = MassRegions(110, 180, True)
 
 for njet in range(3):
-
+    
     category = '%dj' % njet
 
+    ztt.scale = 1.
+    ztt.scale_error = 0.
+    qcd.scale = 1.
+    qcd.scale_error = 0.
+
+    # draw before fit
+    draw_samples(hist_template, expr,
+            model=[qcd, others, ztt],
+            data=data,
+            category=category,
+            region=region,
+            cuts=mass_regions.control_region,
+            name="Recounted Number of Tracks",
+            category_name=r"$\tau_{had}\tau_{had}$: %d-Jet Category" % njet,
+            output_name="bkg_before_fit",
+            show_ratio=True,
+            systematics=SYSTEMATICS.values(),
+            p1p3=False,
+            ravel=True)
+    
     ztt_sample = ztt.get_histfactory_sample(
             hist_template, expr, category, region,
             cuts=mass_regions.control_region,
-            p1p3=False)
+            p1p3=False, systematics=False)
     others_sample = others.get_histfactory_sample(
             hist_template, expr, category, region,
             cuts=mass_regions.control_region,
-            p1p3=False)
+            p1p3=False, systematics=False)
     qcd_sample = qcd.get_histfactory_sample(
             hist_template, expr, category, region,
             cuts=mass_regions.control_region,
-            p1p3=False)
+            p1p3=False, systematics=False)
     data_sample = data.get_histfactory_sample(
             hist_template, expr, category, region,
             cuts=mass_regions.control_region,
@@ -107,10 +129,28 @@ for njet in range(3):
     qcd_scale = qcd_scale_arg.getValV()
     qcd_scale_error = qcd_scale_arg.getError()
 
-    print z_scale, qcd_scale
-
+    ztt.scale = z_scale
+    ztt.scale_error = z_scale_error
+    qcd.scale = qcd_scale
+    qcd.scale_error = qcd_scale_error
+    
     cache.set_scales(
             year,
             category, is_embedded, param,
             qcd_scale, qcd_scale_error,
             z_scale, z_scale_error)
+
+    # draw after fit
+    draw_samples(hist_template, expr,
+            model=[qcd, others, ztt],
+            data=data,
+            category=category,
+            region=region,
+            cuts=mass_regions.control_region,
+            name="Recounted Number of Tracks",
+            category_name=r"$\tau_{had}\tau_{had}$: %d-Jet Category" % njet,
+            output_name="bkg_after_fit",
+            show_ratio=True,
+            systematics=SYSTEMATICS.values(),
+            p1p3=False,
+            ravel=True)

@@ -38,7 +38,7 @@ def get_scales(year, category, embedded, param, verbose=True):
             log.info("background normalization for year %d" % year)
             log.info("using the embedding scale factors: %s" % str(embedded))
             log.info("scale factors for %s category" % category)
-            log.info("fits were derived via %s parameters" % param)
+            log.info("scale factors were derived via fit using %s parameters" % param)
             log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
                 qcd_scale_error))
             log.info("    ztt scale: %.3f +/- %.4f" % (
@@ -69,7 +69,7 @@ def set_scales(year, category, embedded, param,
     log.info("background normalization for year %d" % year)
     log.info("setting the embedding scale factors: %s" % str(embedded))
     log.info("setting scale factors for %s category" % category)
-    log.info("fits were derived via %s parameters" % param)
+    log.info("new scale factors derived via fit using %s parameters" % param)
     log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
     log.info("    ztt scale: %.3f +/- %.4f" % (ztautau_scale,
         ztautau_scale_error))

@@ -128,7 +128,8 @@ class Sample(object):
                                expr_or_clf,
                                category, region,
                                cuts=None, p1p3=True,
-                               scores=None):
+                               scores=None,
+                               systematics=True):
 
         log.info("creating histfactory sample for %s" % self.name)
         if isinstance(self, Data):
@@ -137,7 +138,9 @@ class Sample(object):
             sample = ROOT.RooStats.HistFactory.Sample(self.name)
 
         ndim = hist_template.GetDimension()
-        do_systematics = not isinstance(self, Data) and self.systematics
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
 
         if isinstance(expr_or_clf, basestring):
             expr = expr_or_clf
