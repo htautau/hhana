@@ -231,7 +231,6 @@ class ClassificationProblem(object):
 
         for partition_idx in range(2):
 
-
             # train a classifier
             # merge arrays and create training samples
             signal_train = np.concatenate(map(itemgetter(partition_idx),
@@ -499,8 +498,8 @@ class ClassificationProblem(object):
         left_scores = self.clfs[0].decision_function(left)
         right_scores = self.clfs[1].decision_function(right)
 
-        return np.concatenate((left_scores, right_scores)), \
-               np.concatenate((left_weight, right_weight))
+        return (np.concatenate((left_scores, right_scores)),
+                np.concatenate((left_weight, right_weight)))
 
     def evaluate(self,
                  backgrounds,
@@ -520,19 +519,21 @@ class ClassificationProblem(object):
 
         year = backgrounds[0].year
 
-        # show the background model and 125 GeV signal over the full mass range
-        log.info("plotting classifier output over all mass...")
+        ########################################################################
+        # show the background model and 125 GeV signal in the signal region
+        log.info("plotting classifier output in the signal region ...")
 
         # determine min and max scores
-        min_score = 1.
-        max_score = -1.
+        min_score = 1e10
+        max_score = -1e10
 
         # background model scores
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(self,
                     category=self.category,
-                    region=self.region)
+                    region=self.region,
+                    cuts=signal_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
                 assert len(scores) == len(weights)
@@ -555,7 +556,8 @@ class ClassificationProblem(object):
                     systematics=systematics)
             scores_dict = sig.scores(self,
                     category=self.category,
-                    region=self.region)
+                    region=self.region,
+                    cuts=signal_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
                 assert len(scores) == len(weights)
@@ -583,23 +585,23 @@ class ClassificationProblem(object):
         min_score -= bin_width
         max_score += bin_width
 
-        # compare data and the model in a mass control region
         plot_clf(
             background_scores=bkg_scores,
             category=self.category,
             category_name=self.category_name,
-            plot_label='full mass range',
+            plot_label='Mass Signal Region',
             signal_scores=sig_scores,
             signal_scale=signal_scale,
             draw_data=True,
-            name='full_range' + self.output_suffix,
+            name='signal_region' + self.output_suffix,
             bins=bins + 2,
             min_score=min_score,
-            max_score=max_score)
-        #systematics=SYSTEMATICS if systematics else None)
+            max_score=max_score,
+            systematics=SYSTEMATICS.values() if systematics else None)
 
+        ############################################################
         # show the background model and data in the control region
-        log.info("plotting classifier output in control region...")
+        log.info("plotting classifier output in control region ...")
         log.info(control_region)
         # data scores
         data_scores, _ = data.scores(self,
@@ -608,8 +610,8 @@ class ClassificationProblem(object):
                 cuts=control_region)
 
         # determine min and max scores
-        min_score = 1.
-        max_score = -1.
+        min_score = 1e10
+        max_score = -1e10
         _min = data_scores.min()
         _max = data_scores.max()
         if _min < min_score:
@@ -651,20 +653,19 @@ class ClassificationProblem(object):
         min_score -= bin_width
         max_score += bin_width
 
-        # compare data and the model in a low mass control region
         plot_clf(
             background_scores=bkg_scores,
             category=self.category,
             category_name=self.category_name,
-            plot_label='mass control region',
+            plot_label='Mass Control Region',
             signal_scores=None,
             data_scores=(data, data_scores),
             draw_data=True,
             name='control' + self.output_suffix,
             bins=bins + 2,
             min_score=min_score,
-            max_score=max_score)
-        #systematics=SYSTEMATICS if systematics else None)
+            max_score=max_score,
+            systematics=SYSTEMATICS.values() if systematics else None)
 
         #return bkg_scores, sig_scores_125
 
