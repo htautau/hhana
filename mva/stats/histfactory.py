@@ -1,24 +1,23 @@
 from . import log; log = log[__name__]
+from rootpy.plotting import Hist
+from rootpy.memory.keepalive import keepalive
 import ROOT
 
-"""
-# Create the signal sample
-signal = ROOT.RooStats.HistFactory.Sample("signal", "signal", InputFile)
-signal.AddOverallSys("syst1",  0.95, 1.05)
-signal.AddNormFactor("SigXsecOverSM", 1, 0, 3)
-chan.AddSample(signal)
 
-# Background 1
-background1 = ROOT.RooStats.HistFactory.Sample("background1", "background1", InputFile)
-background1.ActivateStatError("background1_statUncert", InputFile)
-background1.AddOverallSys("syst2", 0.95, 1.05 )
-chan.AddSample(background1)
+def to_uniform_binning(hist):
+    """
+    For some obscure technical reason, HistFactory can't handle histograms with
+    variable width bins. This function takes any 1D histogram and outputs a new
+    histogram with constant width bins by using the bin indices of the input
+    histogram as the x-axis of the new histogram.
+    """
+    new_hist = Hist(len(hist), 0, len(hist))
+    # assume yerrh == yerrl (as usual for ROOT histograms)
+    for i, (value, error) in enumerate(zip(hist, hist.yerrh())):
+        new_hist.SetBinContent(i + 1, value)
+        new_hist.SetBinError(i + 1, error)
+    return new_hist
 
-# Background 1
-background2 = ROOT.RooStats.HistFactory.Sample("background2", "background2", InputFile)
-background2.ActivateStatError()
-background2.AddOverallSys("syst3", 0.95, 1.05 )
-"""
 
 def make_channel(name, samples, data=None):
 
@@ -32,6 +31,7 @@ def make_channel(name, samples, data=None):
     for sample in samples:
         log.info("adding sample %s" % sample.GetName())
         chan.AddSample(sample)
+    keepalive(chan, *samples)
 
     return chan
 
@@ -68,6 +68,7 @@ def make_measurement(name, title,
     for channel in channels:
         log.info("adding channel %s" % channel.GetName())
         meas.AddChannel(channel)
+    keepalive(meas, *channels)
 
     return meas
 

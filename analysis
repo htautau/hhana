@@ -205,7 +205,9 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 quick=args.quick_train,
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
-        
+    
+    if 'evaluate' in args.actions:
+
         clf.evaluate(
                 backgrounds,
                 data,

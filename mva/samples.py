@@ -26,6 +26,7 @@ from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.io import open as ropen
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
+from rootpy.memory.keepalive import keepalive
 
 # local imports
 from . import log; log = log[__name__]
@@ -35,6 +36,7 @@ from .periods import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
+from .stats.histfactory import to_uniform_binning
 
 # Higgs cross sections
 import yellowhiggs
@@ -157,7 +159,9 @@ class Sample(object):
             hist = histogram_scores(hist_template, scores)
 
         # set the nominal histogram
-        sample.SetHisto(hist)
+        uniform_hist = to_uniform_binning(hist)
+        sample.SetHisto(uniform_hist)
+        keepalive(sample, uniform_hist)
 
         # add systematics samples
         if do_systematics:
@@ -178,10 +182,15 @@ class Sample(object):
                     hist_up = hist_up.ravel()
                     hist_down = hist_down.ravel()
 
-                histsys.SetHistoHigh(hist_up)
-                histsys.SetHistoLow(hist_down)
+                uniform_hist_up = to_uniform_binning(hist_up)
+                uniform_hist_down = to_uniform_binning(hist_down)
+
+                histsys.SetHistoHigh(uniform_hist_up)
+                histsys.SetHistoLow(uniform_hist_down)
+                keepalive(histsys, uniform_hist_up, uniform_hist_down)
 
                 sample.AddHistoSys(histsys)
+                keepalive(sample, histsys)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
