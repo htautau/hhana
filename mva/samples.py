@@ -23,7 +23,7 @@ from higgstautau import samples as samples_db
 # rootpy imports
 import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
-from rootpy.io import open as ropen
+from rootpy.io import open as ropen, TemporaryFile
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
 from rootpy.memory.keepalive import keepalive
@@ -56,7 +56,7 @@ OS = Cut('tau1_charge * tau2_charge == -1')
 NOT_OS = Cut('tau1_charge * tau2_charge >= 0') # changed by Zinonas
 SS = Cut('tau1_charge * tau2_charge == 1')
 # mass_jet1_jet2 > 100000
-TEMPFILE = ropen('tempfile.root', 'recreate')
+TEMPFILE = TemporaryFile()
 
 
 def get_file(student, hdf=False, suffix=''):
@@ -82,7 +82,6 @@ def get_file(student, hdf=False, suffix=''):
 def cleanup():
 
     TEMPFILE.Close()
-    os.unlink(TEMPFILE.GetName())
     for filehandle in FILES.values():
         filehandle.close()
 
