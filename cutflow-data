@@ -4,6 +4,7 @@ from mva.cutflow import get_parser, make_cutflow
 
 parser = get_parser()
 parser.add_argument('--grl', default=None)
+parser.add_argument('--runs', type=int, nargs='*')
 args = parser.parse_args()
 
 data_name = 'data%d-JetTauEtmiss' % (args.year % 1e3)
@@ -12,7 +13,8 @@ if args.grl:
     from goodruns import GRL
     grl = GRL(args.grl)
     samples = [(run, run, "{0}-{1}".format(data_name, run)) for run in grl]
-
+elif args.runs:
+    samples = [(run, run, "{0}-{1}".format(data_name, run)) for run in args.runs]
 else:
     from pyAMI.client import AMIClient
     from pyAMI.query import get_periods, get_runs
