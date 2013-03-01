@@ -233,8 +233,10 @@ def channels(clf, category, region, backgrounds,
     return channels
 
 
-def limits(channels, unblind=False, mass_points=None,
-           lumi_rel_error=0.039,
+def limits(channels,
+           unblind=False,
+           mass_points=None,
+           lumi_rel_error=0.039, #TODO: update to new uncertainty
            POI='SigXsecOverSM'):
 
     limit_hists = dict()
