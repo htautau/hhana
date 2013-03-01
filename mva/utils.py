@@ -5,6 +5,13 @@ from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 
 
+def print_hist(hist):
+
+    print hist.GetTitle()
+    for ibin in xrange(len(hist)):
+        print "%.5f +/= %.5f" % (hist[ibin], hist.yerrh(ibin))
+
+
 def mkdir_p(path):
     try:
         os.makedirs(path)

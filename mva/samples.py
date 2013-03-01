@@ -32,6 +32,7 @@ from rootpy.memory.keepalive import keepalive
 from . import log; log = log[__name__]
 from . import categories
 from . import variables
+from .utils import print_hist
 from .periods import LUMI
 from .systematics import *
 from .constants import *
@@ -163,6 +164,7 @@ class Sample(object):
             hist = histogram_scores(hist_template, scores)
 
         # set the nominal histogram
+        print_hist(hist)
         uniform_hist = to_uniform_binning(hist)
         sample.SetHisto(uniform_hist)
         keepalive(sample, uniform_hist)
