@@ -76,6 +76,8 @@ control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
 train_region = mass_regions.train_region
 
+all_channels = {}
+
 for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
     if category not in args.categories:
@@ -220,7 +222,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
     if 'limits' in args.actions:
 
-        # run hypothesis tests
+        # construct a "channel" for each mass point
         channels = hypotests.channels(
                 clf, category, target_region,
                 backgrounds, data=data, 
@@ -230,8 +232,25 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 mass_points=[125],
                 systematics=args.systematics)
 
-        limit_hists = hypotests.limits(
-                channels, mass_points=[125])
+        for mass, channel in channels.items():
+            if mass not in all_channels:
+                all_channels[mass] = {}
+            all_channels[mass][category] = channel
+
+
+if 'limits' in args.actions:
+    
+    comb_limit_hists = {}
+    category_limit_hists = {}
+    for mass, category_channel in all_channels.items():
+        category_limit_hists[mass] = {}
+        channels = []
+        # determine limits for each category separately
+        for category, channel in category_channel.items():
+            category_limit_hists[mass][category] = hypotests.limit(channel)
+            channels.append(channel)
+        # determine limit with combined model
+        comb_limit_hists[mass] = hypotests.limit(channels)
 
 
 # save all variable plots in one large multipage pdf

@@ -22,7 +22,8 @@ def to_uniform_binning(hist):
 def make_channel(name, samples, data=None):
 
     log.info("creating channel %s" % name)
-    chan = ROOT.RooStats.HistFactory.Channel(name)
+    # avoid segfault if name begins with a digit by using "channel_" prefix
+    chan = ROOT.RooStats.HistFactory.Channel('channel_%s' % name)
     if data is not None:
         log.info("setting data")
         chan.SetData(data)
@@ -73,7 +74,7 @@ def make_measurement(name, title,
     return meas
 
 
-def make_all_models(measurement, channel=None):
+def make_all_models(measurement):
 
     return ROOT.RooStats.HistFactory.MakeModelAndMeasurementFast(measurement)
 

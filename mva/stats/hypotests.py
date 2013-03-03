@@ -233,28 +233,20 @@ def channels(clf, category, region, backgrounds,
     return channels
 
 
-def limits(channels,
-           unblind=False,
-           mass_points=None,
-           lumi_rel_error=0.039, #TODO: update to new uncertainty
-           POI='SigXsecOverSM'):
+def limit(channels,
+          unblind=False,
+          lumi_rel_error=0.039, #TODO: update to new uncertainty
+          POI='SigXsecOverSM'):
 
-    limit_hists = dict()
-    for mass in Higgs.MASS_POINTS:
-        if mass_points is not None and mass not in mass_points:
-            continue
-        if mass not in channels:
-            continue
+    if not isinstance(channels, (list, tuple)):
+        channels = [channels]
+    measurement = histfactory.make_measurement(
+            'higgs', '',
+            channels,
+            lumi_rel_error=lumi_rel_error,
+            POI=POI)
+    workspace = histfactory.make_model(measurement)
+    calculator = AsymptoticsCLs(workspace)
+    limit_hist = calculator.run('ModelConfig', 'obsData', 'asimovData')
 
-        channel = channels[mass]
-        measurement = histfactory.make_measurement(
-                'higgs', '',
-                [channel],
-                lumi_rel_error=lumi_rel_error,
-                POI=POI)
-        workspace = histfactory.make_model(measurement, channel=channel)
-        calculator = AsymptoticsCLs(workspace)
-        limit_hist = calculator.run('ModelConfig', 'obsData', 'asimovData')
-        limit_hists[mass] = limit_hist
-
-    return limit_hists
+    return limit_hist

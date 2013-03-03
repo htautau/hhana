@@ -75,16 +75,16 @@ for njet in range(3):
     ztt_sample.AddNormFactor('z_scale', 1., 0.5, 2.0)
     qcd_sample.AddNormFactor('qcd_scale', 1., 0.5, 2.0)
 
-    channel = histfactory.make_channel('category_%s' % category,
+    channel = histfactory.make_channel(category,
             [ztt_sample, others_sample, qcd_sample], data_sample.GetHisto())
     measurement = histfactory.make_measurement('trackfit', '', [channel],
             lumi_rel_error=0.039,
             POI=['z_scale', 'qcd_scale'])
 
-    workspace = histfactory.make_all_models(measurement, channel=channel)
+    workspace = histfactory.make_model(measurement)
 
     obs_data = workspace.data('obsData')
-    pdf = workspace.pdf('model_category_%s' % category)
+    pdf = workspace.pdf('model_channel_%s' % category)
 
     nll = pdf.createNLL(obs_data)
     minim = RooMinimizer(nll)
