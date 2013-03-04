@@ -162,6 +162,9 @@ class ClassificationProblem(object):
                     with open(clf_filename, 'r') as f:
                         clf = pickle.load(f)
                     log.info(clf)
+                    # check that testing on training sample gives better
+                    # performance by swapping the following lines
+                    #clfs[partition_idx] = clf
                     clfs[(partition_idx + 1) % 2] = clf
                 else:
                     use_cache = False

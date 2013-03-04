@@ -12,7 +12,7 @@ import os
 
 # rootpy imports
 from rootpy.plotting import Hist
-from rootpy.io import open as ropen
+from rootpy.io import root_open as ropen
 
 # root imports
 import ROOT
@@ -240,17 +240,19 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
 if 'limits' in args.actions:
     
-    comb_limit_hists = {}
-    category_limit_hists = {}
-    for mass, category_channel in all_channels.items():
-        category_limit_hists[mass] = {}
-        channels = []
-        # determine limits for each category separately
-        for category, channel in category_channel.items():
-            category_limit_hists[mass][category] = hypotests.limit(channel)
-            channels.append(channel)
-        # determine limit with combined model
-        comb_limit_hists[mass] = hypotests.limit(channels)
+    with ropen('limits.root', 'recreate') as limits_file:
+        for mass, category_channel in all_channels.items():
+            channels = []
+            # determine limits for each category separately
+            for category, channel in category_channel.items():
+                limit_hist = hypotests.limit(channel)
+                limit_hist.SetName("%s_%d" % (category, mass))
+                limit_hist.Write()
+                channels.append(channel)
+            # determine limit with combined model
+            limit_hist = hypotests.limit(channels)
+            limit_hist.SetName("combination_%d" % mass)
+            limit_hist.Write()
 
 
 # save all variable plots in one large multipage pdf

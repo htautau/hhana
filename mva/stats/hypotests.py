@@ -171,7 +171,7 @@ def channels(clf, category, region, backgrounds,
             all_positive = np.logical_and.reduce([b >= 0. for b in sums])
             last_bin_all_positive = np.argmin(all_positive) - 1
 
-            last_bin = int(min(np.where(bkg_cumsum >= 1.)[-1][-1],
+            last_bin = int(min(np.where(total_bkg_cumsum >= 1.)[-1][-1],
                                last_bin_all_positive))
 
             # get left bin edge corresponding to this bin
