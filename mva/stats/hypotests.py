@@ -168,12 +168,8 @@ def channels(clf, category, region, backgrounds,
             sums = []
             # fill background
             for bkg_array in bkg_arrays:
-                # create array from histogram
-                bkg_array = np.array(bkg_hist)
-
                 # reverse cumsum
                 bkg_cumsum = bkg_array[::-1].cumsum()[::-1]
-
                 sums.append(bkg_cumsum)
 
             total_bkg_cumsum = np.add.reduce(sums)
