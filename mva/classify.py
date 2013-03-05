@@ -229,7 +229,7 @@ class ClassificationProblem(object):
             background=rec_to_ndarray(corr_background, self.all_fields),
             background_weight=corr_background_weight,
             fields=self.all_fields,
-            category=self.category.name,
+            category=self.category.label,
             output_suffix=self.output_suffix)
 
         self.clfs = [None, None]
@@ -428,7 +428,7 @@ class ClassificationProblem(object):
                         'min leaf',
                         'n_estimators':
                         'trees'},
-                    name=self.category + self.output_suffix + "_%d" % partition_idx)
+                    name=self.category.name + self.output_suffix + "_%d" % partition_idx)
 
                 # scale up the min-leaf and retrain on the whole set
                 min_samples_leaf = clf.base_estimator.min_samples_leaf
@@ -456,7 +456,7 @@ class ClassificationProblem(object):
 
             clf_filename = os.path.join(CACHE_DIR, 'classify',
                     'clf_%s%s_%d.pickle' % (
-                    self.category, self.output_suffix, partition_idx))
+                    self.category.name, self.output_suffix, partition_idx))
 
             with open(clf_filename, 'w') as f:
                 pickle.dump(clf, f)

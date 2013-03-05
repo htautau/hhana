@@ -46,7 +46,7 @@ CUTS_2J = LEAD_JET_50 & SUBLEAD_JET_30
 CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
-CUTS_VBF = Cut('dEta_jets > 3.0')
+CUTS_VBF = Cut('dEta_jets > 2.0')
 CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
