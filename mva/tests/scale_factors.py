@@ -22,7 +22,7 @@ def fakerate(sample):
     assert sample.events(tau1_matched) == sample.events('tau1_fakerate_scale_factor == 1')
 
 
-def test_mva():
+def test_fakerates():
 
     ztautau = MC_Ztautau(year=2012, systematics=False)
     matching(ztautau)

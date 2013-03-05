@@ -351,6 +351,10 @@ class Data(Sample):
                           self.year, self.energy, LUMI[self.year] / 1e3))
         self.name = 'Data'
 
+    def events(self, category, region, cuts=None, p1p3=True):
+
+        return self.data.GetEntries(self.cuts(category, region, p1p3=p1p3) & cuts)
+
     def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
 
         self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
