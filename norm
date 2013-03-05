@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# poor man arg parsing for now
+import sys
+categories = sys.argv[1]
+
 from rootpy.plotting import Hist2D
 
 from mva.samples import Data, MC_Ztautau, Others, QCD
@@ -8,6 +12,7 @@ from mva.massregions import MassRegions
 from mva.norm import cache
 from mva.plotting import draw_samples
 from mva.systematics import SYSTEMATICS
+from mva.categories import CATEGORIES
 
 import ROOT
 from ROOT import RooMinimizer
@@ -31,9 +36,7 @@ param = 'TRACK'
 
 mass_regions = MassRegions(110, 180, True)
 
-for njet in range(3):
-    
-    category = '%dj' % njet
+for category in CATEGORIES[categories]:
 
     ztt.scale = 1.
     ztt.scale_error = 0.
@@ -48,7 +51,7 @@ for njet in range(3):
             region=region,
             cuts=mass_regions.control_region,
             name="Recounted Number of Tracks",
-            category_name=r"$\tau_{had}\tau_{had}$: %d-Jet Category" % njet,
+            category_name=category.label,
             output_name="bkg_before_fit",
             show_ratio=True,
             systematics=SYSTEMATICS.values(),
@@ -75,16 +78,16 @@ for njet in range(3):
     ztt_sample.AddNormFactor('z_scale', 1., 0.5, 2.0)
     qcd_sample.AddNormFactor('qcd_scale', 1., 0.5, 2.0)
 
-    channel = histfactory.make_channel(category,
+    channel = histfactory.make_channel(category.name,
             [ztt_sample, others_sample, qcd_sample], data_sample.GetHisto())
     measurement = histfactory.make_measurement('trackfit', '', [channel],
-            lumi_rel_error=0.039,
+            lumi_rel_error=0.028,
             POI=['z_scale', 'qcd_scale'])
 
     workspace = histfactory.make_model(measurement)
 
     obs_data = workspace.data('obsData')
-    pdf = workspace.pdf('model_channel_%s' % category)
+    pdf = workspace.pdf('model_channel_%s' % category.name)
 
     nll = pdf.createNLL(obs_data)
     minim = RooMinimizer(nll)
@@ -137,7 +140,7 @@ for njet in range(3):
     
     cache.set_scales(
             year,
-            category, is_embedded, param,
+            category.name, is_embedded, param,
             qcd_scale, qcd_scale_error,
             z_scale, z_scale_error)
 
@@ -149,7 +152,7 @@ for njet in range(3):
             region=region,
             cuts=mass_regions.control_region,
             name="Recounted Number of Tracks",
-            category_name=r"$\tau_{had}\tau_{had}$: %d-Jet Category" % njet,
+            category_name=category.label,
             output_name="bkg_after_fit",
             show_ratio=True,
             systematics=SYSTEMATICS.values(),

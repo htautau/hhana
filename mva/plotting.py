@@ -225,7 +225,7 @@ def draw_samples(
     draw(model=model_hists,
          data=data_hist,
          signal=signal_hists,
-         category=category,
+         category=category.name,
          **kwargs)
 
 

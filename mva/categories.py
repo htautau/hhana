@@ -45,7 +45,7 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 CUTS_VBF = Cut('dEta_jets > 3.0')
-CUTS_BOOSTED = Cut('mmc_resonance_pt > 100000')
+CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
 
 P1P3_RECOUNTED = (
     (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
@@ -201,7 +201,7 @@ class Category_Nonboosted_1J(Category):
 
 class Category_Nonboosted_0J(Category):
 
-    name = '0j'
+    name = '0j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
     cuts = - (AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J))))) & COMMON_CUTS
     fitbins = 8
