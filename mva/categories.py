@@ -1,5 +1,7 @@
 from rootpy.tree import Cut
 
+from .samples import Higgs
+
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
 TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
 TAU1_TIGHT = Cut('tau1_JetBDTSigTight==1')
@@ -46,11 +48,6 @@ CUTS_0J = (- LEAD_JET_50)
 
 CUTS_VBF = Cut('dEta_jets > 3.0')
 CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
-
-P1P3_RECOUNTED = (
-    (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
-    &
-    (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
@@ -127,6 +124,7 @@ class Category(object):
         2012: ID_MEDIUM_TIGHT}
     qcd_shape_region = 'SS'
     target_region = 'OS'
+    train_signal_modes = Higgs.MODES[:]
 
 # Default categories
 
@@ -174,6 +172,7 @@ class Category_VBF(Category):
     limitbins = 10
     limitbinning = 'onebkg'
     features = features_2j
+    signal_train_modes = ['VBF']
 
 
 class Category_Boosted(Category):
@@ -186,6 +185,7 @@ class Category_Boosted(Category):
     limitbinning = 'onebkg'
     # warning: some variables will be undefined for some events
     features = features_2j
+    signal_train_modes = ['gg']
 
 
 class Category_Nonboosted_1J(Category):
@@ -197,6 +197,7 @@ class Category_Nonboosted_1J(Category):
     limitbins = 10
     limitbinning = 'onebkg'
     features = features_1j
+    signal_train_modes = ['gg']
 
 
 class Category_Nonboosted_0J(Category):
@@ -208,6 +209,7 @@ class Category_Nonboosted_0J(Category):
     limitbins = 10
     limitbinning = 'onebkg'
     features = features_0j
+    signal_train_modes = ['gg']
 
 
 

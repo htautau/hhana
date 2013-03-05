@@ -193,8 +193,8 @@ class ClassificationProblem(object):
             signal_weight_arrs.append(
                (left['weight'], right['weight']))
             signal_arrs.append(
-               (rec_to_ndarray(left, fields),
-                rec_to_ndarray(right, fields)))
+               (rec_to_ndarray(left, self.fields),
+                rec_to_ndarray(right, self.fields)))
             signal_recs.append((left, right))
 
         background_recs = []
@@ -210,26 +210,26 @@ class ClassificationProblem(object):
             background_weight_arrs.append(
                (left['weight'], right['weight']))
             background_arrs.append(
-               (rec_to_ndarray(left, fields),
-                rec_to_ndarray(right, fields)))
+               (rec_to_ndarray(left, self.fields),
+                rec_to_ndarray(right, self.fields)))
             background_recs.append((left, right))
 
         # draw correlation plots
         corr_signal = np.hstack(map(np.hstack, signal_recs))
         corr_signal_weight = np.concatenate(map(np.concatenate,
-            self.signal_weight_arrs))
+            signal_weight_arrs))
         corr_background = np.hstack(map(np.hstack, background_recs))
         corr_background_weight = np.concatenate(map(np.concatenate,
-            self.background_weight_arrs))
+            background_weight_arrs))
 
         # draw a linear correlation matrix
         correlations(
             signal=rec_to_ndarray(corr_signal, self.all_fields),
             signal_weight=corr_signal_weight,
-            background=rec_to_ndarray(background, self.all_fields),
-            background_weight=background_weight,
+            background=rec_to_ndarray(corr_background, self.all_fields),
+            background_weight=corr_background_weight,
             fields=self.all_fields,
-            category=self.category,
+            category=self.category.name,
             output_suffix=self.output_suffix)
 
         self.clfs = [None, None]

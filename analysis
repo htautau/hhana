@@ -188,6 +188,7 @@ for category in categories:
             Higgs(
                 year=year,
                 mass=125,
+                modes=category.train_signal_modes,
                 systematics=args.systematics),
         ]
 

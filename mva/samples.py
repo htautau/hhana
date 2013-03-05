@@ -30,7 +30,6 @@ from rootpy.memory.keepalive import keepalive
 
 # local imports
 from . import log; log = log[__name__]
-from . import categories
 from . import variables
 from .utils import print_hist
 from .periods import LUMI
@@ -56,6 +55,13 @@ FILES = {}
 OS = Cut('tau1_charge * tau2_charge == -1')
 NOT_OS = Cut('tau1_charge * tau2_charge >= 0') # changed by Zinonas
 SS = Cut('tau1_charge * tau2_charge == 1')
+
+P1P3_RECOUNTED = (
+    (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
+    &
+    (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
+
+
 # mass_jet1_jet2 > 100000
 TEMPFILE = TemporaryFile()
 
@@ -296,7 +302,7 @@ class Sample(object):
 
         sys_cut = Cut()
         if p1p3:
-            sys_cut &= categories.P1P3_RECOUNTED
+            sys_cut &= P1P3_RECOUNTED
         if systematic is not None:
             systerm, variation = Sample.get_sys_term_variation(systematic)
             if isinstance(self, Embedded_Ztautau):
