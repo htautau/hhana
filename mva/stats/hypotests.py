@@ -99,7 +99,7 @@ def channels(clf, category, region, backgrounds,
         max_score_signal += 0.00001
 
         if binning == 'flat':
-            log.info("variable-width bins")
+            log.info("binning such that background is flat")
             # determine location that maximizes signal significance
             bkg_hist = Hist(100, min_score_signal, max_score_signal)
             sig_hist = bkg_hist.Clone()
@@ -145,10 +145,15 @@ def channels(clf, category, region, backgrounds,
             # samples with negative weights (SS subtraction in the QCD) and
             # MC@NLO samples.
 
-            log.info("one background in last bin")
+            log.info("binning such that each bin has at least one background")
+
+            default_bins = list(np.linspace(
+                    min_score_signal,
+                    max_score_signal,
+                    bins + 1))
+
             total_bkg_hist = Hist(1000, min_score_signal, max_score_signal)
             sums = []
-
             # fill background
             for bkg_sample, scores_dict in bkg_scores:
                 score, w = scores_dict['NOMINAL']
@@ -169,22 +174,26 @@ def channels(clf, category, region, backgrounds,
             # and where each background has at least zero events
             # so that no sample may have negative events in this bin
             all_positive = np.logical_and.reduce([b >= 0. for b in sums])
-            last_bin_all_positive = np.argmin(all_positive) - 1
+            print "all positive"
+            print all_positive
+            print "total >= 1"
+            print total_bkg_cumsum >= 1.
 
-            last_bin = int(min(np.where(total_bkg_cumsum >= 1.)[-1][-1],
-                               last_bin_all_positive))
+            last_bin_one_bkg = np.where(total_bkg_cumsum >= 1.)[-1][-1]
+            print "last bin index"
+            print last_bin_one_bkg
+
+            # bump last bin down until each background is positive
+            last_bin_one_bkg -= all_positive[:last_bin_one_bkg + 1][::-1].argmax()
+            print "last bin index after correction"
+            print last_bin_one_bkg
 
             # get left bin edge corresponding to this bin
-            bin_edge = bkg_hist.xedges(last_bin)
+            bin_edge = bkg_hist.xedges(int(last_bin_one_bkg))
 
             # if this edge is greater than it would otherwise be if we used
             # constant-width binning over the whole range then just use the
             # original binning
-            default_bins = list(np.linspace(
-                    min_score_signal,
-                    max_score_signal,
-                    bins + 1))
-
             if bin_edge > default_bins[-2]:
                 log.info("constant-width bins are OK")
                 one_bkg_bins = default_bins
@@ -206,7 +215,7 @@ def channels(clf, category, region, backgrounds,
             hist_template = Hist(one_bkg_bins)
 
         else:
-            log.info("constant-width bins")
+            log.info("using constant-width bins")
             hist_template = Hist(bins,
                     min_score_signal, max_score_signal)
 
@@ -235,7 +244,7 @@ def channels(clf, category, region, backgrounds,
 
 def limit(channels,
           unblind=False,
-          lumi_rel_error=0.039, #TODO: update to new uncertainty
+          lumi_rel_error=0.028,
           POI='SigXsecOverSM'):
 
     if not isinstance(channels, (list, tuple)):
