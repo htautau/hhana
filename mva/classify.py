@@ -332,7 +332,7 @@ class ClassificationProblem(object):
                 plt.xlabel(label)
                 plt.legend()
                 plt.savefig('train_var_%s_%s%s.png' % (
-                    self.category, branch, self.output_suffix))
+                    self.category.name, branch, self.output_suffix))
 
             log.info("plotting sample weights ...")
             _min, _max = sample_weight_train.min(), sample_weight_train.max()
@@ -347,7 +347,7 @@ class ClassificationProblem(object):
             plt.xlabel('sample weight')
             plt.legend()
             plt.savefig('train_sample_weight_%s%s.png' % (
-                self.category, self.output_suffix))
+                self.category.name, self.output_suffix))
 
             if partition_idx == 0:
 
