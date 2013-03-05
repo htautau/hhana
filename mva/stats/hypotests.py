@@ -155,13 +155,19 @@ def channels(clf, category, region, backgrounds,
                     bins + 1))
 
             total_bkg_hist = Hist(1000, min_score_signal, max_score_signal)
-            sums = []
+            bkg_arrays = []
             # fill background
             for bkg_sample, scores_dict in bkg_scores:
                 score, w = scores_dict['NOMINAL']
                 bkg_hist = total_bkg_hist.Clone()
                 bkg_hist.fill_array(score, w)
+                # create array from histogram
+                bkg_array = np.array(bkg_hist)
+                bkg_arrays.append(bkg_array)
 
+            sums = []
+            # fill background
+            for bkg_array in bkg_arrays:
                 # create array from histogram
                 bkg_array = np.array(bkg_hist)
 
