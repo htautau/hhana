@@ -4,7 +4,7 @@ from rootpy.plotting import Hist2D
 
 from mva.samples import Data, MC_Ztautau, Others, QCD
 from mva.stats import histfactory
-from mva.categories import MassRegions
+from mva.massregions import MassRegions
 from mva.norm import cache
 from mva.plotting import draw_samples
 from mva.systematics import SYSTEMATICS

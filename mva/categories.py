@@ -19,9 +19,9 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
 
-DR_CUT = Cut('dR_tau1_tau2 < 3.2')
-DETA_CUT = Cut('fabs(tau1_eta - tau2_eta) < 1.5')
-SAME_VERTEX = Cut('tau_same_vertex')
+TAU_DR_CUT = Cut('dR_tau1_tau2 < 3.2')
+TAU_DETA_CUT = Cut('fabs(tau1_eta - tau2_eta) < 1.5')
+TAU_SAME_VERTEX = Cut('tau_same_vertex')
 BAD_MASS = 80
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
@@ -32,133 +32,203 @@ SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
 COMMON_CUTS = (
         LEAD_TAU_35 & SUBLEAD_TAU_25 &
-        MET & MASS_FIX & DR_CUT)# & #DETA_CUT &
-#        SAME_VERTEX)
+        MET & MASS_FIX &
+        TAU_DR_CUT)# & TAU_DETA_CUT &
+        #TAU_SAME_VERTEX)
 
 LEAD_JET_50 = Cut('jet1_pt > 50000')
 SUBLEAD_JET_30 = Cut('jet2_pt > 30000')
+AT_LEAST_1JET = Cut('jet1_pt > 30000')
 
-VBF_CUTS = LEAD_JET_50 & SUBLEAD_JET_30
-BOOSTED_CUTS = LEAD_JET_50 & (- SUBLEAD_JET_30)
-GGF_CUTS = (- LEAD_JET_50)
+CUTS_2J = LEAD_JET_50 & SUBLEAD_JET_30
+CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
+CUTS_0J = (- LEAD_JET_50)
 
-# test with Swagato
-# 3P vs 3P
-#P3P3 = Cut('tau1_numTrack==3 && tau2_numTrack==3')
-#ID_MEDIUM = Cut()
-#ID_MEDIUM_TIGHT = Cut()
-#COMMON_CUTS = P3P3
-#VBF_CUTS = Cut()
-#BOOSTED_CUTS = Cut()
-#GGF_CUTS = Cut()
+CUTS_VBF = Cut('dEta_jets > 3.0')
+CUTS_BOOSTED = Cut('mmc_resonance_pt > 100000')
 
 P1P3_RECOUNTED = (
     (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
     &
     (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
 
-# TODO: require 1 or 3 (recounted) tracks after track fit
-# possible new variable: ratio of core tracks to recounted tracks
+# TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
 
 
+features_2j = [
+    'mass_mmc_tau1_tau2',
+    # !!! mass ditau + leading jet?
+    'dEta_jets',
+    #'dEta_jets_boosted', #
+    'eta_product_jets',
+    #'eta_product_jets_boosted', #
+    'mass_jet1_jet2',
+    #'sphericity', #
+    #'sphericity_boosted', #
+    #'sphericity_full', #
+    #'aplanarity', #
+    #'aplanarity_boosted', #
+    #'aplanarity_full', #
+    'tau1_centrality',
+    'tau2_centrality',
+    #'tau1_centrality_boosted', #
+    #'tau2_centrality_boosted', #
+    #'cos_theta_tau1_tau2', #
+    'dR_tau1_tau2',
+    #'tau1_BDTJetScore',
+    #'tau2_BDTJetScore',
+    #'tau1_x', #
+    #'tau2_x', #
+    'MET_centrality',
+    'mmc_resonance_pt',
+    #'sum_pt', #
+    # !!! eta centrality of 3rd jet
+]
+
+features_1j = [
+    'mass_mmc_tau1_tau2',
+    # !!! mass ditau + leading jet?
+    'sphericity',
+    #'sphericity_boosted',
+    #'sphericity_full',
+    #'aplanarity',
+    #'aplanarity_boosted',
+    #'aplanarity_full',
+    #'cos_theta_tau1_tau2',
+    'dR_tau1_tau2',
+    #'tau1_BDTJetScore',
+    #'tau2_BDTJetScore',
+    'tau1_x',
+    'tau2_x',
+    'MET_centrality',
+    #'sum_pt',
+    'mmc_resonance_pt',
+]
+
+features_0j = [
+    'mass_mmc_tau1_tau2',
+    #'cos_theta_tau1_tau2',
+    'dR_tau1_tau2',
+    #'tau1_BDTJetScore',
+    #'tau2_BDTJetScore',
+    'tau1_x',
+    'tau2_x',
+    'MET_centrality',
+    'mmc_resonance_pt',
+]
+
+
+class Category(object):
+
+    # common attrs for all categories. Override in subclasses
+    year_cuts = {
+        2011: ID_MEDIUM,
+        2012: ID_MEDIUM_TIGHT}
+    qcd_shape_region = 'SS'
+    target_region = 'OS'
+
+# Default categories
+
+class Category_2J(Category):
+
+    name = '2j'
+    label = r'$\tau_{had}\tau_{had}$: 2-Jet Category'
+    cuts = CUTS_2J & COMMON_CUTS
+    fitbins = 5
+    limitbins = 10
+    limitbinning = 'onebkg'
+    features = features_2j
+
+
+class Category_1J(Category):
+
+    name = '1j'
+    label = r'$\tau_{had}\tau_{had}$: 1-Jet Category'
+    cuts = CUTS_1J & COMMON_CUTS
+    fitbins = 5
+    limitbins = 10
+    limitbinning = 'onebkg'
+    features = features_1j
+
+
+class Category_0J(Category):
+
+    name = '0j'
+    label = r'$\tau_{had}\tau_{had}$: 0-Jet Category'
+    cuts = CUTS_0J & COMMON_CUTS
+    fitbins = 8
+    limitbins = 10
+    limitbinning = 'onebkg'
+    features = features_0j
+
+
+# Harmonization
+
+class Category_VBF(Category):
+
+    name = 'vbf'
+    label = r'$\tau_{had}\tau_{had}$: VBF Category'
+    cuts = CUTS_VBF & CUTS_2J & COMMON_CUTS
+    fitbins = 5
+    limitbins = 10
+    limitbinning = 'onebkg'
+    features = features_2j
+
+
+class Category_Boosted(Category):
+
+    name = 'boosted'
+    label = r'$\tau_{had}\tau_{had}$: Boosted Category'
+    cuts = CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J)) & COMMON_CUTS
+    fitbins = 5
+    limitbins = 10
+    limitbinning = 'onebkg'
+    # warning: some variables will be undefined for some events
+    features = features_2j
+
+
+class Category_Nonboosted_1J(Category):
+
+    name = '1j_nonboosted'
+    label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
+    cuts = AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J)))) & COMMON_CUTS
+    fitbins = 5
+    limitbins = 10
+    limitbinning = 'onebkg'
+    features = features_1j
+
+
+class Category_Nonboosted_0J(Category):
+
+    name = '0j'
+    label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
+    cuts = - (AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J))))) & COMMON_CUTS
+    fitbins = 8
+    limitbins = 10
+    limitbinning = 'onebkg'
+    features = features_0j
+
+
+
 CATEGORIES = {
-    '2j': {
-        'name': r'$\tau_{had}\tau_{had}$: 2-Jet Category',
-        'cuts': VBF_CUTS & COMMON_CUTS,
-        'year_cuts': {
-            2011: ID_MEDIUM,
-            2012: ID_MEDIUM_TIGHT},
-        'fitbins': 5,
-        'limitbins': 10,
-        'limitbinning': 'onebkg',
-        'qcd_shape_region': 'SS',
-        'target_region': 'OS',
-        'features': [
-            'mass_mmc_tau1_tau2',
-            # !!! mass ditau + leading jet?
-            'dEta_jets',
-            #'dEta_jets_boosted', #
-            'eta_product_jets',
-            #'eta_product_jets_boosted', #
-            'mass_jet1_jet2',
-            #'sphericity', #
-            #'sphericity_boosted', #
-            #'sphericity_full', #
-            #'aplanarity', #
-            #'aplanarity_boosted', #
-            #'aplanarity_full', #
-            'tau1_centrality',
-            'tau2_centrality',
-            #'tau1_centrality_boosted', #
-            #'tau2_centrality_boosted', #
-            #'cos_theta_tau1_tau2', #
-            'dR_tau1_tau2',
-            #'tau1_BDTJetScore',
-            #'tau2_BDTJetScore',
-            #'tau1_x', #
-            #'tau2_x', #
-            'MET_centrality',
-            'mmc_resonance_pt',
-            #'sum_pt', #
-            # !!! eta centrality of 3rd jet
-        ]
-    },
-    '1j': {
-        'name': r'$\tau_{had}\tau_{had}$: 1-Jet Category',
-        'cuts': BOOSTED_CUTS & COMMON_CUTS,
-        'year_cuts': {
-            2011: ID_MEDIUM,
-            2012: ID_MEDIUM_TIGHT},
-        'fitbins': 5,
-        'limitbins': 10,
-        'limitbinning': 'onebkg',
-        'qcd_shape_region': 'SS',
-        'target_region': 'OS',
-        'features': [
-            'mass_mmc_tau1_tau2',
-            # !!! mass ditau + leading jet?
-            'sphericity',
-            #'sphericity_boosted',
-            #'sphericity_full',
-            #'aplanarity',
-            #'aplanarity_boosted',
-            #'aplanarity_full',
-            #'cos_theta_tau1_tau2',
-            'dR_tau1_tau2',
-            #'tau1_BDTJetScore',
-            #'tau2_BDTJetScore',
-            'tau1_x',
-            'tau2_x',
-            'MET_centrality',
-            #'sum_pt',
-            'mmc_resonance_pt',
-        ]
-    },
-    '0j': {
-        'name': r'$\tau_{had}\tau_{had}$: 0-Jet Category',
-        'cuts': GGF_CUTS & COMMON_CUTS,
-        'year_cuts': {
-            2011: ID_MEDIUM,
-            2012: ID_MEDIUM_TIGHT},
-        'fitbins': 8,
-        'limitbins': 10,
-        'limitbinning': 'onebkg',
-        'qcd_shape_region': 'SS',
-        'target_region': 'OS',
-        'features': [
-            'mass_mmc_tau1_tau2',
-            #'cos_theta_tau1_tau2',
-            'dR_tau1_tau2',
-            #'tau1_BDTJetScore',
-            #'tau2_BDTJetScore',
-            'tau1_x',
-            'tau2_x',
-            'MET_centrality',
-            'mmc_resonance_pt',
-        ]
-    },
+    'default': [
+        Category_2J,
+        Category_1J,
+        Category_0J,
+        ],
+    'harmonize': [
+        Category_VBF,
+        Category_Boosted,
+        Category_Nonboosted_1J,
+        Category_Nonboosted_0J,
+    ]
 }
+
+
+
+
+
 
 CONTROLS = {
     'preselection': {
@@ -182,46 +252,3 @@ CONTROLS = {
         'target_region': 'OS',
     }
 }
-
-DEFAULT_LOW_MASS = 110
-DEFAULT_HIGH_MASS = 180
-
-
-class MassRegions(object):
-
-    def __init__(self,
-            low=DEFAULT_LOW_MASS,
-            high=DEFAULT_HIGH_MASS,
-            high_sideband_in_control=False):
-
-        assert low > BAD_MASS
-
-        # control region is low and high mass sidebands
-        self.__control_region = Cut('mass_mmc_tau1_tau2 < %d' % low)
-        if high_sideband_in_control:
-            assert high > low
-            self.__control_region |= Cut('mass_mmc_tau1_tau2 > %d' % high)
-
-        # signal region is the negation of the control region
-        self.__signal_region = -self.__control_region
-
-        # train on everything
-        self.__train_region = Cut('')
-
-    @property
-    def control_region(self):
-
-        # make a copy
-        return Cut(self.__control_region)
-
-    @property
-    def signal_region(self):
-
-        # make a copy
-        return Cut(self.__signal_region)
-
-    @property
-    def train_region(self):
-
-        # make a copy
-        return Cut(self.__train_region)

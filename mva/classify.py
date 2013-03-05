@@ -16,7 +16,7 @@ from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 from rootpy.plotting import Hist
-from rootpy.io import open as ropen
+from rootpy.io import root_open as ropen
 from rootpy.extern.tabulartext import PrettyTable
 from rootpy.math.stats.correlation import correlation_plot
 
@@ -154,8 +154,9 @@ class ClassificationProblem(object):
 
                 clf_filename = os.path.join(CACHE_DIR, 'classify',
                         'clf_%s%s_%d.pickle' % (
-                        self.category, self.output_suffix, partition_idx))
+                        self.category.name, self.output_suffix, partition_idx))
 
+                log.info("attempting to open %s ..." % clf_filename)
                 if os.path.isfile(clf_filename):
                     # use a previously trained classifier
                     log.info("found existing classifier in %s" % clf_filename)
@@ -167,6 +168,7 @@ class ClassificationProblem(object):
                     #clfs[partition_idx] = clf
                     clfs[(partition_idx + 1) % 2] = clf
                 else:
+                    log.warning("could not open %s" % clf_filename)
                     use_cache = False
                     break
             if use_cache:

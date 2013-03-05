@@ -1,7 +1,8 @@
 import rootpy
 from rootpy.extern import argparse
 
-from .categories import CATEGORIES, CONTROLS, DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
+from .categories import CATEGORIES, CONTROLS
+from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from .variables import VARIABLES
 
 
@@ -30,8 +31,9 @@ def general_parser(parser=None):
             dest='systematics',
             help="turn off systematics",
             default=True)
-    parser.add_argument('--categories', nargs='*', default=CATEGORIES.keys(),
-            help='which categories to draw plot or train in')
+    parser.add_argument('--categories', default='default',
+            choices=CATEGORIES.keys(),
+            help='category definitions')
     """
     parser.add_argument('--controls', nargs='*', default=CONTROLS.keys(),
             help='which controls to draw plots in')

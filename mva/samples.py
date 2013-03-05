@@ -23,7 +23,7 @@ from higgstautau import samples as samples_db
 # rootpy imports
 import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
-from rootpy.io import open as ropen, TemporaryFile
+from rootpy.io import root_open as ropen, TemporaryFile
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
 from rootpy.memory.keepalive import keepalive
@@ -306,17 +306,8 @@ class Sample(object):
                     else:
                         sys_cut &= variations['NOMINAL']
 
-        if category in categories.CATEGORIES:
-            return (categories.CATEGORIES[category]['cuts'] &
-                    categories.CATEGORIES[category]['year_cuts'][self.year] &
-                    Sample.REGIONS[region] & self._cuts & sys_cut)
-        elif category in categories.CONTROLS:
-            return (categories.CONTROLS[category]['cuts'] &
-                    categories.CONTROLS[category]['year_cuts'][self.year] &
-                    Sample.REGIONS[region] & self._cuts & sys_cut)
-        else:
-            raise ValueError(
-                    'no such category or control region: %s' % category)
+        return (category.cuts & category.year_cuts[self.year] &
+                Sample.REGIONS[region] & self._cuts & sys_cut)
 
     def draw(self, expr, category, region, bins, min, max, cuts=None, p1p3=True):
 

@@ -29,7 +29,8 @@ from mva.utils import make_multipage_pdf
 from mva.norm import qcd_ztautau_norm
 from mva.classify import *
 from mva.systematics import SYSTEMATICS
-from mva.categories import MassRegions, CATEGORIES
+from mva.categories import CATEGORIES
+from mva.massregions import MassRegions
 from mva.variables import VARIABLES
 
 
@@ -77,23 +78,21 @@ signal_region = mass_regions.signal_region
 train_region = mass_regions.train_region
 
 all_channels = {}
+categories = CATEGORIES[args.categories]
 
-for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
-
-    if category not in args.categories:
-        continue
+for category in categories:
 
     log.info("")
     log.info("=" * 40)
-    log.info("%s category" % category)
+    log.info("%s category" % category.name)
     log.info("=" * 40)
-    log.info("Cuts: %s" % cat_info['cuts'])
+    log.info("Cuts: %s" % category.cuts)
     
     # QCD shape region SS or !OS
-    qcd_shape_region = cat_info['qcd_shape_region']
-    target_region = cat_info['target_region']
+    qcd_shape_region = category.qcd_shape_region
+    target_region = category.target_region
     
-    figures[category] = {}
+    figures[category.name] = {}
 
     qcd = QCD(data=data, mc=[others, ztautau],
           shape_region=qcd_shape_region)
@@ -115,10 +114,10 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         others=others,
         qcd=qcd,
         data=data,
-        category=category,
+        category=category.name,
         target_region=target_region,
         mass_regions=mass_regions,
-        bins=cat_info['fitbins'],
+        bins=category.fitbins,
         draw=args.draw_fit,
         use_cache=args.use_fit_cache,
         param=args.fit_param,
@@ -140,14 +139,14 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
 
         for expr, var_info in VARS.items():
 
-            if category in args.categories and category.upper() not in var_info['cats']:
+            if category.name.upper() not in var_info['cats']:
                 continue
             elif args.plots and expr not in args.plots:
                 continue
 
             log.info("")
-            log.info("plotting %s in %s category" % (expr, category))
-            log.info(cat_info['cuts'] & cuts)
+            log.info("plotting %s in %s category" % (expr, category.name))
+            log.info(category.cuts & cuts)
 
             bins = var_info['bins']
             min, max = var_info['range']
@@ -168,7 +167,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                     signal=[higgs_125],
                     name=var_info['root'] if args.root else var_info['title'],
                     output_name=output_name,
-                    category_name=cat_info['name'],
+                    category_name=category.label,
                     category=category,
                     region=target_region,
                     units=var_info.get('units', None),
@@ -180,7 +179,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                     systematics=SYSTEMATICS.values() if args.systematics else None,
                     root=args.root,
                     output_formats=args.output_formats)
-            figures[category][expr] = fig
+            figures[category.name][expr] = fig
 
     if 'train' in args.actions:
         
@@ -193,9 +192,9 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
         ]
 
         clf = ClassificationProblem(
-                fields=cat_info['features'],
+                fields=category.features,
                 category=category,
-                category_name=cat_info['name'],
+                category_name=category.label,
                 region=target_region,
                 output_suffix=output_suffix)
         
@@ -218,7 +217,7 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 systematics=args.systematics,
                 bins=args.bins)
 
-        #category_scores[category] = (bkg_scores, sig_scores)
+        #category_scores[category.name] = (bkg_scores, sig_scores)
 
     if 'limits' in args.actions:
 
@@ -227,15 +226,15 @@ for category, cat_info in sorted(CATEGORIES.items(), key=lambda item: item[0]):
                 clf, category, target_region,
                 backgrounds, data=data, 
                 cuts=signal_region,
-                bins=cat_info['limitbins'],
-                binning=cat_info['limitbinning'],
+                bins=category.limitbins,
+                binning=category.limitbinning,
                 mass_points=[125],
                 systematics=args.systematics)
 
         for mass, channel in channels.items():
             if mass not in all_channels:
                 all_channels[mass] = {}
-            all_channels[mass][category] = channel
+            all_channels[mass][category.name] = channel
 
 
 if 'limits' in args.actions:

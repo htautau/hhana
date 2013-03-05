@@ -145,6 +145,8 @@ def channels(clf, category, region, backgrounds,
             # samples with negative weights (SS subtraction in the QCD) and
             # MC@NLO samples.
 
+            # TODO: perform rebinning iteratively on all bins
+
             log.info("binning such that each bin has at least one background")
 
             default_bins = list(np.linspace(
@@ -236,7 +238,7 @@ def channels(clf, category, region, backgrounds,
                     cuts=cuts, scores=data_scores)
 
         # create channel for this mass point
-        channel = histfactory.make_channel("%s_%d" % (category, mass),
+        channel = histfactory.make_channel("%s_%d" % (category.name, mass),
                                samples, data=data_sample)
         channels[mass] = channel
     return channels
