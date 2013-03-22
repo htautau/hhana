@@ -222,7 +222,6 @@ class ClassificationProblem(object):
         corr_background_weight = np.concatenate(map(np.concatenate,
             background_weight_arrs))
 
-        # draw a linear correlation matrix
         correlations(
             signal=rec_to_ndarray(corr_signal, self.all_fields),
             signal_weight=corr_signal_weight,
@@ -523,6 +522,10 @@ class ClassificationProblem(object):
         train_region = mass_regions.train_region
 
         year = backgrounds[0].year
+
+        # TODO: show 2D plots of all input variables and with BDT output
+
+
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region

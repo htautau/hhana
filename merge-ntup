@@ -10,14 +10,16 @@ args = parser.parse_args()
 import re
 import os
 from glob import glob
-from rootpy.io import open as ropen
+from rootpy.io import root_open as ropen
 from rootpy.tree import Tree
 
 ds_pattern = re.compile('%s\.(?P<name>.+)\.root$' % (args.student))
+output_filename = os.path.join(args.path, args.student) + '.root'
 
-with ropen(os.path.join(args.path, args.student) + '.root',
-        'RECREATE') as outfile:
+with ropen(output_filename, 'RECREATE') as outfile:
     for filename in glob(os.path.join(args.path, '*.root')):
+        if filename == output_filename:
+            continue
         match = re.search(ds_pattern, filename)
         if not match:
             print "%s is not a valid filename" % filename

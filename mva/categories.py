@@ -134,7 +134,7 @@ class Category_2J(Category):
     label = r'$\tau_{had}\tau_{had}$: 2-Jet Category'
     cuts = CUTS_2J & COMMON_CUTS
     fitbins = 5
-    limitbins = 10
+    limitbins = 5
     limitbinning = 'onebkg'
     features = features_2j
 
@@ -145,7 +145,7 @@ class Category_1J(Category):
     label = r'$\tau_{had}\tau_{had}$: 1-Jet Category'
     cuts = CUTS_1J & COMMON_CUTS
     fitbins = 5
-    limitbins = 10
+    limitbins = 5
     limitbinning = 'onebkg'
     features = features_1j
 
@@ -156,7 +156,7 @@ class Category_0J(Category):
     label = r'$\tau_{had}\tau_{had}$: 0-Jet Category'
     cuts = CUTS_0J & COMMON_CUTS
     fitbins = 8
-    limitbins = 10
+    limitbins = 5
     limitbinning = 'onebkg'
     features = features_0j
 
