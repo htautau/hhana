@@ -77,6 +77,54 @@ def root_axes(ax, no_xlabels=False, vscale=1.):
     ax.tick_params(which='minor', length=4)
 
 
+def scatter(x, y,
+            x_name, y_name,
+            category,
+            region,
+            category_name,
+            output_name,
+            backgrounds,
+            signals=None,
+            data=None,
+            signal_scale=1.,
+            x_units=None,
+            y_units=None):
+
+    # TODO: handle special case if x or y is a classifier
+
+    plt.figure()
+
+    xmin, xmax = float('inf'), float('-inf')
+    ymin, ymax = float('inf'), float('-inf')
+
+    for background in backgrounds:
+        plt.scatter(X_test_pca[y_test == i, 0], X_test_pca[y_test == i, 1],
+                    c=c, label=target_name,
+                    s=w_test[y_test == i] * 10,
+                    alpha=0.9)
+
+    xwidth = xmax - xmin
+    ywidth = ymax - ymin
+    xpad = xwidth * .1
+    ypad = ywidth * .1
+
+    plt.xlim((xmin - xpad, xmax + xpad))
+    plt.ylim((ymin - ypad, ymax + ypad))
+    plt.legend()
+
+    if x_units is not None:
+        pl.xlabel('%s [%s]' % (x_name, x_units))
+    else:
+        pl.xlabel(x_name)
+    if y_units is not None:
+        pl.ylabel('%s [%s]' % (y_name, y_units))
+    else:
+        pl.ylabel(y_name)
+
+    pl.title(category_name)
+    pl.savefig('scatter_%s_%s_%s.png' % (category, x_name, y_name))
+
+
 def uncertainty_band(model, systematics):
 
     # TODO determine systematics from model itself

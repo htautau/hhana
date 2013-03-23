@@ -222,10 +222,6 @@ class Sample(object):
               cuts=None,
               systematic='NOMINAL'):
 
-        if 'weight' not in fields:
-            fields = fields + ['weight']
-
-        # split using parity of EventNumber
         arrays = self.tables(
                 category,
                 region,
@@ -385,6 +381,10 @@ class Data(Sample):
                include_weight=True,
                systematic='NOMINAL',
                p1p3=True):
+
+        if include_weight and fields is not None:
+            if 'weight' not in fields:
+                fields = fields + ['weight']
 
         Sample.check_systematic(systematic)
         selection = self.cuts(category, region, p1p3=p1p3) & cuts
@@ -796,6 +796,10 @@ class MC(Sample):
                include_weight=True,
                systematic='NOMINAL',
                p1p3=True):
+
+        if include_weight and fields is not None:
+            if 'weight' not in fields:
+                fields = fields + ['weight']
 
         selection = self.cuts(category, region, systematic, p1p3) & cuts
 

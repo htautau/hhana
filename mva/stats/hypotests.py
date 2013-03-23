@@ -190,19 +190,19 @@ def channels(clf, category, region, backgrounds,
                 # and where each background has at least zero events
                 # so that no sample may have negative events in this bin
                 all_positive = np.logical_and.reduce([b >= 0. for b in sums])
-                print "all positive"
-                print all_positive
-                print "total >= 1"
-                print total_bkg_cumsum >= 1.
+                #print "all positive"
+                #print all_positive
+                #print "total >= 1"
+                #print total_bkg_cumsum >= 1.
 
                 last_bin_one_bkg = np.where(total_bkg_cumsum >= 1.)[-1][-1]
-                print "last bin index"
-                print last_bin_one_bkg
+                #print "last bin index"
+                #print last_bin_one_bkg
 
                 # bump last bin down until each background is positive
                 last_bin_one_bkg -= all_positive[:last_bin_one_bkg + 1][::-1].argmax()
-                print "last bin index after correction"
-                print last_bin_one_bkg
+                #print "last bin index after correction"
+                #print last_bin_one_bkg
 
                 # get left bin edge corresponding to this bin
                 bin_edge = bkg_hist.xedges(int(last_bin_one_bkg))
