@@ -6,6 +6,9 @@ if not LIMITS_DIR:
     sys.exit('You did not source setup.sh!')
 LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 
+NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
+DEFAULT_STUDENT = 'HHProcessor'
+
 BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
 CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 

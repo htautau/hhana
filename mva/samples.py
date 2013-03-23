@@ -31,8 +31,9 @@ from rootpy.memory.keepalive import keepalive
 # local imports
 from . import log; log = log[__name__]
 from . import variables
+from . import NTUPLE_PATH, DEFAULT_STUDENT
 from .utils import print_hist
-from .periods import LUMI
+from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
@@ -43,12 +44,6 @@ import yellowhiggs
 
 VERBOSE = False
 
-NTUPLE_PATH = os.getenv('HIGGSTAUTAU_NTUPLE_DIR')
-if not NTUPLE_PATH:
-    sys.exit("You did not source higgtautau/setup.sh")
-NTUPLE_PATH = os.path.join(NTUPLE_PATH, 'prod')
-
-DEFAULT_STUDENT = 'HHProcessor'
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}

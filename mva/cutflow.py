@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 from higgstautau import datasets
 from rootpy.extern.tabulartext import TextTable
 from rootpy.io import root_open as ropen
-from .periods import LUMI
+from .lumi import LUMI
 from . import log; log = log[__name__]
 
 
