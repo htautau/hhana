@@ -135,7 +135,7 @@ def channels(clf, category, region, backgrounds,
             hist_template = Hist(flat_bins)
 
         elif binning == 'onebkg':
-            # Define last bin such that it contains at least one background.
+            # Define each bin such that it contains at least one background.
             # First histogram background with a very fine binning,
             # then sum from the right to the left up to a total of one
             # event. Use the left edge of that bin as the left edge of the
@@ -154,7 +154,8 @@ def channels(clf, category, region, backgrounds,
                     max_score_signal,
                     bins + 1))
 
-            total_bkg_hist = Hist(1000, min_score_signal, max_score_signal)
+            nbins = 1000
+            total_bkg_hist = Hist(nbins, min_score_signal, max_score_signal)
             bkg_arrays = []
             # fill background
             for bkg_sample, scores_dict in bkg_scores:
@@ -165,58 +166,66 @@ def channels(clf, category, region, backgrounds,
                 bkg_array = np.array(bkg_hist)
                 bkg_arrays.append(bkg_array)
 
-            sums = []
-            # fill background
-            for bkg_array in bkg_arrays:
-                # reverse cumsum
-                bkg_cumsum = bkg_array[::-1].cumsum()[::-1]
-                sums.append(bkg_cumsum)
+            edges = [max_score_signal]
+            view_cutoff = nbins
+            while True:
 
-            total_bkg_cumsum = np.add.reduce(sums)
+                # expected bin location
+                bin_index_expected = int(view_cutoff - (nbins / bins))
+                if (bin_index_expected <= 0 or
+                    bin_index_expected <= (nbins / bins)):
+                    break
+                bin_edge_expected = total_bkg_hist.xedges(bin_index_expected)
 
-            # determine last element with at least a value of 1.
-            # and where each background has at least zero events
-            # so that no sample may have negative events in this bin
-            all_positive = np.logical_and.reduce([b >= 0. for b in sums])
-            print "all positive"
-            print all_positive
-            print "total >= 1"
-            print total_bkg_cumsum >= 1.
+                sums = []
+                # fill background
+                for bkg_array in bkg_arrays:
+                    # reverse cumsum
+                    bkg_cumsum = bkg_array[:view_cutoff][::-1].cumsum()[::-1]
+                    sums.append(bkg_cumsum)
 
-            last_bin_one_bkg = np.where(total_bkg_cumsum >= 1.)[-1][-1]
-            print "last bin index"
-            print last_bin_one_bkg
+                total_bkg_cumsum = np.add.reduce(sums)
 
-            # bump last bin down until each background is positive
-            last_bin_one_bkg -= all_positive[:last_bin_one_bkg + 1][::-1].argmax()
-            print "last bin index after correction"
-            print last_bin_one_bkg
+                # determine last element with at least a value of 1.
+                # and where each background has at least zero events
+                # so that no sample may have negative events in this bin
+                all_positive = np.logical_and.reduce([b >= 0. for b in sums])
+                print "all positive"
+                print all_positive
+                print "total >= 1"
+                print total_bkg_cumsum >= 1.
 
-            # get left bin edge corresponding to this bin
-            bin_edge = bkg_hist.xedges(int(last_bin_one_bkg))
+                last_bin_one_bkg = np.where(total_bkg_cumsum >= 1.)[-1][-1]
+                print "last bin index"
+                print last_bin_one_bkg
 
-            # if this edge is greater than it would otherwise be if we used
-            # constant-width binning over the whole range then just use the
-            # original binning
-            if bin_edge > default_bins[-2]:
-                log.info("constant-width bins are OK")
-                one_bkg_bins = default_bins
+                # bump last bin down until each background is positive
+                last_bin_one_bkg -= all_positive[:last_bin_one_bkg + 1][::-1].argmax()
+                print "last bin index after correction"
+                print last_bin_one_bkg
 
-            else:
-                log.info("adjusting last bin to contain >= one background")
-                log.info("original edge: %f  new edge: %f " %
-                        (default_bins[-2], bin_edge))
+                # get left bin edge corresponding to this bin
+                bin_edge = bkg_hist.xedges(int(last_bin_one_bkg))
 
-                # now define N-1 constant-width bins to the left of this edge
-                left_bins = np.linspace(
-                        min_score_signal,
-                        bin_edge,
-                        bins)
+                # if this edge is greater than it would otherwise be if we used
+                # constant-width binning over the whole range then just use the
+                # original binning
+                if bin_edge > bin_edge_expected:
+                    log.info("expected bin edge %f is OK" % bin_edge_expected)
+                    bin_edge = bin_edge_expected
+                    view_cutoff = bin_index_expected
 
-                one_bkg_bins = list(left_bins)
-                one_bkg_bins.append(max_score_signal)
+                else:
+                    log.info("adjusting bin to contain >= one background")
+                    log.info("original edge: %f  new edge: %f " %
+                            (bin_edge_expected, bin_edge))
+                    view_cutoff = last_bin_one_bkg
 
-            hist_template = Hist(one_bkg_bins)
+                edges.append(bin_edge)
+
+            edges.append(min_score_signal)
+            log.info("edges %s" % str(edges))
+            hist_template = Hist(edges[::-1])
 
         else:
             log.info("using constant-width bins")
