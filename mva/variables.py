@@ -151,7 +151,7 @@ VARIABLES = {
         'range': (-math.sqrt(2), math.sqrt(2)),
         'cats': ['2J', '0J', '1J',]
     },
-    'mass2_vis_tau1_tau2': {
+    'mass_vis_tau1_tau2': {
         'title': r'$M^{vis}_{\tau_{1},\/\tau_{2}}$',
         'root': 'M^{vis}_{#tau_{1}, #tau_{2}}',
         'filename': 'mass_vis',
@@ -183,7 +183,7 @@ VARIABLES = {
         'blind': True,
         'cats': ['2J', '0J', '1J',]
     },
-    'tau1_fourvect.Pt()': {
+    'tau1_pt': {
         'title': r'$p_{T_{\tau_{1}}}$',
         'root': 'p_{T_{#tau_{1}}}',
         'filename': 'tau1_pt',
@@ -193,7 +193,7 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', '0J', '1J',]
     },
-    'tau2_fourvect.Pt()': {
+    'tau2_pt': {
         'title': r'$p_{T_{\tau_{2}}}$',
         'root': 'p_{T_{#tau_{2}}}',
         'filename': 'tau2_pt',
@@ -203,7 +203,7 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', '0J', '1J',]
     },
-    ('tau1_fourvect.Eta()', 'tau2_fourvect.Eta()'): {
+    ('tau1_eta', 'tau2_eta'): {
         'title': r'$\eta_{\tau_{1,\/2}}$',
         'root': '#eta_{#tau_{1, 2}}',
         'filename': 'tau_eta',
@@ -211,7 +211,7 @@ VARIABLES = {
         'range': (-3, 3),
         'cats': ['2J', '0J', '1J',]
     },
-    'tau1_fourvect.Eta()': {
+    'tau1_eta': {
         'title': r'$\eta_{\tau_{1}}$',
         'root': '#eta_{#tau_{1}}',
         'filename': 'tau1_eta',
@@ -219,7 +219,7 @@ VARIABLES = {
         'range': (-3, 3),
         'cats': ['2J', '0J', '1J',]
     },
-    'tau2_fourvect.Eta()': {
+    'tau2_eta': {
         'title': r'$\eta_{\tau_{2}}$',
         'root': '#eta_{#tau_{2}}',
         'filename': 'tau2_eta',
@@ -355,12 +355,20 @@ VARIABLES = {
         'range': (0., 6.),
         'cats': ['2J', '0J', '1J',]
     },
-    'fabs(dPhi_tau1_tau2)': {
+    'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi_{\tau_{1},\/\tau_{2}}$',
         'root': '#Delta#phi_{#tau_{1}, #tau_{2}}',
         'filename': 'dphi_tau1_tau2',
         'bins': 20,
         'range': (0., math.pi),
+        'cats': ['2J', '0J', '1J',]
+    },
+    'dEta_tau1_tau2': {
+        'title': r'$\Delta \eta_{\tau_{1},\/\tau_{2}}$',
+        'root': '#Delta#eta_{#tau_{1}, #tau_{2}}',
+        'filename': 'deta_tau1_tau2',
+        'bins': 20,
+        'range': (0., 4.),
         'cats': ['2J', '0J', '1J',]
     },
     'tau1_charge': {
@@ -411,7 +419,7 @@ VARIABLES = {
         'range': (0, 1),
         'cats': ['2J']
     },
-    'jet1_fourvect.Eta()': {
+    'jet1_eta': {
         'title': r'$\eta_{jet_{1}}$',
         'root': '#eta_{jet_{1}}',
         'filename': 'jet1_eta',
@@ -419,7 +427,7 @@ VARIABLES = {
         'range': (-5, 5),
         'cats': ['2J', '1J']
     },
-    'jet2_fourvect.Eta()': {
+    'jet2_eta': {
         'title': r'$\eta_{jet_{2}}$',
         'root': '#eta_{jet_{2}}',
         'filename': 'jet2_eta',
@@ -427,7 +435,7 @@ VARIABLES = {
         'range': (-5, 5),
         'cats': ['2J']
     },
-    'jet1_fourvect.Pt()': {
+    'jet1_pt': {
         'title': r'$p_{T_{jet_{1}}}$',
         'root': 'p_{T_{jet_{1}}}',
         'filename': 'jet1_pt',
@@ -437,7 +445,7 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J','1J']
     },
-    'jet2_fourvect.Pt()': {
+    'jet2_pt': {
         'title': r'$p_{T_{jet_{2}}}$',
         'root': 'p_{T_{jet_{2}}}',
         'filename': 'jet2_pt',
@@ -447,7 +455,7 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J']
     },
-    'jet1_fourvect_boosted.Eta()': {
+    'jet1_fourvect_boosted_eta': {
         'title': r'Boosted $\eta_{jet_{1}}$',
         'root': 'Boosted #eta_{jet_{1}}',
         'filename': 'jet1_eta_boosted',
@@ -455,7 +463,7 @@ VARIABLES = {
         'range': (-5, 5),
         'cats': ['2J']
     },
-    'jet2_fourvect_boosted.Eta()': {
+    'jet2_fourvect_boosted_eta': {
         'title': r'Boosted $\eta_{jet_{2}}$',
         'root': 'Boosted #eta_{jet_{2}}',
         'filename': 'jet2_eta_boosted',
@@ -463,7 +471,7 @@ VARIABLES = {
         'range': (-5, 5),
         'cats': ['2J']
     },
-    ('jet1_fourvect.Eta()', 'jet2_fourvect.Eta()'): {
+    ('jet1_eta', 'jet2_eta'): {
         'title': r'$\eta_{jet_{1,\/2}}$',
         'root': '#eta_{jet_{1, 2}}',
         'filename': 'jet_eta',
@@ -471,7 +479,7 @@ VARIABLES = {
         'range': (-5, 5),
         'cats': ['2J']
     },
-    ('jet1_fourvect_boosted.Eta()', 'jet2_fourvect_boosted.Eta()'): {
+    ('jet1_fourvect_boosted_eta', 'jet2_fourvect_boosted_eta'): {
         'title': r'Boosted $\eta_{jet_{1,\/2}}$',
         'root': 'Boosted #eta_{jet_{1, 2}}',
         'filename': 'jet_eta_boosted',
