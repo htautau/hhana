@@ -20,7 +20,15 @@ $(HHNTUP)/merged_grl.xml:
 $(HHNTUP)/observed_grl.xml: $(HHNTUP)/merged_grl.xml ../higgstautau/grl/2012/current.xml 
 	grl and $^ > $@
 
-grl: $(HHNTUP)/observed_grl.xml
+~/observed_grl.xml: $(HHNTUP)/observed_grl.xml
+	cp $^ $@
+
+grl: ~/observed_grl.xml
+
+clean-grl:
+	rm -f $(HHNTUP)/observed_grl.xml
+	rm -f ~/observed_grl.xml
+	rm -f $(HHNTUP)/merged_grl.xml
 
 clean-pyc:                                                                      
 	find . -name "*.pyc" | xargs rm -f
