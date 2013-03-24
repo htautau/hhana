@@ -1,5 +1,6 @@
 import pickle
 from operator import itemgetter
+import itertools
 
 import numpy as np
 
@@ -24,7 +25,7 @@ from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from .systematics import SYSTEMATICS
-from .plotting import draw, plot_clf, plot_grid_scores
+from .plotting import draw, plot_clf, plot_grid_scores, draw_scatter
 from . import variables
 from . import LIMITS_DIR
 
@@ -524,7 +525,14 @@ class ClassificationProblem(object):
         year = backgrounds[0].year
 
         # TODO: show 2D plots of all input variables and with BDT output
+        # all possible pairs of inputs
+        all_pairs = list(itertools.combinations(self.all_fields, 2))
 
+        for x, y in all_pairs:
+            draw_scatter(x, y,
+                    self.category, self.region,
+                    self.output_suffix, backgrounds)
+            break
 
 
         ########################################################################

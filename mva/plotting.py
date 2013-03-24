@@ -19,6 +19,8 @@ from rootpy.plotting import Canvas, Pad, Legend, Hist, HistStack
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
 
+from .variables import VARIABLES
+
 
 def package_path(name):
 
@@ -77,18 +79,14 @@ def root_axes(ax, no_xlabels=False, vscale=1.):
     ax.tick_params(which='minor', length=4)
 
 
-def scatter(x, y,
-            x_name, y_name,
-            category,
-            region,
-            category_name,
-            output_name,
-            backgrounds,
-            signals=None,
-            data=None,
-            signal_scale=1.,
-            x_units=None,
-            y_units=None):
+def draw_scatter(x, y,
+                 category,
+                 region,
+                 output_name,
+                 backgrounds,
+                 signals=None,
+                 data=None,
+                 signal_scale=1.):
 
     # TODO: handle special case if x or y is a classifier
 
@@ -98,10 +96,28 @@ def scatter(x, y,
     ymin, ymax = float('inf'), float('-inf')
 
     for background in backgrounds:
-        plt.scatter(X_test_pca[y_test == i, 0], X_test_pca[y_test == i, 1],
-                    c=c, label=target_name,
-                    s=w_test[y_test == i] * 10,
-                    alpha=0.9)
+        array = background.array([x, y], category, region)
+        x_array = array[x]
+        y_array = array[y]
+        # update max and min bounds
+        lxmin, lxmax = x_array.min(), x_array.max()
+        lymin, lymax = y_array.min(), y_array.max()
+        if lxmin < xmin:
+            xmin = lxmin
+        if lxmax > xmax:
+            xmax = lxmax
+        if lymin < ymin:
+            ymin = lymin
+        if lymax > ymax:
+            ymax = lymax
+        weight = array['weight']
+        plt.scatter(x_array, y_array,
+                    c=background.hist_decor['color'],
+                    label=background.label,
+                    s=weight * 10,
+                    #edgecolors='',
+                    linewidths=1,
+                    alpha=0.75)
 
     xwidth = xmax - xmin
     ywidth = ymax - ymin
@@ -110,19 +126,29 @@ def scatter(x, y,
 
     plt.xlim((xmin - xpad, xmax + xpad))
     plt.ylim((ymin - ypad, ymax + ypad))
-    plt.legend()
+
+    plt.legend(loc='upper right',
+               numpoints=1)
+
+    x_name = VARIABLES[x]['title']
+    x_filename = VARIABLES[x]['filename']
+    x_units = VARIABLES[x].get('units', None)
+    y_name = VARIABLES[y]['title']
+    y_filename = VARIABLES[y]['filename']
+    y_units = VARIABLES[y].get('units', None)
 
     if x_units is not None:
-        pl.xlabel('%s [%s]' % (x_name, x_units))
+        plt.xlabel('%s [%s]' % (x_name, x_units))
     else:
-        pl.xlabel(x_name)
+        plt.xlabel(x_name)
     if y_units is not None:
-        pl.ylabel('%s [%s]' % (y_name, y_units))
+        plt.ylabel('%s [%s]' % (y_name, y_units))
     else:
-        pl.ylabel(y_name)
+        plt.ylabel(y_name)
 
-    pl.title(category_name)
-    pl.savefig('scatter_%s_%s_%s.png' % (category, x_name, y_name))
+    plt.title(category.label)
+    plt.savefig('scatter_%s_%s_%s%s.png' % (
+        category.name, x_filename, y_filename, output_name))
 
 
 def uncertainty_band(model, systematics):

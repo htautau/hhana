@@ -233,6 +233,22 @@ class Sample(object):
         return np.hstack(map(itemgetter(0), arrays)), \
                np.hstack(map(itemgetter(1), arrays))
 
+    def array(self,
+              fields,
+              category,
+              region,
+              cuts=None,
+              systematic='NOMINAL'):
+
+        left, right = self.split(
+                fields,
+                category,
+                region,
+                cuts=cuts,
+                systematic=systematic)
+
+        return np.hstack([left, right])
+
     @classmethod
     def check_systematic(cls, systematic):
 
