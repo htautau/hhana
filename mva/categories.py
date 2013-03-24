@@ -1,6 +1,6 @@
 from rootpy.tree import Cut
 
-from .samples import Higgs
+from . import samples
 
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
 TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
@@ -125,7 +125,7 @@ class Category(object):
         2012: ID_MEDIUM_TIGHT}
     qcd_shape_region = 'SS'
     target_region = 'OS'
-    train_signal_modes = Higgs.MODES[:]
+    train_signal_modes = samples.Higgs.MODES[:]
 
 
 # Default categories

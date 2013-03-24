@@ -962,6 +962,7 @@ def plot_clf(background_scores,
              draw_histograms=True,
              draw_data=False,
              save_histograms=False,
+             hist_template=None,
              bins=10,
              min_score=0,
              max_score=1,
@@ -972,13 +973,14 @@ def plot_clf(background_scores,
              systematics=None,
              **kwargs):
 
-    if hasattr(bins, '__iter__'):
-        # variable width bins
-        hist_template = Hist(bins)
-        min_score = min(bins)
-        max_score = max(bins)
-    else:
-        hist_template = Hist(bins, min_score, max_score)
+    if hist_template is None:
+        if hasattr(bins, '__iter__'):
+            # variable width bins
+            hist_template = Hist(bins)
+            min_score = min(bins)
+            max_score = max(bins)
+        else:
+            hist_template = Hist(bins, min_score, max_score)
 
     bkg_hists = []
     for bkg, scores_dict in background_scores:

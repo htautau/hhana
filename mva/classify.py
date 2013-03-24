@@ -27,6 +27,7 @@ from .systematics import SYSTEMATICS
 from .plotting import draw, plot_clf, plot_grid_scores, draw_scatter
 from . import variables
 from . import LIMITS_DIR
+from .stats.utils import get_safe_template
 
 
 def print_feature_ranking(clf, fields):
@@ -533,8 +534,8 @@ class ClassificationProblem(object):
         log.info("plotting classifier output in the signal region ...")
 
         # determine min and max scores
-        min_score = 1e10
-        max_score = -1e10
+        min_score = float('inf')
+        max_score = float('-inf')
 
         # background model scores
         bkg_scores = []
@@ -605,6 +606,21 @@ class ClassificationProblem(object):
             bins=bins + 2,
             min_score=min_score,
             max_score=max_score,
+            systematics=SYSTEMATICS.values() if systematics else None)
+
+        # plot using the binning used for limit setting
+        limit_binning_hist_template = get_safe_template(
+                limitbinning, limitbins, bkg_scores, sig_scores)
+
+        plot_clf(
+            background_scores=bkg_scores,
+            category=self.category,
+            plot_label='Mass Signal Region',
+            signal_scores=sig_scores,
+            signal_scale=signal_scale,
+            draw_data=True,
+            name='signal_region_%s%s' % (limitbinning, self.output_suffix),
+            hist_template=limit_binning_hist_template,
             systematics=SYSTEMATICS.values() if systematics else None)
 
         ############################################################

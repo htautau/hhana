@@ -11,8 +11,10 @@ ntup-clean:
 $(HHNTUP)/$(HHSTUDENT).root:
 	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)
 
-ntup: $(HHNTUP)/$(HHSTUDENT).root
-	root2hdf5 --quiet --script treesplit.py $^
+$(HHNTUP)/$(HHSTUDENT).h5: $(HHNTUP)/$(HHSTUDENT).root
+	root2hdf5 --complib lzo --complevel 5 --quiet --script treesplit.py $^
+
+ntup: $(HHNTUP)/$(HHSTUDENT).h5
 
 $(HHNTUP)/merged_grl.xml:
 	ls $(HHNTUP)/data/*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@

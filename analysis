@@ -215,7 +215,9 @@ for category in categories:
                 mass_regions,
                 unblind=args.unblind,
                 systematics=args.systematics,
-                bins=args.bins)
+                bins=args.bins,
+                limitbins=category.limitbins,
+                limitbinning=category.limitbinning)
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
