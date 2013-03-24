@@ -14,6 +14,7 @@ def channels(clf, category, region, backgrounds,
     """
     Return a HistFactory Channel for each mass hypothesis
     """
+    log.info("constructing channels")
     channels = dict()
     # TODO check for sample compatibility
     year = backgrounds[0].year
@@ -168,15 +169,8 @@ def channels(clf, category, region, backgrounds,
 
             edges = [max_score_signal]
             view_cutoff = nbins
+
             while True:
-
-                # expected bin location
-                bin_index_expected = int(view_cutoff - (nbins / bins))
-                if (bin_index_expected <= 0 or
-                    bin_index_expected <= (nbins / bins)):
-                    break
-                bin_edge_expected = total_bkg_hist.xedges(bin_index_expected)
-
                 sums = []
                 # fill background
                 for bkg_array in bkg_arrays:
@@ -206,6 +200,25 @@ def channels(clf, category, region, backgrounds,
 
                 # get left bin edge corresponding to this bin
                 bin_edge = bkg_hist.xedges(int(last_bin_one_bkg))
+
+                # expected bin location
+                bin_index_expected = int(view_cutoff - (nbins / bins))
+                if (bin_index_expected <= 0 or
+                    bin_index_expected <= (nbins / bins)):
+                    log.warning("early termination of binning")
+                    break
+                # bump expected bin index down until each background is positive
+                bin_index_expected_correct = all_positive[:bin_index_expected + 1][::-1].argmax()
+                if bin_index_expected_correct > 0:
+                    log.warning(
+                        "expected bin index corrected such that all "
+                        "backgrounds are positive")
+                bin_index_expected -= bin_index_expected_correct
+                if (bin_index_expected <= 0 or
+                    bin_index_expected <= (nbins / bins)):
+                    log.warning("early termination of binning after correction")
+                    break
+                bin_edge_expected = total_bkg_hist.xedges(int(bin_index_expected))
 
                 # if this edge is greater than it would otherwise be if we used
                 # constant-width binning over the whole range then just use the
