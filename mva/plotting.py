@@ -2,6 +2,7 @@ from . import log; log = log[__name__]
 import os
 import sys
 import math
+import itertools
 
 import numpy as np
 
@@ -79,76 +80,85 @@ def root_axes(ax, no_xlabels=False, vscale=1.):
     ax.tick_params(which='minor', length=4)
 
 
-def draw_scatter(x, y,
+def draw_scatter(fields,
                  category,
                  region,
                  output_name,
                  backgrounds,
                  signals=None,
                  data=None,
-                 signal_scale=1.):
+                 signal_scale=1.,
+                 cuts=None):
 
-    # TODO: handle special case if x or y is a classifier
-
-    plt.figure()
-
-    xmin, xmax = float('inf'), float('-inf')
-    ymin, ymax = float('inf'), float('-inf')
-
+    background_arrays = []
     for background in backgrounds:
-        array = background.array([x, y], category, region)
-        x_array = array[x]
-        y_array = array[y]
-        # update max and min bounds
-        lxmin, lxmax = x_array.min(), x_array.max()
-        lymin, lymax = y_array.min(), y_array.max()
-        if lxmin < xmin:
-            xmin = lxmin
-        if lxmax > xmax:
-            xmax = lxmax
-        if lymin < ymin:
-            ymin = lymin
-        if lymax > ymax:
-            ymax = lymax
-        weight = array['weight']
-        plt.scatter(x_array, y_array,
-                    c=background.hist_decor['color'],
-                    label=background.label,
-                    s=weight * 10,
-                    #edgecolors='',
-                    linewidths=1,
-                    alpha=0.75)
+        background_arrays.append(background.array(
+            fields, category, region,
+            cuts=cuts))
 
-    xwidth = xmax - xmin
-    ywidth = ymax - ymin
-    xpad = xwidth * .1
-    ypad = ywidth * .1
+    all_pairs = list(itertools.combinations(fields, 2))
 
-    plt.xlim((xmin - xpad, xmax + xpad))
-    plt.ylim((ymin - ypad, ymax + ypad))
+    for x, y in all_pairs:
+        # TODO: handle special case if x or y is a classifier
 
-    plt.legend(loc='upper right',
-               numpoints=1)
+        plt.figure()
 
-    x_name = VARIABLES[x]['title']
-    x_filename = VARIABLES[x]['filename']
-    x_units = VARIABLES[x].get('units', None)
-    y_name = VARIABLES[y]['title']
-    y_filename = VARIABLES[y]['filename']
-    y_units = VARIABLES[y].get('units', None)
+        xmin, xmax = float('inf'), float('-inf')
+        ymin, ymax = float('inf'), float('-inf')
 
-    if x_units is not None:
-        plt.xlabel('%s [%s]' % (x_name, x_units))
-    else:
-        plt.xlabel(x_name)
-    if y_units is not None:
-        plt.ylabel('%s [%s]' % (y_name, y_units))
-    else:
-        plt.ylabel(y_name)
+        for array, background in zip(background_arrays, backgrounds):
+            x_array = array[x] * VARIABLES[x].get('scale', 1.)
+            y_array = array[y] * VARIABLES[y].get('scale', 1.)
+            # update max and min bounds
+            lxmin, lxmax = x_array.min(), x_array.max()
+            lymin, lymax = y_array.min(), y_array.max()
+            if lxmin < xmin:
+                xmin = lxmin
+            if lxmax > xmax:
+                xmax = lxmax
+            if lymin < ymin:
+                ymin = lymin
+            if lymax > ymax:
+                ymax = lymax
+            weight = array['weight']
+            plt.scatter(x_array, y_array,
+                        c=background.hist_decor['color'],
+                        label=background.label,
+                        s=weight * 10,
+                        #edgecolors='',
+                        linewidths=1,
+                        alpha=0.75)
 
-    plt.title(category.label)
-    plt.savefig('scatter_%s_%s_%s%s.png' % (
-        category.name, x_filename, y_filename, output_name))
+        xwidth = xmax - xmin
+        ywidth = ymax - ymin
+        xpad = xwidth * .1
+        ypad = ywidth * .1
+
+        plt.xlim((xmin - xpad, xmax + xpad))
+        plt.ylim((ymin - ypad, ymax + ypad))
+
+        plt.legend(loc='upper right',
+                   numpoints=1)
+
+        x_name = VARIABLES[x]['title']
+        x_filename = VARIABLES[x]['filename']
+        x_units = VARIABLES[x].get('units', None)
+        y_name = VARIABLES[y]['title']
+        y_filename = VARIABLES[y]['filename']
+        y_units = VARIABLES[y].get('units', None)
+
+        if x_units is not None:
+            plt.xlabel('%s [%s]' % (x_name, x_units))
+        else:
+            plt.xlabel(x_name)
+        if y_units is not None:
+            plt.ylabel('%s [%s]' % (y_name, y_units))
+        else:
+            plt.ylabel(y_name)
+
+        plt.title(category.label)
+        plt.savefig('scatter_%s_%s_%s%s.png' % (
+            category.name, x_filename, y_filename, output_name))
 
 
 def uncertainty_band(model, systematics):

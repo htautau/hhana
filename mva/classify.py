@@ -1,6 +1,5 @@
 import pickle
 from operator import itemgetter
-import itertools
 
 import numpy as np
 
@@ -524,16 +523,10 @@ class ClassificationProblem(object):
 
         year = backgrounds[0].year
 
-        # TODO: show 2D plots of all input variables and with BDT output
-        # all possible pairs of inputs
-        all_pairs = list(itertools.combinations(self.all_fields, 2))
-
-        for x, y in all_pairs:
-            draw_scatter(x, y,
-                    self.category, self.region,
-                    self.output_suffix, backgrounds)
-            break
-
+        # show 2D plots of all input variables and with BDT output
+        draw_scatter(self.all_fields,
+                self.category, self.region,
+                self.output_suffix, backgrounds)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
