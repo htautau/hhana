@@ -535,10 +535,25 @@ class ClassificationProblem(object):
 
         year = backgrounds[0].year
 
+        from .samples import Higgs
+        signals = []
+        for mode in Higgs.MODES:
+            signals.append(Higgs(
+                year=year,
+                mode=mode,
+                mass=125,
+                systematics=systematics))
+
         # show 2D plots of all input variables and with BDT output
+        log.info("drawing scatter plots of input variables")
         draw_scatter(self.all_fields,
-                self.category, self.region,
-                self.output_suffix, backgrounds)
+                     self.category,
+                     self.region,
+                     self.output_suffix,
+                     backgrounds,
+                     data=data,
+                     signals=signals,
+                     signal_scale=50.)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -569,12 +584,9 @@ class ClassificationProblem(object):
 
             bkg_scores.append((bkg, scores_dict))
 
-        from .samples import Higgs
         sig_scores = []
         # signal scores
-        for mode in Higgs.MODES:
-            sig = Higgs(year=year, mode=mode, mass=125,
-                    systematics=systematics)
+        for sig in signals:
             scores_dict = sig.scores(self,
                     category=self.category,
                     region=self.region,

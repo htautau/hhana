@@ -88,27 +88,59 @@ def draw_scatter(fields,
                  signals=None,
                  data=None,
                  signal_scale=1.,
+                 signal_colour_map=cm.spring,
                  cuts=None):
 
+    nplots = 1
+    figheight = 6.
+    figwidth = 7.
     background_arrays = []
     for background in backgrounds:
         background_arrays.append(background.array(
             fields, category, region,
             cuts=cuts))
 
+    if data is not None:
+        nplots += 1
+        figwidth += 8.
+        data_array = data.array(
+            fields, category, region,
+            cuts=cuts)
+
+    if signals is not None:
+        nplots += 1
+        figwidth += 8.
+        if data is not None:
+            signal_index = 3
+        else:
+            signal_index = 2
+        signal_arrays = []
+        for signal in signals:
+            signal_arrays.append(signal.array(
+                fields, category, region,
+                cuts=cuts))
+
     all_pairs = list(itertools.combinations(fields, 2))
 
     for x, y in all_pairs:
         # TODO: handle special case if x or y is a classifier
 
-        plt.figure()
+        plt.figure(figsize=(figwidth, figheight), dpi=100)
+        axes = []
+
+        ax_bkg = plt.subplot(1, nplots, 1)
+        axes.append(ax_bkg)
+
+        xscale = VARIABLES[x].get('scale', 1.)
+        yscale = VARIABLES[y].get('scale', 1.)
 
         xmin, xmax = float('inf'), float('-inf')
         ymin, ymax = float('inf'), float('-inf')
 
         for array, background in zip(background_arrays, backgrounds):
-            x_array = array[x] * VARIABLES[x].get('scale', 1.)
-            y_array = array[y] * VARIABLES[y].get('scale', 1.)
+            x_array = array[x] * xscale
+            y_array = array[y] * yscale
+
             # update max and min bounds
             lxmin, lxmax = x_array.min(), x_array.max()
             lymin, lymax = y_array.min(), y_array.max()
@@ -120,25 +152,82 @@ def draw_scatter(fields,
                 ymin = lymin
             if lymax > ymax:
                 ymax = lymax
+
             weight = array['weight']
-            plt.scatter(x_array, y_array,
-                        c=background.hist_decor['color'],
-                        label=background.label,
-                        s=weight * 10,
+            ax_bkg.scatter(
+                    x_array, y_array,
+                    c=background.hist_decor['color'],
+                    label=background.label,
+                    s=weight * 10,
+                    #edgecolors='',
+                    linewidths=1,
+                    marker='o',
+                    alpha=0.75)
+
+        if data is not None:
+            data_ax = plt.subplot(1, nplots, 2)
+            axes.append(data_ax)
+
+            x_array = data_array[x] * xscale
+            y_array = data_array[y] * yscale
+
+            # update max and min bounds
+            lxmin, lxmax = x_array.min(), x_array.max()
+            lymin, lymax = y_array.min(), y_array.max()
+            if lxmin < xmin:
+                xmin = lxmin
+            if lxmax > xmax:
+                xmax = lxmax
+            if lymin < ymin:
+                ymin = lymin
+            if lymax > ymax:
+                ymax = lymax
+
+            weight = array['weight']
+            data_ax.scatter(
+                    x_array, y_array,
+                    c='black',
+                    label=data.label,
+                    s=weight * 10,
+                    #edgecolors='',
+                    linewidths=0,
+                    marker='.')
+
+        if signal is not None:
+            sig_ax = plt.subplot(1, nplots, signal_index)
+            axes.append(sig_ax)
+
+            for i, (array, signal) in enumerate(zip(signal_arrays, signals)):
+                x_array = array[x] * xscale
+                y_array = array[y] * yscale
+
+                # update max and min bounds
+                lxmin, lxmax = x_array.min(), x_array.max()
+                lymin, lymax = y_array.min(), y_array.max()
+                if lxmin < xmin:
+                    xmin = lxmin
+                if lxmax > xmax:
+                    xmax = lxmax
+                if lymin < ymin:
+                    ymin = lymin
+                if lymax > ymax:
+                    ymax = lymax
+                color = signal_colour_map((i + 1) / float(len(signals) + 1))
+                weight = array['weight']
+                sig_ax.scatter(
+                        x_array, y_array,
+                        c=color,
+                        label=signal.label,
+                        s=weight * 10 * signal_scale,
                         #edgecolors='',
                         linewidths=1,
+                        marker='o',
                         alpha=0.75)
 
         xwidth = xmax - xmin
         ywidth = ymax - ymin
         xpad = xwidth * .1
         ypad = ywidth * .1
-
-        plt.xlim((xmin - xpad, xmax + xpad))
-        plt.ylim((ymin - ypad, ymax + ypad))
-
-        plt.legend(loc='upper right',
-                   numpoints=1)
 
         x_name = VARIABLES[x]['title']
         x_filename = VARIABLES[x]['filename']
@@ -147,16 +236,23 @@ def draw_scatter(fields,
         y_filename = VARIABLES[y]['filename']
         y_units = VARIABLES[y].get('units', None)
 
-        if x_units is not None:
-            plt.xlabel('%s [%s]' % (x_name, x_units))
-        else:
-            plt.xlabel(x_name)
-        if y_units is not None:
-            plt.ylabel('%s [%s]' % (y_name, y_units))
-        else:
-            plt.ylabel(y_name)
+        for ax in axes:
+            ax.set_xlim(xmin - xpad, xmax + xpad)
+            ax.set_ylim(ymin - ypad, ymax + ypad)
 
-        plt.title(category.label)
+            ax.legend(loc='upper right',
+                       numpoints=1)
+
+            if x_units is not None:
+                ax.set_xlabel('%s [%s]' % (x_name, x_units))
+            else:
+                ax.set_xlabel(x_name)
+            if y_units is not None:
+                ax.set_ylabel('%s [%s]' % (y_name, y_units))
+            else:
+                ax.set_ylabel(y_name)
+
+        plt.suptitle(category.label)
         plt.savefig('scatter_%s_%s_%s%s.png' % (
             category.name, x_filename, y_filename, output_name))
 

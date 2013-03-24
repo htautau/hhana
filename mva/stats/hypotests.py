@@ -5,6 +5,7 @@ from .asymptotics import AsymptoticsCLs
 from ..samples import Higgs
 from ..plotting import significance
 from . import histfactory
+from .utils import get_safe_template
 
 
 def channels(clf, category, region, backgrounds,
