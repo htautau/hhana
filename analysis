@@ -168,7 +168,6 @@ for category in categories:
                     signal=[higgs_125],
                     name=var_info['root'] if args.root else var_info['title'],
                     output_name=output_name,
-                    category_name=category.label,
                     category=category,
                     region=target_region,
                     units=var_info.get('units', None),
@@ -196,7 +195,6 @@ for category in categories:
         clf = ClassificationProblem(
                 fields=category.features,
                 category=category,
-                category_name=category.label,
                 region=target_region,
                 output_suffix=output_suffix)
         

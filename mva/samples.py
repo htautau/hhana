@@ -971,7 +971,7 @@ class Higgs(MC, Signal):
 
     MASS_POINTS = range(100, 155, 5)
 
-    MODES = ['gg', 'VBF', 'Z', 'W']
+    MODES = ['Z', 'W', 'gg', 'VBF']
 
     MODES_DICT = {
         'gg': ('ggf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),

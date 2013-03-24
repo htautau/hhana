@@ -309,12 +309,11 @@ def draw_samples(
     draw(model=model_hists,
          data=data_hist,
          signal=signal_hists,
-         category=category.name,
+         category=category,
          **kwargs)
 
 
 def draw(name,
-         category_name,
          output_name,
          category,
          data=None,
@@ -687,14 +686,14 @@ def draw(name,
                     leftmargin=0.05, rightmargin=0.5)
             for hist in model:
                 model_legend.AddEntry(hist, 'F')
-            model_legend.SetHeader(category_name)
+            model_legend.SetHeader(category.label)
             model_legend.Draw()
         else:
             model_legend = hist_ax.legend(
                     reversed(model_bars), [h.title for h in reversed(model)],
                     prop=prop,
-                    title=(category_name + '\n' + plot_label
-                        if plot_label else category_name),
+                    title=(category.label + '\n' + plot_label
+                        if plot_label else category.label),
                     loc='upper left',
                     numpoints=1)
             format_legend(model_legend)
@@ -724,13 +723,14 @@ def draw(name,
 
         if right_legend_bars:
             right_legend = hist_ax.legend(
-                    right_legend_bars,
-                    right_legend_titles,
+                    right_legend_bars[::-1],
+                    right_legend_titles[::-1],
                     prop=prop,
                     loc='upper right',
                     numpoints=1)
             format_legend(right_legend)
             if model is not None:
+                # re-add model legend
                 hist_ax.add_artist(model_legend)
 
     if units is not None:
@@ -787,7 +787,7 @@ def draw(name,
 
     filename = os.path.join(dir,
             'var_%s_%s' %
-            (category,
+            (category.name,
              output_name.lower().replace(' ', '_')))
     if root:
         filename += '_root'
@@ -955,7 +955,6 @@ def hist_scores(hist, scores):
 
 def plot_clf(background_scores,
              category,
-             category_name,
              signal_scores=None,
              signal_scale=1.,
              data_scores=None,
@@ -1039,7 +1038,6 @@ def plot_clf(background_scores,
              signal_scale=signal_scale,
              plot_signal_significance=plot_signal_significance,
              category=category,
-             category_name=category_name,
              name="BDT Score",
              output_name=output_name,
              range=(min_score, max_score),

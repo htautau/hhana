@@ -37,12 +37,12 @@ def correlations(signal, signal_weight,
     names = [variables.VARIABLES[field]['title'] for field in fields]
     correlation_plot(signal, signal_weight, names,
                      "correlation_signal_%s%s" % (
-                         category, output_suffix),
-                     title='%s signal' % category)
+                         category.name, output_suffix),
+                     title='%s signal' % category.label)
     correlation_plot(background, background_weight, names,
                      "correlation_background_%s%s" % (
-                         category, output_suffix),
-                     title='%s background' % category)
+                         category.name, output_suffix),
+                     title='%s background' % category.label)
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
@@ -101,7 +101,6 @@ class ClassificationProblem(object):
                  cuts=None,
                  spectators=None,
                  standardize=False,
-                 category_name=None,
                  output_suffix=""):
 
         self.fields = fields
@@ -110,11 +109,6 @@ class ClassificationProblem(object):
         self.spectators = spectators
         self.standardize = standardize
         self.output_suffix = output_suffix
-        if category_name is None:
-            self.category_name = category
-        else:
-            self.category_name = category_name
-
         self.background_label = 0
         self.signal_label = 1
 
@@ -597,7 +591,6 @@ class ClassificationProblem(object):
         plot_clf(
             background_scores=bkg_scores,
             category=self.category,
-            category_name=self.category_name,
             plot_label='Mass Signal Region',
             signal_scores=sig_scores,
             signal_scale=signal_scale,
@@ -665,7 +658,6 @@ class ClassificationProblem(object):
         plot_clf(
             background_scores=bkg_scores,
             category=self.category,
-            category_name=self.category_name,
             plot_label='Mass Control Region',
             signal_scores=None,
             data_scores=(data, data_scores),
