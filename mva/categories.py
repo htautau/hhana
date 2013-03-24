@@ -16,15 +16,15 @@ ID_MEDIUM = TAU1_MEDIUM & TAU2_MEDIUM
 ID_TIGHT = TAU1_TIGHT & TAU2_TIGHT
 ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 
-Z_PEAK = Cut('80 < mass_mmc_tau1_tau2 < 120')
+Z_PEAK = Cut('60 < mass_mmc_tau1_tau2 < 120')
 ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
 
 TAU_DR_CUT = Cut('dR_tau1_tau2 < 3.2')
-TAU_DETA_CUT = Cut('fabs(tau1_eta - tau2_eta) < 1.5')
+TAU_DETA_CUT = Cut('dEta_tau1_tau2 < 1.5')
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
-BAD_MASS = 80
+BAD_MASS = 60
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
@@ -35,8 +35,8 @@ SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 COMMON_CUTS = (
         LEAD_TAU_35 & SUBLEAD_TAU_25 &
         MET & MASS_FIX &
-        TAU_DR_CUT)# & TAU_DETA_CUT &
-        #TAU_SAME_VERTEX)
+        TAU_DR_CUT & TAU_DETA_CUT &
+        TAU_SAME_VERTEX)
 
 LEAD_JET_50 = Cut('jet1_pt > 50000')
 SUBLEAD_JET_30 = Cut('jet2_pt > 30000')

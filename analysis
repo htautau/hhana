@@ -67,6 +67,7 @@ if args.embedding:
 if args.suffix:
     output_suffix += '_%s' % args.suffix
 output_suffix += '_%d' % (year % 1E3)
+output_suffix += '_%s' % args.categories
 
 mass_regions = MassRegions(
         low=args.low_mass_cut,
@@ -240,7 +241,7 @@ for category in categories:
 
 if 'limits' in args.actions:
     
-    with ropen('limits_%s.root' % args.categories, 'recreate') as limits_file:
+    with ropen('limits%s.root' % output_suffix, 'recreate') as limits_file:
         for mass, category_channel in all_channels.items():
             channels = []
             # determine limits for each category separately
