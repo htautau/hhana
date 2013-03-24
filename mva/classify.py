@@ -29,6 +29,28 @@ from . import variables
 from . import LIMITS_DIR
 
 
+def print_feature_ranking(clf, fields):
+
+    if hasattr(clf, 'feature_importances_'):
+        importances = clf.feature_importances_
+        indices = np.argsort(importances)[::-1]
+        log.info("Feature ranking:")
+        print r"\begin{tabular}{c|c|c}"
+        table = PrettyTable(["Rank", "Variable", "Importance"])
+        print r"\hline\hline"
+        print r"Rank & Variable & Importance\\"
+        for f, idx in enumerate(indices):
+            table.add_row([f + 1,
+                fields[idx],
+                '%.3f' % importances[idx]])
+            print r"%d & %s & %.3f\\" % (f + 1,
+                variables.VARIABLES[fields[idx]]['title'],
+                importances[idx])
+        print r"\end{tabular}"
+        print
+        print table.get_string(hrules=1)
+
+
 def correlations(signal, signal_weight,
                  background, background_weight,
                  fields, category, output_suffix=''):
@@ -157,6 +179,7 @@ class ClassificationProblem(object):
                     with open(clf_filename, 'r') as f:
                         clf = pickle.load(f)
                     log.info(clf)
+                    print_feature_ranking(clf, self.fields)
                     # check that testing on training sample gives better
                     # performance by swapping the following lines
                     #clfs[partition_idx] = clf
@@ -454,24 +477,7 @@ class ClassificationProblem(object):
             with open(clf_filename, 'w') as f:
                 pickle.dump(clf, f)
 
-            if hasattr(clf, 'feature_importances_'):
-                importances = clf.feature_importances_
-                indices = np.argsort(importances)[::-1]
-                log.info("Feature ranking:")
-                print r"\begin{tabular}{c|c|c}"
-                table = PrettyTable(["Rank", "Variable", "Importance"])
-                print r"\hline\hline"
-                print r"Rank & Variable & Importance\\"
-                for f, idx in enumerate(indices):
-                    table.add_row([f + 1,
-                        self.fields[idx],
-                        '%.3f' % importances[idx]])
-                    print r"%d & %s & %.3f\\" % (f + 1,
-                        variables.VARIABLES[self.fields[idx]]['title'],
-                        importances[idx])
-                print r"\end{tabular}"
-                print
-                print table.get_string(hrules=1)
+            print_feature_ranking(clf, self.fields)
 
             self.clfs[(partition_idx + 1) % 2] = clf
 
