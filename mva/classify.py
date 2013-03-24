@@ -222,7 +222,7 @@ class ClassificationProblem(object):
             background=rec_to_ndarray(corr_background, self.all_fields),
             background_weight=corr_background_weight,
             fields=self.all_fields,
-            category=self.category.label,
+            category=self.category,
             output_suffix=self.output_suffix)
 
         self.clfs = [None, None]
