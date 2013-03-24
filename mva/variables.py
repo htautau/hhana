@@ -351,14 +351,14 @@ VARIABLES = {
         'range': (0, 1),
         'cats': ['2J', 'VBF']
     },
-    'tau1_centrality_boosted': {
-        'title': r'Boosted $\tau_1$ Centrality',
-        'root': 'Boosted #tau_1 Centrality',
-        'filename': 'tau1_centrality_boosted',
-        'bins': 20,
-        'range': (0, 1),
-        'cats': ['2J', 'VBF']
-    },
+    #'tau1_centrality_boosted': {
+    #    'title': r'Boosted $\tau_1$ Centrality',
+    #    'root': 'Boosted #tau_1 Centrality',
+    #    'filename': 'tau1_centrality_boosted',
+    #    'bins': 20,
+    #    'range': (0, 1),
+    #    'cats': ['2J', 'VBF']
+    #},
     'tau2_centrality': {
         'title': r'$\tau_2$ Centrality',
         'root': '#tau_2 Centrality',
@@ -367,14 +367,14 @@ VARIABLES = {
         'range': (0, 1),
         'cats': ['2J', 'VBF']
     },
-    'tau2_centrality_boosted': {
-        'title': r'Boosted $\tau_2$ Centrality',
-        'root': 'Boosted #tau_2 Centrality',
-        'filename': 'tau2_centrality_boosted',
-        'bins': 20,
-        'range': (0, 1),
-        'cats': ['2J', 'VBF']
-    },
+    #'tau2_centrality_boosted': {
+    #    'title': r'Boosted $\tau_2$ Centrality',
+    #    'root': 'Boosted #tau_2 Centrality',
+    #    'filename': 'tau2_centrality_boosted',
+    #    'bins': 20,
+    #    'range': (0, 1),
+    #    'cats': ['2J', 'VBF']
+    #},
     'jet1_eta': {
         'title': r'$\eta_{jet_{1}}$',
         'root': '#eta_{jet_{1}}',
@@ -411,22 +411,22 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
-    'jet1_fourvect_boosted_eta': {
-        'title': r'Boosted $\eta_{jet_{1}}$',
-        'root': 'Boosted #eta_{jet_{1}}',
-        'filename': 'jet1_eta_boosted',
-        'bins': 20,
-        'range': (-5, 5),
-        'cats': ['2J', 'VBF']
-    },
-    'jet2_fourvect_boosted_eta': {
-        'title': r'Boosted $\eta_{jet_{2}}$',
-        'root': 'Boosted #eta_{jet_{2}}',
-        'filename': 'jet2_eta_boosted',
-        'bins': 20,
-        'range': (-5, 5),
-        'cats': ['2J', 'VBF']
-    },
+    #'jet1_fourvect_boosted_eta': {
+    #    'title': r'Boosted $\eta_{jet_{1}}$',
+    #    'root': 'Boosted #eta_{jet_{1}}',
+    #    'filename': 'jet1_eta_boosted',
+    #    'bins': 20,
+    #    'range': (-5, 5),
+    #    'cats': ['2J', 'VBF']
+    #},
+    #'jet2_fourvect_boosted_eta': {
+    #    'title': r'Boosted $\eta_{jet_{2}}$',
+    #    'root': 'Boosted #eta_{jet_{2}}',
+    #    'filename': 'jet2_eta_boosted',
+    #    'bins': 20,
+    #    'range': (-5, 5),
+    #    'cats': ['2J', 'VBF']
+    #},
     ('jet1_eta', 'jet2_eta'): {
         'title': r'$\eta_{jet_{1,\/2}}$',
         'root': '#eta_{jet_{1, 2}}',
@@ -435,14 +435,14 @@ VARIABLES = {
         'range': (-5, 5),
         'cats': ['2J', 'VBF']
     },
-    ('jet1_fourvect_boosted_eta', 'jet2_fourvect_boosted_eta'): {
-        'title': r'Boosted $\eta_{jet_{1,\/2}}$',
-        'root': 'Boosted #eta_{jet_{1, 2}}',
-        'filename': 'jet_eta_boosted',
-        'bins': 20,
-        'range': (-5, 5),
-        'cats': ['2J', 'VBF']
-    },
+    #('jet1_fourvect_boosted_eta', 'jet2_fourvect_boosted_eta'): {
+    #    'title': r'Boosted $\eta_{jet_{1,\/2}}$',
+    #    'root': 'Boosted #eta_{jet_{1, 2}}',
+    #    'filename': 'jet_eta_boosted',
+    #    'bins': 20,
+    #    'range': (-5, 5),
+    #    'cats': ['2J', 'VBF']
+    #},
     'dEta_jets': {
         'title': r'$|\Delta\eta_{jet_{1},\/jet_{2}}|$',
         'root': '|#Delta#eta_{jet_{1}, jet_{2}}|',
@@ -451,14 +451,14 @@ VARIABLES = {
         'range': (0, 6),
         'cats': ['2J', 'VBF']
     },
-    'dEta_jets_boosted': {
-        'title': r'Boosted $|\Delta\eta_{jet_{1},\/jet_{2}}|$',
-        'root': 'Boosted |#Delta#eta_{jet_{1}, jet_{2}}|',
-        'filename': 'dEta_jets_boosted',
-        'bins': 20,
-        'range': (0, 6),
-        'cats': ['2J', 'VBF']
-    },
+    #'dEta_jets_boosted': {
+    #    'title': r'Boosted $|\Delta\eta_{jet_{1},\/jet_{2}}|$',
+    #    'root': 'Boosted |#Delta#eta_{jet_{1}, jet_{2}}|',
+    #    'filename': 'dEta_jets_boosted',
+    #    'bins': 20,
+    #    'range': (0, 6),
+    #    'cats': ['2J', 'VBF']
+    #},
     'eta_product_jets': {
         'title': r'$\eta_{jet_{1}} \times \/ \eta_{jet_{2}}$',
         'root': '#eta_{jet_{1}} #times #eta_{jet_{2}}',
@@ -467,14 +467,14 @@ VARIABLES = {
         'range': (-10, 10),
         'cats': ['2J', 'VBF']
     },
-    'eta_product_jets_boosted': {
-        'title': r'Boosted $\eta_{jet_{1}} \times \/ \eta_{jet_{2}}$',
-        'root': 'Boosted #eta_{jet_{1}} #times #eta_{jet_{2}}',
-        'filename': 'eta_product_jets_boosted',
-        'bins': 20,
-        'range': (-10, 10),
-        'cats': ['2J', 'VBF']
-    },
+    #'eta_product_jets_boosted': {
+    #    'title': r'Boosted $\eta_{jet_{1}} \times \/ \eta_{jet_{2}}$',
+    #    'root': 'Boosted #eta_{jet_{1}} #times #eta_{jet_{2}}',
+    #    'filename': 'eta_product_jets_boosted',
+    #    'bins': 20,
+    #    'range': (-10, 10),
+    #    'cats': ['2J', 'VBF']
+    #},
     'mass_jet1_jet2': {
         'title': r'$M_{jet_{1},\/jet_{2}}$',
         'root': 'M_{jet_{1}, jet_{2}}',

@@ -93,7 +93,7 @@ def draw_scatter(fields,
 
     nplots = 1
     figheight = 6.
-    figwidth = 7.
+    figwidth = 6.
     background_arrays = []
     for background in backgrounds:
         background_arrays.append(background.array(
@@ -102,14 +102,14 @@ def draw_scatter(fields,
 
     if data is not None:
         nplots += 1
-        figwidth += 8.
+        figwidth += 6.
         data_array = data.array(
             fields, category, region,
             cuts=cuts)
 
     if signals is not None:
         nplots += 1
-        figwidth += 8.
+        figwidth += 6.
         if data is not None:
             signal_index = 3
         else:
@@ -125,7 +125,7 @@ def draw_scatter(fields,
     for x, y in all_pairs:
         # TODO: handle special case if x or y is a classifier
 
-        plt.figure(figsize=(figwidth, figheight), dpi=100)
+        plt.figure(figsize=(figwidth, figheight), dpi=200)
         axes = []
 
         ax_bkg = plt.subplot(1, nplots, 1)
@@ -183,7 +183,7 @@ def draw_scatter(fields,
             if lymax > ymax:
                 ymax = lymax
 
-            weight = array['weight']
+            weight = data_array['weight']
             data_ax.scatter(
                     x_array, y_array,
                     c='black',
@@ -220,7 +220,7 @@ def draw_scatter(fields,
                         label=signal.label,
                         s=weight * 10 * signal_scale,
                         #edgecolors='',
-                        linewidths=1,
+                        linewidths=0,
                         marker='o',
                         alpha=0.75)
 
@@ -254,7 +254,8 @@ def draw_scatter(fields,
 
         plt.suptitle(category.label)
         plt.savefig('scatter_%s_%s_%s%s.png' % (
-            category.name, x_filename, y_filename, output_name))
+            category.name, x_filename, y_filename, output_name),
+            bbox_inches='tight')
 
 
 def uncertainty_band(model, systematics):

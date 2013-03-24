@@ -553,7 +553,7 @@ class ClassificationProblem(object):
                      backgrounds,
                      data=data,
                      signals=signals,
-                     signal_scale=50.)
+                     signal_scale=300.)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
