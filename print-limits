@@ -6,9 +6,16 @@ from rootpy.io import root_open as ropen
 
 with ropen(sys.argv[1]) as f:
     for path, dirs, objects in f.walk(class_pattern="TH1*"):
+        print r"\begin{tabular}{l|c}"
         for hist_name in objects:
             hist = f.Get(os.path.join(path, hist_name))
-            print hist.name
+            print r"{\bf %s} & " % hist.name.replace('_', ' ').upper(),
+            hist_dict = {}
             for i, limit in enumerate(hist):
-                print hist.xaxis.GetBinLabel(i + 1), limit
+                hist_dict[hist.xaxis.GetBinLabel(i + 1)] = limit
+            print '$%.2f^{+%.2f}_{-%.2f}$\\\\' % (
+                    hist_dict['Expected'],
+                    abs(hist_dict['+1sigma'] - hist_dict['Expected']),
+                    abs(hist_dict['-1sigma'] - hist_dict['Expected']))
             print
+        print r"\end{tabular}"
