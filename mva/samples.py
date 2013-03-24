@@ -445,6 +445,7 @@ class MC(Sample):
         'JER',
         'TES',
         'TAUID',
+        'TRIGGER',
     ]
 
     def __init__(self, year, db=DB_HH, systematics=True, **kwargs):
