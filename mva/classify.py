@@ -117,6 +117,12 @@ def rec_to_ndarray(rec, fields):
 
 class ClassificationProblem(object):
 
+    # minimal list of spectators
+    SPECTATORS = [
+        'mmc_resonance_pt',
+        'mass_mmc_tau1_tau2',
+    ]
+
     def __init__(self,
                  fields,
                  category,
@@ -135,10 +141,15 @@ class ClassificationProblem(object):
         self.background_label = 0
         self.signal_label = 1
 
-        if spectators is not None:
-            self.all_fields = fields + spectators
-        else:
-            self.all_fields = fields[:]
+        if spectators is None:
+            spectators = []
+
+        # merge in minimal list of spectators
+        for spec in ClassificationProblem.SPECTATORS:
+            if spec not in spectators and spec not in fields:
+                spectators.append(spec)
+
+        self.all_fields = fields + spectators
 
         assert 'weight' not in fields
 

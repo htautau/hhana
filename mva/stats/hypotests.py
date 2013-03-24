@@ -2,7 +2,7 @@ from . import log; log = log[__name__]
 import numpy as np
 from rootpy.plotting import Hist
 from .asymptotics import AsymptoticsCLs
-from .. import samples
+from ..samples import Higgs
 from ..plotting import significance
 from . import histfactory
 
@@ -36,7 +36,7 @@ def channels(clf, category, region, backgrounds,
                 region=region,
                 cuts=cuts)
 
-    for mass in samples.Higgs.MASS_POINTS:
+    for mass in Higgs.MASS_POINTS:
         if mass_points is not None and mass not in mass_points:
             continue
         log.info('=' * 20)
@@ -51,8 +51,8 @@ def channels(clf, category, region, backgrounds,
         # flat.
         sig_scores = []
         # signal scores
-        for mode in samples.Higgs.MODES:
-            sig = samples.Higgs(year=year, mode=mode, mass=mass,
+        for mode in Higgs.MODES:
+            sig = Higgs(year=year, mode=mode, mass=mass,
                     systematics=systematics)
 
             scores_dict = sig.scores(
