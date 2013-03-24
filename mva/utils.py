@@ -10,6 +10,7 @@ def print_hist(hist):
     print hist.GetTitle()
     for ibin in xrange(len(hist)):
         print "%.5f +/- %.5f" % (hist[ibin], hist.yerrh(ibin))
+    print
 
 
 def mkdir_p(path):
