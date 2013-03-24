@@ -133,14 +133,14 @@ for category in categories:
                     {'title': args.plot_name,
                      'range': (args.plot_min, args.plot_max),
                      'bins': args.plot_bins,
-                     'cats': ['GGF'],
                      'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
         else:
             VARS = VARIABLES
 
         for expr, var_info in VARS.items():
 
-            if category.name.upper() not in var_info['cats']:
+            if (var_info.get('cats', None) is not None and
+                category.name.upper() not in var_info['cats']):
                 continue
             elif args.plots and expr not in args.plots:
                 continue

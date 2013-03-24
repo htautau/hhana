@@ -126,6 +126,7 @@ class Category(object):
     target_region = 'OS'
     train_signal_modes = Higgs.MODES[:]
 
+
 # Default categories
 
 class Category_2J(Category):
@@ -134,7 +135,7 @@ class Category_2J(Category):
     label = r'$\tau_{had}\tau_{had}$: 2-Jet Category'
     cuts = CUTS_2J & COMMON_CUTS
     fitbins = 5
-    limitbins = 5
+    limitbins = 8
     limitbinning = 'onebkg'
     features = features_2j
 
@@ -145,7 +146,7 @@ class Category_1J(Category):
     label = r'$\tau_{had}\tau_{had}$: 1-Jet Category'
     cuts = CUTS_1J & COMMON_CUTS
     fitbins = 5
-    limitbins = 5
+    limitbins = 10
     limitbinning = 'onebkg'
     features = features_1j
 
@@ -156,7 +157,7 @@ class Category_0J(Category):
     label = r'$\tau_{had}\tau_{had}$: 0-Jet Category'
     cuts = CUTS_0J & COMMON_CUTS
     fitbins = 8
-    limitbins = 5
+    limitbins = 10
     limitbinning = 'onebkg'
     features = features_0j
 
@@ -169,9 +170,10 @@ class Category_VBF(Category):
     label = r'$\tau_{had}\tau_{had}$: VBF Category'
     cuts = CUTS_VBF & CUTS_2J & COMMON_CUTS
     fitbins = 5
-    limitbins = 5
+    limitbins = 8
     limitbinning = 'onebkg'
     features = features_2j
+    # train with only VBF
     signal_train_modes = ['VBF']
 
 
@@ -181,11 +183,11 @@ class Category_Boosted(Category):
     label = r'$\tau_{had}\tau_{had}$: Boosted Category'
     cuts = CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J)) & COMMON_CUTS
     fitbins = 5
-    limitbins = 5
+    limitbins = 10
     limitbinning = 'onebkg'
     # warning: some variables will be undefined for some events
     features = features_2j
-    signal_train_modes = ['gg']
+    # train with all modes
 
 
 class Category_Nonboosted_1J(Category):
@@ -194,10 +196,10 @@ class Category_Nonboosted_1J(Category):
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
     cuts = AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J)))) & COMMON_CUTS
     fitbins = 5
-    limitbins = 5
+    limitbins = 10
     limitbinning = 'onebkg'
     features = features_1j
-    signal_train_modes = ['gg']
+    # train with all modes
 
 
 class Category_Nonboosted_0J(Category):
@@ -206,11 +208,10 @@ class Category_Nonboosted_0J(Category):
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
     cuts = - (AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J))))) & COMMON_CUTS
     fitbins = 8
-    limitbins = 5
+    limitbins = 10
     limitbinning = 'onebkg'
     features = features_0j
-    signal_train_modes = ['gg']
-
+    # train with all modes
 
 
 CATEGORIES = {
@@ -226,11 +227,6 @@ CATEGORIES = {
         Category_Nonboosted_0J,
     ]
 }
-
-
-
-
-
 
 CONTROLS = {
     'preselection': {

@@ -31,7 +31,7 @@ def general_parser(parser=None):
             dest='systematics',
             help="turn off systematics",
             default=True)
-    parser.add_argument('--categories', default='default',
+    parser.add_argument('--categories', default='harmonize',
             choices=CATEGORIES.keys(),
             help='category definitions')
     """
