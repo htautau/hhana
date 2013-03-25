@@ -80,8 +80,12 @@ train_region = mass_regions.train_region
 
 all_channels = {}
 categories = CATEGORIES[args.categories]
+category_names = args.category_names
 
 for category in categories:
+    
+    if category_names is not None and category.name not in category_names:
+        continue
 
     log.info("")
     log.info("=" * 40)

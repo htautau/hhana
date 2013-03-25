@@ -34,6 +34,8 @@ def general_parser(parser=None):
     parser.add_argument('--categories', default='harmonize',
             choices=CATEGORIES.keys(),
             help='category definitions')
+    parser.add_argument('--category-names', nargs="+", default=None,
+            help='category names')
     """
     parser.add_argument('--controls', nargs='*', default=CONTROLS.keys(),
             help='which controls to draw plots in')
