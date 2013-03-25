@@ -319,7 +319,7 @@ class Sample(object):
                     else:
                         sys_cut &= variations['NOMINAL']
 
-        return (category.cuts & category.year_cuts[self.year] &
+        return (category.get_cuts(self.year) &
                 Sample.REGIONS[region] & self._cuts & sys_cut)
 
     def draw(self, expr, category, region, bins, min, max, cuts=None, p1p3=True):

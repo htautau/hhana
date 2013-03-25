@@ -1,7 +1,5 @@
 from rootpy.tree import Cut
 
-from . import samples
-
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
 TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
 TAU1_TIGHT = Cut('tau1_JetBDTSigTight==1')
@@ -117,7 +115,24 @@ features_0j = [
 ]
 
 
+class CategoryMeta(type):
+    """
+    Metaclass for all categories
+    """
+    CATEGORY_REGISTRY = {}
+    def __new__(cls, name, bases, dct):
+
+        if name in CategoryMeta.CATEGORY_REGISTRY:
+            raise ValueError("Multiple categories with the same name: %s" % name)
+        cat = type.__new__(cls, name, bases, dct)
+        # register the category
+        CategoryMeta.CATEGORY_REGISTRY[name] = cat
+        return cat
+
+
 class Category(object):
+
+    __metaclass__ = CategoryMeta
 
     # common attrs for all categories. Override in subclasses
     year_cuts = {
@@ -125,7 +140,14 @@ class Category(object):
         2012: ID_MEDIUM_TIGHT}
     qcd_shape_region = 'SS'
     target_region = 'OS'
+    cuts = Cut()
+    common_cuts = COMMON_CUTS
+    from . import samples
     train_signal_modes = samples.Higgs.MODES[:]
+
+    @classmethod
+    def get_cuts(cls, year):
+        return cls.cuts & cls.common_cuts & cls.year_cuts[year]
 
 
 # Default categories
@@ -134,7 +156,7 @@ class Category_2J(Category):
 
     name = '2j'
     label = r'$\tau_{had}\tau_{had}$: 2-Jet Category'
-    cuts = CUTS_2J & COMMON_CUTS
+    cuts = CUTS_2J
     fitbins = 5
     limitbins = 8
     limitbinning = 'onebkg'
@@ -145,7 +167,7 @@ class Category_1J(Category):
 
     name = '1j'
     label = r'$\tau_{had}\tau_{had}$: 1-Jet Category'
-    cuts = CUTS_1J & COMMON_CUTS
+    cuts = CUTS_1J
     fitbins = 5
     limitbins = 10
     limitbinning = 'onebkg'
@@ -156,7 +178,7 @@ class Category_0J(Category):
 
     name = '0j'
     label = r'$\tau_{had}\tau_{had}$: 0-Jet Category'
-    cuts = CUTS_0J & COMMON_CUTS
+    cuts = CUTS_0J
     fitbins = 8
     limitbins = 10
     limitbinning = 'onebkg'
@@ -169,7 +191,7 @@ class Category_VBF(Category):
 
     name = 'vbf'
     label = r'$\tau_{had}\tau_{had}$: VBF Category'
-    cuts = CUTS_VBF & CUTS_2J & COMMON_CUTS
+    cuts = CUTS_VBF & CUTS_2J
     fitbins = 5
     limitbins = 8
     limitbinning = 'onebkg'
@@ -182,7 +204,7 @@ class Category_Boosted(Category):
 
     name = 'boosted'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category'
-    cuts = CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J)) & COMMON_CUTS
+    cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
     limitbinning = 'onebkg'
@@ -195,7 +217,7 @@ class Category_Nonboosted_1J(Category):
 
     name = '1j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
-    cuts = AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J)))) & COMMON_CUTS
+    cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
     limitbinning = 'onebkg'
@@ -207,7 +229,7 @@ class Category_Nonboosted_0J(Category):
 
     name = '0j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
-    cuts = - (AT_LEAST_1JET & (- (CUTS_BOOSTED & (- (CUTS_VBF & CUTS_2J))))) & COMMON_CUTS
+    cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
     limitbins = 10
     limitbinning = 'onebkg'
