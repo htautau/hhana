@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+This is the main driver script for the analysis
+"""
+
 from mva.cmd import get_parser
 
 args = get_parser().parse_args()
@@ -69,7 +73,7 @@ for category in categories:
     log.info("=" * 40)
     log.info("%s category" % category.name)
     log.info("=" * 40)
-    log.info("Cuts: %s" % category.cuts)
+    log.info("Cuts: %s" % category.get_cuts(year))
     
     analysis = Analysis(
         year=year,
@@ -132,7 +136,6 @@ for category in categories:
                     show_ratio=True,
                     show_qq=False,
                     plot_signal_significance=False,
-                    dir=PLOTS_DIR,
                     systematics=SYSTEMATICS.values() if args.systematics else None,
                     root=args.root,
                     output_formats=args.output_formats)
@@ -157,7 +160,7 @@ for category in categories:
         
         clf.train(
                 signals=signals_train,
-                backgrounds=backgrounds,
+                backgrounds=analysis.backgrounds,
                 cuts=None,
                 grid_search=args.grid_search,
                 quick=args.quick_train,
@@ -167,8 +170,8 @@ for category in categories:
     if 'evaluate' in args.actions:
 
         clf.evaluate(
-                backgrounds,
-                data,
+                analysis.backgrounds,
+                analysis.data,
                 mass_regions,
                 unblind=args.unblind,
                 systematics=args.systematics,
@@ -183,7 +186,8 @@ for category in categories:
         # construct a "channel" for each mass point
         channels = hypotests.channels(
                 clf, category, target_region,
-                backgrounds, data=data, 
+                analysis.backgrounds,
+                data=analysis.data, 
                 cuts=signal_region,
                 bins=category.limitbins,
                 binning=category.limitbinning,
