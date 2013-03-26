@@ -107,17 +107,27 @@ def draw_scatter(fields,
                  data=None,
                  signal_scale=1.,
                  signal_colour_map=cm.spring,
+                 classifier=None,
                  cuts=None):
 
     nplots = 1
     figheight = 6.
     figwidth = 6.
     background_arrays = []
+    background_clf_arrays = []
     for background in backgrounds:
-        background_arrays.append(background.merged_records(
-            category, region,
-            fields=fields,
-            cuts=cuts))
+        background_arrays.append(
+            background.merged_records(
+                category, region,
+                fields=fields,
+                cuts=cuts))
+        if classifier is not None:
+            background_clf_arrays.append(
+                background.scores(
+                    classifier,
+                    category,
+                    region,
+                    cuts=cuts))
 
     if data is not None:
         nplots += 1
@@ -126,6 +136,12 @@ def draw_scatter(fields,
             category, region,
             fields=fields,
             cuts=cuts)
+        if classifier is not None:
+            data_clf_array = data.scores(
+                classifier,
+                category,
+                region,
+                cuts=cuts)
 
     if signals is not None:
         nplots += 1
@@ -135,16 +151,35 @@ def draw_scatter(fields,
         else:
             signal_index = 2
         signal_arrays = []
+        signal_clf_arrays = []
         for signal in signals:
-            signal_arrays.append(signal.merged_records(
-                category, region,
-                fields=fields,
-                cuts=cuts))
+            signal_arrays.append(
+                signal.merged_records(
+                    category, region,
+                    fields=fields,
+                    cuts=cuts))
+            if classifier is not None:
+                signal_clf_arrays.append(
+                    signal.scores(
+                        classifier,
+                        category,
+                        region,
+                        cuts=cuts))
 
+    if classifier is not None:
+        fields = fields + [classifier]
     all_pairs = list(itertools.combinations(fields, 2))
 
     for x, y in all_pairs:
         # TODO: handle special case if x or y is a classifier
+
+        # always make the classifier along the x axis
+        if not isinstance(y, basestring):
+            tmp = x
+            x = y
+            y = tmp
+
+        with_classifier = not isinstance(x, basestring)
 
         plt.figure(figsize=(figwidth, figheight), dpi=200)
         axes = []
@@ -152,14 +187,19 @@ def draw_scatter(fields,
         ax_bkg = plt.subplot(1, nplots, 1)
         axes.append(ax_bkg)
 
-        xscale = VARIABLES[x].get('scale', 1.)
+        if not with_classifier:
+            xscale = VARIABLES[x].get('scale', 1.)
         yscale = VARIABLES[y].get('scale', 1.)
 
         xmin, xmax = float('inf'), float('-inf')
         ymin, ymax = float('inf'), float('-inf')
 
-        for array, background in zip(background_arrays, backgrounds):
-            x_array = array[x] * xscale
+        for i, (array, background) in enumerate(zip(background_arrays,
+                                                    backgrounds)):
+            if with_classifier:
+                x_array = background_clf_arrays[i]
+            else:
+                x_array = array[x] * xscale
             y_array = array[y] * yscale
 
             # update max and min bounds
@@ -189,7 +229,10 @@ def draw_scatter(fields,
             data_ax = plt.subplot(1, nplots, 2)
             axes.append(data_ax)
 
-            x_array = data_array[x] * xscale
+            if with_classifier:
+                x_array = data_clf_array
+            else:
+                x_array = data_array[x] * xscale
             y_array = data_array[y] * yscale
 
             # update max and min bounds
@@ -219,7 +262,11 @@ def draw_scatter(fields,
             axes.append(sig_ax)
 
             for i, (array, signal) in enumerate(zip(signal_arrays, signals)):
-                x_array = array[x] * xscale
+
+                if with_classifier:
+                    x_array = signal_clf_arrays[i]
+                else:
+                    x_array = array[x] * xscale
                 y_array = array[y] * yscale
 
                 # update max and min bounds
@@ -250,9 +297,15 @@ def draw_scatter(fields,
         xpad = xwidth * .1
         ypad = ywidth * .1
 
-        x_name = VARIABLES[x]['title']
-        x_filename = VARIABLES[x]['filename']
-        x_units = VARIABLES[x].get('units', None)
+        if with_classifier:
+            x_name = "BDT Score"
+            x_filename = "bdt_score"
+            x_units = None
+        else:
+            x_name = VARIABLES[x]['title']
+            x_filename = VARIABLES[x]['filename']
+            x_units = VARIABLES[x].get('units', None)
+
         y_name = VARIABLES[y]['title']
         y_filename = VARIABLES[y]['filename']
         y_units = VARIABLES[y].get('units', None)

@@ -381,8 +381,9 @@ class Data(Sample):
                 'classifier applied to category in which it was not trained')
 
         return clf.classify(self,
-                    region=region,
-                    cuts=cuts)
+                category=category,
+                region=region,
+                cuts=cuts)
 
     def trees(self,
               category,

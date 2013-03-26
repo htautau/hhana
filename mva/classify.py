@@ -468,13 +468,16 @@ class ClassificationProblem(object):
 
             self.clfs[(partition_idx + 1) % 2] = clf
 
-    def classify(self, sample, region, cuts=None, systematic='NOMINAL'):
+    def classify(self, sample, category, region,
+                 cuts=None, systematic='NOMINAL'):
 
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
 
+        assert(category == self.category)
+
         left, right = sample.partitioned_records(
-                category=self.category,
+                category=category,
                 region=region,
                 fields=self.fields,
                 cuts=cuts,
@@ -489,8 +492,8 @@ class ClassificationProblem(object):
         left_scores = self.clfs[0].decision_function(left)
         right_scores = self.clfs[1].decision_function(right)
 
-        return (np.concatenate((left_scores, right_scores)),
-                np.concatenate((left_weight, right_weight)))
+        return np.concatenate((left_scores, right_scores)), \
+               np.concatenate((left_weight, right_weight))
 
     def evaluate(self,
                  backgrounds,
@@ -528,7 +531,8 @@ class ClassificationProblem(object):
                      backgrounds,
                      data=data,
                      signals=signals,
-                     signal_scale=300.)
+                     signal_scale=300.,
+                     classifier=self)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
