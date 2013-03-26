@@ -363,14 +363,14 @@ class ClassificationProblem(object):
                     # quick search for testing
                     min_leaf_low = max(10, int(min_leaf_high / 30.))
                     min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
-                    MAX_N_ESTIMATORS = 200
-                    MIN_N_ESTIMATORS = 10
+                    MAX_N_ESTIMATORS = 300
+                    MIN_N_ESTIMATORS = 20
 
                 else:
                     # larger search
                     min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
                     MAX_N_ESTIMATORS = 1000
-                    MIN_N_ESTIMATORS = 10
+                    MIN_N_ESTIMATORS = 20
 
                 MIN_SAMPLES_LEAF = range(
                         min_leaf_low, min_leaf_high, min_leaf_step)
