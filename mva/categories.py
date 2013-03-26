@@ -77,7 +77,37 @@ features_2j = [
     #'tau1_x', #
     #'tau2_x', #
     'MET_centrality',
-    'mmc_resonance_pt',
+    #'mmc_resonance_pt',
+    #'sum_pt', #
+    # !!! eta centrality of 3rd jet
+]
+
+feaures_boosted = [
+    #'mass_mmc_tau1_tau2',
+    # !!! mass ditau + leading jet?
+    'dEta_jets',
+    #'dEta_jets_boosted', #
+    'eta_product_jets',
+    #'eta_product_jets_boosted', #
+    'mass_jet1_jet2',
+    #'sphericity', #
+    #'sphericity_boosted', #
+    #'sphericity_full', #
+    #'aplanarity', #
+    #'aplanarity_boosted', #
+    #'aplanarity_full', #
+    'tau1_centrality',
+    'tau2_centrality',
+    #'tau1_centrality_boosted', #
+    #'tau2_centrality_boosted', #
+    #'cos_theta_tau1_tau2', #
+    'dR_tau1_tau2',
+    #'tau1_BDTJetScore',
+    #'tau2_BDTJetScore',
+    #'tau1_x', #
+    #'tau2_x', #
+    'MET_centrality',
+    #'mmc_resonance_pt',
     #'sum_pt', #
     # !!! eta centrality of 3rd jet
 ]
@@ -209,7 +239,7 @@ class Category_Boosted(Category):
     limitbins = 10
     limitbinning = 'onebkg'
     # warning: some variables will be undefined for some events
-    features = features_2j
+    features = features_boosted
     # train with all modes
 
 
