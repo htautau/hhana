@@ -19,6 +19,7 @@ from matplotlib.patches import Patch
 from rootpy.plotting import Canvas, Pad, Legend, Hist, HistStack
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
+from rootpy.math.stats.correlation import correlation_plot
 
 from .variables import VARIABLES
 from . import PLOTS_DIR
@@ -79,6 +80,22 @@ def root_axes(ax, no_xlabels=False, vscale=1.):
 
     ax.tick_params(which='major', labelsize=15, length=8)
     ax.tick_params(which='minor', length=4)
+
+
+def correlations(signal, signal_weight,
+                 background, background_weight,
+                 fields, category, output_suffix=''):
+
+    # draw correlation plots
+    names = [VARIABLES[field]['title'] for field in fields]
+    correlation_plot(signal, signal_weight, names,
+                     os.path.join(PLOTS_DIR, "correlation_signal_%s%s" % (
+                         category.name, output_suffix)),
+                     title='%s signal' % category.label)
+    correlation_plot(background, background_weight, names,
+                     os.path.join(PLOTS_DIR, "correlation_background_%s%s" % (
+                         category.name, output_suffix)),
+                     title='%s background' % category.label)
 
 
 def draw_scatter(fields,

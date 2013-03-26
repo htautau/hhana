@@ -18,15 +18,16 @@ from sklearn.tree import DecisionTreeClassifier
 from rootpy.plotting import Hist
 from rootpy.io import root_open as ropen
 from rootpy.extern.tabulartext import PrettyTable
-from rootpy.math.stats.correlation import correlation_plot
 
 from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from .systematics import SYSTEMATICS
-from .plotting import draw, plot_clf, plot_grid_scores, draw_scatter
+from .plotting import (draw, plot_clf,
+                       plot_grid_scores, draw_scatter,
+                       correlations)
 from . import variables
-from . import LIMITS_DIR
+from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
 from .utils import rec_to_ndarray, std
 
@@ -51,22 +52,6 @@ def print_feature_ranking(clf, fields):
         print r"\end{tabular}"
         print
         print table.get_string(hrules=1)
-
-
-def correlations(signal, signal_weight,
-                 background, background_weight,
-                 fields, category, output_suffix=''):
-
-    # draw correlation plots
-    names = [variables.VARIABLES[field]['title'] for field in fields]
-    correlation_plot(signal, signal_weight, names,
-                     "correlation_signal_%s%s" % (
-                         category.name, output_suffix),
-                     title='%s signal' % category.label)
-    correlation_plot(background, background_weight, names,
-                     "correlation_background_%s%s" % (
-                         category.name, output_suffix),
-                     title='%s background' % category.label)
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
@@ -349,8 +334,8 @@ class ClassificationProblem(object):
                     label += ' [%s]' % variables.VARIABLES[branch]['units']
                 plt.xlabel(label)
                 plt.legend()
-                plt.savefig('train_var_%s_%s%s.png' % (
-                    self.category.name, branch, self.output_suffix))
+                plt.savefig(os.path.join(PLOTS_DIR, 'train_var_%s_%s%s.png' % (
+                    self.category.name, branch, self.output_suffix)))
 
             log.info("plotting sample weights ...")
             _min, _max = sample_weight_train.min(), sample_weight_train.max()
@@ -364,8 +349,8 @@ class ClassificationProblem(object):
                     label='Signal', histtype='stepfilled', alpha=.5)
             plt.xlabel('sample weight')
             plt.legend()
-            plt.savefig('train_sample_weight_%s%s.png' % (
-                self.category.name, self.output_suffix))
+            plt.savefig(os.path.join(PLOTS_DIR, 'train_sample_weight_%s%s.png' % (
+                self.category.name, self.output_suffix)))
 
             if partition_idx == 0:
 
