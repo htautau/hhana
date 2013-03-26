@@ -215,39 +215,52 @@ class Sample(object):
 
         return sample
 
-    def split(self,
-              fields,
+    def partitioned_records(self,
               category,
               region,
+              fields=None,
               cuts=None,
+              include_weight=True,
               systematic='NOMINAL'):
-        # TODO: use start, stop, step to pick partitions
-        arrays = self.tables(
+
+        left_recs = self.records(
                 category,
                 region,
                 fields=fields,
-                include_weight=True,
+                include_weight=include_weight,
                 cuts=cuts,
-                systematic=systematic)
-
-        return np.hstack(map(itemgetter(0), arrays)), \
-               np.hstack(map(itemgetter(1), arrays))
-
-    def array(self,
-              fields,
-              category,
-              region,
-              cuts=None,
-              systematic='NOMINAL'):
-
-        left, right = self.split(
-                fields,
+                systematic=systematic,
+                start=0,
+                step=2)
+        right_recs = self.records(
                 category,
                 region,
+                fields=fields,
+                include_weight=include_weight,
+                cuts=cuts,
+                systematic=systematic,
+                start=1,
+                step=2)
+
+        return np.hstack(left_recs), np.hstack(right_recs)
+
+    def merged_records(self,
+              category,
+              region,
+              fields=None,
+              cuts=None,
+              include_weight=True,
+              systematic='NOMINAL'):
+
+        recs = self.records(
+                category,
+                region,
+                fields=fields,
+                include_weight=include_weight,
                 cuts=cuts,
                 systematic=systematic)
 
-        return np.hstack([left, right])
+        return np.hstack(recs)
 
     @classmethod
     def check_systematic(cls, systematic):
@@ -407,7 +420,9 @@ class Data(Sample):
                  (self.__class__.__name__, self.year, selection))
 
         # read the table with a selection
-        rec = self.h5data.readWhere(selection.where(), **kwargs)
+        rec = self.h5data.readWhere(selection.where(),
+                                    stop=len(self.h5data),
+                                    **kwargs)
         # add weight field
         if include_weight:
             # data is not weighted
@@ -848,7 +863,7 @@ class MC(Sample):
             log.debug(table_selection)
 
             # read the table with a selection
-            rec = table.readWhere(table_selection, **kwargs)
+            rec = table.readWhere(table_selection, stop=len(table), **kwargs)
 
             # add weight field
             if include_weight:

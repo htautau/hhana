@@ -28,6 +28,7 @@ from .plotting import draw, plot_clf, plot_grid_scores, draw_scatter
 from . import variables
 from . import LIMITS_DIR
 from .stats.utils import get_safe_template
+from .utils import rec_to_ndarray, std
 
 
 def print_feature_ranking(clf, fields):
@@ -102,17 +103,6 @@ def search_flat_bins(bkg_scores, min_score, max_score, bins):
             break
     boundaries.append(max_score)
     return boundaries
-
-
-def std(X):
-
-    return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
-
-
-def rec_to_ndarray(rec, fields):
-
-    # Creates a copy and recasts data to a consistent datatype
-    return np.vstack([rec[field] for field in fields]).T
 
 
 class ClassificationProblem(object):
@@ -214,7 +204,7 @@ class ClassificationProblem(object):
         signal_weight_arrs = []
 
         for signal in signals:
-            left, right = signal.split(
+            left, right = signal.partitioned_records(
                 category=self.category,
                 region=self.region,
                 fields=self.all_fields,
@@ -231,7 +221,7 @@ class ClassificationProblem(object):
         background_weight_arrs = []
 
         for background in backgrounds:
-            left, right = background.split(
+            left, right = background.partitioned_records(
                 category=self.category,
                 region=self.region,
                 fields=self.all_fields,

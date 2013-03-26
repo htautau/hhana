@@ -3,6 +3,7 @@ import os
 import errno
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
+import numpy as np
 
 
 def print_hist(hist):
@@ -58,3 +59,14 @@ def make_multipage_pdf(figs, name, dir=None):
     d['CreationDate'] = now
     d['ModDate'] = now
     pdf.close()
+
+
+def std(X):
+
+    return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
+
+
+def rec_to_ndarray(rec, fields):
+
+    # Creates a copy and recasts data to a consistent datatype
+    return np.vstack([rec[field] for field in fields]).T
