@@ -221,28 +221,26 @@ class Sample(object):
               fields=None,
               cuts=None,
               include_weight=True,
-              systematic='NOMINAL'):
-
-        left_recs = self.records(
+              systematic='NOMINAL',
+              num_partitions=2):
+        """
+        Partition sample into num_partitions chunks of roughly equal size
+        assuming no correlation between record index and field values.
+        """
+        partitions = []
+        for start in range(num_partitions):
+            recs = self.records(
                 category,
                 region,
                 fields=fields,
                 include_weight=include_weight,
                 cuts=cuts,
                 systematic=systematic,
-                start=0,
-                step=2)
-        right_recs = self.records(
-                category,
-                region,
-                fields=fields,
-                include_weight=include_weight,
-                cuts=cuts,
-                systematic=systematic,
-                start=1,
-                step=2)
+                start=start,
+                step=num_partitions)
+            partitions.append(np.hstack(recs))
 
-        return np.hstack(left_recs), np.hstack(right_recs)
+        return partitions
 
     def merged_records(self,
               category,
