@@ -488,7 +488,7 @@ class ClassificationProblem(object):
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
 
-        left, right = sample.split(
+        left, right = sample.partitioned_records(
                 category=self.category,
                 region=region,
                 fields=self.fields,
