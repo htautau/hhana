@@ -21,6 +21,7 @@ import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
 
 from .variables import VARIABLES
+from . import PLOTS_DIR
 
 
 def package_path(name):
@@ -256,7 +257,7 @@ def draw_scatter(fields,
                 ax.set_ylabel(y_name)
 
         plt.suptitle(category.label)
-        plt.savefig('scatter_%s_%s_%s%s.png' % (
+        plt.savefig(os.path.join(PLOTS_DIR, 'scatter_%s_%s_%s%s.png') % (
             category.name, x_filename, y_filename, output_name),
             bbox_inches='tight')
 
@@ -431,7 +432,6 @@ def draw(name,
          show_ratio=False,
          show_qq=False,
          output_formats=None,
-         dir='.',
          systematics=None,
          root=False,
          width=8.):
@@ -885,7 +885,7 @@ def draw(name,
             else:
                 ratio_ax.set_xlim(range)
 
-    filename = os.path.join(dir,
+    filename = os.path.join(PLOTS_DIR,
             'var_%s_%s' %
             (category.name,
              output_name.lower().replace(' ', '_')))
@@ -1042,7 +1042,8 @@ def plot_grid_scores(grid_scores, best_point, params, name,
 
     plt.colorbar(img, fraction=.06, pad=0.03)
     plt.axis("tight")
-    plt.savefig("grid_scores_%s.%s" % (name, format), bbox_inches='tight')
+    plt.savefig(os.path.join(PLOTS_DIR, "grid_scores_%s.%s") % (
+        name, format), bbox_inches='tight')
     plt.clf()
 
 
@@ -1179,4 +1180,4 @@ def draw_ROC(bkg_scores, sig_scores):
     plt.ylim(0, 1)
     plt.xlim(0, 1)
     plt.grid()
-    plt.savefig('ROC.png', bbox_inches='tight')
+    plt.savefig(os.path.join(PLOTS_DIR, 'ROC.png'), bbox_inches='tight')
