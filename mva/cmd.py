@@ -117,8 +117,8 @@ def training_parser(parser=None):
     parser.add_argument('--nfold', type=int, default=5,
             help='the number of folds in the cross-validation')
     parser.add_argument('--clf-bins', dest='bins', type=int, default=10,
-            help='the number of bins to use in the limit histograms and plots of '
-            'the final classifier output')
+            help='the number of bins to use in the plots of '
+            'the classifier output')
     parser.add_argument('--train-fraction', type=float, default=.5,
             help='the fraction of events used for training and excluded from the '
             'final limit histograms')
@@ -126,6 +126,8 @@ def training_parser(parser=None):
             help='only train in these categories')
     parser.add_argument('--quick-train', action='store_true', default=False,
             help='perform a very small grid search for testing purposes')
+    parser.add_argument('--quick-eval', action='store_true', default=False,
+            help='do not make expensize validation plots')
     parser.add_argument('--grid-search', action='store_true', default=False,
             help='perform a grid-searched cross validation')
     parser.add_argument('--forest-feature-ranking',

@@ -469,7 +469,8 @@ class ClassificationProblem(object):
             self.clfs[(partition_idx + 1) % 2] = clf
 
     def classify(self, sample, category, region,
-                 cuts=None, systematic='NOMINAL'):
+                 cuts=None, systematic='NOMINAL',
+                 transform=True):
 
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
@@ -492,8 +493,15 @@ class ClassificationProblem(object):
         left_scores = self.clfs[0].decision_function(left)
         right_scores = self.clfs[1].decision_function(right)
 
-        return np.concatenate((left_scores, right_scores)), \
-               np.concatenate((left_weight, right_weight))
+        scores = np.concatenate((left_scores, right_scores))
+        weights = np.concatenate((left_weight, right_weight))
+
+        if transform:
+            log.info("classifier scores are transformed")
+            # logistic tranformation used by TMVA (MethodBDT.cxx)
+            scores = 2.0 / (1.0 + np.exp(-2.0 * scores)) - 1.0
+
+        return scores, weights
 
     def evaluate(self,
                  backgrounds,
@@ -522,17 +530,18 @@ class ClassificationProblem(object):
                 mass=125,
                 systematics=systematics))
 
-        # show 2D plots of all input variables and with BDT output
-        log.info("drawing scatter plots of input variables")
-        draw_scatter(self.all_fields,
-                     self.category,
-                     self.region,
-                     self.output_suffix,
-                     backgrounds,
-                     data=data,
-                     signals=signals,
-                     signal_scale=300.,
-                     classifier=self)
+        if not quick:
+            # show 2D plots of all input variables and with BDT output
+            log.info("drawing scatter plots of input variables")
+            draw_scatter(self.all_fields,
+                         self.category,
+                         self.region,
+                         self.output_suffix,
+                         backgrounds,
+                         data=data,
+                         signals=signals,
+                         signal_scale=300.,
+                         classifier=self)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
