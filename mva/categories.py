@@ -82,7 +82,7 @@ features_2j = [
     # !!! eta centrality of 3rd jet
 ]
 
-feaures_boosted = [
+features_boosted = [
     #'mass_mmc_tau1_tau2',
     # !!! mass ditau + leading jet?
     'dEta_jets',
