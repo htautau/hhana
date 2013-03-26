@@ -1,3 +1,5 @@
+# deprecated:
+"""
 import os
 
 import ROOT
@@ -12,17 +14,12 @@ import numpy as np
 from .. import log; log = log[__name__]
 from ..plotting import set_colours, draw
 from .. import plots_dir
-
 from .. import categories
 from .. import samples
-
 from . import cache
 
 
-class FitError(Exception):
-    pass
-
-
+# deprecated:
 def qcd_ztautau_norm(
         year,
         ztautau,
@@ -310,3 +307,4 @@ def qcd_ztautau_norm(
             category, is_embedded, param,
             qcd_scale, qcd_scale_error,
             ztautau_scale, ztautau_scale_error)
+"""

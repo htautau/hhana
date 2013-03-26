@@ -600,9 +600,9 @@ class MC(Sample):
     def label(self):
 
         l = self._label
-        if self.scale != 1. and not isinstance(self,
-                (MC_Ztautau, Embedded_Ztautau)):
-            l += r' ($\sigma_{SM} \times %g$)' % self.scale
+        #if self.scale != 1. and not isinstance(self,
+        #        (MC_Ztautau, Embedded_Ztautau)):
+        #    l += r' ($\sigma_{SM} \times %g$)' % self.scale
         return l
 
     def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):

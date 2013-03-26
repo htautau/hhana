@@ -24,39 +24,17 @@ import numpy as np
 from mva import log, variables, plots_dir, samples
 from mva.stats import hypotests
 from mva.plotting import *
-from mva.samples import *
+from mva.samples import Higgs
 from mva.utils import make_multipage_pdf
-from mva.norm import qcd_ztautau_norm
 from mva.classify import *
 from mva.systematics import SYSTEMATICS
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES
+from mva.analysis import Analysis
 
 
 PLOTS_DIR = plots_dir(__file__)
-
-if args.embedding:
-    ztautau = Embedded_Ztautau(
-            year=year,
-            systematics=args.systematics)
-else:
-    ztautau = MC_Ztautau(
-            year=year,
-            systematics=args.systematics)
-others = Others(
-        year=year,
-        systematics=args.systematics)
-data = Data(
-        year=year,
-        markersize=1.2)
-
-higgs_125 = Higgs(
-        year=year,
-        mass=125,
-        systematics=args.systematics,
-        scale=50,
-        linecolor='red')
 
 figures = {}
 category_scores = {}
@@ -93,42 +71,16 @@ for category in categories:
     log.info("=" * 40)
     log.info("Cuts: %s" % category.cuts)
     
-    # QCD shape region SS or !OS
-    qcd_shape_region = category.qcd_shape_region
+    analysis = Analysis(
+        year=year,
+        category=category,
+        systematics=args.systematics,
+        use_embedding=args.embedding)
+
     target_region = category.target_region
     
     figures[category.name] = {}
-
-    qcd = QCD(data=data, mc=[others, ztautau],
-          shape_region=qcd_shape_region)
-    
-    qcd.scale = 1.
-    ztautau.scale = 1.
-
-    backgrounds = [
-        qcd,
-        others,
-        ztautau,
-    ]
-
-    # determine normalization of QCD and Ztautau
-    # in each category separately
-    qcd_ztautau_norm(
-        year=year,
-        ztautau=ztautau,
-        others=others,
-        qcd=qcd,
-        data=data,
-        category=category.name,
-        target_region=target_region,
-        mass_regions=mass_regions,
-        bins=category.fitbins,
-        draw=args.draw_fit,
-        use_cache=args.use_fit_cache,
-        param=args.fit_param,
-        systematics=SYSTEMATICS.values() if args.systematics else None,
-        root=args.root)
-    
+        
     if 'plot' in args.actions:
         cuts = Cut(args.plot_cut)
 
@@ -170,6 +122,7 @@ for category in categories:
                     data=data if not var_info.get('blind', False) or args.unblind else None,
                     model=backgrounds,
                     signal=[higgs_125],
+                    signal_scale=50,
                     name=var_info['root'] if args.root else var_info['title'],
                     output_name=output_name,
                     category=category,

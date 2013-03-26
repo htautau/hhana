@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from .. import log, CACHE_DIR
+from .. import samples
 import os
 import cPickle as pickle
 
@@ -11,6 +12,26 @@ else:
 SCALES_FILE = None
 SCALES = {}
 MODIFIED = False
+
+
+def qcd_ztautau_norm(
+        year,
+        ztautau,
+        qcd,
+        category,
+        param='TRACK'):
+
+    is_embedded = isinstance(ztautau, samples.Embedded_Ztautau)
+    param = param.upper()
+
+    qcd_scale, qcd_scale_error, \
+    ztautau_scale, ztautau_scale_error = get_scales(
+            year, category, is_embedded, param)
+
+    qcd.scale = qcd_scale
+    qcd.scale_error = qcd_scale_error
+    ztautau.scale = ztautau_scale
+    ztautau.scale_error = ztautau_scale_error
 
 
 def read_scales(name='norm.cache'):

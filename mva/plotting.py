@@ -569,7 +569,8 @@ def draw(name,
             scaled_signal = []
             for sig in signal:
                 scaled_h = sig * signal_scale
-                scaled_h.SetTitle(r'%s $\times\/%d$' % (sig.GetTitle(),
+                scaled_h.SetTitle(r'%s ($\sigma_{SM} \times\/%g$)' % (
+                    sig.GetTitle(),
                     signal_scale))
                 scaled_signal.append(scaled_h)
         else:
