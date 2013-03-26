@@ -54,7 +54,7 @@ CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
 
 
 features_2j = [
-    #'mass_mmc_tau1_tau2',
+    'mass_mmc_tau1_tau2',
     # !!! mass ditau + leading jet?
     'dEta_jets',
     #'dEta_jets_boosted', #
@@ -84,7 +84,7 @@ features_2j = [
 ]
 
 features_boosted = [
-    #'mass_mmc_tau1_tau2',
+    'mass_mmc_tau1_tau2',
     # !!! mass ditau + leading jet?
     'dEta_jets',
     #'dEta_jets_boosted', #
@@ -114,7 +114,7 @@ features_boosted = [
 ]
 
 features_1j = [
-    #'mass_mmc_tau1_tau2',
+    'mass_mmc_tau1_tau2',
     # !!! mass ditau + leading jet?
     'sphericity',
     #'sphericity_boosted',
@@ -134,7 +134,7 @@ features_1j = [
 ]
 
 features_0j = [
-    #'mass_mmc_tau1_tau2',
+    'mass_mmc_tau1_tau2',
     #'cos_theta_tau1_tau2',
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
