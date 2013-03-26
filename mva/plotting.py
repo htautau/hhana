@@ -127,7 +127,8 @@ def draw_scatter(fields,
                     classifier,
                     category,
                     region,
-                    cuts=cuts))
+                    cuts=cuts,
+                    systematics=False)['NOMINAL'][0])
 
     if data is not None:
         nplots += 1
@@ -141,7 +142,7 @@ def draw_scatter(fields,
                 classifier,
                 category,
                 region,
-                cuts=cuts)
+                cuts=cuts)[0]
 
     if signals is not None:
         nplots += 1
@@ -164,7 +165,8 @@ def draw_scatter(fields,
                         classifier,
                         category,
                         region,
-                        cuts=cuts))
+                        cuts=cuts,
+                        systematics=False)['NOMINAL'][0])
 
     if classifier is not None:
         fields = fields + [classifier]

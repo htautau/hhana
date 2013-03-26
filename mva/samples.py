@@ -737,7 +737,9 @@ class MC(Sample):
         # set the systematics
         hist.systematics = sys_hists
 
-    def scores(self, clf, category, region, cuts=None, scores_dict=None):
+    def scores(self, clf, category, region,
+               cuts=None, scores_dict=None,
+               systematics=True):
 
         if category != clf.category:
             raise ValueError(
@@ -748,10 +750,12 @@ class MC(Sample):
 
         for systematic in iter_systematics(True):
 
-            if not self.systematics and systematic != 'NOMINAL':
+            if ((not systematics or not self.systematics)
+                 and systematic != 'NOMINAL'):
                 continue
 
             scores, weights = clf.classify(self,
+                    category=category,
                     region=region,
                     cuts=cuts,
                     systematic=systematic)
@@ -1150,7 +1154,8 @@ class QCD(Sample, Background):
 
         hist.SetTitle(self.label)
 
-    def scores(self, clf, category, region, cuts=None):
+    def scores(self, clf, category, region,
+               cuts=None, systematics=True):
 
         if category != clf.category:
             raise ValueError(
@@ -1171,7 +1176,8 @@ class QCD(Sample, Background):
                     category,
                     region=self.shape_region,
                     cuts=cuts,
-                    scores_dict=scores_dict)
+                    scores_dict=scores_dict,
+                    systematics=systematics)
 
         for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]
