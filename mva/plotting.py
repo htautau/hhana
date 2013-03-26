@@ -96,15 +96,17 @@ def draw_scatter(fields,
     figwidth = 6.
     background_arrays = []
     for background in backgrounds:
-        background_arrays.append(background.array(
-            fields, category, region,
+        background_arrays.append(background.merged_records(
+            category, region,
+            fields=fields,
             cuts=cuts))
 
     if data is not None:
         nplots += 1
         figwidth += 6.
-        data_array = data.array(
-            fields, category, region,
+        data_array = data.merged_records(
+            category, region,
+            fields=fields,
             cuts=cuts)
 
     if signals is not None:
@@ -116,8 +118,9 @@ def draw_scatter(fields,
             signal_index = 2
         signal_arrays = []
         for signal in signals:
-            signal_arrays.append(signal.array(
-                fields, category, region,
+            signal_arrays.append(signal.merged_records(
+                category, region,
+                fields=fields,
                 cuts=cuts))
 
     all_pairs = list(itertools.combinations(fields, 2))
