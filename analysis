@@ -124,9 +124,9 @@ for category in categories:
             fig = draw_samples(
                     hist_template=hist_template,
                     expr=expr,
-                    data=data if not var_info.get('blind', False) or args.unblind else None,
-                    model=backgrounds,
-                    signal=[higgs_125],
+                    data=analysis.data if not var_info.get('blind', False) or args.unblind else None,
+                    model=analysis.backgrounds,
+                    signal=[analysis.higgs_125],
                     signal_scale=50,
                     name=var_info['root'] if args.root else var_info['title'],
                     output_name=output_name,

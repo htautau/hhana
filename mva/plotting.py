@@ -644,7 +644,7 @@ def draw(name,
             scaled_signal = signal
         if signal_colour_map is not None:
             set_colours(scaled_signal, signal_colour_map)
-        for s in signal:
+        for s in scaled_signal:
             if fill_signal:
                 s.fillstyle = 'solid'
                 s.linewidth = 0
