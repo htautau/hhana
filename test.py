@@ -26,3 +26,24 @@ down = z.merged_records(Category_VBF, 'OS', ['jet1_pt'], include_weight=False,
 print nom['jet1_pt'].mean()
 print up['jet1_pt'].mean()
 print down['jet1_pt'].mean()
+
+nom = z.merged_records(Category_VBF, 'OS', ['tau1_pt'])
+up = z.merged_records(Category_VBF, 'OS', ['tau1_pt'],
+        systematic=('TAUID_UP',))
+down = z.merged_records(Category_VBF, 'OS', ['tau1_pt'],
+        systematic=('TAUID_DOWN',))
+
+print nom['weight'].mean()
+print up['weight'].mean()
+print down['weight'].mean()
+
+nom = z.merged_records(Category_VBF, 'OS', ['tau1_pt'])
+up = z.merged_records(Category_VBF, 'OS', ['tau1_pt'],
+        systematic=('TRIGGER_UP',))
+down = z.merged_records(Category_VBF, 'OS', ['tau1_pt'],
+        systematic=('TRIGGER_DOWN',))
+
+print nom['weight'].mean()
+print up['weight'].mean()
+print down['weight'].mean()
+
