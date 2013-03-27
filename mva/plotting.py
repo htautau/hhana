@@ -108,7 +108,8 @@ def draw_scatter(fields,
                  signal_scale=1.,
                  signal_colour_map=cm.spring,
                  classifier=None,
-                 cuts=None):
+                 cuts=None,
+                 unblind=False):
 
     nplots = 1
     figheight = 6.
@@ -236,6 +237,17 @@ def draw_scatter(fields,
             else:
                 x_array = data_array[x] * xscale
             y_array = data_array[y] * yscale
+
+            # if blinded don't show above the midpoint of the BDT score
+            if with_classifier and not unblind:
+                midpoint = (x_array.max() + x_array.min()) / 2.
+                x_array = x_array[data_clf_array < midpoint]
+                y_array = y_array[data_clf_array < midpoint]
+                data_ax.text(0.3, 0.8, 'BLINDED',
+                                  verticalalignment='center',
+                                  horizontalalignment='center',
+                                        transform=axes.transAxes,
+                                        fontsize=20)
 
             # update max and min bounds
             lxmin, lxmax = x_array.min(), x_array.max()

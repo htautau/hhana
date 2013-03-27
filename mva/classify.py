@@ -538,7 +538,8 @@ class ClassificationProblem(object):
                          data=data,
                          signals=signals,
                          signal_scale=300.,
-                         classifier=self)
+                         classifier=self,
+                         unblind=unblind)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
