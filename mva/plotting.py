@@ -246,7 +246,7 @@ def draw_scatter(fields,
                 data_ax.text(0.3, 0.8, 'BLINDED',
                                   verticalalignment='center',
                                   horizontalalignment='center',
-                                        transform=axes.transAxes,
+                                        transform=data_ax.transAxes,
                                         fontsize=20)
 
             # update max and min bounds
