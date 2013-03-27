@@ -506,7 +506,8 @@ class ClassificationProblem(object):
     def evaluate(self,
                  backgrounds,
                  data,
-                 mass_regions,
+                 signal_region,
+                 control_region,
                  systematics=False,
                  signal_scale=50,
                  unblind=False,
@@ -514,10 +515,6 @@ class ClassificationProblem(object):
                  limitbins=10,
                  limitbinning='flat',
                  quick=False):
-
-        control_region = mass_regions.control_region
-        signal_region = mass_regions.signal_region
-        train_region = mass_regions.train_region
 
         year = backgrounds[0].year
 

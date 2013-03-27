@@ -1,5 +1,8 @@
 from rootpy.tree import Cut
+
 from .categories import BAD_MASS
+from . import log; log = log[__name__]
+
 
 DEFAULT_LOW_MASS = 110
 DEFAULT_HIGH_MASS = 180
@@ -10,7 +13,8 @@ class MassRegions(object):
     def __init__(self,
             low=DEFAULT_LOW_MASS,
             high=DEFAULT_HIGH_MASS,
-            high_sideband_in_control=False):
+            high_sideband_in_control=False,
+            full_signal_region=False):
 
         assert low > BAD_MASS
 
@@ -20,11 +24,18 @@ class MassRegions(object):
             assert high > low
             self.__control_region |= Cut('mass_mmc_tau1_tau2 > %d' % high)
 
-        # signal region is the negation of the control region
-        self.__signal_region = -self.__control_region
+        if full_signal_region:
+            self.__signal_region = Cut()
+        else:
+            # signal region is the negation of the control region
+            self.__signal_region = -self.__control_region
 
         # train on everything
-        self.__train_region = Cut('')
+        self.__train_region = Cut()
+
+        log.info("control region: %s" % self.__control_region)
+        log.info("signal region: %s" % self.__signal_region)
+        log.info("train region: %s" % self.__train_region)
 
     @property
     def control_region(self):
