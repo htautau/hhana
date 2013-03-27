@@ -415,8 +415,9 @@ class Data(Sample):
         Sample.check_systematic(systematic)
         selection = self.cuts(category, region, p1p3=p1p3) & cuts
 
-        log.info("requesting table from %s %d with selection: %s" %
-                 (self.__class__.__name__, self.year, selection))
+        log.info("requesting table from %s %d" %
+                 (self.__class__.__name__, self.year))
+        log.debug("using selection: %s" % selection)
 
         # read the table with a selection
         rec = self.h5data.readWhere(selection.where(),
@@ -829,12 +830,12 @@ class MC(Sample):
         selection = self.cuts(category, region, systematic, p1p3) & cuts
 
         if systematic == 'NOMINAL':
-            log.info("requesting table from %s with selection: %s" %
-                    (self.__class__.__name__, selection))
+            log.info("requesting table from %s" %
+                     (self.__class__.__name__))
         else:
-            log.info("requesting table from %s for systematic %s "
-                      "with selection: %s" %
-                      (self.__class__.__name__, systematic, selection))
+            log.info("requesting table from %s for systematic %s " %
+                     (self.__class__.__name__, systematic))
+        log.debug("using selection: %s" % selection)
 
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in SYSTEMATICS_BY_WEIGHT:
@@ -851,6 +852,7 @@ class MC(Sample):
                 events = sys_events[systematic]
 
                 if table is None:
+                    log.debug("systematics table was None, using NOMINAL")
                     table = sys_tables['NOMINAL']
                     events = sys_events['NOMINAL']
 
