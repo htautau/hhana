@@ -384,7 +384,7 @@ class ClassificationProblem(object):
                 clf = AdaBoostClassifier(
                         DecisionTreeClassifier(),
                         learning_rate=.5,
-                        algorithm='SAMME.R')
+                        algorithm='SAMME')
 
                 grid_clf = BoostGridSearchCV(
                         clf, grid_params,
@@ -470,7 +470,7 @@ class ClassificationProblem(object):
 
     def classify(self, sample, category, region,
                  cuts=None, systematic='NOMINAL',
-                 transform=True):
+                 transform=False):
 
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")

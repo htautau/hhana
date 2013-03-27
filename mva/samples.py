@@ -521,7 +521,7 @@ class MC(Sample):
 
                 unused_terms = SYSTEMATICS_TERMS[:]
 
-                if False and systematics_terms:
+                if systematics_terms:
                     for sys_term in systematics_terms:
 
                         # merge terms such as JES_UP,TES_UP (embedding)
@@ -832,7 +832,7 @@ class MC(Sample):
             log.info("requesting table from %s with selection: %s" %
                     (self.__class__.__name__, selection))
         else:
-            log.debug("requesting table from %s for systematic %s "
+            log.info("requesting table from %s for systematic %s "
                       "with selection: %s" %
                       (self.__class__.__name__, systematic, selection))
 
