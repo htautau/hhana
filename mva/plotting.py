@@ -243,9 +243,9 @@ def draw_scatter(fields,
                 midpoint = (x_array.max() + x_array.min()) / 2.
                 x_array = x_array[data_clf_array < midpoint]
                 y_array = y_array[data_clf_array < midpoint]
-                data_ax.text(0.3, 0.8, 'BLINDED',
+                data_ax.text(0.9, 0.2, 'BLINDED',
                                   verticalalignment='center',
-                                  horizontalalignment='center',
+                                  horizontalalignment='right',
                                         transform=data_ax.transAxes,
                                         fontsize=20)
 
