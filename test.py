@@ -16,3 +16,13 @@ down = z.merged_records(Category_VBF, 'OS', ['tau1_pt'], include_weight=False,
 print nom['tau1_pt'].mean()
 print up['tau1_pt'].mean()
 print down['tau1_pt'].mean()
+
+nom = z.merged_records(Category_VBF, 'OS', ['jet1_pt'], include_weight=False)
+up = z.merged_records(Category_VBF, 'OS', ['jet1_pt'], include_weight=False,
+        systematic=('JES_UP',))
+down = z.merged_records(Category_VBF, 'OS', ['jet1_pt'], include_weight=False,
+        systematic=('JES_DOWN',))
+
+print nom['jet1_pt'].mean()
+print up['jet1_pt'].mean()
+print down['jet1_pt'].mean()
