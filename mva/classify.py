@@ -590,6 +590,19 @@ class ClassificationProblem(object):
 
             sig_scores.append((sig, scores_dict))
 
+        if unblind:
+            # data scores
+            data_scores, _ = data.scores(self,
+                    category=self.category,
+                    region=self.region,
+                    cuts=signal_region)
+            _min = np.min(data_scores)
+            _max = np.max(data_scores)
+            if _min < min_score:
+                min_score = _min
+            if _max > max_score:
+                max_score = _max
+
         log.info("minimum score: %f" % min_score)
         log.info("maximum score: %f" % max_score)
 
@@ -608,7 +621,8 @@ class ClassificationProblem(object):
             category=self.category,
             plot_label='Mass Signal Region',
             signal_scores=sig_scores,
-            signal_scale=signal_scale,
+            signal_scale=signal_scale if not unblind else 1.,
+            data_scores=None if not unblind else (data, data_scores),
             draw_data=True,
             name='signal_region' + self.output_suffix,
             bins=bins + 2,
