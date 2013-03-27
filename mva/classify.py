@@ -384,7 +384,7 @@ class ClassificationProblem(object):
                 clf = AdaBoostClassifier(
                         DecisionTreeClassifier(),
                         learning_rate=.5,
-                        algorithm='SAMME')
+                        algorithm='SAMME.R')
 
                 grid_clf = BoostGridSearchCV(
                         clf, grid_params,
