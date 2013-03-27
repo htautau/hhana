@@ -71,8 +71,8 @@ def mass_parser(parser=None):
             help='the high mass window cut. '
             'Norms of Z and QCD are fit above this and '
             'the signal region of the classifier output is below this')
-    parser.add_argument('--full-signal-region', action='store_true',
-            default=False, help="use full mass range as signal region")
+    parser.add_argument('--mass-window-signal-region', action='store_true',
+            default=False, help="restrict the signal region to a mass window")
     parser.add_argument('--no-sideband-in-control',
             dest='high_sideband_in_control',
             action='store_false',
