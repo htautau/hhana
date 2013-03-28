@@ -1,11 +1,24 @@
 from mva.analysis import Analysis
-from mva.categories import Category_VBF
+from mva.categories import Category_VBF, Category_Boosted
 
-#a = Data(2012)
-#print a.records(Category_VBF, 'OS', ['tau1_pt'])
-#print a.partitioned_records(Category_VBF, 'OS', ['tau1_pt'], num_partitions=3)
 
 a = Analysis(2012, Category_VBF, systematics=True)
+
+for i in xrange(10):
+    rec = a.data.records(Category_VBF, 'OS', ['tau1_pt'])
+    rec[0]["weight"] *= 5
+    print rec
+
+for i in xrange(10):
+    rec = a.data.records(Category_VBF, 'OS', ['tau2_pt'])
+    print rec
+
+for i in xrange(10):
+    rec = a.data.records(Category_Boosted, 'OS', ['tau2_pt'])
+    print rec
+
+print a.data.partitioned_records(Category_VBF, 'OS', ['tau1_pt'], num_partitions=3)
+
 
 z = a.ztautau
 

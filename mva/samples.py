@@ -38,6 +38,7 @@ from .systematics import *
 from .constants import *
 from .classify import histogram_scores
 from .stats.histfactory import to_uniform_binning
+from .cachedtable import CachedTable
 
 # Higgs cross sections
 import yellowhiggs
@@ -375,7 +376,7 @@ class Data(Sample):
         h5file = get_file(self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
         self.data = getattr(rfile, dataname)
-        self.h5data = getattr(h5file.root, dataname)
+        self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
 
         self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
                       '$\int L dt = %.2f$ fb$^{-1}$' % (
@@ -523,7 +524,8 @@ class MC(Sample):
             events_hist_suffix = '_cutflow'
 
             trees['NOMINAL'] = rfile.Get(treename)
-            tables['NOMINAL'] =  getattr(h5file.root, treename)
+            tables['NOMINAL'] =  CachedTable.hook(getattr(
+                h5file.root, treename))
 
             weighted_events['NOMINAL'] = rfile.Get(
                     treename + events_hist_suffix)[events_bin]
@@ -554,7 +556,8 @@ class MC(Sample):
 
                         sys_name = treename + '_' + '_'.join(actual_sys_term)
                         trees[sys_term] = rfile.Get(sys_name)
-                        tables[sys_term] = getattr(h5file.root, sys_name)
+                        tables[sys_term] = CachedTable.hook(getattr(
+                            h5file.root, sys_name))
 
                         weighted_events[sys_term] = rfile.Get(
                                 sys_name + events_hist_suffix)[events_bin]
@@ -572,7 +575,8 @@ class MC(Sample):
                         sample_name = sample_name.replace('-', '_')
 
                         trees[sys_term] = rfile.Get(sample_name)
-                        tables[sys_term] = getattr(h5file.root, sample_name)
+                        tables[sys_term] = CachedTable.hook(getattr(
+                            h5file.root, sample_name))
 
                         weighted_events[sys_term] = getattr(rfile,
                                 sample_name + events_hist_suffix)[events_bin]
