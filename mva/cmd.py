@@ -124,9 +124,6 @@ def training_parser(parser=None):
             default=True)
     parser.add_argument('--nfold', type=int, default=5,
             help='the number of folds in the cross-validation')
-    parser.add_argument('--clf-bins', dest='bins', type=int, default=10,
-            help='the number of bins to use in the plots of '
-            'the classifier output')
     parser.add_argument('--train-fraction', type=float, default=.5,
             help='the fraction of events used for training and excluded from the '
             'final limit histograms')

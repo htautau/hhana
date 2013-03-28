@@ -175,6 +175,9 @@ class Category(object):
     common_cuts = COMMON_CUTS
     from . import samples
     train_signal_modes = samples.Higgs.MODES[:]
+    clf_bins = 10
+    # only unblind up to this number of bins in half-blind mode
+    halfblind_bins = 0
 
     @classmethod
     def get_cuts(cls, year):
@@ -229,6 +232,7 @@ class Category_VBF(Category):
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
+    halfblind_bins = 4
 
 
 class Category_Boosted(Category):
@@ -243,6 +247,8 @@ class Category_Boosted(Category):
     features = features_boosted
     # train with all modes
 
+    halfblind_bins = 5
+
 
 class Category_Nonboosted_1J(Category):
 
@@ -255,6 +261,8 @@ class Category_Nonboosted_1J(Category):
     features = features_1j
     # train with all modes
 
+    halfblind_bins = 5
+
 
 class Category_Nonboosted_0J(Category):
 
@@ -266,6 +274,8 @@ class Category_Nonboosted_0J(Category):
     limitbinning = 'onebkg'
     features = features_0j
     # train with all modes
+
+    halfblind_bins = 5
 
 
 CATEGORIES = {

@@ -647,6 +647,7 @@ def draw(name,
         set_colours(model, model_colour_map)
 
     if signal is not None:
+        # always make signal a list
         if not isinstance(signal, (list, tuple)):
             signal = [signal]
         if signal_scale != 1.:
@@ -700,7 +701,7 @@ def draw(name,
     if signal is not None and not signal_on_top:
         if root:
             pass
-        elif len(signal) > 1:
+        if fill_signal:
             signal_bars = rplt.bar(
                     scaled_signal,
                     stacked=True, #yerr='quadratic',
@@ -708,12 +709,15 @@ def draw(name,
                     alpha=alpha,
                     ypadding=ypadding)
         else:
-            _, _, signal_bars = rplt.hist(
-                    scaled_signal[0],
+            signal_bars = rplt.hist(
+                    scaled_signal,
                     histtype='stepfilled',
+                    stacked=True,
                     alpha=alpha,
                     axes=hist_ax,
                     ypadding=ypadding)
+            # only keep the patch objects
+            signal_bars = [res[2][0] for res in signal_bars]
 
         if plot_signal_significance:
             plot_significance(signal, model, ax=hist_ax)
@@ -806,6 +810,10 @@ def draw(name,
             total_model = sum(model)
             numerator = data - total_model
             error_hist = Hist.divide(numerator, total_model, option='B')
+            # zero out bins where data is zero
+            for i, value in enumerate(data):
+                if value == 0:
+                    error_hist[i] = 0
             error_hist.linecolor = 'black'
             error_hist.linewidth = 1
             error_hist.fillstyle = 'hollow'
@@ -912,9 +920,6 @@ def draw(name,
         right_legend_bars = []
         right_legend_titles =[]
 
-        if data is not None:
-            right_legend_bars.append(data_bars)
-            right_legend_titles.append(data.title)
         if signal is not None:
             if isinstance(signal, (list, tuple)):
                 right_legend_bars += signal_bars
@@ -922,6 +927,9 @@ def draw(name,
             else:
                 right_legend_bars.append(signal_bars[0])
                 right_legend_titles.append(scaled_signal.title)
+        if data is not None:
+            right_legend_bars.append(data_bars)
+            right_legend_titles.append(data.title)
 
         if right_legend_bars:
             right_legend = hist_ax.legend(
@@ -1169,10 +1177,8 @@ def plot_clf(background_scores,
              bins=10,
              min_score=0,
              max_score=1,
-             signal_on_top=False,
              signal_colour_map=cm.spring,
              plot_signal_significance=True,
-             fill_signal=True,
              systematics=None,
              **kwargs):
 
@@ -1249,8 +1255,6 @@ def plot_clf(background_scores,
              show_ratio=data_hist is not None,
              model_colour_map=None,
              signal_colour_map=signal_colour_map,
-             signal_on_top=signal_on_top,
-             fill_signal=fill_signal,
              systematics=systematics,
              **kwargs)
     return bkg_hists, sig_hists, data_hist

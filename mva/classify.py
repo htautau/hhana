@@ -493,12 +493,13 @@ class ClassificationProblem(object):
                  systematics=False,
                  signal_scale=50,
                  unblind=False,
-                 bins=20,
                  limitbins=10,
                  limitbinning='flat',
                  quick=False):
 
         year = backgrounds[0].year
+        category = self.category
+        region = self.region
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -512,8 +513,8 @@ class ClassificationProblem(object):
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(self,
-                    category=self.category,
-                    region=self.region,
+                    category=category,
+                    region=region,
                     cuts=signal_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
@@ -533,8 +534,8 @@ class ClassificationProblem(object):
         # signal scores
         for sig in signals:
             scores_dict = sig.scores(self,
-                    category=self.category,
-                    region=self.region,
+                    category=category,
+                    region=region,
                     cuts=signal_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
@@ -550,18 +551,17 @@ class ClassificationProblem(object):
 
             sig_scores.append((sig, scores_dict))
 
-        if unblind:
-            # data scores
-            data_scores, _ = data.scores(self,
-                    category=self.category,
-                    region=self.region,
-                    cuts=signal_region)
-            _min = np.min(data_scores)
-            _max = np.max(data_scores)
-            if _min < min_score:
-                min_score = _min
-            if _max > max_score:
-                max_score = _max
+        # data scores
+        data_scores, _ = data.scores(self,
+                category=category,
+                region=region,
+                cuts=signal_region)
+        _min = np.min(data_scores)
+        _max = np.max(data_scores)
+        if _min < min_score:
+            min_score = _min
+        if _max > max_score:
+            max_score = _max
 
         log.info("minimum score: %f" % min_score)
         log.info("maximum score: %f" % max_score)
@@ -572,20 +572,26 @@ class ClassificationProblem(object):
 
         # add a bin above max score and below min score for extra beauty
         score_width = max_score - min_score
-        bin_width = score_width / bins
+        bin_width = score_width / category.clf_bins
         min_score -= bin_width
         max_score += bin_width
 
+        if not unblind:
+            # show a partial unblinding
+            # get upper edge of half-blind bin
+            upper_edge = min_score + (category.halfblind_bins + 1) * bin_width
+            data_scores = data_scores[data_scores <= upper_edge]
+
         plot_clf(
             background_scores=bkg_scores,
-            category=self.category,
-            plot_label='Mass Signal Region',
+            category=category,
+            plot_label='Mass Signal Region' if signal_region else None,
             signal_scores=sig_scores,
             signal_scale=signal_scale if not unblind else 1.,
-            data_scores=None if not unblind else (data, data_scores),
+            data_scores=(data, data_scores),
             draw_data=True,
             name='signal_region' + self.output_suffix,
-            bins=bins + 2,
+            bins=category.clf_bins + 2,
             min_score=min_score,
             max_score=max_score,
             systematics=SYSTEMATICS.values() if systematics else None)
@@ -596,8 +602,8 @@ class ClassificationProblem(object):
 
         plot_clf(
             background_scores=bkg_scores,
-            category=self.category,
-            plot_label='Mass Signal Region',
+            category=category,
+            plot_label='Mass Signal Region' if signal_region else None,
             signal_scores=sig_scores,
             signal_scale=signal_scale if not unblind else 1.,
             data_scores=None if not unblind else (data, data_scores),
@@ -612,8 +618,8 @@ class ClassificationProblem(object):
         log.info(control_region)
         # data scores
         data_scores, _ = data.scores(self,
-                category=self.category,
-                region=self.region,
+                category=category,
+                region=region,
                 cuts=control_region)
 
         # determine min and max scores
@@ -630,8 +636,8 @@ class ClassificationProblem(object):
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(self,
-                    category=self.category,
-                    region=self.region,
+                    category=category,
+                    region=region,
                     cuts=control_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
@@ -656,19 +662,19 @@ class ClassificationProblem(object):
 
         # add a bin above max score and below min score for extra beauty
         score_width = max_score - min_score
-        bin_width = score_width / bins
+        bin_width = score_width / category.clf_bins
         min_score -= bin_width
         max_score += bin_width
 
         plot_clf(
             background_scores=bkg_scores,
-            category=self.category,
+            category=category,
             plot_label='Mass Control Region',
             signal_scores=None,
             data_scores=(data, data_scores),
             draw_data=True,
             name='control' + self.output_suffix,
-            bins=bins + 2,
+            bins=category.clf_bins + 2,
             min_score=min_score,
             max_score=max_score,
             systematics=SYSTEMATICS.values() if systematics else None)

@@ -170,6 +170,7 @@ for category in categories:
     
     if 'correlate' in args.actions:
         log.info("drawing correlation matrices")
+        # TODO
 
     if 'scatter' in args.actions:
         # show 2D plots of all input variables and with BDT output
@@ -195,7 +196,6 @@ for category in categories:
                 control_region=control_region,
                 unblind=args.unblind,
                 systematics=args.systematics,
-                bins=args.bins,
                 limitbins=category.limitbins,
                 limitbinning=category.limitbinning,
                 quick=args.quick_eval)
