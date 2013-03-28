@@ -247,7 +247,7 @@ class Category_Boosted(Category):
     features = features_boosted
     # train with all modes
 
-    halfblind_bins = 3
+    halfblind_bins = 2
 
 
 class Category_Nonboosted_1J(Category):
