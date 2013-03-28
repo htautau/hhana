@@ -66,7 +66,9 @@ def std(X):
     return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 
 
-def rec_to_ndarray(rec, fields):
+def rec_to_ndarray(rec, fields=None):
 
+    if fields is None:
+        fields = rec.dtype.names
     # Creates a copy and recasts data to a consistent datatype
     return np.vstack([rec[field] for field in fields]).T

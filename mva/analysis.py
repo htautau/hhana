@@ -59,3 +59,11 @@ class Analysis(object):
             self.others,
             self.ztautau,
         ]
+
+        self.signals = []
+        for mode in samples.Higgs.MODES:
+            self.signals.append(samples.Higgs(
+                year=year,
+                mode=mode,
+                mass=125,
+                systematics=systematics))

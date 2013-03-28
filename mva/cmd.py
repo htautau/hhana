@@ -24,7 +24,13 @@ def general_parser(parser=None):
     General Options
     """
     parser.add_argument('--actions', nargs='*',
-            choices=['validate', 'plot', 'train', 'evaluate', 'limits'],
+            choices=[
+                'validate',
+                'plot',
+                'train',
+                'scatter',
+                'evaluate',
+                'limits'],
             default=[],
             help='only perform these actions')
     parser.add_argument('--no-systematics', action='store_false',

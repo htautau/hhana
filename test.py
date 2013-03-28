@@ -9,6 +9,8 @@ a = Analysis(2012, Category_VBF, systematics=True)
 
 z = a.ztautau
 
+print z.array(Category_VBF, 'OS', ['tau1_pt', 'tau1_charge'], include_weight=False)
+
 nom = z.merged_records(Category_VBF, 'OS', ['tau1_pt'], include_weight=False)
 up = z.merged_records(Category_VBF, 'OS', ['tau1_pt'], include_weight=False,
         systematic=('TES_UP',))

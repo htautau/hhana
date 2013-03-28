@@ -32,7 +32,7 @@ from rootpy.memory.keepalive import keepalive
 from . import log; log = log[__name__]
 from . import variables
 from . import NTUPLE_PATH, DEFAULT_STUDENT
-from .utils import print_hist
+from .utils import print_hist, rec_to_ndarray
 from .lumi import LUMI
 from .systematics import *
 from .constants import *
@@ -259,6 +259,22 @@ class Sample(object):
                 systematic=systematic)
 
         return np.hstack(recs)
+
+    def array(self,
+              category,
+              region,
+              fields=None,
+              cuts=None,
+              include_weight=True,
+              systematic='NOMINAL'):
+
+        return rec_to_ndarray(self.merged_records(
+            category,
+            region,
+            fields=fields,
+            cuts=cuts,
+            include_weight=include_weight,
+            systematic=systematic))
 
     @classmethod
     def check_systematic(cls, systematic):

@@ -23,9 +23,7 @@ from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from .systematics import SYSTEMATICS
-from .plotting import (draw, plot_clf,
-                       plot_grid_scores, draw_scatter,
-                       correlations)
+from .plotting import draw, plot_clf, plot_grid_scores
 from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
@@ -217,23 +215,6 @@ class ClassificationProblem(object):
                (rec_to_ndarray(left, self.fields),
                 rec_to_ndarray(right, self.fields)))
             background_recs.append((left, right))
-
-        # draw correlation plots
-        corr_signal = np.hstack(map(np.hstack, signal_recs))
-        corr_signal_weight = np.concatenate(map(np.concatenate,
-            signal_weight_arrs))
-        corr_background = np.hstack(map(np.hstack, background_recs))
-        corr_background_weight = np.concatenate(map(np.concatenate,
-            background_weight_arrs))
-
-        correlations(
-            signal=rec_to_ndarray(corr_signal, self.all_fields),
-            signal_weight=corr_signal_weight,
-            background=rec_to_ndarray(corr_background, self.all_fields),
-            background_weight=corr_background_weight,
-            fields=self.all_fields,
-            category=self.category,
-            output_suffix=self.output_suffix)
 
         self.clfs = [None, None]
 
@@ -505,6 +486,7 @@ class ClassificationProblem(object):
 
     def evaluate(self,
                  backgrounds,
+                 signals,
                  data,
                  signal_region,
                  control_region,
@@ -517,29 +499,6 @@ class ClassificationProblem(object):
                  quick=False):
 
         year = backgrounds[0].year
-
-        from .samples import Higgs
-        signals = []
-        for mode in Higgs.MODES:
-            signals.append(Higgs(
-                year=year,
-                mode=mode,
-                mass=125,
-                systematics=systematics))
-
-        if not quick:
-            # show 2D plots of all input variables and with BDT output
-            log.info("drawing scatter plots of input variables")
-            draw_scatter(self.all_fields,
-                         self.category,
-                         self.region,
-                         self.output_suffix,
-                         backgrounds,
-                         data=data,
-                         signals=signals,
-                         signal_scale=300.,
-                         classifier=self,
-                         unblind=unblind)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region

@@ -168,10 +168,28 @@ for category in categories:
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
     
-    if 'evaluate' in args.actions:
+    if 'correlate' in args.actions:
+        log.info("drawing correlation matrices")
 
+    if 'scatter' in args.actions:
+        # show 2D plots of all input variables and with BDT output
+        log.info("drawing scatter plots of input variables")
+        draw_scatter(clf.all_fields,
+                     category,
+                     target_region,
+                     output_suffix,
+                     analysis.backgrounds,
+                     data=analysis.data,
+                     signals=analysis.signals,
+                     signal_scale=300.,
+                     classifier=clf,
+                     unblind=args.unblind)
+
+    if 'evaluate' in args.actions:
+        # create BDT validation plots
         clf.evaluate(
                 analysis.backgrounds,
+                analysis.signals,
                 analysis.data,
                 signal_region=signal_region,
                 control_region=control_region,
@@ -185,7 +203,6 @@ for category in categories:
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
     if 'limits' in args.actions:
-
         # construct a "channel" for each mass point
         channels = hypotests.channels(
                 clf, category, target_region,

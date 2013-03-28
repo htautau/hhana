@@ -87,6 +87,23 @@ def correlations(signal, signal_weight,
                  fields, category, output_suffix=''):
 
     # draw correlation plots
+    corr_signal = np.hstack(map(np.hstack, signal_recs))
+    corr_signal_weight = np.concatenate(map(np.concatenate,
+        signal_weight_arrs))
+    corr_background = np.hstack(map(np.hstack, background_recs))
+    corr_background_weight = np.concatenate(map(np.concatenate,
+        background_weight_arrs))
+
+    correlations(
+        signal=rec_to_ndarray(corr_signal, self.all_fields),
+        signal_weight=corr_signal_weight,
+        background=rec_to_ndarray(corr_background, self.all_fields),
+        background_weight=corr_background_weight,
+        fields=self.all_fields,
+        category=self.category,
+        output_suffix=self.output_suffix)
+
+    # draw correlation plots
     names = [VARIABLES[field]['title'] for field in fields]
     correlation_plot(signal, signal_weight, names,
                      os.path.join(PLOTS_DIR, "correlation_signal_%s%s" % (
