@@ -139,7 +139,8 @@ for category in categories:
                     plot_signal_significance=False,
                     systematics=SYSTEMATICS.values() if args.systematics else None,
                     root=args.root,
-                    output_formats=args.output_formats)
+                    output_formats=args.output_formats,
+                    weighted=not args.no_weight)
             figures[category.name][expr] = fig
     
     if 'weights' in args.actions:

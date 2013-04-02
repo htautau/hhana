@@ -184,6 +184,11 @@ class Category(object):
         return cls.cuts & cls.common_cuts & cls.year_cuts[year]
 
 
+class Category_Preselection(Category):
+
+    pass
+
+
 # Default categories
 
 class Category_2J(Category):

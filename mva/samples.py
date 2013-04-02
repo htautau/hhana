@@ -269,13 +269,16 @@ class Sample(object):
               include_weight=True,
               systematic='NOMINAL'):
 
-        return rec_to_ndarray(self.merged_records(
+        arr = rec_to_ndarray(self.merged_records(
             category,
             region,
             fields=fields,
             cuts=cuts,
             include_weight=include_weight,
             systematic=systematic))
+        if arr.shape[1] == 1:
+            # if one field then flatten array
+            return arr[:, 0]
 
     @classmethod
     def check_systematic(cls, systematic):

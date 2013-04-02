@@ -6,7 +6,7 @@ WEIGHTS = {
         'root': 'Pile-up Weight',
         'filename': 'weight_pileup',
         'bins': 50,
-        'range': (-.2, 2.)
+        'range': (-.2, 3.)
     },
 }
 
