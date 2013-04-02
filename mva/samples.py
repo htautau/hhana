@@ -395,9 +395,19 @@ class Data(Sample):
         return self.data.GetEntries(self.cuts(category, region, p1p3=p1p3) & cuts)
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, p1p3=True, weighted=True):
-
-        self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
+                  cuts=None, p1p3=True, weighted=True,
+                  array=False, weight_hist=None, weight_clf=None):
+        if array:
+            arr = self.array(category, region,
+                    fields=[expr], cuts=cuts,
+                    include_weight=True)
+            if weight_hist is not None:
+                scores = self.scores(weight_clf, category, region, cuts=cuts)
+                edges = np.array(list(weight_hist.xedges()))
+                weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
+                hist.fill_array(arr[:, 0], weights=arr[:, 1] * weights)
+        else:
+            self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
 
     def scores(self, clf, category, region, cuts=None):
 

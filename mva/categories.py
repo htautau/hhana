@@ -13,6 +13,8 @@ TAU2_FORWARD = Cut('fabs(tau2_eta) > 1.5')
 ID_MEDIUM = TAU1_MEDIUM & TAU2_MEDIUM
 ID_TIGHT = TAU1_TIGHT & TAU2_TIGHT
 ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
+# ID cuts for control region where both taus are medium but not tight
+ID_MEDIUM_NOT_TIGHT = (TAU1_MEDIUM & -TAU1_TIGHT) & (TAU2_MEDIUM & -TAU2_TIGHT)
 
 Z_PEAK = Cut('60 < mass_mmc_tau1_tau2 < 120')
 ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
@@ -21,6 +23,7 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
 
 TAU_DR_CUT = Cut('dR_tau1_tau2 < 3.2')
 TAU_DETA_CUT = Cut('dEta_tau1_tau2 < 1.5')
+TAU_DETA_CUT_CONTROL = Cut('dEta_tau1_tau2 >= 1.5')
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
 BAD_MASS = 60
 MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
@@ -38,6 +41,15 @@ COMMON_CUTS = (
         & TAU_SAME_VERTEX
         )
 
+# control region common cuts for deta >= 1.5
+CONTROL_CUTS_DETA = (
+        LEAD_TAU_35 & SUBLEAD_TAU_25
+        & MET & MASS_FIX
+        & TAU_DR_CUT
+        & TAU_DETA_CUT_CONTROL
+        & TAU_SAME_VERTEX
+        )
+
 LEAD_JET_50 = Cut('jet1_pt > 50000')
 SUBLEAD_JET_30 = Cut('jet2_pt > 30000')
 AT_LEAST_1JET = Cut('jet1_pt > 30000')
@@ -51,6 +63,7 @@ CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
+# TODO: try removing 2j variables from the boosted category
 
 
 features_2j = [
@@ -186,7 +199,24 @@ class Category(object):
 
 class Category_Preselection(Category):
 
-    pass
+    name = 'preselection'
+    label = r'$\tau_{had}\tau_{had}$: At Preselection'
+
+
+class Category_Preselection_ID_Control(Category):
+
+    name = 'preselection_id_control'
+    label = r'$\tau_{had}\tau_{had}$: ID Control Region at Preselection'
+    year_cuts = {
+        2011: ID_MEDIUM_NOT_TIGHT,
+        2012: ID_MEDIUM_NOT_TIGHT}
+
+
+class Category_Preselection_DEta_Control(Category):
+
+    name = 'preselection_deta_control'
+    label = r'$\tau_{had}\tau_{had}$: $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Preselection'
+    common_cuts = CONTROL_CUTS_DETA
 
 
 # Default categories
@@ -240,6 +270,23 @@ class Category_VBF(Category):
     halfblind_bins = 4
 
 
+class Category_VBF_ID_Control(Category_VBF):
+
+    name = 'vbf_id_control'
+    label = r'$\tau_{had}\tau_{had}$: VBF Category ID Control Region'
+    year_cuts = {
+        2011: ID_MEDIUM_NOT_TIGHT,
+        2012: ID_MEDIUM_NOT_TIGHT}
+
+
+class Category_VBF_DEta_Control(Category_VBF):
+
+    name = 'vbf_deta_control'
+    label = r'$\tau_{had}\tau_{had}$: VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    common_cuts = CONTROL_CUTS_DETA
+
+
+
 class Category_Boosted(Category):
 
     name = 'boosted'
@@ -253,6 +300,23 @@ class Category_Boosted(Category):
     # train with all modes
 
     halfblind_bins = 2
+
+
+class Category_Boosted_ID_Control(Category_Boosted):
+
+    name = 'boosted_id_control'
+    label = r'$\tau_{had}\tau_{had}$: Boosted Category ID Control Region'
+    year_cuts = {
+        2011: ID_MEDIUM_NOT_TIGHT,
+        2012: ID_MEDIUM_NOT_TIGHT}
+
+
+class Category_Boosted_DEta_Control(Category_Boosted):
+
+    name = 'boosted_deta_control'
+    label = r'$\tau_{had}\tau_{had}$: Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    common_cuts = CONTROL_CUTS_DETA
+
 
 
 class Category_Nonboosted_1J(Category):
@@ -269,6 +333,22 @@ class Category_Nonboosted_1J(Category):
     halfblind_bins = 5
 
 
+class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
+
+    name = '1j_nonboosted_id_control'
+    label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category ID Control Region'
+    year_cuts = {
+        2011: ID_MEDIUM_NOT_TIGHT,
+        2012: ID_MEDIUM_NOT_TIGHT}
+
+
+class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
+
+    name = '1j_nonboosted_deta_control'
+    label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    common_cuts = CONTROL_CUTS_DETA
+
+
 class Category_Nonboosted_0J(Category):
 
     name = '0j_nonboosted'
@@ -283,6 +363,22 @@ class Category_Nonboosted_0J(Category):
     halfblind_bins = 5
 
 
+class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
+
+    name = '0j_nonboosted_id_control'
+    label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category ID Control Region'
+    year_cuts = {
+        2011: ID_MEDIUM_NOT_TIGHT,
+        2012: ID_MEDIUM_NOT_TIGHT}
+
+
+class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
+
+    name = '0j_nonboosted_deta_control'
+    label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    common_cuts = CONTROL_CUTS_DETA
+
+
 CATEGORIES = {
     'default': [
         Category_2J,
@@ -294,6 +390,18 @@ CATEGORIES = {
         Category_Boosted,
         Category_Nonboosted_1J,
         Category_Nonboosted_0J,
+    ],
+    'harmonize_id_controls': [
+        Category_VBF_ID_Control,
+        Category_Boosted_ID_Control,
+        Category_Nonboosted_1J_ID_Control,
+        Category_Nonboosted_0J_ID_Control,
+    ],
+    'harmonize_deta_controls': [
+        Category_VBF_DEta_Control,
+        Category_Boosted_DEta_Control,
+        Category_Nonboosted_1J_DEta_Control,
+        Category_Nonboosted_0J_DEta_Control,
     ]
 }
 

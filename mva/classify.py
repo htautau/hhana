@@ -616,13 +616,9 @@ class ClassificationProblem(object):
 
         # plot the mass weighted by the background BDT distribution
         # first histogram background
-        bkg_hist_template = Hist(category.clf_bins + 2, min_score, max_score)
-        hist_scores(bkg_hist_template, bkg_scores)
-        edges = np.array(list(bkg_hist_template.xedges()))
-        scores = np.random.normal(5, 5, 10000)
-        weights = hist.take(edges.searchsorted(scores) - 1)
-
-
+        bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
+        hist_scores(bkg_score_hist, bkg_scores)
+        bkg_score_hist /= sum(bkg_score_hist)
 
         ############################################################
         # show the background model and data in the control region
