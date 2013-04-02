@@ -1,3 +1,4 @@
+import numpy as np
 from mva.analysis import Analysis
 from mva.categories import Category_VBF, Category_Boosted, Category_Preselection
 
@@ -87,6 +88,10 @@ def test_pileup():
                 include_weight=False)
         print weights.mean()
         print len(weights[weights == 0]) / float(len(weights))
+
+        mu = sample.array(Category_Preselection, 'OS', ['averageIntPerXing'],
+                include_weight=False, cuts='pileup_weight==0')
+        print np.unique(mu)
 
     show(a.ztautau)
     show(a.higgs_125)
