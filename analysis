@@ -34,7 +34,7 @@ from mva.classify import *
 from mva.systematics import SYSTEMATICS
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
-from mva.variables import VARIABLES
+from mva.variables import VARIABLES, WEIGHTS
 from mva.analysis import Analysis
 
 
@@ -141,6 +141,45 @@ for category in categories:
                     root=args.root,
                     output_formats=args.output_formats)
             figures[category.name][expr] = fig
+    
+    if 'weights' in args.actions:
+        cuts = Cut(args.plot_cut)
+
+        for expr, var_info in WEIGHTS.items():
+
+            log.info("")
+            log.info("plotting %s in %s category" % (expr, category.name))
+            log.info(category.cuts & cuts)
+
+            bins = var_info['bins']
+            min, max = var_info['range']
+            hist_template = Hist(bins, min, max)
+
+            output_name = var_info['filename'] + output_suffix
+            if cuts:
+                output_name += '_' + cuts.safe()
+
+            fig = draw_samples(
+                    hist_template=hist_template,
+                    expr=expr,
+                    data=analysis.data,
+                    model=analysis.backgrounds,
+                    signal=[analysis.higgs_125],
+                    signal_scale=50,
+                    name=var_info['root'] if args.root else var_info['title'],
+                    output_name=output_name,
+                    category=category,
+                    region=target_region,
+                    units=var_info.get('units', None),
+                    range=var_info['range'],
+                    show_ratio=False,
+                    show_qq=False,
+                    plot_signal_significance=False,
+                    systematics=None,
+                    root=args.root,
+                    output_formats=args.output_formats,
+                    weighted=False,
+                    stacked_model=False)
 
     if 'train' in args.actions:
         

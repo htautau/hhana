@@ -434,6 +434,7 @@ def draw_samples(
         cuts=None,
         ravel=True,
         p1p3=True,
+        weighted=True,
         **kwargs):
     """
     extra kwargs are passed to draw()
@@ -448,7 +449,7 @@ def draw_samples(
         hist.decorate(**sample.hist_decor)
         sample.draw_into(hist, expr,
                 category, region, cuts,
-                p1p3=p1p3)
+                p1p3=p1p3, weighted=weighted)
         if ndim > 1 and ravel:
             # ravel() the nominal and systematics histograms
             sys_hists = getattr(hist, 'systematics', None)
@@ -471,7 +472,7 @@ def draw_samples(
             hist.decorate(**sample.hist_decor)
             sample.draw_into(hist, expr,
                     category, region, cuts,
-                    p1p3=p1p3)
+                    p1p3=p1p3, weighted=weighted)
             if ndim > 1 and ravel:
                 # ravel() the nominal and systematics histograms
                 sys_hists = getattr(hist, 'systematics', None)
@@ -492,7 +493,8 @@ def draw_samples(
     if data is not None:
         data_hist = hist_template.Clone(title=data.label, **data.hist_decor)
         data_hist.decorate(**data.hist_decor)
-        data.draw_into(data_hist, expr, category, region, cuts, p1p3=p1p3)
+        data.draw_into(data_hist, expr, category, region, cuts,
+                       p1p3=p1p3, weighted=weighted)
         if ndim > 1 and ravel:
             data_hist = data_hist.ravel()
 
@@ -523,6 +525,7 @@ def draw(name,
          signal=None,
          signal_scale=1.,
          signal_on_top=False,
+         stacked_model=True,
          plot_signal_significance=True,
          units=None,
          range=None,

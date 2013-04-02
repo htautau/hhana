@@ -26,6 +26,7 @@ def general_parser(parser=None):
     parser.add_argument('--actions', nargs='*',
             choices=[
                 'validate',
+                'weights',
                 'plot',
                 'train',
                 'scatter',

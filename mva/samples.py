@@ -298,8 +298,10 @@ class Sample(object):
             systerm, variation = systematic[0].split('_')
         return systerm, variation
 
-    def get_weight_branches(self, systematic, no_cuts=False):
+    def get_weight_branches(self, systematic, no_cuts=False, weighted=True):
 
+        if not weighted:
+            return ["1.0"]
         systerm, variation = Sample.get_sys_term_variation(systematic)
         weight_branches = Sample.WEIGHT_BRANCHES[:]
         for term, variations in WEIGHT_SYSTEMATICS.items():
@@ -350,10 +352,12 @@ class Sample(object):
         return (category.get_cuts(self.year) &
                 Sample.REGIONS[region] & self._cuts & sys_cut)
 
-    def draw(self, expr, category, region, bins, min, max, cuts=None, p1p3=True):
+    def draw(self, expr, category, region, bins, min, max,
+             cuts=None, p1p3=True, weighted=True):
 
         hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
-        self.draw_into(hist, expr, category, region, cuts=cuts, p1p3=p1p3)
+        self.draw_into(hist, expr, category, region,
+                       cuts=cuts, p1p3=p1p3, weighted=weighted)
         return hist
 
     def draw2d(self, expr, category, region,
@@ -387,7 +391,8 @@ class Data(Sample):
 
         return self.data.GetEntries(self.cuts(category, region, p1p3=p1p3) & cuts)
 
-    def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
+    def draw_into(self, hist, expr, category, region,
+                  cuts=None, p1p3=True, weighted=True):
 
         self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
 
@@ -627,7 +632,8 @@ class MC(Sample):
         #    l += r' ($\sigma_{SM} \times %g$)' % self.scale
         return l
 
-    def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
+    def draw_into(self, hist, expr, category, region,
+                  cuts=None, p1p3=True, weighted=True):
 
         if isinstance(expr, (list, tuple)):
             exprs = expr
@@ -654,7 +660,8 @@ class MC(Sample):
             nominal_weighted_selection = (
                 '%f * %s * (%s)' %
                 (nominal_weight,
-                 ' * '.join(map(str, self.get_weight_branches('NOMINAL'))),
+                 ' * '.join(map(str,
+                     self.get_weight_branches('NOMINAL', weighted=weighted))),
                  selection))
 
             log.debug(nominal_weighted_selection)
@@ -695,7 +702,8 @@ class MC(Sample):
                         '%f * %s * (%s)' %
                         (sys_weight,
                          ' * '.join(map(str,
-                             self.get_weight_branches('NOMINAL'))),
+                             self.get_weight_branches('NOMINAL',
+                                 weighted=weighted))),
                          selection))
 
                     log.debug(sys_weighted_selection)
@@ -1146,16 +1154,18 @@ class QCD(Sample, Background):
         self.shape_region = shape_region
         self.systematics = mc[0].systematics
 
-    def draw_into(self, hist, expr, category, region, cuts=None, p1p3=True):
+    def draw_into(self, hist, expr, category, region,
+                  cuts=None, p1p3=True, weighted=True):
 
         MC_bkg_notOS = hist.Clone()
         for mc in self.mc:
             mc.draw_into(MC_bkg_notOS, expr, category, self.shape_region,
-                         cuts=cuts, p1p3=p1p3)
+                         cuts=cuts, p1p3=p1p3, weighted=weighted)
 
         data_hist = hist.Clone()
         self.data.draw_into(data_hist, expr,
-                            category, self.shape_region, cuts=cuts, p1p3=p1p3)
+                            category, self.shape_region,
+                            cuts=cuts, p1p3=p1p3, weighted=weighted)
 
         hist += (data_hist - MC_bkg_notOS) * self.scale
 

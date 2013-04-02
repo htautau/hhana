@@ -1,5 +1,15 @@
 import math
 
+WEIGHTS = {
+    'pileup_weight': {
+        'title': 'Pile-up Weight',
+        'root': 'Pile-up Weight',
+        'filename': 'weight_pileup',
+        'bins': 50,
+        'range': (-.2, 2.)
+    },
+}
+
 VARIABLES = {
     'averageIntPerXing': {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
