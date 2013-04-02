@@ -189,9 +189,7 @@ for category in categories:
     if 'evaluate' in args.actions:
         # create BDT validation plots
         clf.evaluate(
-                analysis.backgrounds,
-                analysis.signals,
-                analysis.data,
+                analysis,
                 signal_region=signal_region,
                 control_region=control_region,
                 unblind=args.unblind,

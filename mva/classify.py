@@ -23,7 +23,7 @@ from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from .systematics import SYSTEMATICS
-from .plotting import draw, plot_clf, plot_grid_scores
+from .plotting import draw, plot_clf, plot_grid_scores, hist_scores
 from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
@@ -485,9 +485,7 @@ class ClassificationProblem(object):
         return scores, weights
 
     def evaluate(self,
-                 backgrounds,
-                 signals,
-                 data,
+                 analysis,
                  signal_region,
                  control_region,
                  systematics=False,
@@ -496,6 +494,10 @@ class ClassificationProblem(object):
                  limitbins=10,
                  limitbinning='flat',
                  quick=False):
+
+        backgrounds = analysis.backgrounds
+        signals = analysis.signals
+        data = analysis.data
 
         year = backgrounds[0].year
         category = self.category
@@ -611,6 +613,16 @@ class ClassificationProblem(object):
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
             systematics=SYSTEMATICS.values() if systematics else None)
+
+        # plot the mass weighted by the background BDT distribution
+        # first histogram background
+        bkg_hist_template = Hist(category.clf_bins + 2, min_score, max_score)
+        hist_scores(bkg_hist_template, bkg_scores)
+        edges = np.array(list(bkg_hist_template.xedges()))
+        scores = np.random.normal(5, 5, 10000)
+        weights = hist.take(edges.searchsorted(scores) - 1)
+
+
 
         ############################################################
         # show the background model and data in the control region
