@@ -104,7 +104,8 @@ class ClassificationProblem(object):
                  cuts=None,
                  spectators=None,
                  standardize=False,
-                 output_suffix=""):
+                 output_suffix="",
+                 clf_output_suffix=""):
 
         self.fields = fields
         self.category = category
@@ -112,6 +113,7 @@ class ClassificationProblem(object):
         self.spectators = spectators
         self.standardize = standardize
         self.output_suffix = output_suffix
+        self.clf_output_suffix = clf_output_suffix
         self.background_label = 0
         self.signal_label = 1
 
@@ -156,7 +158,7 @@ class ClassificationProblem(object):
 
                 clf_filename = os.path.join(CACHE_DIR, 'classify',
                         'clf_%s%s_%d.pickle' % (
-                        self.category.name, self.output_suffix, partition_idx))
+                        self.category.name, self.clf_output_suffix, partition_idx))
 
                 log.info("attempting to open %s ..." % clf_filename)
                 if os.path.isfile(clf_filename):
@@ -441,7 +443,7 @@ class ClassificationProblem(object):
 
             clf_filename = os.path.join(CACHE_DIR, 'classify',
                     'clf_%s%s_%d.pickle' % (
-                    self.category.name, self.output_suffix, partition_idx))
+                    self.category.name, self.clf_output_suffix, partition_idx))
 
             with open(clf_filename, 'w') as f:
                 pickle.dump(clf, f)

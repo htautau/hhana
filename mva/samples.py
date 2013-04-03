@@ -212,7 +212,7 @@ class Sample(object):
         if hasattr(self, 'histfactory'):
             # perform sample-specific items
             log.info("calling %s histfactory method" % self.name)
-            self.histfactory(sample)
+            self.histfactory(sample, systematics=do_systematics)
 
         return sample
 
@@ -788,9 +788,32 @@ class MC(Sample):
     def draw_array(self, hist, expr, category, region,
                    cuts=None, p1p3=True, weighted=True,
                    weight_hist=None, weight_clf=None):
+        """
+        This method behaves in three ways:
+
+        If hist and expr are not lists then the single hist is filled
+        This single hist is then returned.
+
+        If hist is not a list but expr is, then hist is filled with all exprs
+        This single hist is then returned.
+
+        If hist and expr are both lists then each hist is filled with the
+        corresponding expr. The hist and expr lists must be the same length.
+        A dict mapping expr to the corresponding hist is returned.
+        """
+        if isinstance(expr, (list, tuple)):
+            if isinstance(hist, (list, tuple)):
+                if len(hist) != len(expr):
+                    raise ValueError(
+                        "if hist and expr are both lists then they "
+                        "must be the same length")
+                MODE = 3
+                hist_dict = {}
+            else:
+                MODE = 2
+        else:
+            MODE = 1
         # TODO: support expr and hist as lists
-        # should offer a huge speedup for drawing multiple expressions with the
-        # same cuts
         arr = self.array(category, region,
                 fields=[expr], cuts=cuts,
                 include_weight=True)
@@ -1097,8 +1120,9 @@ class Higgs(MC, Signal):
         'QCDscale_VH': (1.007, 0.992),
     }
 
-    def histfactory(self, sample):
-
+    def histfactory(self, sample, systematics=True):
+        if not systematics:
+            return
         if len(self.modes) != 1:
             raise TypeError(
                     'histfactory sample only valid for single production mode')
@@ -1115,7 +1139,7 @@ class Higgs(MC, Signal):
         else:
             raise ValueError('mode %s is not valid' % mode)
         for term, (high, low) in overall_dict.items():
-            log.debug("defining overall sys %s" % term)
+            log.info("defining overall sys %s" % term)
             sample.AddOverallSys(term, low, high)
 
     def __init__(self, year,

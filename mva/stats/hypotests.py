@@ -91,7 +91,7 @@ def channels(clf, category, region, backgrounds,
 
 def limit(channels,
           unblind=False,
-          lumi_rel_error=0.028,
+          lumi_rel_error=0.,
           POI='SigXsecOverSM'):
 
     if not isinstance(channels, (list, tuple)):
