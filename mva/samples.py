@@ -797,9 +797,10 @@ class MC(Sample):
                 fields=[expr], cuts=cuts,
                 include_weight=True)
         if weight_hist is not None:
-            scores = self.scores(weight_clf, category, region, cuts=cuts)
+            scores = self.scores(weight_clf, category, region, cuts=cuts,
+                    systematics=True)
             edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
+            weights = np.array(weight_hist).take(edges.searchsorted(scores['NOMINAL']) - 1)
             weights = arr[:, -1] * weights
         else:
             weights = arr[:, -1]
@@ -809,10 +810,27 @@ class MC(Sample):
             sys_hists = hist.systematics
         else:
             sys_hists = {}
-        # TODO: draw systematics
-
         # set the systematics
         hist.systematics = sys_hists
+        if not self.systematics:
+            return
+
+        for systematic in iter_systematics(False):
+
+            arr = self.array(category, region,
+                    fields=[expr], cuts=cuts,
+                    include_weight=True,
+                    systematic=systematic)
+            sys_hist = hist.Clone()
+            sys_hist.Reset()
+            if weight_hist is not None:
+                edges = np.array(list(weight_hist.xedges()))
+                weights = np.array(weight_hist).take(edges.searchsorted(scores[systematic]) - 1)
+                weights = arr[:, -1] * weights
+            else:
+                weights = arr[:, -1]
+            sys_hist.fill_array(arr[:, 0], weights=weights)
+            sys_hists[systematic] = sys_hist
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
