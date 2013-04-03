@@ -392,8 +392,7 @@ class Data(Sample):
         return self.data.GetEntries(self.cuts(category, region, p1p3=p1p3) & cuts)
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, p1p3=True, weighted=True,
-                  array=False, weight_hist=None, weight_clf=None):
+                  cuts=None, p1p3=True, weighted=True):
 
         self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
 
@@ -408,7 +407,7 @@ class Data(Sample):
                 fields=[expr], cuts=cuts,
                 include_weight=True)
         if weight_hist is not None:
-            scores = self.scores(weight_clf, category, region, cuts=cuts)
+            scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
             weights = arr[:, -1] * weights
@@ -800,7 +799,9 @@ class MC(Sample):
             scores = self.scores(weight_clf, category, region, cuts=cuts,
                     systematics=True)
             edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(edges.searchsorted(scores['NOMINAL']) - 1)
+            print edges
+            print edges.searchsorted(scores['NOMINAL'][0]) - 1
+            weights = np.array(weight_hist).take(edges.searchsorted(scores['NOMINAL'][0]) - 1)
             weights = arr[:, -1] * weights
         else:
             weights = arr[:, -1]
@@ -825,7 +826,7 @@ class MC(Sample):
             sys_hist.Reset()
             if weight_hist is not None:
                 edges = np.array(list(weight_hist.xedges()))
-                weights = np.array(weight_hist).take(edges.searchsorted(scores[systematic]) - 1)
+                weights = np.array(weight_hist).take(edges.searchsorted(scores[systematic][0]) - 1)
                 weights = arr[:, -1] * weights
             else:
                 weights = arr[:, -1]
@@ -1266,7 +1267,7 @@ class QCD(Sample, Background):
                          weight_hist=weight_hist, weight_clf=weight_clf)
 
         data_hist = hist.Clone()
-        self.data.draw_into(data_hist, expr,
+        self.data.draw_array(data_hist, expr,
                             category, self.shape_region,
                             cuts=cuts, p1p3=p1p3, weighted=weighted,
                             weight_hist=weight_hist, weight_clf=weight_clf)

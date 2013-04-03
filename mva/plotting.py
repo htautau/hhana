@@ -567,7 +567,7 @@ def draw_samples_array(
         for sample in signal:
             hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
             hist.decorate(**sample.hist_decor)
-            sample.draw_into(hist, expr,
+            sample.draw_array(hist, expr,
                     category, region, cuts,
                     p1p3=p1p3, weighted=weighted,
                     weight_hist=weight_hist, weight_clf=weight_clf)
@@ -591,7 +591,7 @@ def draw_samples_array(
     if data is not None:
         data_hist = hist_template.Clone(title=data.label, **data.hist_decor)
         data_hist.decorate(**data.hist_decor)
-        data.draw_into(data_hist, expr, category, region, cuts,
+        data.draw_array(data_hist, expr, category, region, cuts,
                        p1p3=p1p3, weighted=weighted,
                        weight_hist=weight_hist, weight_clf=weight_clf)
         if ndim > 1 and ravel:
