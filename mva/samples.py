@@ -788,7 +788,6 @@ class MC(Sample):
     def draw_array(self, hist, expr, category, region,
                    cuts=None, p1p3=True, weighted=True,
                    weight_hist=None, weight_clf=None):
-        # TODO: draw from array
         # TODO: support expr and hist as lists
         # should offer a huge speedup for drawing multiple expressions with the
         # same cuts
@@ -799,8 +798,6 @@ class MC(Sample):
             scores = self.scores(weight_clf, category, region, cuts=cuts,
                     systematics=True)
             edges = np.array(list(weight_hist.xedges()))
-            print edges
-            print edges.searchsorted(scores['NOMINAL'][0]) - 1
             weights = np.array(weight_hist).take(edges.searchsorted(scores['NOMINAL'][0]) - 1)
             weights = arr[:, -1] * weights
         else:
