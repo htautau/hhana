@@ -23,7 +23,8 @@ from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from .systematics import SYSTEMATICS
-from .plotting import draw, plot_clf, plot_grid_scores, hist_scores
+from .plotting import (draw, plot_clf, plot_grid_scores, hist_scores,
+    draw_samples_array)
 from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
@@ -584,6 +585,7 @@ class ClassificationProblem(object):
             upper_edge = min_score + (category.halfblind_bins + 1) * bin_width
             data_scores = data_scores[data_scores <= upper_edge]
 
+        """
         plot_clf(
             background_scores=bkg_scores,
             category=category,
@@ -613,12 +615,45 @@ class ClassificationProblem(object):
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
             systematics=SYSTEMATICS.values() if systematics else None)
+        """
 
+        log.info("plotting mmc weighted by background BDT distribution")
         # plot the mass weighted by the background BDT distribution
-        # first histogram background
         bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
         bkg_score_hist /= sum(bkg_score_hist)
+
+        var_info = variables.VARIABLES['mass_mmc_tau1_tau2']
+        mmc_bins = var_info['bins']
+        mmc_min, mmc_max = var_info['range']
+        mmc_hist_template = Hist(mmc_bins, mmc_min, mmc_max)
+
+        expr = 'mass_mmc_tau1_tau2'
+        if 'scale' in var_info:
+            expr = "%s * %f" % (expr, var_info['scale'])
+
+        output_name = var_info['filename'] + "reweighted" + self.output_suffix
+
+        draw_samples_array(
+                    hist_template=mmc_hist_template,
+                    expr=expr,
+                    data=analysis.data,
+                    model=analysis.backgrounds,
+                    signal=[analysis.higgs_125],
+                    signal_scale=50,
+                    name=var_info['title'],
+                    output_name=output_name,
+                    category=category,
+                    region=region,
+                    units=var_info.get('units', None),
+                    range=var_info['range'],
+                    show_ratio=True,
+                    show_qq=False,
+                    plot_signal_significance=False,
+                    systematics=SYSTEMATICS.values() if systematics else None,
+                    output_formats=('png',),
+                    weight_hist=bkg_score_hist,
+                    weight_clf=self)
 
         ############################################################
         # show the background model and data in the control region

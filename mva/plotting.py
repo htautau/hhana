@@ -517,6 +517,105 @@ def draw_samples(
          **kwargs)
 
 
+def draw_samples_array(
+        hist_template,
+        expr,
+        category,
+        region,
+        model,
+        data=None,
+        signal=None,
+        cuts=None,
+        ravel=True,
+        p1p3=True,
+        weighted=True,
+        weight_hist=None,
+        weight_clf=None,
+        **kwargs):
+    """
+    extra kwargs are passed to draw()
+    """
+    hist_template = hist_template.Clone()
+    hist_template.Reset()
+    ndim = hist_template.GetDimension()
+
+    model_hists = []
+    for sample in model:
+        hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
+        hist.decorate(**sample.hist_decor)
+        sample.draw_array(hist, expr,
+                category, region, cuts,
+                p1p3=p1p3, weighted=weighted,
+                weight_hist=weight_hist, weight_clf=weight_clf)
+        if ndim > 1 and ravel:
+            # ravel() the nominal and systematics histograms
+            sys_hists = getattr(hist, 'systematics', None)
+            hist = hist.ravel()
+            hist.title = sample.label
+            hist.decorate(**sample.hist_decor)
+            if sys_hists is not None:
+                hist.systematics = sys_hists
+            if hasattr(hist, 'systematics'):
+                sys_hists = {}
+                for term, _hist in hist.systematics.items():
+                    sys_hists[term] = _hist.ravel()
+                hist.systematics = sys_hists
+        model_hists.append(hist)
+
+    if signal is not None:
+        signal_hists = []
+        for sample in signal:
+            hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
+            hist.decorate(**sample.hist_decor)
+            sample.draw_into(hist, expr,
+                    category, region, cuts,
+                    p1p3=p1p3, weighted=weighted,
+                    weight_hist=weight_hist, weight_clf=weight_clf)
+            if ndim > 1 and ravel:
+                # ravel() the nominal and systematics histograms
+                sys_hists = getattr(hist, 'systematics', None)
+                hist = hist.ravel()
+                hist.title = sample.label
+                hist.decorate(**sample.hist_decor)
+                if sys_hists is not None:
+                    hist.systematics = sys_hists
+                if hasattr(hist, 'systematics'):
+                    sys_hists = {}
+                    for term, _hist in hist.systematics.items():
+                        sys_hists[term] = _hist.ravel()
+                    hist.systematics = sys_hists
+            signal_hists.append(hist)
+    else:
+        signal_hists = None
+
+    if data is not None:
+        data_hist = hist_template.Clone(title=data.label, **data.hist_decor)
+        data_hist.decorate(**data.hist_decor)
+        data.draw_into(data_hist, expr, category, region, cuts,
+                       p1p3=p1p3, weighted=weighted,
+                       weight_hist=weight_hist, weight_clf=weight_clf)
+        if ndim > 1 and ravel:
+            data_hist = data_hist.ravel()
+
+        log.info("Data events: %d" % sum(data_hist))
+        log.info("Model events: %f" % sum(sum(model_hists)))
+        for hist in model_hists:
+            log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+        if signal is not None:
+            log.info("Signal events: %f" % sum(sum(signal_hists)))
+        log.info("Data / Model: %f" % (sum(data_hist) /
+            sum(sum(model_hists))))
+
+    else:
+        data_hist = None
+
+    draw(model=model_hists,
+         data=data_hist,
+         signal=signal_hists,
+         category=category,
+         **kwargs)
+
+
 def draw(name,
          output_name,
          category,

@@ -1255,6 +1255,41 @@ class QCD(Sample, Background):
 
         hist.SetTitle(self.label)
 
+    def draw_array(self, hist, expr, category, region,
+                  cuts=None, p1p3=True, weighted=True,
+                  weight_hist=None, weight_clf=None):
+
+        MC_bkg_notOS = hist.Clone()
+        for mc in self.mc:
+            mc.draw_array(MC_bkg_notOS, expr, category, self.shape_region,
+                         cuts=cuts, p1p3=p1p3, weighted=weighted,
+                         weight_hist=weight_hist, weight_clf=weight_clf)
+
+        data_hist = hist.Clone()
+        self.data.draw_into(data_hist, expr,
+                            category, self.shape_region,
+                            cuts=cuts, p1p3=p1p3, weighted=weighted,
+                            weight_hist=weight_hist, weight_clf=weight_clf)
+
+        hist += (data_hist - MC_bkg_notOS) * self.scale
+
+        if hasattr(MC_bkg_notOS, 'systematics'):
+            if not hasattr(hist, 'systematics'):
+                hist.systematics = {}
+            for sys_term, sys_hist in MC_bkg_notOS.systematics.items():
+                scale = self.scale
+                if sys_term == ('FIT_UP',):
+                    scale = self.scale + self.scale_error
+                elif sys_term == ('FIT_DOWN',):
+                    scale = self.scale - self.scale_error
+                qcd_hist = (data_hist - sys_hist) * scale
+                if sys_term not in hist.systematics:
+                    hist.systematics[sys_term] = qcd_hist
+                else:
+                    hist.systematics[sys_term] += qcd_hist
+
+        hist.SetTitle(self.label)
+
     def scores(self, clf, category, region,
                cuts=None, systematics=True):
 
