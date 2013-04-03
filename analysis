@@ -265,7 +265,7 @@ for category in categories:
 if 'limits' in args.actions:
     
     # 2012 lumi uncert
-    lumi_rel_error = 0.028 if args.systematics else 0.
+    lumi_rel_error = 0.028
 
     with ropen('limits%s.root' % output_suffix, 'recreate') as limits_file:
         for mass, category_channel in all_channels.items():
