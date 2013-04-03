@@ -269,16 +269,13 @@ class Sample(object):
               include_weight=True,
               systematic='NOMINAL'):
 
-        arr = rec_to_ndarray(self.merged_records(
+        return rec_to_ndarray(self.merged_records(
             category,
             region,
             fields=fields,
             cuts=cuts,
             include_weight=include_weight,
             systematic=systematic))
-        if arr.shape[1] == 1:
-            # if one field then flatten array
-            return arr[:, 0]
 
     @classmethod
     def check_systematic(cls, systematic):
@@ -397,17 +394,27 @@ class Data(Sample):
     def draw_into(self, hist, expr, category, region,
                   cuts=None, p1p3=True, weighted=True,
                   array=False, weight_hist=None, weight_clf=None):
-        if array:
-            arr = self.array(category, region,
-                    fields=[expr], cuts=cuts,
-                    include_weight=True)
-            if weight_hist is not None:
-                scores = self.scores(weight_clf, category, region, cuts=cuts)
-                edges = np.array(list(weight_hist.xedges()))
-                weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
-                hist.fill_array(arr[:, 0], weights=arr[:, 1] * weights)
+
+        self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
+
+    def draw_array(self, hist, expr, category, region,
+                   cuts=None, p1p3=True, weighted=True,
+                   weight_hist=None, weight_clf=None):
+        # TODO: draw from array
+        # TODO: support expr and hist as lists
+        # should offer a huge speedup for drawing multiple expressions with the
+        # same cuts
+        arr = self.array(category, region,
+                fields=[expr], cuts=cuts,
+                include_weight=True)
+        if weight_hist is not None:
+            scores = self.scores(weight_clf, category, region, cuts=cuts)
+            edges = np.array(list(weight_hist.xedges()))
+            weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
+            weights = arr[:, -1] * weights
         else:
-            self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
+            weights = arr[:, -1]
+        hist.fill_array(arr[:, 0], weights=weights)
 
     def scores(self, clf, category, region, cuts=None):
 
@@ -779,9 +786,39 @@ class MC(Sample):
         # set the systematics
         hist.systematics = sys_hists
 
+    def draw_array(self, hist, expr, category, region,
+                   cuts=None, p1p3=True, weighted=True,
+                   weight_hist=None, weight_clf=None):
+        # TODO: draw from array
+        # TODO: support expr and hist as lists
+        # should offer a huge speedup for drawing multiple expressions with the
+        # same cuts
+        arr = self.array(category, region,
+                fields=[expr], cuts=cuts,
+                include_weight=True)
+        if weight_hist is not None:
+            scores = self.scores(weight_clf, category, region, cuts=cuts)
+            edges = np.array(list(weight_hist.xedges()))
+            weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
+            weights = arr[:, -1] * weights
+        else:
+            weights = arr[:, -1]
+        hist.fill_array(arr[:, 0], weights=weights)
+
+        if hasattr(hist, 'systematics'):
+            sys_hists = hist.systematics
+        else:
+            sys_hists = {}
+        # TODO: draw systematics
+
+        # set the systematics
+        hist.systematics = sys_hists
+
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=True):
+
+        # TODO check that weight systematics are included
 
         if category != clf.category:
             raise ValueError(
@@ -878,6 +915,7 @@ class MC(Sample):
                      (self.__class__.__name__, systematic))
         log.debug("using selection: %s" % selection)
 
+        # TODO: handle cuts in weight expressions
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
