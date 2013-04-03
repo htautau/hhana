@@ -585,7 +585,6 @@ class ClassificationProblem(object):
             upper_edge = min_score + (category.halfblind_bins + 1) * bin_width
             data_scores = data_scores[data_scores <= upper_edge]
 
-        """
         plot_clf(
             background_scores=bkg_scores,
             category=category,
@@ -615,7 +614,6 @@ class ClassificationProblem(object):
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
             systematics=SYSTEMATICS.values() if systematics else None)
-        """
 
         log.info("plotting mmc weighted by background BDT distribution")
         # plot the mass weighted by the background BDT distribution
@@ -632,7 +630,7 @@ class ClassificationProblem(object):
         if 'scale' in var_info:
             expr = "%s * %f" % (expr, var_info['scale'])
 
-        output_name = var_info['filename'] + "reweighted" + self.output_suffix
+        output_name = var_info['filename'] + "_reweighted" + self.output_suffix
 
         draw_samples_array(
                     hist_template=mmc_hist_template,
