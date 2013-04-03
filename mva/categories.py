@@ -270,7 +270,7 @@ class Category_VBF(Category):
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
-    halfblind_bins = 4
+    halfblind_bins = 3
 
 
 class Category_VBF_ID_Control(Category_VBF):
