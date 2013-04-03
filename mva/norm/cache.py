@@ -21,6 +21,12 @@ def qcd_ztautau_norm(
         category,
         param='TRACK'):
 
+    # if this is a control region then use the name of the parent category
+    if category.is_control:
+        category = category.__bases__[0].name
+    else:
+        category = category.name
+
     is_embedded = isinstance(ztautau, samples.Embedded_Ztautau)
     param = param.upper()
 

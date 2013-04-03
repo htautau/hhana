@@ -51,7 +51,7 @@ class Analysis(object):
             year=year,
             ztautau=self.ztautau,
             qcd=self.qcd,
-            category=category.name,
+            category=category,
             param=fit_param)
 
         self.backgrounds = [

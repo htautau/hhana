@@ -179,6 +179,7 @@ class Category(object):
     __metaclass__ = CategoryMeta
 
     # common attrs for all categories. Override in subclasses
+    is_control = False
     year_cuts = {
         2011: ID_MEDIUM,
         2012: ID_MEDIUM_TIGHT}
@@ -205,6 +206,7 @@ class Category_Preselection(Category):
 
 class Category_Preselection_ID_Control(Category):
 
+    is_control = True
     name = 'preselection_id_control'
     label = r'$\tau_{had}\tau_{had}$: ID Control Region at Preselection'
     year_cuts = {
@@ -214,6 +216,7 @@ class Category_Preselection_ID_Control(Category):
 
 class Category_Preselection_DEta_Control(Category):
 
+    is_control = True
     name = 'preselection_deta_control'
     label = r'$\tau_{had}\tau_{had}$: $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Preselection'
     common_cuts = CONTROL_CUTS_DETA
@@ -272,6 +275,7 @@ class Category_VBF(Category):
 
 class Category_VBF_ID_Control(Category_VBF):
 
+    is_control = True
     name = 'vbf_id_control'
     label = r'$\tau_{had}\tau_{had}$: VBF Category ID Control Region'
     year_cuts = {
@@ -281,6 +285,7 @@ class Category_VBF_ID_Control(Category_VBF):
 
 class Category_VBF_DEta_Control(Category_VBF):
 
+    is_control = True
     name = 'vbf_deta_control'
     label = r'$\tau_{had}\tau_{had}$: VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     common_cuts = CONTROL_CUTS_DETA
@@ -304,6 +309,7 @@ class Category_Boosted(Category):
 
 class Category_Boosted_ID_Control(Category_Boosted):
 
+    is_control = True
     name = 'boosted_id_control'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category ID Control Region'
     year_cuts = {
@@ -313,6 +319,7 @@ class Category_Boosted_ID_Control(Category_Boosted):
 
 class Category_Boosted_DEta_Control(Category_Boosted):
 
+    is_control = True
     name = 'boosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     common_cuts = CONTROL_CUTS_DETA
@@ -335,6 +342,7 @@ class Category_Nonboosted_1J(Category):
 
 class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
 
+    is_control = True
     name = '1j_nonboosted_id_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category ID Control Region'
     year_cuts = {
@@ -344,6 +352,7 @@ class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
 
 class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
 
+    is_control = True
     name = '1j_nonboosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     common_cuts = CONTROL_CUTS_DETA
@@ -365,6 +374,7 @@ class Category_Nonboosted_0J(Category):
 
 class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
 
+    is_control = True
     name = '0j_nonboosted_id_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category ID Control Region'
     year_cuts = {
@@ -374,6 +384,7 @@ class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
 
 class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
 
+    is_control = True
     name = '0j_nonboosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     common_cuts = CONTROL_CUTS_DETA
