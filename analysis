@@ -124,7 +124,7 @@ for category in categories:
             if cuts:
                 output_name += '_' + cuts.safe()
 
-            fig = draw_samples(
+            fig = draw_samples_array(
                     hist_template=hist_template,
                     expr=expr,
                     data=analysis.data if not var_info.get('blind', False) or args.unblind else None,
@@ -163,7 +163,7 @@ for category in categories:
             if cuts:
                 output_name += '_' + cuts.safe()
 
-            fig = draw_samples(
+            fig = draw_samples_array(
                     hist_template=hist_template,
                     expr=expr,
                     data=analysis.data,

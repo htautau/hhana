@@ -270,7 +270,7 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
-              p1p3=True
+              p1p3=True,
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -916,13 +916,13 @@ class MC(Sample):
 
                 if MODE == 2:
                     for i, ex in enumerate(expr):
-                        hist.fill_array(arr[:, i], weights=weights)
+                        sys_hist.fill_array(arr[:, i], weights=weights)
                 else:
                     sys_hist.fill_array(arr[:, 0], weights=weights)
-                    if systematic not in sys_hists:
-                        sys_hists[systematic] = sys_hist
-                    else:
-                        sys_hists[systematic] += sys_hist
+                if systematic not in sys_hists:
+                    sys_hists[systematic] = sys_hist
+                else:
+                    sys_hists[systematic] += sys_hist
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
@@ -1319,9 +1319,9 @@ class QCD(Sample, Background):
     def draw_into(self, hist, expr, category, region,
                   cuts=None, p1p3=True, weighted=True):
 
-        MC_bkg_notOS = hist.Clone()
+        MC_bkg = hist.Clone()
         for mc in self.mc:
-            mc.draw_into(MC_bkg_notOS, expr, category, self.shape_region,
+            mc.draw_into(MC_bkg, expr, category, self.shape_region,
                          cuts=cuts, p1p3=p1p3, weighted=weighted)
 
         data_hist = hist.Clone()
@@ -1329,12 +1329,12 @@ class QCD(Sample, Background):
                             category, self.shape_region,
                             cuts=cuts, p1p3=p1p3, weighted=weighted)
 
-        hist += (data_hist - MC_bkg_notOS) * self.scale
+        hist += (data_hist - MC_bkg) * self.scale
 
-        if hasattr(MC_bkg_notOS, 'systematics'):
+        if hasattr(MC_bkg, 'systematics'):
             if not hasattr(hist, 'systematics'):
                 hist.systematics = {}
-            for sys_term, sys_hist in MC_bkg_notOS.systematics.items():
+            for sys_term, sys_hist in MC_bkg.systematics.items():
                 scale = self.scale
                 if sys_term == ('FIT_UP',):
                     scale = self.scale + self.scale_error
@@ -1378,12 +1378,12 @@ class QCD(Sample, Background):
             MODE = 1
 
         if MODE == 3:
-            MC_bkg_notOS = [h.Clone() for h in hist]
+            MC_bkg = [h.Clone() for h in hist]
         else:
-            MC_bkg_notOS = hist.Clone()
+            MC_bkg = hist.Clone()
 
         for mc in self.mc:
-            mc.draw_array(MC_bkg_notOS, expr, category, self.shape_region,
+            mc.draw_array(MC_bkg, expr, category, self.shape_region,
                          cuts=cuts, p1p3=p1p3, weighted=weighted,
                          weight_hist=weight_hist, weight_clf=weight_clf)
 
@@ -1398,13 +1398,13 @@ class QCD(Sample, Background):
                             weight_hist=weight_hist, weight_clf=weight_clf)
 
         if MODE == 3:
-            for h, d_h, mc_h in zip(hist, data_hist, MC_bkg_notOS):
+            for h, d_h, mc_h in zip(hist, data_hist, MC_bkg):
                 h += (d_h - mc_h) * self.scale
         else:
-            hist += (data_hist - MC_bkg_notOS) * self.scale
+            hist += (data_hist - MC_bkg) * self.scale
 
         if MODE == 3:
-            for h, d_h, mc_h in zip(hist, data_hist, MC_bkg_notOS):
+            for h, d_h, mc_h in zip(hist, data_hist, MC_bkg):
                 if hasattr(mc_h, 'systematics'):
                     if not hasattr(h, 'systematics'):
                         h.systematics = {}
@@ -1422,10 +1422,10 @@ class QCD(Sample, Background):
 
                 h.SetTitle(self.label)
         else:
-            if hasattr(MC_bkg_notOS, 'systematics'):
+            if hasattr(MC_bkg, 'systematics'):
                 if not hasattr(hist, 'systematics'):
                     hist.systematics = {}
-                for sys_term, sys_hist in MC_bkg_notOS.systematics.items():
+                for sys_term, sys_hist in MC_bkg.systematics.items():
                     scale = self.scale
                     if sys_term == ('FIT_UP',):
                         scale = self.scale + self.scale_error
