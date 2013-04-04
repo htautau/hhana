@@ -405,13 +405,36 @@ class Data(Sample):
     def draw_array(self, hist, expr, category, region,
                    cuts=None, p1p3=True, weighted=True,
                    weight_hist=None, weight_clf=None):
-        # TODO: draw from array
-        # TODO: support expr and hist as lists
-        # should offer a huge speedup for drawing multiple expressions with the
-        # same cuts
+        """
+        This method behaves in three ways:
+
+        If hist and expr are not lists then the single hist is filled
+
+        If hist is not a list but expr is, then hist is filled with all exprs
+
+        If hist and expr are both lists then each hist is filled with the
+        corresponding expr. The hist and expr lists must be the same length.
+        """
+        if isinstance(expr, (list, tuple)):
+            if isinstance(hist, (list, tuple)):
+                if len(hist) != len(expr):
+                    raise ValueError(
+                        "if hist and expr are both lists then they "
+                        "must be the same length")
+                MODE = 3
+                hist_dict = {}
+                for ex, hi in zip(hist, expr):
+                    hist_dict[ex] = hi
+            else:
+                MODE = 2
+        else:
+            expr = [expr]
+            MODE = 1
+
         arr = self.array(category, region,
-                fields=[expr], cuts=cuts,
-                include_weight=True)
+                fields=expr, cuts=cuts,
+                p1p3=p1p3, include_weight=True)
+
         if weight_hist is not None:
             scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
             edges = np.array(list(weight_hist.xedges()))
@@ -419,7 +442,15 @@ class Data(Sample):
             weights = arr[:, -1] * weights
         else:
             weights = arr[:, -1]
-        hist.fill_array(arr[:, 0], weights=weights)
+
+        if MODE == 3:
+            for i, ex in enumerate(expr):
+                hist_dict[ex].fill_array(arr[:, i], weights=weights)
+        elif MODE == 2:
+            for i, ex in enumerate(expr):
+                hist.fill_array(arr[:, i], weights=weights)
+        else:
+            hist.fill_array(arr[:, 0], weights=weights)
 
     def scores(self, clf, category, region, cuts=None):
 
@@ -822,7 +853,7 @@ class MC(Sample):
 
         arr = self.array(category, region,
                 fields=expr, cuts=cuts,
-                include_weight=True)
+                p1p3=p1p3, include_weight=True)
 
         if weight_hist is not None:
             scores = self.scores(weight_clf, category, region, cuts=cuts,
@@ -860,7 +891,7 @@ class MC(Sample):
 
             arr = self.array(category, region,
                     fields=expr, cuts=cuts,
-                    include_weight=True,
+                    p1p3=p1p3, include_weight=True,
                     systematic=systematic)
 
             if weight_hist is not None:
@@ -1320,37 +1351,93 @@ class QCD(Sample, Background):
     def draw_array(self, hist, expr, category, region,
                   cuts=None, p1p3=True, weighted=True,
                   weight_hist=None, weight_clf=None):
+        """
+        This method behaves in three ways:
 
-        MC_bkg_notOS = hist.Clone()
+        If hist and expr are not lists then the single hist is filled
+
+        If hist is not a list but expr is, then hist is filled with all exprs
+
+        If hist and expr are both lists then each hist is filled with the
+        corresponding expr. The hist and expr lists must be the same length.
+        """
+        if isinstance(expr, (list, tuple)):
+            if isinstance(hist, (list, tuple)):
+                if len(hist) != len(expr):
+                    raise ValueError(
+                        "if hist and expr are both lists then they "
+                        "must be the same length")
+                MODE = 3
+                hist_dict = {}
+                for ex, hi in zip(hist, expr):
+                    hist_dict[ex] = hi
+            else:
+                MODE = 2
+        else:
+            expr = [expr]
+            MODE = 1
+
+        if MODE == 3:
+            MC_bkg_notOS = [h.Clone() for h in hist]
+        else:
+            MC_bkg_notOS = hist.Clone()
+
         for mc in self.mc:
             mc.draw_array(MC_bkg_notOS, expr, category, self.shape_region,
                          cuts=cuts, p1p3=p1p3, weighted=weighted,
                          weight_hist=weight_hist, weight_clf=weight_clf)
 
-        data_hist = hist.Clone()
+        if MODE == 3:
+            data_hist = [h.Clone() for h in hist]
+        else:
+            data_hist = hist.Clone()
+
         self.data.draw_array(data_hist, expr,
                             category, self.shape_region,
                             cuts=cuts, p1p3=p1p3, weighted=weighted,
                             weight_hist=weight_hist, weight_clf=weight_clf)
 
-        hist += (data_hist - MC_bkg_notOS) * self.scale
+        if MODE == 3:
+            for h, d_h, mc_h in zip(hist, data_hist, MC_bkg_notOS):
+                h += (d_h - mc_h) * self.scale
+        else:
+            hist += (data_hist - MC_bkg_notOS) * self.scale
 
-        if hasattr(MC_bkg_notOS, 'systematics'):
-            if not hasattr(hist, 'systematics'):
-                hist.systematics = {}
-            for sys_term, sys_hist in MC_bkg_notOS.systematics.items():
-                scale = self.scale
-                if sys_term == ('FIT_UP',):
-                    scale = self.scale + self.scale_error
-                elif sys_term == ('FIT_DOWN',):
-                    scale = self.scale - self.scale_error
-                qcd_hist = (data_hist - sys_hist) * scale
-                if sys_term not in hist.systematics:
-                    hist.systematics[sys_term] = qcd_hist
-                else:
-                    hist.systematics[sys_term] += qcd_hist
+        if MODE == 3:
+            for h, d_h, mc_h in zip(hist, data_hist, MC_bkg_notOS):
+                if hasattr(mc_h, 'systematics'):
+                    if not hasattr(h, 'systematics'):
+                        h.systematics = {}
+                    for sys_term, sys_hist in mc_h.systematics.items():
+                        scale = self.scale
+                        if sys_term == ('FIT_UP',):
+                            scale = self.scale + self.scale_error
+                        elif sys_term == ('FIT_DOWN',):
+                            scale = self.scale - self.scale_error
+                        qcd_hist = (d_h - sys_hist) * scale
+                        if sys_term not in h.systematics:
+                            h.systematics[sys_term] = qcd_hist
+                        else:
+                            h.systematics[sys_term] += qcd_hist
 
-        hist.SetTitle(self.label)
+                h.SetTitle(self.label)
+        else:
+            if hasattr(MC_bkg_notOS, 'systematics'):
+                if not hasattr(hist, 'systematics'):
+                    hist.systematics = {}
+                for sys_term, sys_hist in MC_bkg_notOS.systematics.items():
+                    scale = self.scale
+                    if sys_term == ('FIT_UP',):
+                        scale = self.scale + self.scale_error
+                    elif sys_term == ('FIT_DOWN',):
+                        scale = self.scale - self.scale_error
+                    qcd_hist = (data_hist - sys_hist) * scale
+                    if sys_term not in hist.systematics:
+                        hist.systematics[sys_term] = qcd_hist
+                    else:
+                        hist.systematics[sys_term] += qcd_hist
+
+            hist.SetTitle(self.label)
 
     def scores(self, clf, category, region,
                cuts=None, systematics=True):
