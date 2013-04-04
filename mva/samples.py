@@ -221,6 +221,7 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
+              p1p3=True,
               include_weight=True,
               systematic='NOMINAL',
               num_partitions=2):
@@ -236,6 +237,7 @@ class Sample(object):
                 fields=fields,
                 include_weight=include_weight,
                 cuts=cuts,
+                p1p3=p1p3,
                 systematic=systematic,
                 start=start,
                 step=num_partitions)
@@ -248,6 +250,7 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
+              p1p3=True,
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -257,6 +260,7 @@ class Sample(object):
                 fields=fields,
                 include_weight=include_weight,
                 cuts=cuts,
+                p1p3=p1p3,
                 systematic=systematic)
 
         return np.hstack(recs)
@@ -266,6 +270,7 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
+              p1p3=True
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -274,6 +279,7 @@ class Sample(object):
             region,
             fields=fields,
             cuts=cuts,
+            p1p3=p1p3,
             include_weight=include_weight,
             systematic=systematic))
 
@@ -792,14 +798,11 @@ class MC(Sample):
         This method behaves in three ways:
 
         If hist and expr are not lists then the single hist is filled
-        This single hist is then returned.
 
         If hist is not a list but expr is, then hist is filled with all exprs
-        This single hist is then returned.
 
         If hist and expr are both lists then each hist is filled with the
         corresponding expr. The hist and expr lists must be the same length.
-        A dict mapping expr to the corresponding hist is returned.
         """
         if isinstance(expr, (list, tuple)):
             if isinstance(hist, (list, tuple)):
@@ -809,14 +812,18 @@ class MC(Sample):
                         "must be the same length")
                 MODE = 3
                 hist_dict = {}
+                for ex, hi in zip(hist, expr):
+                    hist_dict[ex] = hi
             else:
                 MODE = 2
         else:
+            expr = [expr]
             MODE = 1
-        # TODO: support expr and hist as lists
+
         arr = self.array(category, region,
-                fields=[expr], cuts=cuts,
+                fields=expr, cuts=cuts,
                 include_weight=True)
+
         if weight_hist is not None:
             scores = self.scores(weight_clf, category, region, cuts=cuts,
                     systematics=True)
@@ -825,33 +832,66 @@ class MC(Sample):
             weights = arr[:, -1] * weights
         else:
             weights = arr[:, -1]
-        hist.fill_array(arr[:, 0], weights=weights)
 
-        if hasattr(hist, 'systematics'):
-            sys_hists = hist.systematics
+        if MODE == 3:
+            for i, ex in enumerate(expr):
+                hist_dict[ex].fill_array(arr[:, i], weights=weights)
+        elif MODE == 2:
+            for i, ex in enumerate(expr):
+                hist.fill_array(arr[:, i], weights=weights)
         else:
+            hist.fill_array(arr[:, 0], weights=weights)
+
+        if MODE == 3:
             sys_hists = {}
-        # set the systematics
-        hist.systematics = sys_hists
+            for ex, hi in hist_dict.items():
+                if not hasattr(hi, 'systematics'):
+                    hi.systematics = {}
+                sys_hists[ex] = hi.systematics
+        else:
+            if not hasattr(hist, 'systematics'):
+                hist.systematics = {}
+            sys_hists = hist.systematics
+
         if not self.systematics:
             return
 
         for systematic in iter_systematics(False):
 
             arr = self.array(category, region,
-                    fields=[expr], cuts=cuts,
+                    fields=expr, cuts=cuts,
                     include_weight=True,
                     systematic=systematic)
-            sys_hist = hist.Clone()
-            sys_hist.Reset()
+
             if weight_hist is not None:
                 edges = np.array(list(weight_hist.xedges()))
                 weights = np.array(weight_hist).take(edges.searchsorted(scores[systematic][0]) - 1)
                 weights = arr[:, -1] * weights
             else:
                 weights = arr[:, -1]
-            sys_hist.fill_array(arr[:, 0], weights=weights)
-            sys_hists[systematic] = sys_hist
+
+            if MODE == 3:
+                for i, ex in enumerate(expr):
+                    sys_hist = hist_dict[ex].Clone()
+                    sys_hist.Reset()
+                    sys_hist.fill_array(arr[:, i], weights=weights)
+                    if systematic not in sys_hists[ex]:
+                        sys_hists[ex][systematic] = sys_hist
+                    else:
+                        sys_hists[ex][systematic] += sys_hist
+            else:
+                sys_hist = hist.Clone()
+                sys_hist.Reset()
+
+                if MODE == 2:
+                    for i, ex in enumerate(expr):
+                        hist.fill_array(arr[:, i], weights=weights)
+                else:
+                    sys_hist.fill_array(arr[:, 0], weights=weights)
+                    if systematic not in sys_hists:
+                        sys_hists[systematic] = sys_hist
+                    else:
+                        sys_hists[systematic] += sys_hist
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
@@ -1389,6 +1429,7 @@ class QCD(Sample, Background):
                 region,
                 fields=None,
                 cuts=None,
+                p1p3=True,
                 include_weight=True,
                 systematic='NOMINAL',
                 **kwargs):
@@ -1400,6 +1441,7 @@ class QCD(Sample, Background):
                 region=self.shape_region,
                 fields=fields,
                 cuts=cuts,
+                p1p3=p1p3,
                 include_weight=include_weight,
                 systematic='NOMINAL',
                 **kwargs)
@@ -1411,6 +1453,7 @@ class QCD(Sample, Background):
                     region=self.shape_region,
                     fields=fields,
                     cuts=cuts,
+                    p1p3=p1p3,
                     include_weight=include_weight,
                     systematic=systematic,
                     **kwargs)
