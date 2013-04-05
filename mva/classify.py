@@ -618,7 +618,6 @@ class ClassificationProblem(object):
             systematics=SYSTEMATICS.values() if systematics else None)
 
         log.info("plotting mmc weighted by background BDT distribution")
-        # plot the mass weighted by the background BDT distribution
         bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
         bkg_score_hist /= sum(bkg_score_hist)
@@ -640,6 +639,9 @@ class ClassificationProblem(object):
             weight_hist=bkg_score_hist,
             weight_clf=self,
             output_suffix="_reweighted" + self.output_suffix)
+
+        log.info("plotting 2D histogram of the classifier output and MMC mass")
+        # for Swagato
 
         ############################################################
         # show the background model and data in the control region
