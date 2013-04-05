@@ -517,9 +517,24 @@ def draw_samples(
          **kwargs)
 
 
+def get_field_hist(sample, vars):
+
+    from .samples import Data
+    field_hist = {}
+    for field, var_info in vars.items():
+        if var_info.get('blind', False) and isinstance(sample, Data):
+            hist = None
+        else:
+            bins = var_info['bins']
+            min, max = var_info['range']
+            hist = Hist(bins, min, max, title=sample.label, **sample.hist_decor)
+            hist.decorate(**sample.hist_decor)
+        field_hist[field] = hist
+    return field_hist
+
+
 def draw_samples_array(
-        hist_template,
-        expr,
+        vars,
         category,
         region,
         model,
@@ -531,22 +546,43 @@ def draw_samples_array(
         weighted=True,
         weight_hist=None,
         weight_clf=None,
+        plots=None,
+        root=False,
+        output_suffix='',
         **kwargs):
     """
     extra kwargs are passed to draw()
     """
-    hist_template = hist_template.Clone()
-    hist_template.Reset()
-    ndim = hist_template.GetDimension()
+    figs = {}
+    # filter out plots that will not be made
+    used_vars = {}
+    field_scale = {}
+    for expr, var_info in vars.items():
+        if (var_info.get('cats', None) is not None and
+            category.name.upper() not in var_info['cats']):
+            continue
+        elif plots and expr not in plots:
+            continue
+        used_vars[expr] = var_info
+        if 'scale' in var_info:
+            field_scale[expr] = var_info['scale']
+    vars = used_vars
+
+    #log.info("")
+    #log.info("plotting %s in %s category" % (expr, category.name))
+    #log.info(category.cuts & cuts)
+    #ndim = hist_template.GetDimension()
 
     model_hists = []
     for sample in model:
-        hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
-        hist.decorate(**sample.hist_decor)
-        sample.draw_array(hist, expr,
+        field_hist = get_field_hist(sample, vars)
+        sample.draw_array(field_hist,
                 category, region, cuts,
                 p1p3=p1p3, weighted=weighted,
+                field_scale=field_scale,
                 weight_hist=weight_hist, weight_clf=weight_clf)
+        model_hists.append(field_hist)
+        """
         if ndim > 1 and ravel:
             # ravel() the nominal and systematics histograms
             sys_hists = getattr(hist, 'systematics', None)
@@ -560,17 +596,19 @@ def draw_samples_array(
                 for term, _hist in hist.systematics.items():
                     sys_hists[term] = _hist.ravel()
                 hist.systematics = sys_hists
-        model_hists.append(hist)
+        """
 
     if signal is not None:
         signal_hists = []
         for sample in signal:
-            hist = hist_template.Clone(title=sample.label, **sample.hist_decor)
-            hist.decorate(**sample.hist_decor)
-            sample.draw_array(hist, expr,
+            field_hist = get_field_hist(sample, vars)
+            sample.draw_array(field_hist,
                     category, region, cuts,
                     p1p3=p1p3, weighted=weighted,
+                    field_scale=field_scale,
                     weight_hist=weight_hist, weight_clf=weight_clf)
+            signal_hists.append(field_hist)
+            """
             if ndim > 1 and ravel:
                 # ravel() the nominal and systematics histograms
                 sys_hists = getattr(hist, 'systematics', None)
@@ -584,19 +622,20 @@ def draw_samples_array(
                     for term, _hist in hist.systematics.items():
                         sys_hists[term] = _hist.ravel()
                     hist.systematics = sys_hists
-            signal_hists.append(hist)
+            """
     else:
         signal_hists = None
 
     if data is not None:
-        data_hist = hist_template.Clone(title=data.label, **data.hist_decor)
-        data_hist.decorate(**data.hist_decor)
-        data.draw_array(data_hist, expr, category, region, cuts,
+        data_field_hist = get_field_hist(data, vars)
+        data.draw_array(data_field_hist, category, region, cuts,
                        p1p3=p1p3, weighted=weighted,
+                       field_scale=field_scale,
                        weight_hist=weight_hist, weight_clf=weight_clf)
-        if ndim > 1 and ravel:
-            data_hist = data_hist.ravel()
+        #if ndim > 1 and ravel:
+        #    data_hist = data_hist.ravel()
 
+        """
         log.info("Data events: %d" % sum(data_hist))
         log.info("Model events: %f" % sum(sum(model_hists)))
         for hist in model_hists:
@@ -605,15 +644,25 @@ def draw_samples_array(
             log.info("Signal events: %f" % sum(sum(signal_hists)))
         log.info("Data / Model: %f" % (sum(data_hist) /
             sum(sum(model_hists))))
+        """
 
     else:
-        data_hist = None
+        data_field_hist = None
 
-    draw(model=model_hists,
-         data=data_hist,
-         signal=signal_hists,
-         category=category,
-         **kwargs)
+    for field, var_info in vars.items():
+        output_name = var_info['filename'] + output_suffix
+        if cuts:
+            output_name += '_' + cuts.safe()
+        draw(model=[m[field] for m in model_hists],
+             data=data_field_hist[field] if data_field_hist else None,
+             signal=[s[field] for s in signal_hists] if signal_hists else None,
+             category=category,
+             name=var_info['root'] if root else var_info['title'],
+             units=var_info.get('units', None),
+             range=var_info['range'],
+             output_name=output_name,
+             root=root,
+             **kwargs)
 
 
 def draw(name,

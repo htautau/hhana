@@ -191,13 +191,6 @@ VARIABLES = {
         'scale': 0.001,
         'units': 'GeV',
     },
-    ('tau1_eta', 'tau2_eta'): {
-        'title': r'$\eta_{\tau_{1,\/2}}$',
-        'root': '#eta_{#tau_{1, 2}}',
-        'filename': 'tau_eta',
-        'bins': 20,
-        'range': (-3, 3),
-    },
     'tau1_eta': {
         'title': r'$\eta_{\tau_{1}}$',
         'root': '#eta_{#tau_{1}}',
@@ -437,14 +430,6 @@ VARIABLES = {
     #    'range': (-5, 5),
     #    'cats': ['2J', 'VBF']
     #},
-    ('jet1_eta', 'jet2_eta'): {
-        'title': r'$\eta_{jet_{1,\/2}}$',
-        'root': '#eta_{jet_{1, 2}}',
-        'filename': 'jet_eta',
-        'bins': 20,
-        'range': (-5, 5),
-        'cats': ['2J', 'VBF']
-    },
     #('jet1_fourvect_boosted_eta', 'jet2_fourvect_boosted_eta'): {
     #    'title': r'Boosted $\eta_{jet_{1,\/2}}$',
     #    'root': 'Boosted #eta_{jet_{1, 2}}',

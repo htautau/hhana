@@ -100,51 +100,30 @@ for category in categories:
                      'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
         else:
             VARS = VARIABLES
-
-        for expr, var_info in VARS.items():
-
-            if (var_info.get('cats', None) is not None and
-                category.name.upper() not in var_info['cats']):
-                continue
-            elif args.plots and expr not in args.plots:
-                continue
-
-            log.info("")
-            log.info("plotting %s in %s category" % (expr, category.name))
-            log.info(category.cuts & cuts)
-
-            bins = var_info['bins']
-            min, max = var_info['range']
-            hist_template = Hist(bins, min, max)
-
-            if 'scale' in var_info:
-                expr = "%s * %f" % (expr, var_info['scale'])
-
-            output_name = var_info['filename'] + output_suffix
-            if cuts:
-                output_name += '_' + cuts.safe()
-
-            fig = draw_samples_array(
-                    hist_template=hist_template,
-                    expr=expr,
-                    data=analysis.data if not var_info.get('blind', False) or args.unblind else None,
-                    model=analysis.backgrounds,
-                    signal=[analysis.higgs_125],
-                    signal_scale=50,
-                    name=var_info['root'] if args.root else var_info['title'],
-                    output_name=output_name,
-                    category=category,
-                    region=target_region,
-                    units=var_info.get('units', None),
-                    range=var_info['range'],
-                    show_ratio=True,
-                    show_qq=False,
-                    plot_signal_significance=False,
-                    systematics=SYSTEMATICS.values() if args.systematics else None,
-                    root=args.root,
-                    output_formats=args.output_formats,
-                    weighted=not args.no_weight)
-            figures[category.name][expr] = fig
+        
+        figs = draw_samples_array(
+                vars=VARS,
+                data=analysis.data,
+                model=analysis.backgrounds,
+                signal=[analysis.higgs_125],
+                signal_scale=50,
+                #name=var_info['root'] if args.root else var_info['title'],
+                #output_name=output_name,
+                category=category,
+                region=target_region,
+                #units=var_info.get('units', None),
+                #range=var_info['range'],
+                show_ratio=True,
+                show_qq=False,
+                plot_signal_significance=False,
+                systematics=SYSTEMATICS.values() if args.systematics else None,
+                root=args.root,
+                output_formats=args.output_formats,
+                weighted=not args.no_weight,
+                plots=args.plots,
+                output_suffix=output_suffix,
+                cuts=cuts)
+        figures[category.name] = figs
     
     if 'weights' in args.actions:
         cuts = Cut(args.plot_cut)
