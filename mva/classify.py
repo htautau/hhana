@@ -623,37 +623,23 @@ class ClassificationProblem(object):
         hist_scores(bkg_score_hist, bkg_scores)
         bkg_score_hist /= sum(bkg_score_hist)
 
-        var_info = variables.VARIABLES['mass_mmc_tau1_tau2']
-        mmc_bins = var_info['bins']
-        mmc_min, mmc_max = var_info['range']
-        mmc_hist_template = Hist(mmc_bins, mmc_min, mmc_max)
-
-        expr = 'mass_mmc_tau1_tau2'
-        if 'scale' in var_info:
-            expr = "%s * %f" % (expr, var_info['scale'])
-
-        output_name = var_info['filename'] + "_reweighted" + self.output_suffix
-
         draw_samples_array(
-                    hist_template=mmc_hist_template,
-                    expr=expr,
-                    data=analysis.data,
-                    model=analysis.backgrounds,
-                    signal=[analysis.higgs_125],
-                    signal_scale=50,
-                    name=var_info['title'],
-                    output_name=output_name,
-                    category=category,
-                    region=region,
-                    units=var_info.get('units', None),
-                    range=var_info['range'],
-                    show_ratio=True,
-                    show_qq=False,
-                    plot_signal_significance=False,
-                    systematics=SYSTEMATICS.values() if systematics else None,
-                    output_formats=('png',),
-                    weight_hist=bkg_score_hist,
-                    weight_clf=self)
+            variables.VARIABLES,
+            plots=['mass_mmc_tau1_tau2'],
+            data=analysis.data,
+            model=analysis.backgrounds,
+            signal=[analysis.higgs_125],
+            signal_scale=50,
+            category=category,
+            region=region,
+            show_ratio=True,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=SYSTEMATICS.values() if systematics else None,
+            output_formats=('png',),
+            weight_hist=bkg_score_hist,
+            weight_clf=self,
+            output_suffix="_reweighted" + self.output_suffix)
 
         ############################################################
         # show the background model and data in the control region

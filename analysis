@@ -107,12 +107,8 @@ for category in categories:
                 model=analysis.backgrounds,
                 signal=[analysis.higgs_125],
                 signal_scale=50,
-                #name=var_info['root'] if args.root else var_info['title'],
-                #output_name=output_name,
                 category=category,
                 region=target_region,
-                #units=var_info.get('units', None),
-                #range=var_info['range'],
                 show_ratio=True,
                 show_qq=False,
                 plot_signal_significance=False,
@@ -127,42 +123,24 @@ for category in categories:
     
     if 'weights' in args.actions:
         cuts = Cut(args.plot_cut)
-
-        for expr, var_info in WEIGHTS.items():
-
-            log.info("")
-            log.info("plotting %s in %s category" % (expr, category.name))
-            log.info(category.cuts & cuts)
-
-            bins = var_info['bins']
-            min, max = var_info['range']
-            hist_template = Hist(bins, min, max)
-
-            output_name = var_info['filename'] + output_suffix
-            if cuts:
-                output_name += '_' + cuts.safe()
-
-            fig = draw_samples_array(
-                    hist_template=hist_template,
-                    expr=expr,
-                    data=analysis.data,
-                    model=analysis.backgrounds,
-                    signal=[analysis.higgs_125],
-                    signal_scale=50,
-                    name=var_info['root'] if args.root else var_info['title'],
-                    output_name=output_name,
-                    category=category,
-                    region=target_region,
-                    units=var_info.get('units', None),
-                    range=var_info['range'],
-                    show_ratio=False,
-                    show_qq=False,
-                    plot_signal_significance=False,
-                    systematics=None,
-                    root=args.root,
-                    output_formats=args.output_formats,
-                    weighted=False,
-                    stacked_model=False)
+        draw_samples_array(
+                WEIGHTS,
+                data=analysis.data,
+                model=analysis.backgrounds,
+                signal=[analysis.higgs_125],
+                signal_scale=50,
+                category=category,
+                region=target_region,
+                show_ratio=False,
+                show_qq=False,
+                plot_signal_significance=False,
+                systematics=None,
+                root=args.root,
+                output_formats=args.output_formats,
+                output_suffix=output_suffix,
+                weighted=False,
+                stacked_model=False,
+                cuts=cuts)
 
     if 'train' in args.actions:
         
