@@ -16,10 +16,11 @@ from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-from rootpy.plotting import Canvas, Pad, Legend, Hist, HistStack
+from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
 from rootpy.math.stats.correlation import correlation_plot
+from rootpy.io import root_open
 
 from .variables import VARIABLES
 from . import PLOTS_DIR
@@ -363,6 +364,115 @@ def draw_scatter(fields,
             bbox_inches='tight')
 
 
+def get_2d_field_hist(var, min_score, max_score, score_bins):
+
+    var_info = VARIABLES[var]
+    bins = var_info['bins']
+    min, max = var_info['range']
+    hist = Hist2D(bins, min, max, score_bins, min_score, max_score)
+    return hist
+
+
+def draw_2d_hist(classifier,
+                 category,
+                 region,
+                 backgrounds,
+                 signals=None,
+                 data=None,
+                 cuts=None,
+                 y='mass_mmc_tau1_tau2',
+                 systematic='NOMINAL',
+                 output_suffix=''):
+
+    fields = [y]
+    background_arrays = []
+    background_clf_arrays = []
+    for background in backgrounds:
+        background_arrays.append(
+            background.merged_records(
+                category, region,
+                fields=fields,
+                cuts=cuts))
+        background_clf_arrays.append(
+            background.scores(
+                classifier,
+                category,
+                region,
+                cuts=cuts,
+                systematics=False)[systematic][0])
+
+    if data is not None:
+        data_array = data.merged_records(
+            category, region,
+            fields=fields,
+            cuts=cuts)
+        data_clf_array = data.scores(
+            classifier,
+            category,
+            region,
+            cuts=cuts)[0]
+
+    if signals is not None:
+        signal_arrays = []
+        signal_clf_arrays = []
+        for signal in signals:
+            signal_arrays.append(
+                signal.merged_records(
+                    category, region,
+                    fields=fields,
+                    cuts=cuts))
+            signal_clf_arrays.append(
+                signal.scores(
+                    classifier,
+                    category,
+                    region,
+                    cuts=cuts,
+                    systematics=False)[systematic][0])
+
+    xmin, xmax = float('inf'), float('-inf')
+    for array in background_clf_arrays + signal_clf_arrays + [data_clf_array]:
+        lxmin, lxmax = array.min(), array.max()
+        if lxmin < xmin:
+            xmin = lxmin
+        if lxmax > xmax:
+            xmax = lxmax
+
+    yscale = VARIABLES[y].get('scale', 1.)
+
+    if cuts:
+        output_suffix += '_' + cuts.safe()
+    output_name = "histos_2d_" + category.name + output_suffix + ".root"
+    hist_template = get_2d_field_hist(y, xmin, xmax, 100)
+
+    with root_open(output_name, 'recreate') as f:
+
+        for i, (array, background) in enumerate(zip(background_arrays,
+                                                    backgrounds)):
+            x_array = background_clf_arrays[i]
+            y_array = array[y] * yscale
+            weight = array['weight']
+            hist = hist_template.Clone(name=background.name)
+            hist.fill_array(np.c_[y_array, x_array], weights=weight)
+            hist.Write()
+
+        if data is not None:
+            x_array = data_clf_array
+            y_array = data_array[y] * yscale
+            weight = data_array['weight']
+            hist = hist_template.Clone(name=data.name)
+            hist.fill_array(np.c_[y_array, x_array], weights=weight)
+            hist.Write()
+
+        if signal is not None:
+            for i, (array, signal) in enumerate(zip(signal_arrays, signals)):
+                x_array = signal_clf_arrays[i]
+                y_array = array[y] * yscale
+                weight = array['weight']
+                hist = hist_template.Clone(name=signal.name)
+                hist.fill_array(np.c_[y_array, x_array], weights=weight)
+                hist.Write()
+
+
 def uncertainty_band(model, systematics):
 
     # TODO determine systematics from model itself
@@ -541,7 +651,7 @@ def draw_samples_array(
         data=None,
         signal=None,
         cuts=None,
-        ravel=True,
+        ravel=False,
         p1p3=True,
         weighted=True,
         weight_hist=None,
@@ -553,7 +663,6 @@ def draw_samples_array(
     """
     extra kwargs are passed to draw()
     """
-    figs = {}
     # filter out plots that will not be made
     used_vars = {}
     field_scale = {}
@@ -649,11 +758,12 @@ def draw_samples_array(
     else:
         data_field_hist = None
 
+    figs = {}
     for field, var_info in vars.items():
         output_name = var_info['filename'] + output_suffix
         if cuts:
             output_name += '_' + cuts.safe()
-        draw(model=[m[field] for m in model_hists],
+        fig = draw(model=[m[field] for m in model_hists],
              data=data_field_hist[field] if data_field_hist else None,
              signal=[s[field] for s in signal_hists] if signal_hists else None,
              category=category,
@@ -663,6 +773,8 @@ def draw_samples_array(
              output_name=output_name,
              root=root,
              **kwargs)
+        figs[field] = fig
+    return figs
 
 
 def draw(name,

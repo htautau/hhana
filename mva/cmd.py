@@ -27,6 +27,7 @@ def general_parser(parser=None):
             choices=[
                 'validate',
                 'weights',
+                '2d',
                 'plot',
                 'train',
                 'scatter',

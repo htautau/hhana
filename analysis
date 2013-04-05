@@ -168,7 +168,20 @@ for category in categories:
                 quick=args.quick_train,
                 cv_nfold=args.nfold,
                 use_cache=args.use_clf_cache)
-    
+
+    if '2d' in args.actions:
+        log.info("plotting 2d mass vs classifier output")
+        draw_2d_hist(clf,
+                 category,
+                 target_region,
+                 analysis.backgrounds,
+                 signals=analysis.signals,
+                 data=analysis.data,
+                 cuts=signal_region,
+                 y='mass_mmc_tau1_tau2',
+                 systematic='NOMINAL',
+                 output_suffix=output_suffix)
+
     if 'correlate' in args.actions:
         log.info("drawing correlation matrices")
         # TODO

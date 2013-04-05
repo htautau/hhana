@@ -638,10 +638,8 @@ class ClassificationProblem(object):
             output_formats=('png',),
             weight_hist=bkg_score_hist,
             weight_clf=self,
-            output_suffix="_reweighted" + self.output_suffix)
-
-        log.info("plotting 2D histogram of the classifier output and MMC mass")
-        # for Swagato
+            output_suffix="_reweighted" + self.output_suffix,
+            cuts=signal_region)
 
         ############################################################
         # show the background model and data in the control region

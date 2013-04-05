@@ -405,7 +405,8 @@ class Data(Sample):
     def draw_array(self, field_hist, category, region,
                    cuts=None, p1p3=True, weighted=True,
                    field_scale=None,
-                   weight_hist=None, weight_clf=None):
+                   weight_hist=None, weight_clf=None,
+                   scores=None):
 
         # TODO: only get unblinded vars
         rec = self.merged_records(category, region,
@@ -425,9 +426,12 @@ class Data(Sample):
                 # this var might be blinded
                 continue
             if field_scale is not None and field in field_scale:
-                hist.fill_array(rec[field] * field_scale[field], weights=weights)
+                arr = rec[field] * field_scale[field]
             else:
-                hist.fill_array(rec[field], weights=weights)
+                arr = rec[field]
+            if scores is not None:
+                arr = np.c_[arr, scores]
+            hist.fill_array(arr, weights=weights)
 
     def scores(self, clf, category, region, cuts=None):
 
@@ -802,7 +806,8 @@ class MC(Sample):
     def draw_array(self, field_hist, category, region,
                    cuts=None, p1p3=True, weighted=True,
                    field_scale=None,
-                   weight_hist=None, weight_clf=None):
+                   weight_hist=None, weight_clf=None,
+                   scores=None):
 
         rec = self.merged_records(category, region,
                 fields=field_hist.keys(), cuts=cuts,
@@ -820,9 +825,12 @@ class MC(Sample):
         sys_hists = {}
         for field, hist in field_hist.items():
             if field_scale is not None and field in field_scale:
-                hist.fill_array(rec[field] * field_scale[field], weights=weights)
+                arr = rec[field] * field_scale[field]
             else:
-                hist.fill_array(rec[field], weights=weights)
+                arr = rec[field]
+            if scores is not None:
+                arr = np.c_[arr, scores['NOMINAL'][0]]
+            hist.fill_array(arr, weights=weights)
             if not hasattr(hist, 'systematics'):
                 hist.systematics = {}
             sys_hists[field] = hist.systematics
@@ -848,9 +856,12 @@ class MC(Sample):
                 sys_hist = hist.Clone()
                 sys_hist.Reset()
                 if field_scale is not None and field in field_scale:
-                    sys_hist.fill_array(rec[field] * field_scale[field], weights=weights)
+                    arr = rec[field] * field_scale[field]
                 else:
-                    sys_hist.fill_array(rec[field], weights=weights)
+                    arr = rec[field]
+                if scores is not None:
+                    arr = np.c_[arr, scores[systematic][0]]
+                sys_hist.fill_array(arr, weights=weights)
                 if systematic not in sys_hists[field]:
                     sys_hists[field][systematic] = sys_hist
                 else:
@@ -1283,7 +1294,8 @@ class QCD(Sample, Background):
     def draw_array(self, field_hist, category, region,
                   cuts=None, p1p3=True, weighted=True,
                   field_scale=None,
-                  weight_hist=None, weight_clf=None):
+                  weight_hist=None, weight_clf=None,
+                  scores=None):
 
         field_hist_MC_bkg = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
@@ -1292,7 +1304,8 @@ class QCD(Sample, Background):
             mc.draw_array(field_hist_MC_bkg, category, self.shape_region,
                          cuts=cuts, p1p3=p1p3, weighted=weighted,
                          field_scale=field_scale,
-                         weight_hist=weight_hist, weight_clf=weight_clf)
+                         weight_hist=weight_hist, weight_clf=weight_clf,
+                         scores=mc_scores_dict)
 
         field_hist_data = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
@@ -1301,7 +1314,8 @@ class QCD(Sample, Background):
                             category, self.shape_region,
                             cuts=cuts, p1p3=p1p3, weighted=weighted,
                             field_scale=field_scale,
-                            weight_hist=weight_hist, weight_clf=weight_clf)
+                            weight_hist=weight_hist, weight_clf=weight_clf,
+                            scores=data_scores_dict)
 
         for expr, h in field_hist.items():
             mc_h = field_hist_MC_bkg[expr]
