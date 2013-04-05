@@ -194,6 +194,8 @@ for category in categories:
     if 'correlate' in args.actions:
         log.info("drawing correlation matrices")
         # TODO
+        # create correlation matrices for signal, background
+        # and background and data in a control region
 
     if 'scatter' in args.actions:
         # show 2D plots of all input variables and with BDT output
