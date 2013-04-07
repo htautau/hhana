@@ -24,6 +24,7 @@ from rootpy.io import root_open
 
 from .variables import VARIABLES
 from . import PLOTS_DIR
+from .systematics import iter_systematics
 
 
 def package_path(name):
@@ -364,13 +365,19 @@ def draw_scatter(fields,
             bbox_inches='tight')
 
 
-def get_2d_field_hist(var, min_score, max_score, score_bins):
+def get_2d_field_hist(var, min_score, max_score):
 
     var_info = VARIABLES[var]
     bins = var_info['bins']
     min, max = var_info['range']
-    hist = Hist2D(bins, min, max, score_bins, min_score, max_score)
+    hist = Hist2D(100, min, max, 100, min_score, max_score)
     return hist
+
+
+def sys_name(systematic):
+    if isinstance(systematic, basestring):
+        return systematic
+    return '_'.join(systematic)
 
 
 def draw_2d_hist(classifier,
@@ -381,26 +388,51 @@ def draw_2d_hist(classifier,
                  data=None,
                  cuts=None,
                  y='mass_mmc_tau1_tau2',
-                 systematic='NOMINAL',
                  output_suffix=''):
 
     fields = [y]
     background_arrays = []
     background_clf_arrays = []
     for background in backgrounds:
-        background_arrays.append(
-            background.merged_records(
-                category, region,
-                fields=fields,
-                cuts=cuts))
+        sys_mass = {}
+        for systematic in iter_systematics(True):
+            sys_mass[systematic] = (
+                background.merged_records(
+                    category, region,
+                    fields=fields,
+                    cuts=cuts,
+                    systematic=systematic))
+        background_arrays.append(sys_mass)
         background_clf_arrays.append(
             background.scores(
                 classifier,
                 category,
                 region,
                 cuts=cuts,
-                systematics=False)[systematic][0])
+                systematics=True))
 
+    if signals is not None:
+        signal_arrays = []
+        signal_clf_arrays = []
+        for signal in signals:
+            sys_mass = {}
+            for systematic in iter_systematics(True):
+                sys_mass[systematic] = (
+                    signal.merged_records(
+                        category, region,
+                        fields=fields,
+                        cuts=cuts,
+                        systematic=systematic))
+            signal_arrays.append(sys_mass)
+            signal_clf_arrays.append(
+                signal.scores(
+                    classifier,
+                    category,
+                    region,
+                    cuts=cuts,
+                    systematics=True))
+
+    xmin, xmax = float('inf'), float('-inf')
     if data is not None:
         data_array = data.merged_records(
             category, region,
@@ -411,49 +443,53 @@ def draw_2d_hist(classifier,
             category,
             region,
             cuts=cuts)[0]
-
-    if signals is not None:
-        signal_arrays = []
-        signal_clf_arrays = []
-        for signal in signals:
-            signal_arrays.append(
-                signal.merged_records(
-                    category, region,
-                    fields=fields,
-                    cuts=cuts))
-            signal_clf_arrays.append(
-                signal.scores(
-                    classifier,
-                    category,
-                    region,
-                    cuts=cuts,
-                    systematics=False)[systematic][0])
-
-    xmin, xmax = float('inf'), float('-inf')
-    for array in background_clf_arrays + signal_clf_arrays + [data_clf_array]:
-        lxmin, lxmax = array.min(), array.max()
+        lxmin, lxmax = data_clf_array.min(), data_clf_array.max()
         if lxmin < xmin:
             xmin = lxmin
         if lxmax > xmax:
             xmax = lxmax
+
+    for array_dict in background_clf_arrays + signal_clf_arrays:
+        for sys, (array, _) in array_dict.items():
+            lxmin, lxmax = array.min(), array.max()
+            if lxmin < xmin:
+                xmin = lxmin
+            if lxmax > xmax:
+                xmax = lxmax
 
     yscale = VARIABLES[y].get('scale', 1.)
 
     if cuts:
         output_suffix += '_' + cuts.safe()
     output_name = "histos_2d_" + category.name + output_suffix + ".root"
-    hist_template = get_2d_field_hist(y, xmin, xmax, 100)
+    hist_template = get_2d_field_hist(y, xmin, xmax)
 
     with root_open(output_name, 'recreate') as f:
 
-        for i, (array, background) in enumerate(zip(background_arrays,
-                                                    backgrounds)):
-            x_array = background_clf_arrays[i]
-            y_array = array[y] * yscale
-            weight = array['weight']
-            hist = hist_template.Clone(name=background.name)
-            hist.fill_array(np.c_[y_array, x_array], weights=weight)
-            hist.Write()
+        for background, array_dict, clf_dict in zip(backgrounds,
+                                                    background_arrays,
+                                                    background_clf_arrays):
+            for systematic in iter_systematics(True):
+                x_array = clf_dict[systematic][0]
+                y_array = array_dict[systematic][y] * yscale
+                weight = array_dict[systematic]['weight']
+                hist = hist_template.Clone(name=background.name +
+                        ('_%s' % sys_name(systematic)))
+                hist.fill_array(np.c_[y_array, x_array], weights=weight)
+                hist.Write()
+
+        if signal is not None:
+            for signal, array_dict, clf_dict in zip(signals,
+                                                    signal_arrays,
+                                                    signal_clf_arrays):
+                for systematic in iter_systematics(True):
+                    x_array = clf_dict[systematic][0]
+                    y_array = array_dict[systematic][y] * yscale
+                    weight = array_dict[systematic]['weight']
+                    hist = hist_template.Clone(name=signal.name +
+                            ('_%s' % sys_name(systematic)))
+                    hist.fill_array(np.c_[y_array, x_array], weights=weight)
+                    hist.Write()
 
         if data is not None:
             x_array = data_clf_array
@@ -463,14 +499,6 @@ def draw_2d_hist(classifier,
             hist.fill_array(np.c_[y_array, x_array], weights=weight)
             hist.Write()
 
-        if signal is not None:
-            for i, (array, signal) in enumerate(zip(signal_arrays, signals)):
-                x_array = signal_clf_arrays[i]
-                y_array = array[y] * yscale
-                weight = array['weight']
-                hist = hist_template.Clone(name=signal.name)
-                hist.fill_array(np.c_[y_array, x_array], weights=weight)
-                hist.Write()
 
 
 def uncertainty_band(model, systematics):

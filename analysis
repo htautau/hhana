@@ -31,7 +31,7 @@ from mva.plotting import *
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf
 from mva.classify import *
-from mva.systematics import SYSTEMATICS
+from mva.systematics import SYSTEMATICS, iter_systematics
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
@@ -179,7 +179,6 @@ for category in categories:
                  data=analysis.data,
                  cuts=signal_region,
                  y='mass_mmc_tau1_tau2',
-                 systematic='NOMINAL',
                  output_suffix=output_suffix)
 
     if 'correlate' in args.actions:
