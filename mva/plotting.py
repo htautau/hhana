@@ -365,12 +365,12 @@ def draw_scatter(fields,
             bbox_inches='tight')
 
 
-def get_2d_field_hist(var, min_score, max_score):
+def get_2d_field_hist(var):
 
     var_info = VARIABLES[var]
     bins = var_info['bins']
     min, max = var_info['range']
-    hist = Hist2D(100, min, max, 100, min_score, max_score)
+    hist = Hist2D(100, min, max, 100, -1, 1)
     return hist
 
 
@@ -462,7 +462,10 @@ def draw_2d_hist(classifier,
     if cuts:
         output_suffix += '_' + cuts.safe()
     output_name = "histos_2d_" + category.name + output_suffix + ".root"
-    hist_template = get_2d_field_hist(y, xmin, xmax)
+    hist_template = get_2d_field_hist(y)
+
+    # scale BDT scores such that they are between -1 and 1
+    xscale = max(abs(xmax), abs(xmin))
 
     with root_open(output_name, 'recreate') as f:
 
@@ -470,7 +473,7 @@ def draw_2d_hist(classifier,
                                                     background_arrays,
                                                     background_clf_arrays):
             for systematic in iter_systematics(True):
-                x_array = clf_dict[systematic][0]
+                x_array = clf_dict[systematic][0] / xscale
                 y_array = array_dict[systematic][y] * yscale
                 weight = array_dict[systematic]['weight']
                 hist = hist_template.Clone(name=background.name +
@@ -483,7 +486,7 @@ def draw_2d_hist(classifier,
                                                     signal_arrays,
                                                     signal_clf_arrays):
                 for systematic in iter_systematics(True):
-                    x_array = clf_dict[systematic][0]
+                    x_array = clf_dict[systematic][0] / xscale
                     y_array = array_dict[systematic][y] * yscale
                     weight = array_dict[systematic]['weight']
                     hist = hist_template.Clone(name=signal.name +
@@ -492,7 +495,7 @@ def draw_2d_hist(classifier,
                     hist.Write()
 
         if data is not None:
-            x_array = data_clf_array
+            x_array = data_clf_array / xscale
             y_array = data_array[y] * yscale
             weight = data_array['weight']
             hist = hist_template.Clone(name=data.name)

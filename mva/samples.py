@@ -433,7 +433,7 @@ class Data(Sample):
                 arr = np.c_[arr, scores]
             hist.fill_array(arr, weights=weights)
 
-    def scores(self, clf, category, region, cuts=None):
+    def scores(self, clf, category, region, cuts=None, transform=False):
 
         if category != clf.category:
             raise ValueError(
@@ -442,7 +442,8 @@ class Data(Sample):
         return clf.classify(self,
                 category=category,
                 region=region,
-                cuts=cuts)
+                cuts=cuts,
+                transform=transform)
 
     def trees(self,
               category,
@@ -869,7 +870,8 @@ class MC(Sample):
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
-               systematics=True):
+               systematics=True,
+               transform=False):
 
         # TODO check that weight systematics are included
 
@@ -890,7 +892,8 @@ class MC(Sample):
                     category=category,
                     region=region,
                     cuts=cuts,
-                    systematic=systematic)
+                    systematic=systematic,
+                    transform=transform)
 
             if systematic not in scores_dict:
                 scores_dict[systematic] = (scores, weights)
@@ -1338,7 +1341,8 @@ class QCD(Sample, Background):
             h.SetTitle(self.label)
 
     def scores(self, clf, category, region,
-               cuts=None, systematics=True):
+               cuts=None, systematics=True,
+               transform=False):
 
         if category != clf.category:
             raise ValueError(
@@ -1349,7 +1353,8 @@ class QCD(Sample, Background):
                 clf,
                 category,
                 region=self.shape_region,
-                cuts=cuts)
+                cuts=cuts,
+                transform=transform)
 
         scores_dict = {}
         # subtract SS MC
@@ -1360,7 +1365,8 @@ class QCD(Sample, Background):
                     region=self.shape_region,
                     cuts=cuts,
                     scores_dict=scores_dict,
-                    systematics=systematics)
+                    systematics=systematics,
+                    transform=transform)
 
         for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]
