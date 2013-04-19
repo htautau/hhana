@@ -93,13 +93,15 @@ for category in categories:
         for sample in analysis.signals:
             log.info("%s: %.4f" % (sample.mode,
                 sample.events(category, target_region)))
+        model_events = 0.
         log.info("Backgrounds:")
         for sample in analysis.backgrounds:
-            log.info("%s: %.4f" % (sample.name,
-                sample.events(category, target_region)))
-        log.info("Data:")
-        log.info(analysis.data.events(category, target_region))
-    
+            curr_model_events = sample.events(category, target_region)
+            log.info("%s: %.4f" % (sample.name, curr_model_events))
+            model_events += curr_model_events
+        data_events = analysis.data.events(category, target_region)
+        log.info("Data: %d" % data_events)
+        log.info("Data / Model: %f" % (data_events / model_events))
        
     if 'plot' in args.actions:
 

@@ -698,7 +698,7 @@ class MC(Sample):
             nominal_weighted_selection = (
                 '%f * %s * (%s)' %
                 (nominal_weight,
-                 ' * '.join(map(str,
+                 '*'.join(map(str,
                      self.get_weight_branches('NOMINAL', weighted=weighted))),
                  selection))
 
@@ -1023,17 +1023,25 @@ class MC(Sample):
             recs.append(rec)
         return recs
 
-    def events(self, category, region, cuts=None, systematic='NOMINAL', p1p3=True):
+    def events(self, category, region,
+               cuts=None,
+               systematic='NOMINAL',
+               p1p3=True,
+               weighted=True):
 
         total = 0.
+        hist = Hist(1, -100, 100)
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
             tree = sys_trees[systematic]
             events = sys_events[systematic]
-
             weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
-
-            total += weight * tree.GetEntries(
+            weighted_selection = Cut(' * '.join(map(str,
+                     self.get_weight_branches(systematic, weighted=weighted))))
+            selection = Cut(str(weight)) * weighted_selection * (
                     self.cuts(category, region, p1p3=p1p3) & cuts)
+            hist.Reset()
+            curr_total = tree.Draw('1', selection, hist=hist)
+            total += hist.Integral()
         return total
 
 
@@ -1262,7 +1270,7 @@ class QCD(Sample, Background):
         for mc in self.mc:
             total -= mc.events(category, self.shape_region, cuts=cuts,
                     systematic=systematic, p1p3=p1p3)
-        return total
+        return total * self.scale
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, p1p3=True, weighted=True):

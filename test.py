@@ -96,4 +96,23 @@ def test_pileup():
     show(a.ztautau)
     show(a.higgs_125)
 
-test_pileup()
+
+def test_events():
+
+    from rootpy.plotting import Hist
+
+    for sample in a.backgrounds:
+        hist = Hist(1, -100, 100)
+        sample.draw_into(hist, 'tau1_charge', Category_VBF, 'OS')
+
+        print sum(hist)
+        print sample.events(Category_VBF, 'OS')
+
+    hist = Hist(1, -100, 100)
+    a.data.draw_into(hist, 'tau1_charge', Category_VBF, 'OS')
+
+    print sum(hist)
+    print a.data.events(Category_VBF, 'OS')
+
+
+test_events()
