@@ -834,4 +834,3 @@ def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
                 # zero out bad bins
                 hist[bin] = 0.
             hist.Write()
-

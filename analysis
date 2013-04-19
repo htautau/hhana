@@ -25,17 +25,17 @@ import ROOT
 import numpy as np
 
 # local imports
-from mva import log, variables, plots_dir, samples
 from mva.stats import hypotests
-from mva.plotting import *
+from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf
-from mva.classify import *
+from mva.classify import ClassificationProblem
 from mva.systematics import SYSTEMATICS, iter_systematics
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
 from mva.analysis import Analysis
+from mva import log, variables, plots_dir, samples
 
 
 PLOTS_DIR = plots_dir(__file__)
