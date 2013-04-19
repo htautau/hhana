@@ -91,7 +91,7 @@ features_2j = [
     #'tau1_x', #
     #'tau2_x', #
     'MET_centrality',
-    'mmc_resonance_pt',
+    #'mmc_resonance_pt',
     #'sum_pt', #
     # !!! eta centrality of 3rd jet
 ]
@@ -121,7 +121,7 @@ features_boosted = [
     #'tau1_x', #
     #'tau2_x', #
     'MET_centrality',
-    'mmc_resonance_pt',
+    #'mmc_resonance_pt',
     #'sum_pt', #
     # !!! eta centrality of 3rd jet
 ]

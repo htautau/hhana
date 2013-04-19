@@ -414,9 +414,9 @@ class Data(Sample):
                 p1p3=p1p3, include_weight=True)
 
         if weight_hist is not None:
-            scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
+            clf_scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
             edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(edges.searchsorted(scores) - 1)
+            weights = np.array(weight_hist).take(edges.searchsorted(clf_scores) - 1)
             weights = rec['weight'] * weights
         else:
             weights = rec['weight']
@@ -815,10 +815,10 @@ class MC(Sample):
                 p1p3=p1p3, include_weight=True)
 
         if weight_hist is not None:
-            scores = self.scores(weight_clf, category, region, cuts=cuts,
+            clf_scores = self.scores(weight_clf, category, region, cuts=cuts,
                     systematics=True)
             edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(edges.searchsorted(scores['NOMINAL'][0]) - 1)
+            weights = np.array(weight_hist).take(edges.searchsorted(clf_scores['NOMINAL'][0]) - 1)
             weights = rec['weight'] * weights
         else:
             weights = rec['weight']
@@ -848,7 +848,7 @@ class MC(Sample):
 
             if weight_hist is not None:
                 edges = np.array(list(weight_hist.xedges()))
-                weights = np.array(weight_hist).take(edges.searchsorted(scores[systematic][0]) - 1)
+                weights = np.array(weight_hist).take(edges.searchsorted(clf_scores[systematic][0]) - 1)
                 weights = rec['weight'] * weights
             else:
                 weights = rec['weight']
