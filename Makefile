@@ -4,9 +4,13 @@ HHNTUP ?= ntuples/prod/HHProcessor
 
 default: clean
 
-ntup-clean:
+root-clean:
 	rm -f $(HHNTUP)/$(HHSTUDENT).root
+
+h5-clean:
 	rm -f $(HHNTUP)/$(HHSTUDENT).h5
+
+ntup-clean: root-clean h5-clean
 
 $(HHNTUP)/$(HHSTUDENT).root:
 	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)

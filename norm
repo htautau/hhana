@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-# poor man arg parsing for now
-import sys
-categories = sys.argv[1]
+from rootpy.extern.argparse import ArgumentParser
+from mva.categories import CATEGORIES
+
+parser = ArgumentParser()
+parser.add_argument('categories', choices=CATEGORIES.keys())
+args = parser.parse_args()
 
 from rootpy.plotting import Hist2D
 
@@ -12,7 +15,6 @@ from mva.massregions import MassRegions
 from mva.norm import cache
 from mva.plotting import draw_samples
 from mva.systematics import SYSTEMATICS
-from mva.categories import CATEGORIES
 
 import ROOT
 from ROOT import RooMinimizer
@@ -36,7 +38,7 @@ param = 'TRACK'
 
 mass_regions = MassRegions(110, 180, True)
 
-for category in CATEGORIES[categories]:
+for category in CATEGORIES[args.categories]:
 
     ztt.scale = 1.
     ztt.scale_error = 0.

@@ -1318,7 +1318,7 @@ class QCD(Sample, Background):
                          cuts=cuts, p1p3=p1p3, weighted=weighted,
                          field_scale=field_scale,
                          weight_hist=weight_hist, weight_clf=weight_clf,
-                         scores=mc_scores_dict)
+                         scores=scores)
 
         field_hist_data = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
@@ -1328,7 +1328,7 @@ class QCD(Sample, Background):
                             cuts=cuts, p1p3=p1p3, weighted=weighted,
                             field_scale=field_scale,
                             weight_hist=weight_hist, weight_clf=weight_clf,
-                            scores=data_scores_dict)
+                            scores=scores)
 
         for expr, h in field_hist.items():
             mc_h = field_hist_MC_bkg[expr]

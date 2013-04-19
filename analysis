@@ -16,6 +16,7 @@ import os
 
 # rootpy imports
 from rootpy.plotting import Hist
+from rootpy.tree import Cut
 from rootpy.io import root_open as ropen
 
 # root imports
