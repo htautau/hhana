@@ -1023,7 +1023,7 @@ class MC(Sample):
             recs.append(rec)
         return recs
 
-    def events(self, selection='', systematic='NOMINAL'):
+    def events(self, category, region, cuts=None, systematic='NOMINAL', p1p3=True):
 
         total = 0.
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
@@ -1032,24 +1032,9 @@ class MC(Sample):
 
             weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
 
-            total += weight * tree.GetEntries(selection)
+            total += weight * tree.GetEntries(
+                    self.cuts(category, region, p1p3=p1p3) & cuts)
         return total
-
-    def iter(self, selection='', systematic='NOMINAL'):
-
-        TEMPFILE.cd()
-        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
-            tree = sys_trees[systematic]
-            events = sys_events[systematic]
-
-            weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
-
-            if selection:
-                selected_tree = asrootpy(tree.CopyTree(selection))
-            else:
-                selected_tree = tree
-            for event in selected_tree:
-                yield weight, event
 
 
 class Ztautau(Background):
@@ -1223,6 +1208,14 @@ class Higgs(MC, Signal):
 
         super(Higgs, self).__init__(year=year, **kwargs)
 
+    @property
+    def mode(self):
+
+        if len(self.modes) != 1:
+            raise RuntimeError(
+                "Attempting to access mode for composite Higgs sample")
+        return self.modes[0]
+
 
 class QCD(Sample, Background):
 
@@ -1261,6 +1254,15 @@ class QCD(Sample, Background):
         self.scale_error = 0.
         self.shape_region = shape_region
         self.systematics = mc[0].systematics
+
+    def events(self, category, region, cuts=None, systematic='NOMINAL', p1p3=True):
+
+        total = self.data.events(category, self.shape_region,
+                cuts=cuts, p1p3=p1p3)
+        for mc in self.mc:
+            total -= mc.events(category, self.shape_region, cuts=cuts,
+                    systematic=systematic, p1p3=p1p3)
+        return total
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, p1p3=True, weighted=True):

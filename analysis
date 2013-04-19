@@ -86,10 +86,24 @@ for category in categories:
         use_embedding=args.embedding)
 
     target_region = category.target_region
+
+    if 'yields' in args.actions:
+
+        log.info("Signals:")
+        for sample in analysis.signals:
+            log.info("%s: %.4f" % (sample.mode,
+                sample.events(category, target_region)))
+        log.info("Backgrounds:")
+        for sample in analysis.backgrounds:
+            log.info("%s: %.4f" % (sample.name,
+                sample.events(category, target_region)))
+        log.info("Data:")
+        log.info(analysis.data.events(category, target_region))
     
-    figures[category.name] = {}
-        
+       
     if 'plot' in args.actions:
+
+        figures[category.name] = {}
         cuts = Cut(args.plot_cut)
 
         if args.plot_expr is not None:
