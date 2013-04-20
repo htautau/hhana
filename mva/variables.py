@@ -57,6 +57,16 @@ VARIABLES = {
         'scale': 0.001,
         'units': 'GeV',
     },
+    'vector_sum_pt': {
+        'title': r'$\sum p_T$ (vector sum)',
+        'root': '#sum p_T (vector sum)',
+        'filename': 'vector_sum_pt',
+        'bins': 20,
+        'range': (50, 450),
+        'scale': 0.001,
+        'units': 'GeV',
+        'cats': ['2J', 'VBF']
+    },
     'mmc_resonance_pt': {
         'title': r'MMC Resonance $p_T$',
         'root': 'MMC Resonance p_T',
@@ -187,6 +197,13 @@ VARIABLES = {
         'scale': 0.001,
         'blind': True,
     },
+    'tau_pt_ratio': {
+        'title': r'$p_{T_{\tau_{1}}} / p_{T_{\tau_{2}}}$',
+        'root': 'p_{T_{#tau_{1}}} / p_{T_{#tau_{2}}}',
+        'filename': 'tau_pt_ratio',
+        'bins': 20,
+        'range': (0, 5),
+    },
     'tau1_pt': {
         'title': r'$p_{T_{\tau_{1}}}$',
         'root': 'p_{T_{#tau_{1}}}',
@@ -260,6 +277,20 @@ VARIABLES = {
         'filename': 'tau2_npi0',
         'bins': 7,
         'range': (-.5, 6.5),
+    },
+    'tau_x_product': {
+        'title': r'$\tau_{1_{x}} \times \tau_{2_{x}}$',
+        'root': '#tau_{1_{x}} #times #tau_{2_{x}}',
+        'filename': 'tau_x_product',
+        'bins': 20,
+        'range': (-9, 16),
+    },
+    'tau_x_sum': {
+        'title': r'$\tau_{1_{x}} + \tau_{2_{x}}$',
+        'root': '#tau_{1_{x}} + #tau_{2_{x}}',
+        'filename': 'tau_x_sum',
+        'bins': 20,
+        'range': (-6, 8),
     },
     'tau1_x': {
         'title': r'$\tau_{1_{x}}$',
@@ -359,6 +390,14 @@ VARIABLES = {
         'filename': 'tau2_charge',
         'bins': 5,
         'range': (-2.5, 2.5),
+    },
+    'tau_centrality_product': {
+        'title': r'$\tau$ Centrality Product',
+        'root': '#tau Centrality Product',
+        'filename': 'tau_centrality_product',
+        'bins': 20,
+        'range': (0, 1),
+        'cats': ['2J', 'VBF']
     },
     'tau1_centrality': {
         'title': r'$\tau_1$ Centrality',
