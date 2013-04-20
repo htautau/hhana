@@ -1,6 +1,7 @@
 
 HHSTUDENT ?= HHProcessor
 HHNTUP ?= ntuples/prod/HHProcessor
+HHNTUP_RUNNING ?= ntuples/running/HHProcessor
 
 default: clean
 
@@ -11,6 +12,31 @@ h5-clean:
 	rm -f $(HHNTUP)/$(HHSTUDENT).h5
 
 ntup-clean: root-clean h5-clean
+
+init-log: $(HHNTUP_RUNNING)/log
+	mkdir $(HHNTUP_RUNNING)/log
+	mv $(HHNTUP_RUNNING)/*.log $(HHNTUP_RUNNING)/log
+	mv $(HHNTUP_RUNNING)/*.e* $(HHNTUP_RUNNING)/log
+	mv $(HHNTUP_RUNNING)/*.o* $(HHNTUP_RUNNING)/log
+
+init-data-12: $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root
+	mkdir $(HHNTUP_RUNNING)/data
+	mv $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss_*.root $(HHNTUP_RUNNING)/data
+	hadd $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root $(HHNTUP_RUNNING)/data/HHProcessor.data12-JetTauEtmiss_*.root
+
+init-embed-12: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root
+	mkdir $(HHNTUP_RUNNING)/embed_tes
+	mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_*.root $(HHNTUP_RUNNING)/embed_tes
+	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_UP.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_TES_UP_*.root
+	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_DOWN.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_TES_DOWN_*.root
+	
+	mkdir $(HHNTUP_RUNNING)/embed
+	mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.root $(HHNTUP_RUNNING)/embed
+	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-IM_*.root
+	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-UP_*.root
+	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-DN_*.root
+
+init-ntup: init-log init-data-12 init-embed-12
 
 $(HHNTUP)/$(HHSTUDENT).root:
 	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)
