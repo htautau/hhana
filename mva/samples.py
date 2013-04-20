@@ -1027,21 +1027,26 @@ class MC(Sample):
                cuts=None,
                systematic='NOMINAL',
                p1p3=True,
-               weighted=True):
+               weighted=True,
+               raw=False):
 
         total = 0.
         hist = Hist(1, -100, 100)
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
             tree = sys_trees[systematic]
             events = sys_events[systematic]
-            weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
-            weighted_selection = Cut(' * '.join(map(str,
-                     self.get_weight_branches(systematic, weighted=weighted))))
-            selection = Cut(str(weight)) * weighted_selection * (
-                    self.cuts(category, region, p1p3=p1p3) & cuts)
-            hist.Reset()
-            curr_total = tree.Draw('1', selection, hist=hist)
-            total += hist.Integral()
+            if raw:
+                total += tree.GetEntries(
+                        self.cuts(category, region, p1p3=p1p3) & cuts)
+            else:
+                weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
+                weighted_selection = Cut(' * '.join(map(str,
+                         self.get_weight_branches(systematic, weighted=weighted))))
+                selection = Cut(str(weight)) * weighted_selection * (
+                        self.cuts(category, region, p1p3=p1p3) & cuts)
+                hist.Reset()
+                curr_total = tree.Draw('1', selection, hist=hist)
+                total += hist.Integral()
         return total
 
 
@@ -1263,13 +1268,21 @@ class QCD(Sample, Background):
         self.shape_region = shape_region
         self.systematics = mc[0].systematics
 
-    def events(self, category, region, cuts=None, systematic='NOMINAL', p1p3=True):
+    def events(self, category, region, cuts=None,
+               systematic='NOMINAL',
+               p1p3=True, raw=False):
 
         total = self.data.events(category, self.shape_region,
                 cuts=cuts, p1p3=p1p3)
         for mc in self.mc:
-            total -= mc.events(category, self.shape_region, cuts=cuts,
-                    systematic=systematic, p1p3=p1p3)
+            if raw:
+                total += mc.events(category, self.shape_region, cuts=cuts,
+                        systematic=systematic, p1p3=p1p3, raw=raw)
+            else:
+                total -= mc.events(category, self.shape_region, cuts=cuts,
+                        systematic=systematic, p1p3=p1p3)
+        if raw:
+            return total
         return total * self.scale
 
     def draw_into(self, hist, expr, category, region,

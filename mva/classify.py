@@ -617,6 +617,7 @@ class ClassificationProblem(object):
             hist_template=limit_binning_hist_template,
             systematics=SYSTEMATICS.values() if systematics else None)
 
+        ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
         bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
@@ -639,7 +640,8 @@ class ClassificationProblem(object):
             weight_hist=bkg_score_hist,
             weight_clf=self,
             output_suffix="_reweighted" + self.output_suffix,
-            cuts=signal_region)
+            cuts=signal_region,
+            unblind=True)
 
         ############################################################
         # show the background model and data in the control region

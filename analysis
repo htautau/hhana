@@ -92,13 +92,16 @@ for category in categories:
 
         log.info("Signals:")
         for sample in analysis.signals:
-            log.info("%s: %.4f" % (sample.mode,
-                sample.events(category, target_region)))
+            log.info("%s: %.4f (unweighted: %d)" % (sample.mode,
+                sample.events(category, target_region),
+                sample.events(category, target_region, raw=True)))
         model_events = 0.
         log.info("Backgrounds:")
         for sample in analysis.backgrounds:
             curr_model_events = sample.events(category, target_region)
-            log.info("%s: %.4f" % (sample.name, curr_model_events))
+            log.info("%s: %.4f (unweighted: %d)" % (
+                sample.name, curr_model_events,
+                sample.events(category, target_region, raw=True)))
             model_events += curr_model_events
         data_events = analysis.data.events(category, target_region)
         log.info("Data: %d" % data_events)

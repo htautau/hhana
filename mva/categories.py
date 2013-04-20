@@ -75,15 +75,9 @@ features_2j = [
     #'eta_product_jets_boosted', #
     'mass_jet1_jet2',
     #'sphericity', #
-    #'sphericity_boosted', #
-    #'sphericity_full', #
     #'aplanarity', #
-    #'aplanarity_boosted', #
-    #'aplanarity_full', #
     'tau1_centrality',
     'tau2_centrality',
-    #'tau1_centrality_boosted', #
-    #'tau2_centrality_boosted', #
     #'cos_theta_tau1_tau2', #
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
@@ -91,8 +85,8 @@ features_2j = [
     #'tau1_x', #
     #'tau2_x', #
     'MET_centrality',
+    #'sum_pt_full', #
     #'mmc_resonance_pt',
-    #'sum_pt', #
     # !!! eta centrality of 3rd jet
 ]
 
@@ -105,11 +99,7 @@ features_boosted = [
     #'eta_product_jets_boosted', #
     'mass_jet1_jet2',
     #'sphericity', #
-    #'sphericity_boosted', #
-    #'sphericity_full', #
     #'aplanarity', #
-    #'aplanarity_boosted', #
-    #'aplanarity_full', #
     'tau1_centrality',
     'tau2_centrality',
     #'tau1_centrality_boosted', #
@@ -122,19 +112,15 @@ features_boosted = [
     #'tau2_x', #
     'MET_centrality',
     #'mmc_resonance_pt',
-    #'sum_pt', #
+    'sum_pt_full',
     # !!! eta centrality of 3rd jet
 ]
 
 features_1j = [
     'mass_mmc_tau1_tau2',
     # !!! mass ditau + leading jet?
-    'sphericity',
-    #'sphericity_boosted',
-    #'sphericity_full',
+    #'sphericity',
     #'aplanarity',
-    #'aplanarity_boosted',
-    #'aplanarity_full',
     #'cos_theta_tau1_tau2',
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
@@ -142,8 +128,8 @@ features_1j = [
     'tau1_x',
     'tau2_x',
     'MET_centrality',
-    #'sum_pt',
-    'mmc_resonance_pt',
+    'sum_pt_full',
+    #'mmc_resonance_pt',
 ]
 
 features_0j = [
@@ -155,7 +141,8 @@ features_0j = [
     'tau1_x',
     'tau2_x',
     'MET_centrality',
-    'mmc_resonance_pt',
+    'sum_pt_full',
+    #'mmc_resonance_pt',
 ]
 
 

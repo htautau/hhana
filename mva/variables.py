@@ -11,6 +11,20 @@ WEIGHTS = {
 }
 
 VARIABLES = {
+    'ntrack_pv': {
+        'title': r'Number of Tracks from PV',
+        'root': 'Number of Tracks from PV',
+        'filename': 'ntrack_pv',
+        'bins': 10,
+        'range': (0.5, 120.5),
+    },
+    'ntrack_nontau_pv': {
+        'title': r'Number of Non-Tau Tracks from PV',
+        'root': 'Number of Non-Tau Tracks from PV',
+        'filename': 'ntrack_nontau_pv',
+        'bins': 10,
+        'range': (0.5, 120.5),
+    },
     'averageIntPerXing': {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
         'root': '#LT#mu#GT#cbar_{LB,BCID}',

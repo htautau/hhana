@@ -658,12 +658,12 @@ def draw_samples(
          **kwargs)
 
 
-def get_field_hist(sample, vars):
+def get_field_hist(sample, vars, unblind=False):
 
     from .samples import Data
     field_hist = {}
     for field, var_info in vars.items():
-        if var_info.get('blind', False) and isinstance(sample, Data):
+        if not unblind and var_info.get('blind', False) and isinstance(sample, Data):
             hist = None
         else:
             bins = var_info['bins']
@@ -690,6 +690,7 @@ def draw_samples_array(
         plots=None,
         root=False,
         output_suffix='',
+        unblind=False,
         **kwargs):
     """
     extra kwargs are passed to draw()
@@ -767,7 +768,7 @@ def draw_samples_array(
         signal_hists = None
 
     if data is not None:
-        data_field_hist = get_field_hist(data, vars)
+        data_field_hist = get_field_hist(data, vars, unblind=unblind)
         data.draw_array(data_field_hist, category, region, cuts,
                        p1p3=p1p3, weighted=weighted,
                        field_scale=field_scale,
