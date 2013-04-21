@@ -5,11 +5,12 @@ from mva.categories import CATEGORIES
 
 parser = ArgumentParser()
 parser.add_argument('categories', choices=CATEGORIES.keys())
+parser.add_argument('--embedding', action='store_true', default=False)
 args = parser.parse_args()
 
 from rootpy.plotting import Hist2D
 
-from mva.samples import Data, MC_Ztautau, Others, QCD
+from mva.samples import Data, MC_Ztautau, Embedded_Ztautau, Others, QCD
 from mva.stats import histfactory
 from mva.massregions import MassRegions
 from mva.norm import cache
@@ -19,8 +20,17 @@ from mva.systematics import SYSTEMATICS
 import ROOT
 from ROOT import RooMinimizer
 
+
+before_name = "bkg_before_fit"
+after_name = "bkg_after_fit"
+
 data = Data(2012)
-ztt = MC_Ztautau(2012, systematics=True)
+if args.embedding:
+    ztt = Embedded_Ztautau(2012, systematics=True)
+    before_name += '_embedded'
+    after_name += '_embedded'
+else:
+    ztt = MC_Ztautau(2012, systematics=True)
 others = Others(2012, systematics=True)
 qcd = QCD(data, (ztt, others))
 
@@ -30,18 +40,25 @@ bins = int(max_edge - min_edge)
 
 hist_template = Hist2D(bins, min_edge, max_edge,
                        bins, min_edge, max_edge)
-
 region = 'OS'
 year = 2012
-is_embedded = False
 param = 'TRACK'
-
 mass_regions = MassRegions(110, 180, True)
 
 for category in CATEGORIES[args.categories]:
 
+    
+    # initialize Z scale to (data - QCD - others) / Z
+    
     ztt.scale = 1.
     ztt.scale_error = 0.
+    data_events = data.events(category, region, cuts=mass_regions.control_region, p1p3=False)
+    qcd_events = qcd.events(category, region, cuts=mass_regions.control_region, p1p3=False)
+    oth_events = others.events(category, region, cuts=mass_regions.control_region, p1p3=False)
+    z_events = ztt.events(category, region, cuts=mass_regions.control_region, p1p3=False)
+    scale_init = (data_events - qcd_events - oth_events) / float(z_events)
+    ztt.scale = scale_init
+    
     qcd.scale = 1.
     qcd.scale_error = 0.
 
@@ -53,7 +70,7 @@ for category in CATEGORIES[args.categories]:
             region=region,
             cuts=mass_regions.control_region,
             name="Recounted Number of Tracks",
-            output_name="bkg_before_fit",
+            output_name=before_name,
             show_ratio=True,
             systematics=SYSTEMATICS.values(),
             p1p3=False,
@@ -127,8 +144,8 @@ for category in CATEGORIES[args.categories]:
     fit_result = minim.save()
 
     z_scale_arg = fit_result.floatParsFinal().find("z_scale")
-    z_scale = z_scale_arg.getValV()
-    z_scale_error = z_scale_arg.getError()
+    z_scale = z_scale_arg.getValV() * scale_init
+    z_scale_error = z_scale_arg.getError() * scale_init
 
     qcd_scale_arg = fit_result.floatParsFinal().find("qcd_scale")
     qcd_scale = qcd_scale_arg.getValV()
@@ -141,7 +158,7 @@ for category in CATEGORIES[args.categories]:
     
     cache.set_scales(
             year,
-            category.name, is_embedded, param,
+            category.name, args.embedding, param,
             qcd_scale, qcd_scale_error,
             z_scale, z_scale_error)
 
@@ -153,7 +170,7 @@ for category in CATEGORIES[args.categories]:
             region=region,
             cuts=mass_regions.control_region,
             name="Recounted Number of Tracks",
-            output_name="bkg_after_fit",
+            output_name=after_name,
             show_ratio=True,
             systematics=SYSTEMATICS.values(),
             p1p3=False,
