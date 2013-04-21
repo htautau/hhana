@@ -35,7 +35,8 @@ SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
 COMMON_CUTS = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
-        & MET & MASS_FIX
+        & MET
+        & MASS_FIX
         & TAU_DR_CUT
         & TAU_DETA_CUT
         & TAU_SAME_VERTEX
@@ -44,7 +45,8 @@ COMMON_CUTS = (
 # control region common cuts for deta >= 1.5
 CONTROL_CUTS_DETA = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
-        & MET & MASS_FIX
+        & MET
+        & MASS_FIX
         & TAU_DR_CUT
         & TAU_DETA_CUT_CONTROL
         & TAU_SAME_VERTEX
