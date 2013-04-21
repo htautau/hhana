@@ -138,6 +138,7 @@ for category in categories:
                 weighted=not args.no_weight,
                 plots=args.plots,
                 output_suffix=output_suffix,
+                unblind=args.unblind,
                 cuts=cuts)
         figures[category.name] = figs
     

@@ -15,7 +15,6 @@ MODIFIED = False
 
 
 def qcd_ztautau_norm(
-        year,
         ztautau,
         qcd,
         category,
@@ -32,7 +31,7 @@ def qcd_ztautau_norm(
 
     qcd_scale, qcd_scale_error, \
     ztautau_scale, ztautau_scale_error = get_scales(
-            year, category, is_embedded, param)
+            ztautau.year, category, is_embedded, param)
 
     qcd.scale = qcd_scale
     qcd.scale_error = qcd_scale_error

@@ -22,11 +22,11 @@ init-data-12: $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root
 
 $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root:
 	test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
-	(test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_*.root $(HHNTUP_RUNNING)/embed_tes) || true
+	-test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_UP_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_*.root $(HHNTUP_RUNNING)/embed_tes
 	test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
-	(test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_*.root $(HHNTUP_RUNNING)/embed) || true
-	(test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_*.root $(HHNTUP_RUNNING)/embed) || true
-	(test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_*.root $(HHNTUP_RUNNING)/embed) || true
+	-test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_*.root $(HHNTUP_RUNNING)/embed
+	-test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_*.root $(HHNTUP_RUNNING)/embed
+	-test -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_1.root && mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_*.root $(HHNTUP_RUNNING)/embed
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_UP.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_TES_UP_*.root
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_DOWN.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_TES_DOWN_*.root
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-IM_*.root

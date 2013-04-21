@@ -48,7 +48,6 @@ class Analysis(object):
 
         self.fit_param = fit_param
         norm_cache.qcd_ztautau_norm(
-            year=year,
             ztautau=self.ztautau,
             qcd=self.qcd,
             category=category,
