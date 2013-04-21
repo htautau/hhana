@@ -346,6 +346,7 @@ class Sample(object):
         sys_cut = Cut()
         if p1p3:
             sys_cut &= P1P3_RECOUNTED
+        """
         if systematic is not None:
             systerm, variation = Sample.get_sys_term_variation(systematic)
             if isinstance(self, Embedded_Ztautau):
@@ -354,7 +355,7 @@ class Sample(object):
                         sys_cut &= variations[variation]
                     else:
                         sys_cut &= variations['NOMINAL']
-
+        """
         return (category.get_cuts(self.year) &
                 Sample.REGIONS[region] & self._cuts & sys_cut)
 
