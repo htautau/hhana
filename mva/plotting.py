@@ -1217,7 +1217,7 @@ def draw(name,
 
         if signal is not None:
             if isinstance(signal, (list, tuple)):
-                right_legend_bars += signal_bars
+                right_legend_bars += signal_bars[::-1]
                 right_legend_titles += [s.title for s in scaled_signal]
             else:
                 right_legend_bars.append(signal_bars[0])

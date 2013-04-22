@@ -41,7 +41,7 @@ $(HHNTUP)/$(HHSTUDENT).root:
 	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)
 
 $(HHNTUP)/$(HHSTUDENT).h5: $(HHNTUP)/$(HHSTUDENT).root
-	root2hdf5 --complib lzo --complevel 5 --quiet $^
+	root2hdf5 --complib lzo --complevel 0 --quiet $^
 
 ntup: $(HHNTUP)/$(HHSTUDENT).h5
 
