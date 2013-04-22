@@ -356,9 +356,6 @@ class Sample(object):
                     else:
                         sys_cut &= variations['NOMINAL']
         """
-        if isinstance(self, Embedded_Ztautau) and self.year == 2012:
-            # hack to exclude period M data (25ns bunch spacing)
-            sys_cut &= Cut('RunNumber<=215643')
         return (category.get_cuts(self.year) &
                 Sample.REGIONS[region] & self._cuts & sys_cut)
 
