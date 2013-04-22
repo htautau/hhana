@@ -468,6 +468,10 @@ class ClassificationProblem(object):
                 cuts=cuts,
                 systematic=systematic)
 
+        #print left.shape
+        #print right.shape
+        #print left.shape[0] + right.shape[0]
+
         left_weight = left['weight']
         right_weight = right['weight']
         left = rec_to_ndarray(left, self.fields)

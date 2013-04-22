@@ -850,7 +850,16 @@ class MC(Sample):
             if weight_hist is not None:
                 edges = np.array(list(weight_hist.xedges()))
                 weights = np.array(weight_hist).take(edges.searchsorted(clf_scores[systematic][0]) - 1)
-                weights = rec['weight'] * weights
+                #print edges
+                #print edges.searchsorted(clf_scores[systematic][0]).shape
+                #print clf_scores[systematic][0].shape
+                #print weights.shape
+                try:
+                    weights = rec['weight'] * weights
+                except:
+                    log.warning("array lengths mismatch: %d, %d" %
+                            (rec['weight'].shape[0], weights.shape[0]))
+                    weights = rec['weight'] * np.concatenate([weights, [1.]])
             else:
                 weights = rec['weight']
 
