@@ -153,6 +153,7 @@ VARIABLES = {
         'filename': 'sphericity',
         'bins': 20,
         'range': (0, 1),
+        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
     },
     'aplanarity': {
         'title': r'aplanarity',
@@ -160,6 +161,7 @@ VARIABLES = {
         'filename': 'aplanarity',
         'bins': 20,
         'range': (0, .15),
+        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
     },
     'MET_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
