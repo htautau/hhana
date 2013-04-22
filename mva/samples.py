@@ -1029,7 +1029,11 @@ class MC(Sample):
                 # drop other weight fields
                 rec = recfunctions.rec_drop_fields(rec, weight_branches)
             if fields is not None:
-                rec = rec[fields]
+                try:
+                    rec = rec[fields]
+                except:
+                    print table
+                    raise
             recs.append(rec)
         return recs
 

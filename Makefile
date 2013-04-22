@@ -69,4 +69,4 @@ clean: clean-pyc
 
 bundle:
 	rm -f ~/higgstautau-mva-plots.tar.gz
-	tar -vpczf ~/higgstautau-mva-plots.tar.gz *.png plots/analysis/*.png
+	tar -vpczf ~/higgstautau-mva-plots.tar.gz plots/*.png
