@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+"""
+Check for duplicate events in all trees in a ROOT file.
+"""
+
+import sys
+import os
+from rootpy.io import root_open
+import numpy as np
+
+with root_open(sys.argv[1]) as rfile:
+    for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
+        for treename in treenames:
+            tree = rfile.Get(os.path.join(dirpath, treename))
+            keys = tree.to_array(['RunNumber', 'EventNumber'])
+            if keys.shape != np.unique(keys).shape:
+                print "BAD  %s" % treename
+            else:
+                print "GOOD %s" % treename

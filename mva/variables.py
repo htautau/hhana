@@ -439,7 +439,7 @@ VARIABLES = {
         'filename': 'jet1_eta',
         'bins': 20,
         'range': (-5, 5),
-        'cats': ['2J', '1J', '1J_NONBOOSTED']
+        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
     'jet2_eta': {
         'title': r'$\eta_{jet_{2}}$',
@@ -457,7 +457,7 @@ VARIABLES = {
         'range': (20, 200),
         'scale': 0.001,
         'units': 'GeV',
-        'cats': ['2J', '1J', 'VBF', '1J_NONBOOSTED']
+        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
     'jet2_pt': {
         'title': r'$p_{T_{jet_{2}}}$',
@@ -528,7 +528,7 @@ VARIABLES = {
     'mass_jet1_jet2': {
         'title': r'$M_{jet_{1},\/jet_{2}}$',
         'root': 'M_{jet_{1}, jet_{2}}',
-        'filename': 'M_jet1_jet2',
+        'filename': 'mass_jet1_jet2',
         'bins': 20,
         'range': (0, 800),
         'scale': 0.001,
