@@ -111,8 +111,8 @@ features_boosted = [
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
     #'tau2_BDTJetScore',
-    #'tau1_x', #
-    #'tau2_x', #
+    'tau1_x', #  <= ADD BACK IN
+    'tau2_x', #  <= ADD BACK IN
     'MET_centrality',
     #'mmc_resonance_pt',
     'sum_pt_full',

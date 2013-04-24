@@ -3,6 +3,11 @@
 """
 Check for duplicate events in all trees in a ROOT file.
 """
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('files', nargs='+')
+args = parser.parse_args()
 
 import sys
 import os
@@ -18,13 +23,18 @@ def dup_idx(l):
                 axis=1))[0]
 
 
-with root_open(sys.argv[1]) as rfile:
-    for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
-        for treename in treenames:
-            tree = rfile.Get(os.path.join(dirpath, treename))
-            keys = tree.to_array(['RunNumber', 'EventNumber'])
-            if keys.shape != np.unique(keys).shape:
-                print "BAD  %s" % treename
-                print dup_idx(keys)
-            else:
-                print "GOOD %s" % treename
+for i, filename in enumerate(args.files):
+    print filename
+    with root_open(filename) as rfile:
+        for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
+            for treename in treenames:
+                tree = rfile.Get(os.path.join(dirpath, treename))
+                keys = tree.to_array(['RunNumber', 'EventNumber'])
+                if keys.shape != np.unique(keys).shape:
+                    print "BAD  %s" % treename
+                    print dup_idx(keys)
+                else:
+                    print "GOOD %s" % treename
+    if i < len(args.files) - 1:
+        # not the last file, print a blank line
+        print
