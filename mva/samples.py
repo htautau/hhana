@@ -49,7 +49,7 @@ DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
 OS = Cut('tau1_charge * tau2_charge == -1')
-NOT_OS = Cut('tau1_charge * tau2_charge >= 0') # changed by Zinonas
+NOT_OS = Cut('tau1_charge * tau2_charge >= 0')
 SS = Cut('tau1_charge * tau2_charge == 1')
 
 P1P3_RECOUNTED = (
@@ -346,7 +346,6 @@ class Sample(object):
         sys_cut = Cut()
         if p1p3:
             sys_cut &= P1P3_RECOUNTED
-        """
         if systematic is not None:
             systerm, variation = Sample.get_sys_term_variation(systematic)
             if isinstance(self, Embedded_Ztautau):
@@ -355,7 +354,6 @@ class Sample(object):
                         sys_cut &= variations[variation]
                     else:
                         sys_cut &= variations['NOMINAL']
-        """
         return (category.get_cuts(self.year) &
                 Sample.REGIONS[region] & self._cuts & sys_cut)
 
@@ -692,6 +690,12 @@ class MC(Sample):
 
             nominal_tree = sys_trees['NOMINAL']
             nominal_events = sys_events['NOMINAL']
+
+            log.debug(self.scale)
+            log.debug(xs)
+            log.debug(kfact)
+            log.debug(effic)
+            log.debug(nominal_events)
 
             nominal_weight = (LUMI[self.year] * self.scale *
                     xs * kfact * effic / nominal_events)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-Check for duplicate events in all trees in a ROOT file.
+Check for duplicate events or invalid values (NaN, inf)
+in all trees in a ROOT file.
 """
 from rootpy.extern.argparse import ArgumentParser
 
@@ -13,6 +14,12 @@ import sys
 import os
 from rootpy.io import root_open
 import numpy as np
+from root_numpy import RootNumpyUnconvertibleWarning
+import warnings
+
+
+warnings.simplefilter("ignore",
+    RootNumpyUnconvertibleWarning)
 
 
 def dup_idx(l):
@@ -21,6 +28,13 @@ def dup_idx(l):
     return np.nonzero(np.logical_or.reduce(
                 b[:, np.newaxis] == np.nonzero(np.bincount(b) > 1),
                 axis=1))[0]
+
+
+def check_nan_inf(rec):
+
+    for field in rec.dtype.names:
+        if np.isnan(np.sum(rec[field])):
+            print "invalid values for field %s" % field
 
 
 for i, filename in enumerate(args.files):
@@ -35,6 +49,8 @@ for i, filename in enumerate(args.files):
                     print dup_idx(keys)
                 else:
                     print "GOOD %s" % treename
+                check_nan_inf(tree.to_array())
+
     if i < len(args.files) - 1:
         # not the last file, print a blank line
         print

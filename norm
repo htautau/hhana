@@ -56,6 +56,7 @@ for category in CATEGORIES[args.categories]:
     qcd_events = qcd.events(category, region, cuts=mass_regions.control_region, p1p3=False)
     oth_events = others.events(category, region, cuts=mass_regions.control_region, p1p3=False)
     z_events = ztt.events(category, region, cuts=mass_regions.control_region, p1p3=False)
+    print data_events, qcd_events, oth_events, z_events
     scale_init = (data_events - qcd_events - oth_events) / float(z_events)
     ztt.scale = scale_init
     
