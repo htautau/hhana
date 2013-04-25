@@ -530,7 +530,7 @@ VARIABLES = {
         'root': 'M_{jet_{1}, jet_{2}}',
         'filename': 'mass_jet1_jet2',
         'bins': 20,
-        'range': (0, 800),
+        'range': (0, 1000),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF']
