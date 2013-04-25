@@ -13,7 +13,7 @@ from glob import glob
 from rootpy.io import root_open as ropen
 from rootpy.tree import Tree
 
-ds_pattern = re.compile('%s\.(?P<name>.+)\.root$' % (args.student))
+ds_pattern = re.compile('^%s\.(?P<name>.+)\.root$' % (args.student))
 output_filename = os.path.join(args.path, args.student) + '.root'
 
 with ropen(output_filename, 'RECREATE') as outfile:
@@ -25,8 +25,7 @@ with ropen(output_filename, 'RECREATE') as outfile:
             print "%s is not a valid filename" % filename
             continue
         # replace . and - with _ for natural naming in PyTables
-        name = match.group('name').replace('.', '_')
-        name = name.replace('-', '_')
+        name = match.group('name').replace('.', '_').replace('-', '_')
         print "Merging in %s ..." % filename
         with ropen(filename, 'READ') as infile:
             intree = infile.higgstautauhh
