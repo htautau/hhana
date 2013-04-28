@@ -39,6 +39,7 @@ from .constants import *
 from .classify import histogram_scores
 from .stats.histfactory import to_uniform_binning
 from .cachedtable import CachedTable
+from .regions import REGIONS
 
 # Higgs cross sections
 import yellowhiggs
@@ -48,17 +49,8 @@ VERBOSE = False
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
 DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
-OS = Cut('tau1_charge * tau2_charge == -1')
-NOT_OS = Cut('tau1_charge * tau2_charge >= 0')
-SS = Cut('tau1_charge * tau2_charge == 1')
-
-P1P3_RECOUNTED = (
-    (Cut('tau1_numTrack_recounted == 1') | Cut('tau1_numTrack_recounted == 3'))
-    &
-    (Cut('tau2_numTrack_recounted == 1') | Cut('tau2_numTrack_recounted == 3')))
 
 
-# mass_jet1_jet2 > 100000
 TEMPFILE = TemporaryFile()
 
 
@@ -90,12 +82,6 @@ def cleanup():
 
 
 class Sample(object):
-
-    REGIONS = {
-        'ALL': Cut(),
-        'OS': OS,
-        '!OS': NOT_OS,
-        'SS': SS}
 
     WEIGHT_BRANCHES = [
         'mc_weight',
@@ -131,7 +117,7 @@ class Sample(object):
     def get_histfactory_sample(self, hist_template,
                                expr_or_clf,
                                category, region,
-                               cuts=None, p1p3=True,
+                               cuts=None,
                                scores=None,
                                systematics=True):
 
@@ -150,7 +136,7 @@ class Sample(object):
             expr = expr_or_clf
             hist = hist_template.Clone()
             hist.Reset()
-            self.draw_into(hist, expr, category, region, cuts, p1p3=p1p3)
+            self.draw_into(hist, expr, category, region, cuts)
             if ndim > 1:
                 if do_systematics:
                     syst = hist.systematics
@@ -221,7 +207,6 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
-              p1p3=True,
               include_weight=True,
               systematic='NOMINAL',
               num_partitions=2):
@@ -237,7 +222,6 @@ class Sample(object):
                 fields=fields,
                 include_weight=include_weight,
                 cuts=cuts,
-                p1p3=p1p3,
                 systematic=systematic,
                 start=start,
                 step=num_partitions)
@@ -250,7 +234,6 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
-              p1p3=True,
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -260,7 +243,6 @@ class Sample(object):
                 fields=fields,
                 include_weight=include_weight,
                 cuts=cuts,
-                p1p3=p1p3,
                 systematic=systematic)
 
         return np.hstack(recs)
@@ -270,7 +252,6 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
-              p1p3=True,
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -279,7 +260,6 @@ class Sample(object):
             region,
             fields=fields,
             cuts=cuts,
-            p1p3=p1p3,
             include_weight=include_weight,
             systematic=systematic))
 
@@ -341,11 +321,9 @@ class Sample(object):
                     term = ('%s_%s' % (type, variation),)
                     yield self.get_weight_branches(term), term
 
-    def cuts(self, category, region, systematic=None, p1p3=True):
+    def cuts(self, category, region, systematic=None):
 
         sys_cut = Cut()
-        if p1p3:
-            sys_cut &= P1P3_RECOUNTED
         if systematic is not None:
             systerm, variation = Sample.get_sys_term_variation(systematic)
             if isinstance(self, Embedded_Ztautau):
@@ -355,32 +333,34 @@ class Sample(object):
                     else:
                         sys_cut &= variations['NOMINAL']
         return (category.get_cuts(self.year) &
-                Sample.REGIONS[region] & self._cuts & sys_cut)
+                REGIONS[region] & self._cuts & sys_cut)
 
     def draw(self, expr, category, region, bins, min, max,
-             cuts=None, p1p3=True, weighted=True):
+             cuts=None, weighted=True):
 
         hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
         self.draw_into(hist, expr, category, region,
-                       cuts=cuts, p1p3=p1p3, weighted=weighted)
+                       cuts=cuts, weighted=weighted)
         return hist
 
     def draw2d(self, expr, category, region,
                xbins, xmin, xmax,
                ybins, ymin, ymax,
-               cuts=None, p1p3=True):
+               cuts=None):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
                 title=self.label, **self.hist_decor)
-        self.draw_into(hist, expr, category, region, cuts=cuts, p1p3=p1p3)
+        self.draw_into(hist, expr, category, region, cuts=cuts)
         return hist
 
 
 class Data(Sample):
 
-    def __init__(self, year, **kwargs):
+    def __init__(self, year, markersize=1.2, **kwargs):
 
-        super(Data, self).__init__(year=year, scale=1., **kwargs)
+        super(Data, self).__init__(
+            year=year, scale=1.,
+            markersize=markersize, **kwargs)
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
@@ -392,17 +372,17 @@ class Data(Sample):
                           self.year, self.energy, LUMI[self.year] / 1e3))
         self.name = 'Data'
 
-    def events(self, category, region, cuts=None, p1p3=True):
+    def events(self, category, region, cuts=None):
 
-        return self.data.GetEntries(self.cuts(category, region, p1p3=p1p3) & cuts)
+        return self.data.GetEntries(self.cuts(category, region) & cuts)
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, p1p3=True, weighted=True):
+                  cuts=None, weighted=True):
 
-        self.data.draw(expr, self.cuts(category, region, p1p3=p1p3) & cuts, hist=hist)
+        self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
 
     def draw_array(self, field_hist, category, region,
-                   cuts=None, p1p3=True, weighted=True,
+                   cuts=None, weighted=True,
                    field_scale=None,
                    weight_hist=None, weight_clf=None,
                    scores=None):
@@ -410,7 +390,7 @@ class Data(Sample):
         # TODO: only get unblinded vars
         rec = self.merged_records(category, region,
                 fields=field_hist.keys(), cuts=cuts,
-                p1p3=p1p3, include_weight=True)
+                include_weight=True)
 
         if weight_hist is not None:
             clf_scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
@@ -448,12 +428,11 @@ class Data(Sample):
               category,
               region,
               cuts=None,
-              systematic='NOMINAL',
-              p1p3=True):
+              systematic='NOMINAL'):
 
         Sample.check_systematic(systematic)
         TEMPFILE.cd()
-        tree = asrootpy(self.data.CopyTree(self.cuts(category, region, p1p3=p1p3) & cuts))
+        tree = asrootpy(self.data.CopyTree(self.cuts(category, region) & cuts))
         tree.userdata.weight_branches = []
         return [tree]
 
@@ -464,7 +443,6 @@ class Data(Sample):
                 cuts=None,
                 include_weight=True,
                 systematic='NOMINAL',
-                p1p3=True,
                 **kwargs):
 
         if include_weight and fields is not None:
@@ -472,7 +450,7 @@ class Data(Sample):
                 fields = fields + ['weight']
 
         Sample.check_systematic(systematic)
-        selection = self.cuts(category, region, p1p3=p1p3) & cuts
+        selection = self.cuts(category, region) & cuts
 
         log.info("requesting table from %s %d" %
                  (self.__class__.__name__, self.year))
@@ -670,7 +648,7 @@ class MC(Sample):
         return l
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, p1p3=True, weighted=True):
+                  cuts=None, weighted=True):
 
         if isinstance(expr, (list, tuple)):
             exprs = expr
@@ -682,7 +660,7 @@ class MC(Sample):
         else:
             sys_hists = {}
 
-        selection = self.cuts(category, region, p1p3=p1p3) & cuts
+        selection = self.cuts(category, region) & cuts
 
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
@@ -690,12 +668,6 @@ class MC(Sample):
 
             nominal_tree = sys_trees['NOMINAL']
             nominal_events = sys_events['NOMINAL']
-
-            log.debug(self.scale)
-            log.debug(xs)
-            log.debug(kfact)
-            log.debug(effic)
-            log.debug(nominal_events)
 
             nominal_weight = (LUMI[self.year] * self.scale *
                     xs * kfact * effic / nominal_events)
@@ -810,14 +782,14 @@ class MC(Sample):
         hist.systematics = sys_hists
 
     def draw_array(self, field_hist, category, region,
-                   cuts=None, p1p3=True, weighted=True,
+                   cuts=None, weighted=True,
                    field_scale=None,
                    weight_hist=None, weight_clf=None,
                    scores=None):
 
         rec = self.merged_records(category, region,
                 fields=field_hist.keys(), cuts=cuts,
-                p1p3=p1p3, include_weight=True)
+                include_weight=True)
 
         if weight_hist is not None:
             clf_scores = self.scores(weight_clf, category, region, cuts=cuts,
@@ -848,7 +820,7 @@ class MC(Sample):
 
             rec = self.merged_records(category, region,
                     fields=field_hist.keys(), cuts=cuts,
-                    p1p3=p1p3, include_weight=True,
+                    include_weight=True,
                     systematic=systematic)
 
             if weight_hist is not None:
@@ -918,12 +890,12 @@ class MC(Sample):
                         np.concatenate((prev_weights, weights)))
         return scores_dict
 
-    def trees(self, category, region, cuts=None, systematic='NOMINAL', p1p3=True):
+    def trees(self, category, region, cuts=None, systematic='NOMINAL'):
         """
         This is where all the magic happens...
         """
         TEMPFILE.cd()
-        selection = self.cuts(category, region, p1p3=p1p3) & cuts
+        selection = self.cuts(category, region) & cuts
         weight_branches = self.get_weight_branches(systematic)
         if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
@@ -968,14 +940,13 @@ class MC(Sample):
                 cuts=None,
                 include_weight=True,
                 systematic='NOMINAL',
-                p1p3=True,
                 **kwargs):
 
         if include_weight and fields is not None:
             if 'weight' not in fields:
                 fields = fields + ['weight']
 
-        selection = self.cuts(category, region, systematic, p1p3) & cuts
+        selection = self.cuts(category, region, systematic) & cuts
 
         if systematic == 'NOMINAL':
             log.info("requesting table from %s" %
@@ -1008,9 +979,9 @@ class MC(Sample):
             scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
-                    scale = self.scale + self.scale_error
+                    scale += self.scale_error
                 elif systematic == ('ZFIT_DOWN',):
-                    scale = self.scale - self.scale_error
+                    scale -= self.scale_error
             weight = scale * LUMI[self.year] * xs * kfact * effic / events
 
             table_selection = selection.where()
@@ -1044,7 +1015,6 @@ class MC(Sample):
     def events(self, category, region,
                cuts=None,
                systematic='NOMINAL',
-               p1p3=True,
                weighted=True,
                raw=False):
 
@@ -1055,13 +1025,13 @@ class MC(Sample):
             events = sys_events[systematic]
             if raw:
                 total += tree.GetEntries(
-                        self.cuts(category, region, p1p3=p1p3) & cuts)
+                        self.cuts(category, region) & cuts)
             else:
                 weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
                 weighted_selection = Cut(' * '.join(map(str,
                          self.get_weight_branches(systematic, weighted=weighted))))
                 selection = Cut(str(weight)) * weighted_selection * (
-                        self.cuts(category, region, p1p3=p1p3) & cuts)
+                        self.cuts(category, region) & cuts)
                 hist.Reset()
                 curr_total = tree.Draw('1', selection, hist=hist)
                 total += hist.Integral()
@@ -1288,33 +1258,32 @@ class QCD(Sample, Background):
 
     def events(self, category, region, cuts=None,
                systematic='NOMINAL',
-               p1p3=True, raw=False):
+               raw=False):
 
-        total = self.data.events(category, self.shape_region,
-                cuts=cuts, p1p3=p1p3)
+        total = self.data.events(category, self.shape_region, cuts=cuts)
         for mc in self.mc:
             if raw:
                 total += mc.events(category, self.shape_region, cuts=cuts,
-                        systematic=systematic, p1p3=p1p3, raw=raw)
+                        systematic=systematic, raw=raw)
             else:
                 total -= mc.events(category, self.shape_region, cuts=cuts,
-                        systematic=systematic, p1p3=p1p3)
+                        systematic=systematic)
         if raw:
             return total
         return total * self.scale
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, p1p3=True, weighted=True):
+                  cuts=None, weighted=True):
 
         MC_bkg = hist.Clone()
         for mc in self.mc:
             mc.draw_into(MC_bkg, expr, category, self.shape_region,
-                         cuts=cuts, p1p3=p1p3, weighted=weighted)
+                         cuts=cuts, weighted=weighted)
 
         data_hist = hist.Clone()
         self.data.draw_into(data_hist, expr,
                             category, self.shape_region,
-                            cuts=cuts, p1p3=p1p3, weighted=weighted)
+                            cuts=cuts, weighted=weighted)
 
         hist += (data_hist - MC_bkg) * self.scale
 
@@ -1336,7 +1305,7 @@ class QCD(Sample, Background):
         hist.SetTitle(self.label)
 
     def draw_array(self, field_hist, category, region,
-                  cuts=None, p1p3=True, weighted=True,
+                  cuts=None, weighted=True,
                   field_scale=None,
                   weight_hist=None, weight_clf=None,
                   scores=None):
@@ -1346,7 +1315,7 @@ class QCD(Sample, Background):
 
         for mc in self.mc:
             mc.draw_array(field_hist_MC_bkg, category, self.shape_region,
-                         cuts=cuts, p1p3=p1p3, weighted=weighted,
+                         cuts=cuts, weighted=weighted,
                          field_scale=field_scale,
                          weight_hist=weight_hist, weight_clf=weight_clf,
                          scores=scores)
@@ -1356,7 +1325,7 @@ class QCD(Sample, Background):
 
         self.data.draw_array(field_hist_data,
                             category, self.shape_region,
-                            cuts=cuts, p1p3=p1p3, weighted=weighted,
+                            cuts=cuts, weighted=weighted,
                             field_scale=field_scale,
                             weight_hist=weight_hist, weight_clf=weight_clf,
                             scores=scores)
@@ -1461,7 +1430,6 @@ class QCD(Sample, Background):
                 region,
                 fields=None,
                 cuts=None,
-                p1p3=True,
                 include_weight=True,
                 systematic='NOMINAL',
                 **kwargs):
@@ -1473,7 +1441,6 @@ class QCD(Sample, Background):
                 region=self.shape_region,
                 fields=fields,
                 cuts=cuts,
-                p1p3=p1p3,
                 include_weight=include_weight,
                 systematic='NOMINAL',
                 **kwargs)
@@ -1485,7 +1452,6 @@ class QCD(Sample, Background):
                     region=self.shape_region,
                     fields=fields,
                     cuts=cuts,
-                    p1p3=p1p3,
                     include_weight=include_weight,
                     systematic=systematic,
                     **kwargs)

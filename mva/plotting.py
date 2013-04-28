@@ -12,7 +12,7 @@ from matplotlib import cm
 import matplotlib.font_manager as fm
 from matplotlib import rc
 from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
-                               MaxNLocator, FuncFormatter)
+                               MaxNLocator, FuncFormatter, MultipleLocator)
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -59,29 +59,41 @@ def set_colours(hists, colour_map=cm.jet):
 
 def format_legend(l):
 
-    frame = l.get_frame()
+    #frame = l.get_frame()
     #frame.set_alpha(.8)
-    frame.set_fill(False) # eps does not support alpha values
-    frame.set_linewidth(0)
+    #frame.set_fill(False) # eps does not support alpha values
+    #frame.set_linewidth(0)
+    pass
 
 
-def root_axes(ax, no_xlabels=False, vscale=1.):
+def root_axes(ax,
+              xtick_formatter=None,
+              xtick_locator=None,
+              xtick_rotation=None,
+              logy=False, integer=False, no_xlabels=False, vscale=1.):
 
     ax.patch.set_linewidth(2)
-    ax.xaxis.set_minor_locator(AutoMinorLocator())
-    ax.yaxis.set_minor_locator(AutoMinorLocator())
+    if integer:
+        ax.xaxis.set_major_locator(
+            xtick_locator or MultipleLocator(1))
+        ax.tick_params(axis='x', which='minor',
+                       bottom='off', top='off')
+    else:
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+
+    if not logy:
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     if no_xlabels:
         ax.xaxis.set_major_formatter(NullFormatter())
+    elif xtick_formatter:
+        ax.xaxis.set_major_formatter(xtick_formatter)
 
-    for line in ax.get_xticklines() + ax.get_yticklines():
-        line.set_markersize(2)
+    if xtick_rotation is not None:
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=xtick_rotation)
 
     ax.yaxis.set_label_coords(-0.12, 1.)
     ax.xaxis.set_label_coords(1., -0.15 / vscale)
-
-    ax.tick_params(which='major', labelsize=15, length=8)
-    ax.tick_params(which='minor', length=4)
 
 
 def correlations(signal, signal_weight,
@@ -347,8 +359,7 @@ def draw_scatter(fields,
             ax.set_xlim(xmin - xpad, xmax + xpad)
             ax.set_ylim(ymin - ypad, ymax + ypad)
 
-            ax.legend(loc='upper right',
-                       numpoints=1)
+            ax.legend(loc='upper right')
 
             if x_units is not None:
                 ax.set_xlabel('%s [%s]' % (x_name, x_units))
@@ -574,7 +585,6 @@ def draw_samples(
         signal=None,
         cuts=None,
         ravel=True,
-        p1p3=True,
         weighted=True,
         **kwargs):
     """
@@ -590,7 +600,7 @@ def draw_samples(
         hist.decorate(**sample.hist_decor)
         sample.draw_into(hist, expr,
                 category, region, cuts,
-                p1p3=p1p3, weighted=weighted)
+                weighted=weighted)
         if ndim > 1 and ravel:
             # ravel() the nominal and systematics histograms
             sys_hists = getattr(hist, 'systematics', None)
@@ -613,7 +623,7 @@ def draw_samples(
             hist.decorate(**sample.hist_decor)
             sample.draw_into(hist, expr,
                     category, region, cuts,
-                    p1p3=p1p3, weighted=weighted)
+                    weighted=weighted)
             if ndim > 1 and ravel:
                 # ravel() the nominal and systematics histograms
                 sys_hists = getattr(hist, 'systematics', None)
@@ -635,7 +645,7 @@ def draw_samples(
         data_hist = hist_template.Clone(title=data.label, **data.hist_decor)
         data_hist.decorate(**data.hist_decor)
         data.draw_into(data_hist, expr, category, region, cuts,
-                       p1p3=p1p3, weighted=weighted)
+                       weighted=weighted)
         if ndim > 1 and ravel:
             data_hist = data_hist.ravel()
 
@@ -683,7 +693,6 @@ def draw_samples_array(
         signal=None,
         cuts=None,
         ravel=False,
-        p1p3=True,
         weighted=True,
         weight_hist=None,
         weight_clf=None,
@@ -719,7 +728,7 @@ def draw_samples_array(
         field_hist = get_field_hist(sample, vars)
         sample.draw_array(field_hist,
                 category, region, cuts,
-                p1p3=p1p3, weighted=weighted,
+                weighted=weighted,
                 field_scale=field_scale,
                 weight_hist=weight_hist, weight_clf=weight_clf)
         model_hists.append(field_hist)
@@ -745,7 +754,7 @@ def draw_samples_array(
             field_hist = get_field_hist(sample, vars)
             sample.draw_array(field_hist,
                     category, region, cuts,
-                    p1p3=p1p3, weighted=weighted,
+                    weighted=weighted,
                     field_scale=field_scale,
                     weight_hist=weight_hist, weight_clf=weight_clf)
             signal_hists.append(field_hist)
@@ -770,7 +779,7 @@ def draw_samples_array(
     if data is not None:
         data_field_hist = get_field_hist(data, vars, unblind=unblind)
         data.draw_array(data_field_hist, category, region, cuts,
-                       p1p3=p1p3, weighted=weighted,
+                       weighted=weighted,
                        field_scale=field_scale,
                        weight_hist=weight_hist, weight_clf=weight_clf)
         #if ndim > 1 and ravel:
@@ -804,6 +813,7 @@ def draw_samples_array(
              range=var_info['range'],
              output_name=output_name,
              root=root,
+             integer=var_info.get('integer', False),
              **kwargs)
         figs[field] = fig
     return figs
@@ -830,7 +840,12 @@ def draw(name,
          output_formats=None,
          systematics=None,
          root=False,
-         width=8.):
+         width=8.,
+         integer=False,
+         logy=False,
+         xtick_formatter=None,
+         xtick_locator=None,
+         xtick_rotation=None):
 
     if model is None and data is None and signal is None:
         raise ValueError(
@@ -937,6 +952,8 @@ def draw(name,
         fig = plt.figure(figsize=(figwidth, figheight), dpi=100)
         prop = fm.FontProperties(size=14)
         hist_ax = plt.axes(rect_hist)
+        if logy:
+            hist_ax.set_yscale('log')
 
     if model is not None and model_colour_map is not None:
         set_colours(model, model_colour_map)
@@ -1039,8 +1056,8 @@ def draw(name,
         qq_ax.add_line(l)
         p, _, _ = rplt.errorbar(gg_graph, axes=qq_ax, snap_zero=False,
                                 xerr=False, yerr=False)
-        qq_ax.set_ylabel('Model', fontsize=20, position=(0., 1.), va='top')
-        qq_ax.set_xlabel('Data', fontsize=20, position=(1., 0.), ha='right')
+        qq_ax.set_ylabel('Model', position=(0., 1.), va='top')
+        qq_ax.set_xlabel('Data', position=(1., 0.), ha='right')
         leg = qq_ax.legend([p, Patch(facecolor='green', linewidth=0), l],
                            ['QQ plot', '68% CL band', 'Diagonal'],
                            loc='lower right', prop=prop)
@@ -1143,7 +1160,7 @@ def draw(name,
                 ratio_ax.set_xlim(hist_ax.get_xlim())
                 #ratio_ax.yaxis.tick_right()
                 ratio_ax.set_ylabel(r'$\frac{\rm{Data - Model}}{\rm{Model}}$ [\%]',
-                        fontsize=20, position=(0., 1.), va='top')
+                        position=(0., 1.), va='top')
             if systematics:
                 # plot band on ratio plot
                 # uncertainty on top is data + model
@@ -1199,8 +1216,7 @@ def draw(name,
                     prop=prop,
                     title=(category.label + '\n' + plot_label
                         if plot_label else category.label),
-                    loc='upper left',
-                    numpoints=1)
+                    loc='upper left')
             format_legend(model_legend)
 
     if root:
@@ -1231,8 +1247,7 @@ def draw(name,
                     right_legend_bars[::-1],
                     right_legend_titles[::-1],
                     prop=prop,
-                    loc='upper right',
-                    numpoints=1)
+                    loc='upper right')
             format_legend(right_legend)
             if model is not None:
                 # re-add model legend
@@ -1266,17 +1281,27 @@ def draw(name,
             base_hist = error_hist
         base_hist.xaxis.SetTitle(label)
     else:
-        hist_ax.set_ylabel(ylabel, fontsize=20, position=(0., 1.), va='top')
+        hist_ax.set_ylabel(ylabel, position=(0., 1.), va='top')
         base_ax = hist_ax
         if show_ratio:
             base_ax = ratio_ax
-        base_ax.set_xlabel(label, fontsize=20, position=(1., 0.), ha='right')
-        root_axes(hist_ax, no_xlabels=show_ratio,
-                vscale=1.5 if not (show_ratio or show_qq) else 1.)
+        base_ax.set_xlabel(label, position=(1., 0.), ha='right')
+        root_axes(hist_ax,
+                  xtick_formatter=xtick_formatter,
+                  logy=logy,
+                  integer=integer,
+                  no_xlabels=show_ratio,
+                  vscale=1.5 if not (show_ratio or show_qq) else 1.,
+                  xtick_rotation=xtick_rotation)
         if show_ratio:
-            root_axes(ratio_ax, vscale=1 if show_qq else vscale * .4)
+            root_axes(ratio_ax,
+                      xtick_formatter=xtick_formatter,
+                      integer=integer,
+                      vscale=1 if show_qq else vscale * .4,
+                      xtick_rotation=xtick_rotation)
         if show_qq:
-            root_axes(qq_ax, vscale=vscale)
+            root_axes(qq_ax,
+                      vscale=vscale)
 
     if range is not None:
         if root:

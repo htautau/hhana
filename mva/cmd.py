@@ -4,6 +4,7 @@ from rootpy.extern import argparse
 from .categories import CATEGORIES, CONTROLS
 from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from .variables import VARIABLES
+from .regions import QCD_SHAPE_REGIONS, TARGET_REGIONS
 
 
 class formatter_class(argparse.ArgumentDefaultsHelpFormatter,
@@ -56,9 +57,15 @@ def general_parser(parser=None):
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
     parser.add_argument('--embedding', action='store_true', default=False,
-            help='use embedding instead of ALPGEN')
+            help='use embedded Z->tau+tau instead of ALPGEN')
     parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
+    parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,
+            default='SS_TRK',
+            help='QCD shape region')
+    parser.add_argument('--target-region', choices=TARGET_REGIONS,
+            default='OS_TRK',
+            help='target signal region')
 
     return parser
 
@@ -180,6 +187,21 @@ def plotting_parser(parser=None):
     parser.add_argument('--output-formats', default=['png'], nargs='+',
             choices=('png', 'eps', 'pdf'),
             help='output formats')
+
+    return parser
+
+
+def fit_parser():
+
+    parser = base_parser()
+    parser.add_argument('categories', nargs='?', choices=CATEGORIES.keys(),
+            default='harmonize',
+            help='category definitions')
+    parser.add_argument('--embedding', action='store_true', default=False,
+            help='use embedded Z->tau+tau')
+    parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,
+            default='SS_TRK',
+            help='QCD shape regions')
 
     return parser
 

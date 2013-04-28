@@ -17,6 +17,7 @@ VARIABLES = {
         'filename': 'ntrack_pv',
         'bins': 10,
         'range': (0.5, 120.5),
+        'integer': True,
     },
     'ntrack_nontau_pv': {
         'title': r'Number of Non-Tau Tracks from PV',
@@ -24,6 +25,7 @@ VARIABLES = {
         'filename': 'ntrack_nontau_pv',
         'bins': 10,
         'range': (0.5, 120.5),
+        'integer': True,
     },
     'averageIntPerXing': {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
@@ -81,6 +83,7 @@ VARIABLES = {
         'filename': 'numjets',
         'bins': 7,
         'range': (-.5, 6.5),
+        'integer': True,
     },
     'MET': {
         'title': r'$E^{miss}_{T}$',
@@ -251,6 +254,7 @@ VARIABLES = {
         'filename': 'tau2_numTrack',
         'bins': 5,
         'range': (-.5, 4.5),
+        'integer': True,
     },
     'tau1_numTrack_recounted': {
         'title': r'$\tau_{1}$ Number of Recounted Tracks',
@@ -258,6 +262,7 @@ VARIABLES = {
         'filename': 'tau1_numTrack_recounted',
         'bins': 6,
         'range': (-.5, 5.5),
+        'integer': True,
     },
     'tau2_numTrack_recounted': {
         'title': r'$\tau_{2}$ Number of Recounted Tracks',
@@ -265,6 +270,7 @@ VARIABLES = {
         'filename': 'tau2_numTrack_recounted',
         'bins': 6,
         'range': (-.5, 5.5),
+        'integer': True,
     },
     'tau1_nPi0': {
         'title': r'$\tau_{1}$ Number of $\pi^0$s',
@@ -272,6 +278,7 @@ VARIABLES = {
         'filename': 'tau1_npi0',
         'bins': 7,
         'range': (-.5, 6.5),
+        'integer': True,
     },
     'tau2_nPi0': {
         'title': r'$\tau_{2}$ Number of $\pi^0$s',
@@ -279,6 +286,7 @@ VARIABLES = {
         'filename': 'tau2_npi0',
         'bins': 7,
         'range': (-.5, 6.5),
+        'integer': True,
     },
     'tau_x_product': {
         'title': r'$\tau_{1_{x}} \times \tau_{2_{x}}$',
@@ -385,6 +393,7 @@ VARIABLES = {
         'filename': 'tau1_charge',
         'bins': 5,
         'range': (-2.5, 2.5),
+        'integer': True,
     },
     'tau2_charge': {
         'title': r'$\tau_2$ Charge',
@@ -392,6 +401,7 @@ VARIABLES = {
         'filename': 'tau2_charge',
         'bins': 5,
         'range': (-2.5, 2.5),
+        'integer': True,
     },
     'tau_centrality_product': {
         'title': r'$\tau$ Centrality Product',

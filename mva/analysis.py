@@ -7,7 +7,8 @@ class Analysis(object):
     def __init__(self, year, category,
                  systematics=False,
                  use_embedding=False,
-                 fit_param='TRACK'):
+                 fit_param='TRACK',
+                 qcd_shape_region='SS_TRK'):
 
         self.year = year
         self.category = category
@@ -28,8 +29,7 @@ class Analysis(object):
                 systematics=systematics)
 
         self.data = samples.Data(
-                year=year,
-                markersize=1.2)
+                year=year)
 
         self.higgs_125 = samples.Higgs(
                 year=year,
@@ -41,7 +41,7 @@ class Analysis(object):
         self.qcd = samples.QCD(
             data=self.data,
             mc=[self.others, self.ztautau],
-            shape_region=category.qcd_shape_region)
+            shape_region=qcd_shape_region)
 
         self.qcd.scale = 1.
         self.ztautau.scale = 1.
@@ -51,7 +51,8 @@ class Analysis(object):
             ztautau=self.ztautau,
             qcd=self.qcd,
             category=category,
-            param=fit_param)
+            param=fit_param,
+            shape_region=qcd_shape_region)
 
         self.backgrounds = [
             self.qcd,

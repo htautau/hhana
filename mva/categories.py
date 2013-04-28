@@ -176,8 +176,8 @@ class Category(object):
     year_cuts = {
         2011: ID_MEDIUM,
         2012: ID_MEDIUM_TIGHT}
-    qcd_shape_region = 'SS'
-    target_region = 'OS'
+    qcd_shape_region = 'nOS' # no track cut
+    target_region = 'OS_TRK'
     cuts = Cut()
     common_cuts = COMMON_CUTS
     from . import samples

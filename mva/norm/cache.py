@@ -17,16 +17,18 @@ def print_scales():
             for embedding in SCALES[year][category].keys():
                 params = sorted(SCALES[year][category][embedding].keys())
                 for param in params:
-                    qcd_scale, qcd_scale_error, \
-                    ztautau_scale, ztautau_scale_error = \
-                    SCALES[year][category][embedding][param]
-                    log.info("scale factors for embedding: %s" % str(embedding))
-                    log.info("scale factors for %s category" % category)
-                    log.info("fits were derived via %s parameters" % param)
-                    log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
-                        qcd_scale_error))
-                    log.info("    ztautau scale: %.3f +/- %.4f" %
-                        (ztautau_scale, ztautau_scale_error))
+                    for shape_region in SCALES[year][category][embedding][param].keys():
+                        qcd_scale, qcd_scale_error, \
+                        ztautau_scale, ztautau_scale_error = \
+                        SCALES[year][category][embedding][param][shape_region]
+                        log.info("%d scale factors for %s category" % (year, category))
+                        log.info("embedding: %s" % str(embedding))
+                        log.info("QCD shape region: %s" % shape_region)
+                        log.info("fits were derived via %s parameters" % param)
+                        log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
+                            qcd_scale_error))
+                        log.info("    ztautau scale: %.3f +/- %.4f" %
+                            (ztautau_scale, ztautau_scale_error))
 
 
 if os.path.isfile(SCALES_FILE):
@@ -47,7 +49,8 @@ def write_scales():
 def qcd_ztautau_norm(ztautau,
                      qcd,
                      category,
-                     param='TRACK'):
+                     param,
+                     shape_region):
 
     # if this is a control region then use the name of the parent category
     if category.is_control:
@@ -60,7 +63,7 @@ def qcd_ztautau_norm(ztautau,
 
     qcd_scale, qcd_scale_error, \
     ztautau_scale, ztautau_scale_error = get_scales(
-            ztautau.year, category, is_embedded, param)
+            ztautau.year, category, is_embedded, param, shape_region)
 
     qcd.scale = qcd_scale
     qcd.scale_error = qcd_scale_error
@@ -68,18 +71,19 @@ def qcd_ztautau_norm(ztautau,
     ztautau.scale_error = ztautau_scale_error
 
 
-def get_scales(year, category, embedded, param, verbose=True):
+def get_scales(year, category, embedded, param, shape_region, verbose=True):
 
     year %= 1E3
     category = category.upper()
     param = param.upper()
-    if has_category(year, category, embedded, param):
+    if has_category(year, category, embedded, param, shape_region):
         qcd_scale, qcd_scale_error, \
-        ztautau_scale, ztautau_scale_error = SCALES[year][category][embedded][param]
+        ztautau_scale, ztautau_scale_error = \
+            SCALES[year][category][embedded][param][shape_region]
         if verbose:
-            log.info("background normalization for year %d" % year)
-            log.info("using the embedding scale factors: %s" % str(embedded))
-            log.info("scale factors for %s category" % category)
+            log.info("%d scale factors for %s category" % (year, category))
+            log.info("embedding: %s" % str(embedded))
+            log.info("QCD shape region: %s" % shape_region)
             log.info("scale factors were derived via fit using %s parameters" % param)
             log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
                 qcd_scale_error))
@@ -90,17 +94,18 @@ def get_scales(year, category, embedded, param, verbose=True):
         return None
 
 
-def has_category(year, category, embedded, param):
+def has_category(year, category, embedded, param, shape_region):
 
     year %= 1E3
     category = category.upper()
     param = param.upper()
     return (year in SCALES and category in SCALES[year] and
             embedded in SCALES[year][category] and
-            param in SCALES[year][category][embedded])
+            param in SCALES[year][category][embedded] and
+            shape_region in SCALES[year][category][embedded][param])
 
 
-def set_scales(year, category, embedded, param,
+def set_scales(year, category, embedded, param, shape_region,
                qcd_scale, qcd_scale_error,
                ztautau_scale, ztautau_scale_error):
 
@@ -109,18 +114,18 @@ def set_scales(year, category, embedded, param,
     param = param.upper()
     category = category.upper()
 
-    log.info("background normalization for year %d" % year)
-    log.info("setting the embedding scale factors: %s" % str(embedded))
-    log.info("setting scale factors for %s category" % category)
+    log.info("setting %d scale factors for %s category" % (year, category))
+    log.info("embedding: %s" % str(embedded))
+    log.info("QCD shape region: %s" % shape_region)
     log.info("new scale factors derived via fit using %s parameters" % param)
     log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
     log.info("    ztt scale: %.3f +/- %.4f" % (ztautau_scale,
         ztautau_scale_error))
 
-    if has_category(year, category, embedded, param):
+    if has_category(year, category, embedded, param, shape_region):
         qcd_scale_old, qcd_scale_error_old, \
         ztautau_scale_old, ztautau_scale_error_old = get_scales(
-                year, category, embedded, param, verbose=False)
+                year, category, embedded, param, shape_region, verbose=False)
         log.info("scale factors were previously:")
         log.info("    qcd scale: %.3f +/- %.4f" % (
                 qcd_scale_old,
@@ -135,8 +140,10 @@ def set_scales(year, category, embedded, param,
         SCALES[year][category] = {}
     if embedded not in SCALES[year][category]:
         SCALES[year][category][embedded] = {}
+    if param not in SCALES[year][category][embedded]:
+        SCALES[year][category][embedded][param] = {}
 
-    SCALES[year][category][embedded][param] = (
+    SCALES[year][category][embedded][param][shape_region] = (
             qcd_scale, qcd_scale_error,
             ztautau_scale, ztautau_scale_error)
     MODIFIED = True
