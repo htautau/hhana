@@ -173,9 +173,9 @@ for category in CATEGORIES[args.categories]:
         # correct QCD scale to account for difference between fitting model and
         # target model (SS vs !OS)
         qcd.shape_region = virtual_qcd_shape_region
-        qcd_events = qcd.events(category, region, cuts=mass_regions.control_region)
+        qcd_events = qcd.events(category, region)#, cuts=mass_regions.control_region)
         qcd.shape_region = target_qcd_shape_region
-        qcd_events_target = qcd.events(category, region, cuts=mass_regions.control_region)
+        qcd_events_target = qcd.events(category, region)#, cuts=mass_regions.control_region)
         qcd.shape_region = fit_qcd_shape_region
         qcd_scale_corrected = qcd_events / qcd_events_target
     else:

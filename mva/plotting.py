@@ -668,18 +668,15 @@ def draw_samples(
          **kwargs)
 
 
-def get_field_hist(sample, vars, unblind=False):
+def get_field_hist(sample, vars):
 
     from .samples import Data
     field_hist = {}
     for field, var_info in vars.items():
-        if not unblind and var_info.get('blind', False) and isinstance(sample, Data):
-            hist = None
-        else:
-            bins = var_info['bins']
-            min, max = var_info['range']
-            hist = Hist(bins, min, max, title=sample.label, **sample.hist_decor)
-            hist.decorate(**sample.hist_decor)
+        bins = var_info['bins']
+        min, max = var_info['range']
+        hist = Hist(bins, min, max, title=sample.label, **sample.hist_decor)
+        hist.decorate(**sample.hist_decor)
         field_hist[field] = hist
     return field_hist
 
@@ -777,7 +774,7 @@ def draw_samples_array(
         signal_hists = None
 
     if data is not None:
-        data_field_hist = get_field_hist(data, vars, unblind=unblind)
+        data_field_hist = get_field_hist(data, vars)
         data.draw_array(data_field_hist, category, region, cuts,
                        weighted=weighted,
                        field_scale=field_scale,
@@ -801,6 +798,10 @@ def draw_samples_array(
 
     figs = {}
     for field, var_info in vars.items():
+        if unblind:
+            blind = False
+        else:
+            blind = var_info.get('blind', False)
         output_name = var_info['filename'] + output_suffix
         if cuts:
             output_name += '_' + cuts.safe()
@@ -813,6 +814,7 @@ def draw_samples_array(
              range=var_info['range'],
              output_name=output_name,
              root=root,
+             blind=blind,
              integer=var_info.get('integer', False),
              **kwargs)
         figs[field] = fig
@@ -835,6 +837,7 @@ def draw(name,
          model_colour_map=None,
          signal_colour_map=None,
          fill_signal=False,
+         blind=False,
          show_ratio=False,
          show_qq=False,
          output_formats=None,
@@ -1105,7 +1108,15 @@ def draw(name,
                         axes=hist_ax,
                         zorder=101)
 
-    if data is not None:
+    if data is not None and blind is not True:
+        if isinstance(blind, tuple):
+            low, high = blind
+            # zero out bins in blind region
+            for ibin in xrange(len(data)):
+                if (low < data.xedgesh(ibin) <= high or
+                    low <= data.xedgesl(ibin) < high):
+                    data[ibin] = 0.
+                    data.SetBinError(ibin + 1, 0.)
         # draw data
         if root:
             hist_pad.cd()

@@ -17,7 +17,6 @@ VARIABLES = {
         'filename': 'ntrack_pv',
         'bins': 10,
         'range': (0.5, 120.5),
-        'integer': True,
     },
     'ntrack_nontau_pv': {
         'title': r'Number of Non-Tau Tracks from PV',
@@ -25,7 +24,6 @@ VARIABLES = {
         'filename': 'ntrack_nontau_pv',
         'bins': 10,
         'range': (0.5, 120.5),
-        'integer': True,
     },
     'averageIntPerXing': {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
@@ -181,7 +179,7 @@ VARIABLES = {
         'range': (0, 250),
         'scale': 0.001,
         'units': 'GeV',
-        'blind': True,
+        'blind': (70, 110),
     },
     'mass_mmc_tau1_tau2': {
         'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
@@ -190,7 +188,7 @@ VARIABLES = {
         'bins': 20,
         'range': (50, 250),
         'units': 'GeV',
-        'blind': True,
+        'blind': (100, 140),
     },
     'mass_collinear_tau1_tau2': {
         'title': r'$M^{col}_{\tau_{1},\/\tau_{2}}$',
@@ -200,7 +198,7 @@ VARIABLES = {
         'range': (0, 250),
         'units': 'GeV',
         'scale': 0.001,
-        'blind': True,
+        'blind': (100, 150),
     },
     'tau_pt_ratio': {
         'title': r'$p_{T_{\tau_{1}}} / p_{T_{\tau_{2}}}$',
