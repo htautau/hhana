@@ -44,7 +44,7 @@ PLOTS_DIR = plots_dir(__file__)
 figures = {}
 category_scores = {}
 
-output_suffix = '_%sfit' % args.fit_param
+output_suffix = '_%sfit_%s' % (args.fit_param, args.qcd_shape_region)
 if args.embedding:
     output_suffix += '_embedding'
 if args.suffix:

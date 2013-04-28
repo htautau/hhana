@@ -1250,7 +1250,7 @@ class QCD(Sample, Background):
         self.data = data
         self.mc = mc
         self.name = 'QCD'
-        self.label = 'QCD Multi-jet'
+        self.label = 'QCD Multi-jet (%s)' % shape_region.replace('_', ' ')
         self.scale = 1.
         self.scale_error = 0.
         self.shape_region = shape_region
