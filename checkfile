@@ -23,7 +23,11 @@ warnings.simplefilter("ignore",
 
 
 def dup_idx(l):
-
+    """
+    Return the indices of all duplicated array elements
+    I am very proud of this epic kung fu
+    I promise to document it someday :)
+    """
     _, b = np.unique(l, return_inverse=True)
     return np.nonzero(np.logical_or.reduce(
                 b[:, np.newaxis] == np.nonzero(np.bincount(b) > 1),
