@@ -18,6 +18,7 @@ from root_numpy import RootNumpyUnconvertibleWarning
 import warnings
 
 
+# Ignore all conversion warnings from root_numpy
 warnings.simplefilter("ignore",
     RootNumpyUnconvertibleWarning)
 
@@ -37,6 +38,8 @@ def dup_idx(l):
 def check_nan_inf(rec):
 
     for field in rec.dtype.names:
+        # Sum each column and check if this is NaN
+        # This catches occurrences of both NaN and +/-inf in a column
         if np.isnan(np.sum(rec[field])):
             print "invalid values for field %s" % field
 
@@ -44,15 +47,19 @@ def check_nan_inf(rec):
 for i, filename in enumerate(args.files):
     print filename
     with root_open(filename) as rfile:
+        # Walk through all trees in each ROOT file
         for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
             for treename in treenames:
                 tree = rfile.Get(os.path.join(dirpath, treename))
+                # Use RunNumber and EventNumber to uniquely define each event
                 keys = tree.to_array(['RunNumber', 'EventNumber'])
                 if keys.shape != np.unique(keys).shape:
+                    # This tree contains duplicate events
                     print "BAD  %s" % treename
                     print dup_idx(keys)
                 else:
                     print "GOOD %s" % treename
+                # Check the tree for invalid values
                 check_nan_inf(tree.to_array())
 
     if i < len(args.files) - 1:
