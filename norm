@@ -4,6 +4,10 @@
 This performs the so-called "track fit" to determine the QCD and Z normalization
 in each of the categories. These normalizations are cached in cache/norms.cache
 and later used by the rest of the analysis framework.
+
+For a list of all options this script accepts please see::
+
+    ./norm --help
 """
 
 from mva.cmd import fit_parser
@@ -25,16 +29,17 @@ from matplotlib.ticker import FuncFormatter
 import ROOT
 from ROOT import RooMinimizer
 
-
+# fit the 2D recounted number of track distribution
 expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
+# define the 2D boundaries and number of bins
 min_edge, max_edge = .5, 4.5
 bins = int(max_edge - min_edge)
-
+# define the histogram template
 hist_template = Hist2D(bins, min_edge, max_edge,
                        bins, min_edge, max_edge)
 
 def xtick_func(x, pos):
-    
+    # used by matplotlib to label the x axis with the (#track1, #track2) tuples 
     ntrack1 = int((x - 1) / bins) + 1
     ntrack2 = (x - 1) % bins + 1
     return "(%d,%d)" % (ntrack1, ntrack2)
@@ -44,31 +49,41 @@ track_formatter = FuncFormatter(xtick_func)
 before_name = "bkg_before_fit"
 after_name = "bkg_after_fit"
 
-# no track cuts in regions
+# The OS Z and EWK backgrounds are used in the fit
 region = 'OS'
+# We use SS QCD model to perform the fit and scale this to any other QCD model
 fit_qcd_shape_region = 'SS'
+# The final OS model includes the requirement that the number of recounted
+# tracks equals 1 or 3 for both taus, so we need to scale the QCD to what would
+# be expected after this requirement
+# All regions are defined in mva/regions.py
 virtual_qcd_shape_region = 'SS_TRK'
 target_qcd_shape_region = args.qcd_shape_region
+
 before_name += '_' + target_qcd_shape_region
 after_name += '_' + target_qcd_shape_region
 year = 2012
 param = 'TRACK'
 mass_regions = MassRegions(110, 180, True)
 
+# The year param below should eventually be given by the user from the command
+# line (defaulting to 2012) but currently is hard coded as 2012
 data = Data(2012)
 if args.embedding:
+    # Use embedded Z->tau+tau
     ztt = Embedded_Ztautau(2012, systematics=True)
     before_name += '_embedded'
     after_name += '_embedded'
 else:
+    # Use ALPGEN Z->tau+tau
     ztt = MC_Ztautau(2012, systematics=True)
 others = Others(2012, systematics=True)
 qcd = QCD(data, mc=(ztt, others))
 
-
+# loop over the categories
 for category in CATEGORIES[args.categories]:
     
-    # initialize Z scale to (data - QCD - others) / Z
+    # Initialize Z scale to (data - QCD - others) / Z
     # so we get good convergence for ALPGEN or embedded Z
     ztt.scale = 1.
     ztt.scale_error = 0.
@@ -83,7 +98,7 @@ for category in CATEGORIES[args.categories]:
     scale_init = (data_events - qcd_events - oth_events) / float(z_events)
     ztt.scale = scale_init
 
-    # draw before fit
+    # Draw the track distribution before the fit
     draw_samples(hist_template, expr,
             model=[qcd, others, ztt],
             data=data,
@@ -99,6 +114,7 @@ for category in CATEGORIES[args.categories]:
             xtick_formatter=track_formatter,
             xtick_rotation=90)
     
+    # Request HistFactory Samples for each of the model components
     ztt_sample = ztt.get_histfactory_sample(
             hist_template, expr, category, region,
             cuts=mass_regions.control_region,
@@ -114,23 +130,29 @@ for category in CATEGORIES[args.categories]:
     data_sample = data.get_histfactory_sample(
             hist_template, expr, category, region,
             cuts=mass_regions.control_region)
-
+    
+    # Define the floating norm parameters that will be fitted
     ztt_sample.AddNormFactor('z_scale', 1., 0.5, 2.0)
     qcd_sample.AddNormFactor('qcd_scale', 1., 0.5, 2.0)
-
+    
+    # Construct a HistFactory Channel and Measurement and then the Workspace
+    # Note: The following is based on HistFitter code
+    
     channel = histfactory.make_channel(category.name,
             [ztt_sample, others_sample, qcd_sample], data_sample.GetHisto())
     measurement = histfactory.make_measurement('trackfit', '', [channel],
             lumi_rel_error=0.028,
             POI=['z_scale', 'qcd_scale'])
-    
-    # The following is based on HistFitter code
     workspace = histfactory.make_model(measurement)
 
+    # Get the observed data and model PDF
     obs_data = workspace.data('obsData')
     pdf = workspace.pdf('model_channel_%s' % category.name)
 
+    # Construct the negative log likelihood of the PDF
     nll = pdf.createNLL(obs_data)
+
+    # Create and configure the minimizer
     minim = RooMinimizer(nll)
     strategy = ROOT.Math.MinimizerOptions.DefaultStrategy()
     minim.setStrategy(strategy)
@@ -144,7 +166,8 @@ for category in CATEGORIES[args.categories]:
 
     tries = 1
     maxtries = 4
-
+    
+    # Perform the minimization
     while tries <= maxtries:
         status = minim.minimize(minimizer, algorithm)
         if status % 1000 == 0:
@@ -166,7 +189,8 @@ for category in CATEGORIES[args.categories]:
             algorithm = "migradimproved";
 
     fit_result = minim.save()
-
+    
+    # Get the fitted Z and QCD normalizations and associated uncertainties
     z_scale_arg = fit_result.floatParsFinal().find("z_scale")
     z_scale = z_scale_arg.getValV() * scale_init
     z_scale_error = z_scale_arg.getError() * scale_init
@@ -176,8 +200,8 @@ for category in CATEGORIES[args.categories]:
     qcd_scale_error = qcd_scale_arg.getError()
 
     if target_qcd_shape_region != virtual_qcd_shape_region:
-        # correct QCD scale to account for difference between fitting model and
-        # target model (SS vs !OS)
+        # Correct the QCD scale to account for difference between fitting model
+        # and target model (SS vs !OS)
         qcd.shape_region = virtual_qcd_shape_region
         qcd_events = qcd.events(category, region)#, cuts=mass_regions.control_region)
         qcd.shape_region = target_qcd_shape_region
@@ -187,6 +211,7 @@ for category in CATEGORIES[args.categories]:
     else:
         qcd_scale_corrected = 1.
     
+    # Cache the fitted normalization scale factors
     cache.set_scales(
             year,
             category.name, args.embedding, param,
@@ -200,7 +225,7 @@ for category in CATEGORIES[args.categories]:
     qcd.scale = qcd_scale
     qcd.scale_error = qcd_scale_error
 
-    # draw after fit
+    # Draw the track distribution after the fit
     draw_samples(hist_template, expr,
             model=[qcd, others, ztt],
             data=data,
