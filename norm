@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+This performs the so-called "track fit" to determine the QCD and Z normalization
+in each of the categories. These normalizations are cached in cache/norms.cache
+and later used by the rest of the analysis framework.
+"""
+
 from mva.cmd import fit_parser
 
 parser = fit_parser()
