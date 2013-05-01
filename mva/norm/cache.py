@@ -35,7 +35,6 @@ if os.path.isfile(SCALES_FILE):
     log.info("reading background scale factors from %s" % SCALES_FILE)
     with open(SCALES_FILE) as cache:
         SCALES = pickle.load(cache)
-    print_scales()
 
 
 @atexit.register

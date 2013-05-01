@@ -1034,6 +1034,7 @@ class MC(Sample):
                          self.get_weight_branches(systematic, weighted=weighted))))
                 selection = Cut(str(weight)) * weighted_selection * (
                         self.cuts(category, region) & cuts)
+                log.debug(selection)
                 hist.Reset()
                 curr_total = tree.Draw('1', selection, hist=hist)
                 total += hist.Integral()
