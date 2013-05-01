@@ -384,6 +384,9 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
 
 
 CATEGORIES = {
+    'preselection': [
+        Category_Preselection,
+        ],
     'default': [
         Category_2J,
         Category_1J,
@@ -407,27 +410,4 @@ CATEGORIES = {
         Category_Nonboosted_1J_DEta_Control,
         Category_Nonboosted_0J_DEta_Control,
     ]
-}
-
-CONTROLS = {
-    'preselection': {
-        'name': r'$\tau_{had}\tau_{had}$: At Preselection',
-        'cuts': COMMON_CUTS,
-        'year_cuts': {
-            2011: ID_MEDIUM,
-            2012: ID_MEDIUM_TIGHT},
-        'fitbins': 10,
-        'qcd_shape_region': 'SS',
-        'target_region': 'OS',
-    },
-    'z': {
-        'name': r'$\tau_{had}\tau_{had}$: Z Control Region',
-        'cuts': MET & Cut('dR_tau1_tau2<2.8') & Z_PEAK,
-        'year_cuts': {
-            2011: ID_MEDIUM,
-            2012: ID_MEDIUM_TIGHT},
-        'fitbins': 8,
-        'qcd_shape_region': 'SS',
-        'target_region': 'OS',
-    }
 }

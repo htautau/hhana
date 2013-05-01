@@ -1008,6 +1008,8 @@ class MC(Sample):
                     rec = rec[fields]
                 except:
                     print table
+                    print rec.shape
+                    print rec.dtype
                     raise
             recs.append(rec)
         return recs

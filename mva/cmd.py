@@ -1,7 +1,7 @@
 import rootpy
 from rootpy.extern import argparse
 
-from .categories import CATEGORIES, CONTROLS
+from .categories import CATEGORIES
 from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from .variables import VARIABLES
 from .regions import QCD_SHAPE_REGIONS, TARGET_REGIONS
@@ -46,14 +46,6 @@ def general_parser(parser=None):
             help='category definitions')
     parser.add_argument('--category-names', nargs="+", default=None,
             help='category names')
-    """
-    parser.add_argument('--controls', nargs='*', default=CONTROLS.keys(),
-            help='which controls to draw plots in')
-    parser.add_argument('--only-controls', action='store_true', default=False,
-            help='only draw control plots. no category plots.')
-    parser.add_argument('--enable-controls', action='store_true', default=False,
-            help='plot in controls')
-    """
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
     parser.add_argument('--embedding', action='store_true', default=False,

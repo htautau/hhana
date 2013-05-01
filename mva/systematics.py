@@ -28,7 +28,7 @@ SYSTEMATICS = {
     #'MFS': (('MFS_UP',), ('MFS_DOWN',)),
     #'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
     'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
-    #'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
+    'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
     'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
     'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
     'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
@@ -45,16 +45,16 @@ WEIGHT_SYSTEMATICS = {
         'NOMINAL': [
             'tau1_trigger_scale_factor',
             'tau2_trigger_scale_factor']},
-    #'FAKERATE': {
-    #    'UP': [
-    #        'tau1_fakerate_scale_factor_high',
-    #        'tau2_fakerate_scale_factor_high'],
-    #    'DOWN': [
-    #        'tau1_fakerate_scale_factor_low',
-    #        'tau2_fakerate_scale_factor_low'],
-    #    'NOMINAL': [
-    #        'tau1_fakerate_scale_factor',
-    #        'tau2_fakerate_scale_factor']},
+    'FAKERATE': {
+        'UP': [
+            'tau1_fakerate_scale_factor_high',
+            'tau2_fakerate_scale_factor_high'],
+        'DOWN': [
+            'tau1_fakerate_scale_factor_low',
+            'tau2_fakerate_scale_factor_low'],
+        'NOMINAL': [
+            'tau1_fakerate_scale_factor',
+            'tau2_fakerate_scale_factor']},
     'TAUID': {
         'UP': [
             'tau1_efficiency_scale_factor_high',
