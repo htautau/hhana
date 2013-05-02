@@ -58,10 +58,7 @@ fit_qcd_shape_region = 'SS'
 # be expected after this requirement
 # All regions are defined in mva/regions.py
 virtual_qcd_shape_region = 'SS_TRK'
-target_qcd_shape_region = args.qcd_shape_region
 
-before_name += '_' + target_qcd_shape_region
-after_name += '_' + target_qcd_shape_region
 year = 2012
 param = 'TRACK'
 mass_regions = MassRegions(110, 180, True)
@@ -79,6 +76,7 @@ else:
     ztt = MC_Ztautau(2012, systematics=True)
 others = Others(2012, systematics=True)
 qcd = QCD(data, mc=(ztt, others))
+qcd.label = 'QCD Multi-jet'
 
 # loop over the categories
 for category in CATEGORIES[args.categories]:
@@ -198,33 +196,40 @@ for category in CATEGORIES[args.categories]:
     qcd_scale_arg = fit_result.floatParsFinal().find("qcd_scale")
     qcd_scale = qcd_scale_arg.getValV()
     qcd_scale_error = qcd_scale_arg.getError()
-
-    if target_qcd_shape_region != virtual_qcd_shape_region:
-        # Correct the QCD scale to account for difference between fitting model
-        # and target model (SS vs !OS)
-        qcd.shape_region = virtual_qcd_shape_region
-        qcd_events = qcd.events(category, region)#, cuts=mass_regions.control_region)
-        qcd.shape_region = target_qcd_shape_region
-        qcd_events_target = qcd.events(category, region)#, cuts=mass_regions.control_region)
-        qcd.shape_region = fit_qcd_shape_region
-        qcd_scale_corrected = qcd_events / qcd_events_target
-    else:
-        qcd_scale_corrected = 1.
     
     # Cache the fitted normalization scale factors
+
+    # SS_TRK QCD model
     cache.set_scales(
             year,
             category.name, args.embedding, param,
-            target_qcd_shape_region,
-            qcd_scale * qcd_scale_corrected,
-            qcd_scale_error * qcd_scale_corrected,
+            'SS_TRK',
+            qcd_scale, qcd_scale_error,
             z_scale, z_scale_error)
     
     ztt.scale = z_scale
     ztt.scale_error = z_scale_error
+
+    # nOS QCD model
+    # Correct the QCD scale to account for difference between fitting model
+    # and target model (SS vs !OS)
+    qcd.shape_region = virtual_qcd_shape_region
+    qcd_events = qcd.events(category, region)#, cuts=mass_regions.control_region)
+    qcd.shape_region = 'nOS'
+    qcd_events_target = qcd.events(category, region)#, cuts=mass_regions.control_region)
+    qcd.shape_region = fit_qcd_shape_region
+    qcd_scale_corrected = qcd_events / qcd_events_target
+    cache.set_scales(
+            year,
+            category.name, args.embedding, param,
+            'nOS',
+            qcd_scale * qcd_scale_corrected,
+            qcd_scale_error * qcd_scale_corrected,
+            z_scale, z_scale_error)
+        
     qcd.scale = qcd_scale
     qcd.scale_error = qcd_scale_error
-
+    
     # Draw the track distribution after the fit
     draw_samples(hist_template, expr,
             model=[qcd, others, ztt],

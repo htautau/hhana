@@ -493,6 +493,7 @@ class MC(Sample):
         'TES',
         'TAUID',
         'TRIGGER',
+        'FAKERATE',
     ]
 
     def __init__(self, year, db=DB_HH, systematics=True, **kwargs):

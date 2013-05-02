@@ -191,9 +191,6 @@ def fit_parser():
             help='category definitions')
     parser.add_argument('--embedding', action='store_true', default=False,
             help='use embedded Z->tau+tau')
-    parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,
-            default='SS_TRK',
-            help='QCD shape regions')
 
     return parser
 
