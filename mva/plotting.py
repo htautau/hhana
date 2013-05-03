@@ -63,7 +63,10 @@ def format_legend(l):
     #frame.set_alpha(.8)
     #frame.set_fill(False) # eps does not support alpha values
     #frame.set_linewidth(0)
-    pass
+    for t in l.get_texts():
+        # left align all contents
+        t.set_ha('left')
+    l.get_title().set_ha("left")
 
 
 def root_axes(ax,
@@ -205,8 +208,6 @@ def draw_scatter(fields,
     all_pairs = list(itertools.combinations(fields, 2))
 
     for x, y in all_pairs:
-        # TODO: handle special case if x or y is a classifier
-
         # always make the classifier along the x axis
         if not isinstance(y, basestring):
             tmp = x
@@ -374,6 +375,14 @@ def draw_scatter(fields,
         plt.savefig(os.path.join(PLOTS_DIR, 'scatter_%s_%s_%s%s.png') % (
             category.name, x_filename, y_filename, output_name),
             bbox_inches='tight')
+
+        """
+        Romain Madar:
+
+        Display the 1D histogram of (x_i - <x>)(y_i - <y>) over the events {i}.
+        The mean of this distribution will be the "usual correlation" but this
+        plot allows to look at the tails and asymmetry, for data and MC.
+        """
 
 
 def get_2d_field_hist(var):

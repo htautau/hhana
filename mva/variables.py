@@ -185,7 +185,7 @@ VARIABLES = {
         'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
         'root': 'M^{MMC}_{#tau_{1}, #tau_{2}}',
         'filename': 'mass_MMC',
-        'bins': 40,
+        'bins': 32,
         'range': (0, 250),
         'units': 'GeV',
         'blind': (100, 140),

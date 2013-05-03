@@ -79,7 +79,6 @@ for category in categories:
     log.info("=" * 40)
     log.info("%s category" % category.name)
     log.info("=" * 40)
-    log.info("Cuts: %s" % category.get_cuts(year))
     
     analysis = Analysis(
         year=year,
@@ -88,6 +87,8 @@ for category in categories:
         use_embedding=args.embedding,
         qcd_shape_region=args.qcd_shape_region)
     
+    log.info("Cuts: %s" % analysis.data.cuts(category, target_region))
+
     if 'yields' in args.actions:
 
         log.info("Signals:")
@@ -219,7 +220,7 @@ for category in categories:
                      data=analysis.data,
                      signals=analysis.signals,
                      signal_scale=300.,
-                     classifier=clf,
+                     classifier=clf if 'train' in args.actions else None,
                      unblind=args.unblind)
 
     if 'evaluate' in args.actions:

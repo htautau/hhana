@@ -1,5 +1,5 @@
-from .. import log, CACHE_DIR; log = log[__name__]
-from .. import samples
+from . import log; log = log[__name__]
+from .. import samples, CACHE_DIR
 import os
 import cPickle as pickle
 import atexit

@@ -20,7 +20,7 @@ from rootpy.plotting import Hist2D
 from mva.samples import Data, MC_Ztautau, Embedded_Ztautau, Others, QCD
 from mva.stats import histfactory
 from mva.massregions import MassRegions
-from mva.norm import cache
+from mva.norm import cache, log
 from mva.plotting import draw_samples
 from mva.systematics import SYSTEMATICS
 from mva.categories import CATEGORIES
@@ -49,19 +49,10 @@ track_formatter = FuncFormatter(xtick_func)
 before_name = "bkg_before_fit"
 after_name = "bkg_after_fit"
 
-# The OS Z and EWK backgrounds are used in the fit
-region = 'OS'
-# We use SS QCD model to perform the fit and scale this to any other QCD model
-fit_qcd_shape_region = 'SS'
-# The final OS model includes the requirement that the number of recounted
-# tracks equals 1 or 3 for both taus, so we need to scale the QCD to what would
-# be expected after this requirement
-# All regions are defined in mva/regions.py
-virtual_qcd_shape_region = 'SS_TRK'
-
 year = 2012
 param = 'TRACK'
-mass_regions = MassRegions(110, 180, True)
+mass_regions = MassRegions(low_cutoff=70, low=100, high=180,
+                           high_sideband_in_control=False)
 
 # The year param below should eventually be given by the user from the command
 # line (defaulting to 2012) but currently is hard coded as 2012
@@ -81,27 +72,30 @@ qcd.label = 'QCD Multi-jet'
 # loop over the categories
 for category in CATEGORIES[args.categories]:
     
+    log.info(data.cuts(category, 'OS'))
+    
     # Initialize Z scale to (data - QCD - others) / Z
     # so we get good convergence for ALPGEN or embedded Z
     ztt.scale = 1.
     ztt.scale_error = 0.
-    qcd.shape_region = fit_qcd_shape_region
+    qcd.shape_region = 'SS'
     qcd.scale = 1.
     qcd.scale_error = 0.
 
-    data_events = data.events(category, region, cuts=mass_regions.control_region)
-    qcd_events = qcd.events(category, region, cuts=mass_regions.control_region)
-    oth_events = others.events(category, region, cuts=mass_regions.control_region)
-    z_events = ztt.events(category, region, cuts=mass_regions.control_region)
+    data_events = data.events(category, 'OS', cuts=mass_regions.control_region)
+    qcd_events = qcd.events(category, 'OS', cuts=mass_regions.control_region)
+    oth_events = others.events(category, 'OS', cuts=mass_regions.control_region)
+    z_events = ztt.events(category, 'OS', cuts=mass_regions.control_region)
     scale_init = (data_events - qcd_events - oth_events) / float(z_events)
     ztt.scale = scale_init
+    log.info("initial Z scale before fit: %f" % scale_init)
 
     # Draw the track distribution before the fit
     draw_samples(hist_template, expr,
             model=[qcd, others, ztt],
             data=data,
             category=category,
-            region=region,
+            region='OS',
             cuts=mass_regions.control_region,
             name="Recounted Number of Tracks",
             output_name=before_name,
@@ -114,19 +108,19 @@ for category in CATEGORIES[args.categories]:
     
     # Request HistFactory Samples for each of the model components
     ztt_sample = ztt.get_histfactory_sample(
-            hist_template, expr, category, region,
+            hist_template, expr, category, 'OS',
             cuts=mass_regions.control_region,
             systematics=False)
     others_sample = others.get_histfactory_sample(
-            hist_template, expr, category, region,
+            hist_template, expr, category, 'OS',
             cuts=mass_regions.control_region,
             systematics=False)
     qcd_sample = qcd.get_histfactory_sample(
-            hist_template, expr, category, region,
+            hist_template, expr, category, 'OS',
             cuts=mass_regions.control_region,
             systematics=False)
     data_sample = data.get_histfactory_sample(
-            hist_template, expr, category, region,
+            hist_template, expr, category, 'OS',
             cuts=mass_regions.control_region)
     
     # Define the floating norm parameters that will be fitted
@@ -213,11 +207,15 @@ for category in CATEGORIES[args.categories]:
     # nOS QCD model
     # Correct the QCD scale to account for difference between fitting model
     # and target model (SS vs !OS)
-    qcd.shape_region = virtual_qcd_shape_region
-    qcd_events = qcd.events(category, region)#, cuts=mass_regions.control_region)
+    # The final OS model includes the requirement that the number of recounted
+    # tracks equals 1 or 3 for both taus, so we need to scale the QCD to what would
+    # be expected after this requirement
+    # Note: All regions are defined in mva/regions.py
+    qcd.shape_region = 'SS_TRK'
+    qcd_events = qcd.events(category, 'OS')#, cuts=mass_regions.control_region)
     qcd.shape_region = 'nOS'
-    qcd_events_target = qcd.events(category, region)#, cuts=mass_regions.control_region)
-    qcd.shape_region = fit_qcd_shape_region
+    qcd_events_target = qcd.events(category, 'OS')#, cuts=mass_regions.control_region)
+    qcd.shape_region = 'SS'
     qcd_scale_corrected = qcd_events / qcd_events_target
     cache.set_scales(
             year,
@@ -235,7 +233,7 @@ for category in CATEGORIES[args.categories]:
             model=[qcd, others, ztt],
             data=data,
             category=category,
-            region=region,
+            region='OS',
             cuts=mass_regions.control_region,
             name="Recounted Number of Tracks",
             output_name=after_name,

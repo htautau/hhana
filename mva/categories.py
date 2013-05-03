@@ -1,4 +1,7 @@
 from rootpy.tree import Cut
+import math
+
+# All basic cut definitions
 
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
 TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
@@ -33,25 +36,6 @@ MET = Cut('MET > 20000')
 LEAD_TAU_35 = Cut('tau1_pt > 35000')
 SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
 
-COMMON_CUTS = (
-        LEAD_TAU_35 & SUBLEAD_TAU_25
-        & MET
-        & MASS_FIX
-        & TAU_DR_CUT
-        & TAU_DETA_CUT
-        & TAU_SAME_VERTEX
-        )
-
-# control region common cuts for deta >= 1.5
-CONTROL_CUTS_DETA = (
-        LEAD_TAU_35 & SUBLEAD_TAU_25
-        & MET
-        & MASS_FIX
-        & TAU_DR_CUT
-        & TAU_DETA_CUT_CONTROL
-        & TAU_SAME_VERTEX
-        )
-
 LEAD_JET_50 = Cut('jet1_pt > 50000')
 SUBLEAD_JET_30 = Cut('jet2_pt > 30000')
 AT_LEAST_1JET = Cut('jet1_pt > 30000')
@@ -63,10 +47,9 @@ CUTS_0J = (- LEAD_JET_50)
 CUTS_VBF = Cut('dEta_jets > 2.0')
 CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
 
+
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
-# TODO: try removing 2j variables from the boosted category
-
 
 features_2j = [
     'mass_mmc_tau1_tau2',
@@ -152,6 +135,25 @@ features_0j = [
 ]
 
 
+COMMON_CUTS = (
+    LEAD_TAU_35 & SUBLEAD_TAU_25
+    & MET
+    & MASS_FIX
+    & TAU_DR_CUT
+    & TAU_DETA_CUT
+    & TAU_SAME_VERTEX
+    )
+
+CONTROL_CUTS_DETA = (
+    LEAD_TAU_35 & SUBLEAD_TAU_25
+    & MET
+    & MASS_FIX
+    & TAU_DR_CUT
+    & TAU_DETA_CUT_CONTROL
+    & TAU_SAME_VERTEX
+    )
+
+
 class CategoryMeta(type):
     """
     Metaclass for all categories
@@ -190,6 +192,25 @@ class Category(object):
     def get_cuts(cls, year):
         return cls.cuts & cls.common_cuts & cls.year_cuts[year]
 
+
+# Cut-based categories
+
+class Category_Cuts_Preselection(Category):
+
+    name = 'cut_preselection'
+    label = r'$\tau_{had}\tau_{had}$: At Cut-based Preselection'
+    common_cuts = (
+        LEAD_TAU_35 & SUBLEAD_TAU_25
+        & MET
+        & Cut('mass_mmc_tau1_tau2 > 0')
+        & Cut('0.8 < dR_tau1_tau2 < 2.8')
+        & TAU_DETA_CUT
+        & TAU_SAME_VERTEX
+        & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
+        )
+
+
+# MVA preselection categories
 
 class Category_Preselection(Category):
 
@@ -384,6 +405,9 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
 
 
 CATEGORIES = {
+    'cuts_preselection': [
+        Category_Cuts_Preselection,
+        ],
     'preselection': [
         Category_Preselection,
         ],
