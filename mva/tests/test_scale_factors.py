@@ -1,5 +1,6 @@
 from rootpy.tree import Cut
 from mva.samples import *
+from nose.tools import assert_equals
 
 tau1_matched = Cut('tau1_matched')
 tau2_matched = Cut('tau2_matched')
@@ -18,8 +19,10 @@ def matching(sample):
 
 def fakerate(sample):
 
-    assert sample.events(-tau1_matched) == sample.events('tau1_fakerate_scale_factor < 1')
-    assert sample.events(tau1_matched) == sample.events('tau1_fakerate_scale_factor == 1')
+    assert_equals(sample.events(-tau1_matched),
+                  sample.events('tau1_fakerate_scale_factor < 1'))
+    assert_equals(sample.events(tau1_matched),
+                  sample.events('tau1_fakerate_scale_factor == 1'))
 
 
 def test_fakerates():

@@ -201,7 +201,7 @@ class Category_Cuts_Preselection(Category):
     label = r'$\tau_{had}\tau_{had}$: At Cut-based Preselection'
     common_cuts = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
-        & MET
+        #& MET <= no MET cut in cut-based preselection
         & Cut('mass_mmc_tau1_tau2 > 0')
         & Cut('0.8 < dR_tau1_tau2 < 2.8')
         & TAU_DETA_CUT

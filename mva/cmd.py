@@ -189,6 +189,8 @@ def fit_parser():
     parser.add_argument('categories', nargs='?', choices=CATEGORIES.keys(),
             default='harmonize',
             help='category definitions')
+    parser.add_argument('--plot', action='store_true', default=False,
+            help='plot distributions before and after fit')
     parser.add_argument('--embedding', action='store_true', default=False,
             help='use embedded Z->tau+tau')
 

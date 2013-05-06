@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+from rootpy.io import root_open
+
+f = root_open('ntuples/prod/HHProcessor/HHProcessor.data12-JetTauEtmiss.root')
+t = f.higgstautauhh
+t.csv(branches=['RunNumber', 'EventNumber',
+                'MET', 'MET_bisecting', 'MET_phi', 'dPhi_min_tau_MET',
+                'tau_same_vertex',
+                'mass_mmc_tau1_tau2',
+                'dR_tau1_tau2',
+                'tau1_pt',
+                'tau1_phi',
+                'tau2_pt',
+                'tau2_phi',
+                'tau1_numTrack_recounted',
+                'tau2_numTrack_recounted',
+                'tau1_charge',
+                'tau2_charge',
+                'tau1_JetBDTSigMedium',
+                'tau1_JetBDTSigTight',
+                'tau2_JetBDTSigMedium',
+                'tau2_JetBDTSigTight',], limit=100)

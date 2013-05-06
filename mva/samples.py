@@ -284,17 +284,22 @@ class Sample(object):
             systerm, variation = systematic[0].split('_')
         return systerm, variation
 
-    def get_weight_branches(self, systematic, no_cuts=False, weighted=True):
+    def get_weight_branches(self, systematic,
+                            no_cuts=False, only_cuts=False,
+                            weighted=True):
 
         if not weighted:
             return ["1.0"]
         systerm, variation = Sample.get_sys_term_variation(systematic)
-        weight_branches = Sample.WEIGHT_BRANCHES[:]
-        for term, variations in WEIGHT_SYSTEMATICS.items():
-            if term == systerm:
-                weight_branches += variations[variation]
-            else:
-                weight_branches += variations['NOMINAL']
+        if not only_cuts:
+            weight_branches = Sample.WEIGHT_BRANCHES[:]
+            for term, variations in WEIGHT_SYSTEMATICS.items():
+                if term == systerm:
+                    weight_branches += variations[variation]
+                else:
+                    weight_branches += variations['NOMINAL']
+        else:
+            weight_branches = []
         if not no_cuts and isinstance(self, Embedded_Ztautau):
             for term, variations in EMBEDDING_SYSTEMATICS.items():
                 if term == systerm:
@@ -321,17 +326,16 @@ class Sample(object):
                     term = ('%s_%s' % (type, variation),)
                     yield self.get_weight_branches(term), term
 
-    def cuts(self, category, region, systematic=None):
+    def cuts(self, category, region, systematic='NOMINAL'):
 
         sys_cut = Cut()
-        if systematic is not None:
+        if isinstance(self, Embedded_Ztautau):
             systerm, variation = Sample.get_sys_term_variation(systematic)
-            if isinstance(self, Embedded_Ztautau):
-                for term, variations in EMBEDDING_SYSTEMATICS.items():
-                    if term == systerm:
-                        sys_cut &= variations[variation]
-                    else:
-                        sys_cut &= variations['NOMINAL']
+            for term, variations in EMBEDDING_SYSTEMATICS.items():
+                if term == systerm:
+                    sys_cut &= variations[variation]
+                else:
+                    sys_cut &= variations['NOMINAL']
         return (category.get_cuts(self.year) &
                 REGIONS[region] & self._cuts & sys_cut)
 
@@ -374,7 +378,10 @@ class Data(Sample):
 
     def events(self, category, region, cuts=None):
 
-        return self.data.GetEntries(self.cuts(category, region) & cuts)
+        selection = self.cuts(category, region) & cuts
+        log.debug("requesting number of events from %s using cuts: %s" %
+                  (self.data.GetName(), selection))
+        return self.data.GetEntries(selection)
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True):
@@ -452,8 +459,7 @@ class Data(Sample):
         Sample.check_systematic(systematic)
         selection = self.cuts(category, region) & cuts
 
-        log.info("requesting table from %s %d" %
-                 (self.__class__.__name__, self.year))
+        log.info("requesting table from Data %d" % self.year)
         log.debug("using selection: %s" % selection)
 
         # read the table with a selection
@@ -948,6 +954,7 @@ class MC(Sample):
                 fields = fields + ['weight']
 
         selection = self.cuts(category, region, systematic) & cuts
+        table_selection = selection.where()
 
         if systematic == 'NOMINAL':
             log.info("requesting table from %s" %
@@ -961,6 +968,7 @@ class MC(Sample):
         weight_branches = self.get_weight_branches(systematic, no_cuts=True)
         if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
+
         recs = []
         for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
@@ -984,9 +992,6 @@ class MC(Sample):
                 elif systematic == ('ZFIT_DOWN',):
                     scale -= self.scale_error
             weight = scale * LUMI[self.year] * xs * kfact * effic / events
-
-            table_selection = selection.where()
-            log.debug(table_selection)
 
             # read the table with a selection
             rec = table.readWhere(table_selection, stop=len(table), **kwargs)
@@ -1027,15 +1032,18 @@ class MC(Sample):
             tree = sys_trees[systematic]
             events = sys_events[systematic]
             if raw:
-                total += tree.GetEntries(
-                        self.cuts(category, region) & cuts)
+                selection = self.cuts(category, region, systematic=systematic) & cuts
+                log.debug("requesing number of events from %s using cuts: %s"
+                          % (tree.GetName(), selection))
+                total += tree.GetEntries(selection)
             else:
                 weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
                 weighted_selection = Cut(' * '.join(map(str,
                          self.get_weight_branches(systematic, weighted=weighted))))
                 selection = Cut(str(weight)) * weighted_selection * (
-                        self.cuts(category, region) & cuts)
-                log.debug(selection)
+                        self.cuts(category, region, systematic=systematic) & cuts)
+                log.debug("requesing number of events from %s using cuts: %s"
+                          % (tree.GetName(), selection))
                 hist.Reset()
                 curr_total = tree.Draw('1', selection, hist=hist)
                 total += hist.Integral()

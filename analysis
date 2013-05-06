@@ -121,7 +121,7 @@ for category in categories:
                      'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
         else:
             VARS = VARIABLES
-        
+
         figs = draw_samples_array(
                 vars=VARS,
                 data=analysis.data,

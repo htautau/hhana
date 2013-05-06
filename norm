@@ -51,7 +51,7 @@ after_name = "bkg_after_fit"
 
 year = 2012
 param = 'TRACK'
-mass_regions = MassRegions(low_cutoff=70, low=100, high=180,
+mass_regions = MassRegions(low_cutoff=90, low=100, high=180,
                            high_sideband_in_control=False)
 
 # The year param below should eventually be given by the user from the command
@@ -90,21 +90,22 @@ for category in CATEGORIES[args.categories]:
     ztt.scale = scale_init
     log.info("initial Z scale before fit: %f" % scale_init)
 
-    # Draw the track distribution before the fit
-    draw_samples(hist_template, expr,
-            model=[qcd, others, ztt],
-            data=data,
-            category=category,
-            region='OS',
-            cuts=mass_regions.control_region,
-            name="Recounted Number of Tracks",
-            output_name=before_name,
-            show_ratio=True,
-            systematics=SYSTEMATICS.values(),
-            ravel=True,
-            integer=True,
-            xtick_formatter=track_formatter,
-            xtick_rotation=90)
+    if args.plot:
+        # Draw the track distribution before the fit
+        draw_samples(hist_template, expr,
+                model=[qcd, others, ztt],
+                data=data,
+                category=category,
+                region='OS',
+                cuts=mass_regions.control_region,
+                name="Recounted Number of Tracks",
+                output_name=before_name,
+                show_ratio=True,
+                systematics=SYSTEMATICS.values(),
+                ravel=True,
+                integer=True,
+                xtick_formatter=track_formatter,
+                xtick_rotation=90)
     
     # Request HistFactory Samples for each of the model components
     ztt_sample = ztt.get_histfactory_sample(
@@ -228,18 +229,19 @@ for category in CATEGORIES[args.categories]:
     qcd.scale = qcd_scale
     qcd.scale_error = qcd_scale_error
     
-    # Draw the track distribution after the fit
-    draw_samples(hist_template, expr,
-            model=[qcd, others, ztt],
-            data=data,
-            category=category,
-            region='OS',
-            cuts=mass_regions.control_region,
-            name="Recounted Number of Tracks",
-            output_name=after_name,
-            show_ratio=True,
-            systematics=SYSTEMATICS.values(),
-            ravel=True,
-            integer=True,
-            xtick_formatter=track_formatter,
-            xtick_rotation=90)
+    if args.plot:
+        # Draw the track distribution after the fit
+        draw_samples(hist_template, expr,
+                model=[qcd, others, ztt],
+                data=data,
+                category=category,
+                region='OS',
+                cuts=mass_regions.control_region,
+                name="Recounted Number of Tracks",
+                output_name=after_name,
+                show_ratio=True,
+                systematics=SYSTEMATICS.values(),
+                ravel=True,
+                integer=True,
+                xtick_formatter=track_formatter,
+                xtick_rotation=90)
