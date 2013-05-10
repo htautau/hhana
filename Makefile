@@ -39,8 +39,8 @@ $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root:
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-UP_*.root
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-DN_*.root
 	test -d $(HHNTUP_RUNNING)/embed_log || mkdir $(HHNTUP_RUNNING)/embed_log
-	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.e1* $(HHNTUP_RUNNING)/embed_log/
-	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.o1* $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.e[1-9]* $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.o[1-9]* $(HHNTUP_RUNNING)/embed_log/
 	-mv $(HHNTUP_RUNNING)/supervisor-HHProcessor-HHProcessor.embed12-HH-* $(HHNTUP_RUNNING)/embed_log/
 
 init-embed-12: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root

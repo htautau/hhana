@@ -1,6 +1,4 @@
 from rootpy.tree import Cut
-
-from .categories import BAD_MASS
 from . import log; log = log[__name__]
 
 
@@ -16,8 +14,6 @@ class MassRegions(object):
             high_sideband_in_control=False,
             mass_window_signal_region=False,
             low_cutoff=None):
-
-        assert low > BAD_MASS
 
         # control region is low and high mass sidebands
         self.__control_region = Cut('mass_mmc_tau1_tau2 < %d' % low)

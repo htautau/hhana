@@ -103,7 +103,7 @@ def fitting_parser(parser=None):
             help="do not use cached background scale factors "
             "and instead recalculate them",
             default=True)
-    parser.add_argument('--fit-param', choices=('bdt', 'track', 'track1d'),
+    parser.add_argument('--fit-param', choices=('track', 'mass'),
             default='track',
             help='parameters used to determine normalization of QCD and Z')
     parser.add_argument('--draw-fit', action='store_true', default=False,
@@ -193,6 +193,9 @@ def fit_parser():
             help='plot distributions before and after fit')
     parser.add_argument('--embedding', action='store_true', default=False,
             help='use embedded Z->tau+tau')
+    parser.add_argument('--param', choices=('track', 'mass'),
+            default='track',
+            help='parameters used to determine normalization of QCD and Z')
 
     return parser
 

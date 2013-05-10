@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+from rootpy.io import root_open
+
+f = root_open('ntuples/embed.root')
+t = f.higgstautauhh
+lines = open('tables/daniele2.txt', 'r').readlines()[1:]
+
+fmt = "%d   %d   %.3f   %.3f   %.3f   %g   %g   %.6f   %.6f   %.6f   %d   %d   %.1f"
+
+for line in lines:
+    tokens = line.split()
+    run = tokens[0]
+    event = tokens[1]
+
+    token_floats = map(float, tokens)
+    token_floats = token_floats[:3] + token_floats[4:]
+
+    print fmt % tuple(token_floats)
+    
+    rec = t.to_array([
+        'RunNumber',
+        'EventNumber',
+        'mc_weight',
+        'tau1_efficiency_scale_factor',
+        'tau2_efficiency_scale_factor',
+        'tau1_fakerate_scale_factor',
+        'tau2_fakerate_scale_factor',
+        'tau1_trigger_scale_factor',
+        'tau2_trigger_scale_factor',
+        'mass_mmc_tau1_tau2',
+        'tau1_numTrack_recounted',
+        'tau2_numTrack_recounted',
+        'MET'],
+        selection='EventNumber==%s && RunNumber==%s' % (
+            event, run))
+    if rec.shape[0] > 0:
+        print fmt % tuple(rec[0])
+    else:
+        print "MISSING: run %s event %s" % (run, event)
+    print

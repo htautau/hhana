@@ -210,6 +210,21 @@ class Category_Cuts_Preselection(Category):
         )
 
 
+class Category_Cuts_Preselection_DEta_Control(Category):
+
+    name = 'cut_preselection_deta_control'
+    label = r'$\tau_{had}\tau_{had}$: $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Cut-based Preselection'
+    common_cuts = (
+        LEAD_TAU_35 & SUBLEAD_TAU_25
+        #& MET <= no MET cut in cut-based preselection
+        & Cut('mass_mmc_tau1_tau2 > 0')
+        & Cut('0.8 < dR_tau1_tau2 < 2.8')
+        & TAU_DETA_CUT_CONTROL
+        & TAU_SAME_VERTEX
+        & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
+        )
+
+
 # MVA preselection categories
 
 class Category_Preselection(Category):
@@ -405,11 +420,20 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
 
 
 CATEGORIES = {
-    'cuts_preselection': [
+    'cuts_presel': [
         Category_Cuts_Preselection,
         ],
-    'preselection': [
+    'cuts_presel_id_controls': [
+        ],
+    'cuts_presel_deta_controls': [
+        Category_Cuts_Preselection_DEta_Control,
+        ],
+    'presel': [
         Category_Preselection,
+        ],
+    'presel_id_controls': [
+        ],
+    'presel_deta_controls': [
         ],
     'default': [
         Category_2J,

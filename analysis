@@ -85,7 +85,8 @@ for category in categories:
         category=category,
         systematics=args.systematics,
         use_embedding=args.embedding,
-        qcd_shape_region=args.qcd_shape_region)
+        qcd_shape_region=args.qcd_shape_region,
+        fit_param=args.fit_param)
     
     log.info("Cuts: %s" % analysis.data.cuts(category, target_region))
 
