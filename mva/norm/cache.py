@@ -59,14 +59,20 @@ def qcd_ztautau_norm(ztautau,
     is_embedded = isinstance(ztautau, samples.Embedded_Ztautau)
     param = param.upper()
 
-    qcd_scale, qcd_scale_error, \
-    ztautau_scale, ztautau_scale_error = get_scales(
-            ztautau.year, category, is_embedded, param, qcd.shape_region)
+    scales = get_scales(
+        ztautau.year, category, is_embedded, param, qcd.shape_region)
 
-    qcd.scale = qcd_scale
-    qcd.scale_error = qcd_scale_error
-    ztautau.scale = ztautau_scale
-    ztautau.scale_error = ztautau_scale_error
+    qcd.data_scale = scales['qcd_data_scale']
+    qcd.scale_error = scales['qcd_data_scale_error']
+
+    # assume that the MC order is Z, Others
+    qcd.mc_scales = [
+        scales['qcd_z_scale'],
+        scales['qcd_others_scale']
+        ]
+
+    ztautau.scale = scales['z_scale']
+    ztautau.scale_error = scales['z_scale_error']
 
 
 def get_scales(year, category, embedded, param, shape_region, verbose=True):
@@ -83,10 +89,8 @@ def get_scales(year, category, embedded, param, shape_region, verbose=True):
             log.info("scale factors were derived via fit using %s parameters" % param)
             log.info("   QCD data scale: %.3f +/- %.4f" % (
                 scales['qcd_data_scale'], scales['qcd_data_scale_error']))
-            log.info("    QCD ztt scale: %.3f +/- %.4f" % (
-                scales['qcd_z_scale'], scales['qcd_z_scale_error']))
-            log.info(" QCD others scale: %.3f" % (
-                scales['others_scale']))
+            log.info("    QCD ztt scale: %.3f" % scales['qcd_z_scale'])
+            log.info(" QCD others scale: %.3f" % scales['qcd_others_scale'])
             log.info("        ztt scale: %.3f +/- %.4f" % (
                 scales['z_scale'], scales['z_scale_error']))
 
