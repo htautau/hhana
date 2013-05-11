@@ -659,7 +659,7 @@ class MC(Sample):
         return l
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, weighted=True, systematics=True):
+                  cuts=None, weighted=True, systematics=True, scale=1.):
 
         if isinstance(expr, (list, tuple)):
             exprs = expr
@@ -681,7 +681,9 @@ class MC(Sample):
             nominal_tree = sys_trees['NOMINAL']
             nominal_events = sys_events['NOMINAL']
 
-            nominal_weight = (LUMI[self.year] * self.scale *
+            nominal_weight = (
+                    LUMI[self.year] *
+                    scale * self.scale *
                     xs * kfact * effic / nominal_events)
 
             nominal_weighted_selection = (
@@ -722,7 +724,9 @@ class MC(Sample):
 
                     sys_hist.Reset()
 
-                    sys_weight = (LUMI[self.year] * self.scale *
+                    sys_weight = (
+                            LUMI[self.year] *
+                            scale * self.scale *
                             xs * kfact * effic / sys_event)
 
                     sys_weighted_selection = (
@@ -798,7 +802,7 @@ class MC(Sample):
                    cuts=None, weighted=True,
                    field_scale=None,
                    weight_hist=None, weight_clf=None,
-                   scores=None, systematics=True):
+                   scores=None, systematics=True, scale=1.):
 
         do_systematics = self.systematics and systematics
 
@@ -825,7 +829,7 @@ class MC(Sample):
                 arr = rec[field]
             if scores is not None:
                 arr = np.c_[arr, scores['NOMINAL'][0]]
-            hist.fill_array(arr, weights=weights)
+            hist.fill_array(arr, weights=weights * scale)
             if do_systematics:
                 if not hasattr(hist, 'systematics'):
                     hist.systematics = {}
@@ -866,7 +870,7 @@ class MC(Sample):
                     arr = rec[field]
                 if scores is not None:
                     arr = np.c_[arr, scores[systematic][0]]
-                sys_hist.fill_array(arr, weights=weights)
+                sys_hist.fill_array(arr, weights=weights * scale)
                 if systematic not in sys_hists[field]:
                     sys_hists[field][systematic] = sys_hist
                 else:
@@ -875,7 +879,8 @@ class MC(Sample):
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=True,
-               transform=False):
+               transform=False,
+               scale=1.):
 
         # TODO check that weight systematics are included
 
@@ -899,6 +904,8 @@ class MC(Sample):
                     systematic=systematic,
                     transform=transform)
 
+            weights *= scale
+
             if systematic not in scores_dict:
                 scores_dict[systematic] = (scores, weights)
             else:
@@ -908,10 +915,10 @@ class MC(Sample):
                         np.concatenate((prev_weights, weights)))
         return scores_dict
 
-    def trees(self, category, region, cuts=None, systematic='NOMINAL'):
-        """
-        This is where all the magic happens...
-        """
+    def trees(self, category, region,
+              cuts=None, systematic='NOMINAL',
+              scale=1.):
+
         TEMPFILE.cd()
         selection = self.cuts(category, region) & cuts
         weight_branches = self.get_weight_branches(systematic)
@@ -933,13 +940,17 @@ class MC(Sample):
                     tree = sys_trees['NOMINAL']
                     events = sys_events['NOMINAL']
 
-            scale = self.scale
+            actual_scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
-                    scale = self.scale + self.scale_error
+                    actual_scale = self.scale + self.scale_error
                 elif systematic == ('ZFIT_DOWN',):
-                    scale = self.scale - self.scale_error
-            weight = scale * LUMI[self.year] * xs * kfact * effic / events
+                    actual_scale = self.scale - self.scale_error
+
+            weight = (
+                    scale * actual_scale *
+                    LUMI[self.year] *
+                    xs * kfact * effic / events)
 
             selected_tree = asrootpy(tree.CopyTree(selection))
             log.debug("{0} {1}".format(selected_tree.GetEntries(), weight))
@@ -958,6 +969,7 @@ class MC(Sample):
                 cuts=None,
                 include_weight=True,
                 systematic='NOMINAL',
+                scale=1.,
                 **kwargs):
 
         if include_weight and fields is not None:
@@ -996,13 +1008,17 @@ class MC(Sample):
                     table = sys_tables['NOMINAL']
                     events = sys_events['NOMINAL']
 
-            scale = self.scale
+            actual_scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
-                    scale += self.scale_error
+                    actual_scale += self.scale_error
                 elif systematic == ('ZFIT_DOWN',):
-                    scale -= self.scale_error
-            weight = scale * LUMI[self.year] * xs * kfact * effic / events
+                    actual_scale -= self.scale_error
+
+            weight = (
+                    scale * actual_scale *
+                    LUMI[self.year] *
+                    xs * kfact * effic / events)
 
             # read the table with a selection
             rec = table.readWhere(table_selection, stop=len(table), **kwargs)
@@ -1035,6 +1051,7 @@ class MC(Sample):
                cuts=None,
                systematic='NOMINAL',
                weighted=True,
+               scale=1.,
                raw=False):
 
         total = 0.
@@ -1058,7 +1075,7 @@ class MC(Sample):
                 hist.Reset()
                 curr_total = tree.Draw('1', selection, hist=hist)
                 total += hist.Integral()
-        return total
+        return total * scale
 
 
 class Ztautau(Background):
@@ -1264,6 +1281,8 @@ class QCD(Sample, Background):
 
     def __init__(self, data, mc,
                  scale=1.,
+                 data_scale=1.,
+                 mc_scales=None,
                  shape_region='SS',
                  cuts=None,
                  color='#59d454'):
@@ -1275,6 +1294,14 @@ class QCD(Sample, Background):
         self.name = 'QCD'
         self.label = 'QCD Multi-jet (%s)' % shape_region.replace('_', ' ')
         self.scale = 1.
+        self.data_scale = data_scale
+        if mc_scales is not None:
+            if len(mc_scales) != len(mc):
+                raise ValueError("length of MC scales must match number of MC")
+            self.mc_scales = mc_scales
+        else:
+            # default scales to 1.
+            self.mc_scales = [1. for m in self.mc]
         self.scale_error = 0.
         self.shape_region = shape_region
         self.systematics = mc[0].systematics
@@ -1285,27 +1312,33 @@ class QCD(Sample, Background):
 
         data = self.data.events(category, self.shape_region, cuts=cuts)
         mc_subtract = 0.
-        for mc in self.mc:
-            mc_subtract += mc.events(category, self.shape_region, cuts=cuts,
-                systematic=systematic, raw=raw)
+        for mc_scale, mc in zip(self.mc_scales, self.mc):
+            mc_subtract += mc.events(
+                category, self.shape_region,
+                cuts=cuts,
+                systematic=systematic,
+                raw=raw,
+                scale=mc_scale)
 
         log.info("QCD: data %f  subtracted MC %f" % (
             data, mc_subtract))
 
         if raw:
-            return data + mc_subtract
-        return (data - mc_subtract) * self.scale
+            return self.data_scale * data + mc_subtract
+        return (self.data_scale * data - mc_subtract) * self.scale
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True):
 
         MC_bkg = hist.Clone()
-        for mc in self.mc:
+        MC_bkg.Reset()
+        for mc_scale, mc in zip(self.mc_scales, self.mc):
             mc.draw_into(MC_bkg, expr, category, self.shape_region,
                          cuts=cuts, weighted=weighted,
-                         systematics=systematics)
+                         systematics=systematics, scale=mc_scale)
 
         data_hist = hist.Clone()
+        data_hist.Reset()
         self.data.draw_into(data_hist, expr,
                             category, self.shape_region,
                             cuts=cuts, weighted=weighted)
@@ -1314,18 +1347,18 @@ class QCD(Sample, Background):
             data_hist.Integral(),
             MC_bkg.Integral()))
 
-        hist += (data_hist - MC_bkg) * self.scale
+        hist += (data_hist * self.data_scale - MC_bkg) * self.scale
 
         if hasattr(MC_bkg, 'systematics'):
             if not hasattr(hist, 'systematics'):
                 hist.systematics = {}
             for sys_term, sys_hist in MC_bkg.systematics.items():
                 scale = self.scale
-                if sys_term == ('FIT_UP',):
+                if sys_term == ('QCDFIT_UP',):
                     scale = self.scale + self.scale_error
-                elif sys_term == ('FIT_DOWN',):
+                elif sys_term == ('QCDFIT_DOWN',):
                     scale = self.scale - self.scale_error
-                qcd_hist = (data_hist - sys_hist) * scale
+                qcd_hist = (data_hist * self.data_scale - sys_hist) * scale
                 if sys_term not in hist.systematics:
                     hist.systematics[sys_term] = qcd_hist
                 else:
@@ -1344,12 +1377,13 @@ class QCD(Sample, Background):
         field_hist_MC_bkg = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
 
-        for mc in self.mc:
+        for mc_scale, mc in zip(self.mc_scales, self.mc):
             mc.draw_array(field_hist_MC_bkg, category, self.shape_region,
                          cuts=cuts, weighted=weighted,
                          field_scale=field_scale,
                          weight_hist=weight_hist, weight_clf=weight_clf,
-                         scores=scores, systematics=systematics)
+                         scores=scores, systematics=systematics,
+                         scale=mc_scale)
 
         field_hist_data = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
@@ -1364,7 +1398,7 @@ class QCD(Sample, Background):
         for expr, h in field_hist.items():
             mc_h = field_hist_MC_bkg[expr]
             d_h = field_hist_data[expr]
-            h += (d_h - mc_h) * self.scale
+            h += (d_h * self.data_scale - mc_h) * self.scale
             h.SetTitle(self.label)
             if not do_systematics:
                 continue
@@ -1373,11 +1407,11 @@ class QCD(Sample, Background):
                     h.systematics = {}
                 for sys_term, sys_hist in mc_h.systematics.items():
                     scale = self.scale
-                    if sys_term == ('FIT_UP',):
+                    if sys_term == ('QCDFIT_UP',):
                         scale = self.scale + self.scale_error
-                    elif sys_term == ('FIT_DOWN',):
+                    elif sys_term == ('QCDFIT_DOWN',):
                         scale = self.scale - self.scale_error
-                    qcd_hist = (d_h - sys_hist) * scale
+                    qcd_hist = (d_h * self.data_scale - sys_hist) * scale
                     if sys_term not in h.systematics:
                         h.systematics[sys_term] = qcd_hist
                     else:
@@ -1401,7 +1435,7 @@ class QCD(Sample, Background):
 
         scores_dict = {}
         # subtract SS MC
-        for mc in self.mc:
+        for mc_scale, mc in zip(self.mc_scales, self.mc):
             mc.scores(
                     clf,
                     category,
@@ -1409,7 +1443,8 @@ class QCD(Sample, Background):
                     cuts=cuts,
                     scores_dict=scores_dict,
                     systematics=systematics,
-                    transform=transform)
+                    transform=transform,
+                    scale=mc_scale)
 
         for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]
@@ -1438,12 +1473,13 @@ class QCD(Sample, Background):
                         region=self.shape_region) & cuts))
         data_tree.userdata.weight_branches = []
         trees = [data_tree]
-        for mc in self.mc:
+        for mc_scale, mc in zip(self.mc_scales, self.mc):
             _trees = mc.trees(
                     category,
                     region=self.shape_region,
                     cuts=cuts,
-                    systematic=systematic)
+                    systematic=systematic,
+                    scale=mc_scale)
             for tree in _trees:
                 tree.Scale(-1)
             trees += _trees
@@ -1479,7 +1515,7 @@ class QCD(Sample, Background):
                 **kwargs)
         arrays = data_records
 
-        for mc in self.mc:
+        for mc_scale, mc in zip(self.mc_scales, self.mc):
             _arrays = mc.records(
                     category=category,
                     region=self.shape_region,
@@ -1487,6 +1523,7 @@ class QCD(Sample, Background):
                     cuts=cuts,
                     include_weight=include_weight,
                     systematic=systematic,
+                    scale=mc_scale,
                     **kwargs)
             # FIX: weight may not be present if include_weight=False
             for array in _arrays:
