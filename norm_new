@@ -1,0 +1,274 @@
+#!/usr/bin/env python
+
+"""
+This performs the so-called "track fit" to determine the QCD and Z normalization
+in each of the categories. These normalizations are cached in cache/norms.cache
+and later used by the rest of the analysis framework.
+
+For a list of all options this script accepts please see::
+
+    ./norm --help
+"""
+
+from mva.cmd import fit_parser
+
+parser = fit_parser()
+args = parser.parse_args()
+
+import sys
+
+from rootpy.io import root_open
+from rootpy.plotting import Hist2D, Hist
+
+from mva.analysis import Analysis
+from mva.stats import histfactory
+from mva.stats.fit import fit
+from mva.massregions import MassRegions
+from mva.norm import cache, log
+from mva.plotting import draw_samples
+from mva.systematics import SYSTEMATICS
+from mva.categories import CATEGORIES
+from matplotlib.ticker import FuncFormatter
+
+import ROOT
+from ROOT import RooMinimizer
+
+from externaltools import TrackFit
+
+# fit the 2D recounted number of track distribution
+expr = 'tau1_numTrack_recounted:tau2_numTrack_recounted'
+# define the 2D boundaries and number of bins
+min_edge, max_edge = .5, 5.5
+bins = int(max_edge - min_edge)
+integer = True
+xaxis_label = "Recounted Number of Tracks"
+
+# define the histogram template
+hist_template = Hist2D(bins, min_edge, max_edge,
+                       bins, min_edge, max_edge, type='D')
+
+def xtick_track_func(x, pos):
+    # used by matplotlib to label the x axis with the (#track1, #track2) tuples 
+    ntrack1 = int((x - 1) / bins) + 1
+    ntrack2 = (x - 1) % bins + 1
+    return "(%d,%d)" % (ntrack1, ntrack2)
+
+xtick_formatter = FuncFormatter(xtick_track_func)
+xtick_rotation = 90
+param = 'TRACK'
+
+mass_regions = MassRegions(low_cutoff=60, low=100, high=120,
+                           high_sideband_in_control=True)
+control_region = None
+control_region = mass_regions.control_region
+
+fit_region = 'SS'
+fit_region_alias = 'SS_TRK'
+target_region = 'nOS'
+
+virtual_region = 'SS_TRK'
+model_region = 'OS'
+
+before_name = "bkg_before_%sfit" % param
+after_name = "bkg_after_%sfit" % param
+
+year = 2012
+
+analysis = Analysis(
+    year=year,
+    systematics=True,
+    use_embedding=args.embedding)
+
+if args.embedding:
+    before_name += '_embedded'
+    after_name += '_embedded'
+
+ztt = analysis.ztautau
+data = analysis.data
+others = analysis.others
+qcd = analysis.qcd
+qcd.label = 'QCD Multi-jet'
+higgs = analysis.higgs_125
+
+systematics = False
+
+# loop over category definitions
+for cat_def in args.categories:
+    # loop over the categories
+    for category in CATEGORIES[cat_def]:
+        
+        log.info(data.cuts(category, model_region))
+        
+        # Initialize Z scale to (data - QCD - others) / Z
+        # so we get good convergence for ALPGEN or embedded Z
+        ztt.scale = 1.
+        ztt.scale_error = 0.
+        qcd.shape_region = fit_region
+        qcd.scale = 1.
+        qcd.scale_error = 0.
+
+        data_events = data.events(category, model_region, cuts=control_region)
+        qcd_events = qcd.events(category, model_region, cuts=control_region)
+        oth_events = others.events(category, model_region, cuts=control_region)
+        z_events = ztt.events(category, model_region, cuts=control_region)
+        scale_init = (data_events - qcd_events - oth_events) / float(z_events)
+        ztt.scale = scale_init
+        log.info("initial Z scale before fit: %f" % scale_init)
+
+        if args.plot:
+            # Draw the distribution before the fit
+            draw_samples(hist_template, expr,
+                    model=[qcd, others, ztt],
+                    data=data,
+                    category=category,
+                    region=model_region,
+                    cuts=control_region,
+                    name=xaxis_label,
+                    output_name=before_name,
+                    show_ratio=True,
+                    systematics=SYSTEMATICS.values(),
+                    ravel=hist_template.GetDimension() > 1,
+                    integer=integer,
+                    xtick_formatter=xtick_formatter,
+                    xtick_rotation=xtick_rotation)
+        
+        data_hist = hist_template.Clone()
+        data.draw_into(data_hist, expr, category, model_region,
+                cuts=control_region, systematics=False)
+        
+        tau_hist = hist_template.Clone() 
+        ztt.draw_into(tau_hist, expr, category, model_region,
+                cuts=control_region, systematics=False)
+        
+        others_hist = hist_template.Clone()
+        others.draw_into(others_hist, expr, category, model_region,
+                cuts=control_region, systematics=False)
+        
+        qcd_data_hist = hist_template.Clone()
+        data.draw_into(qcd_data_hist, expr, category, fit_region,
+                cuts=control_region, systematics=False)
+        
+        qcd_tau_hist = hist_template.Clone() 
+        ztt.draw_into(qcd_tau_hist, expr, category, fit_region,
+                cuts=control_region, systematics=False)
+        
+        qcd_others_hist = hist_template.Clone()
+        others.draw_into(qcd_others_hist, expr, category, fit_region,
+                cuts=control_region, systematics=False)
+
+        higgs_hist = hist_template.Clone()
+        higgs.draw_into(higgs_hist, expr, category, model_region,
+                cuts=control_region, systematics=False)
+
+        fitter = ROOT.TrackFit.TrackFitter()
+
+        # QCD = C x [A x Data - B x Z - O]
+
+        C = 2
+        A = 1.
+        B = 1.
+
+        while abs(C - 1) > 0.001:
+
+            qcd_hist = qcd_data_hist * A - qcd_tau_hist * B - qcd_others_hist
+            tau_hist_float = tau_hist * B
+
+            fit_result = fitter.fit(
+                    data_hist, tau_hist_float, qcd_hist, others_hist, higgs_hist,
+                    qcd_hist, qcd_hist, tau_hist_float, tau_hist_float)
+            
+            C = fit_result.sfQCD
+            B *= fit_result.sfZ
+            A *= C
+        
+        print A, B, C
+
+        continue
+        
+        """
+        with root_open('sample_templates.root', 'recreate'):
+            data_hist.Write('data')
+            tau_hist.Write('ztautau')
+            qcd_hist.Write('qcd')
+            others_hist.Write('others')
+            higgs_hist.Write('higgs')
+        """
+        
+        z_scale = fit_result.sfZ * scale_init
+        z_scale_error = 0.
+
+        qcd_scale = fit_result.sfQCD * qcd_scale_init
+        qcd_scale_error = 0.
+
+        # Cache the fitted normalization scale factors
+        cache.set_scales(
+                year,
+                category.name, args.embedding, param,
+                fit_region_alias,
+                qcd_scale, qcd_scale_error,
+                z_scale, z_scale_error)
+        
+        ztt.scale = z_scale
+        ztt.scale_error = z_scale_error
+        
+        # nOS QCD model
+        # Correct the QCD scale to account for difference between fitting model
+        # and target model (SS vs !OS)
+        # The final OS model includes the requirement that the number of recounted
+        # tracks equals 1 or 3 for both taus, so we need to scale the QCD to what would
+        # be expected after this requirement
+        # Note: All regions are defined in mva/regions.py
+        qcd.shape_region = 'SS_TRK'
+        qcd_events = qcd.events(category, model_region)
+        qcd_events_ss = qcd.events(category, model_region, cuts=control_region)
+        qcd.shape_region = 'nOS'
+        qcd_events_target = qcd.events(category, model_region)
+        qcd_scale_corrected = qcd_events / qcd_events_target
+        cache.set_scales(
+                year,
+                category.name, args.embedding, param,
+                'nOS',
+                qcd_scale * qcd_scale_corrected,
+                qcd_scale_error * qcd_scale_corrected,
+                z_scale, z_scale_error)
+
+        qcd.scale = qcd_scale * qcd_scale_corrected
+        qcd.scale_error = qcd_scale_error * qcd_scale_corrected
+        
+        qcd_events_nos = qcd.events(category, 'OS_TRK', cuts=control_region)
+
+        log.info("QCD SS_TRK events in mass control: %f" % (qcd_events_ss * qcd_scale))
+        log.info("QCD nOS events in mass control: %f" % qcd_events_nos)
+        
+        data_events = data.events(category, 'OS_TRK', cuts=control_region)
+        ztt_events = ztt.events(category, 'OS_TRK', cuts=control_region)
+        oth_events = others.events(category, 'OS_TRK', cuts=control_region)
+        
+        model_events_nos = ztt_events + oth_events + qcd_events_nos
+        model_events_ss = ztt_events + oth_events + qcd_events_ss * qcd_scale
+
+        log.info("data / model (SS_TRK QCD) in the mass control: %f" %
+                 (data_events / model_events_ss))
+        log.info("data / model (nOS QCD) in the mass control: %f" %
+                 (data_events / model_events_nos))
+        
+        qcd.scale = qcd_scale
+        qcd.scale_error = qcd_scale_error
+        qcd.shape_region = fit_region
+        
+        if args.plot:
+            # Draw the distribution after the fit
+            draw_samples(hist_template, expr,
+                    model=[qcd, others, ztt],
+                    data=data,
+                    category=category,
+                    region=model_region,
+                    cuts=control_region,
+                    name=xaxis_label,
+                    output_name=after_name,
+                    show_ratio=True,
+                    systematics=SYSTEMATICS.values(),
+                    ravel=hist_template.GetDimension() > 1,
+                    integer=integer,
+                    xtick_formatter=xtick_formatter,
+                    xtick_rotation=xtick_rotation)
