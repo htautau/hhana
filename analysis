@@ -70,6 +70,12 @@ categories = CATEGORIES[args.categories]
 category_names = args.category_names
 target_region = args.target_region
 
+analysis = Analysis(
+    year=year,
+    systematics=args.systematics,
+    use_embedding=args.embedding,
+    qcd_shape_region=args.qcd_shape_region)
+
 for category in categories:
     
     if category_names is not None and category.name not in category_names:
@@ -79,16 +85,10 @@ for category in categories:
     log.info("=" * 40)
     log.info("%s category" % category.name)
     log.info("=" * 40)
-    
-    analysis = Analysis(
-        year=year,
-        category=category,
-        systematics=args.systematics,
-        use_embedding=args.embedding,
-        qcd_shape_region=args.qcd_shape_region,
-        fit_param=args.fit_param)
-    
     log.info("Cuts: %s" % analysis.data.cuts(category, target_region))
+
+    # apply normalization
+    analysis.normalize(category, fit_param=args.fit_param)
 
     if 'yields' in args.actions:
 

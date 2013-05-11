@@ -4,14 +4,12 @@ from .norm import cache as norm_cache
 
 class Analysis(object):
 
-    def __init__(self, year, category,
+    def __init__(self, year,
                  systematics=False,
                  use_embedding=False,
-                 fit_param='TRACK',
                  qcd_shape_region='SS_TRK'):
 
         self.year = year
-        self.category = category
         self.systematics = systematics
         self.use_embedding = use_embedding
 
@@ -46,24 +44,6 @@ class Analysis(object):
         self.qcd.scale = 1.
         self.ztautau.scale = 1.
 
-        self.fit_param = fit_param
-        norm_cache.qcd_ztautau_norm(
-            ztautau=self.ztautau,
-            qcd=self.qcd,
-            category=category,
-            param=fit_param,
-            shape_region=qcd_shape_region)
-
-        """
-        # override with Daniele's values for now
-        data_events = self.data.events(category, 'OS_TRK')
-        qcd_events = self.qcd.events(category, 'OS_TRK')
-        z_events = self.ztautau.events(category, 'OS_TRK')
-
-        self.ztautau.scale *= 0.346914 / (z_events / data_events)
-        self.qcd.scale *= 0.6279539 / (qcd_events / data_events)
-        """
-
         self.backgrounds = [
             self.qcd,
             self.others,
@@ -77,3 +57,21 @@ class Analysis(object):
                 mode=mode,
                 mass=125,
                 systematics=systematics))
+
+    def normalize(self, category, fit_param='TRACK'):
+
+        norm_cache.qcd_ztautau_norm(
+            ztautau=self.ztautau,
+            qcd=self.qcd,
+            category=category,
+            param=fit_param)
+
+        """
+        # override with Daniele's values for now
+        data_events = self.data.events(category, 'OS_TRK')
+        qcd_events = self.qcd.events(category, 'OS_TRK')
+        z_events = self.ztautau.events(category, 'OS_TRK')
+
+        self.ztautau.scale *= 0.346914 / (z_events / data_events)
+        self.qcd.scale *= 0.6279539 / (qcd_events / data_events)
+        """

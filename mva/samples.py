@@ -396,7 +396,7 @@ class Data(Sample):
                    cuts=None, weighted=True,
                    field_scale=None,
                    weight_hist=None, weight_clf=None,
-                   scores=None):
+                   scores=None, systematics=True):
 
         # TODO: only get unblinded vars
         rec = self.merged_records(category, region,
@@ -798,7 +798,9 @@ class MC(Sample):
                    cuts=None, weighted=True,
                    field_scale=None,
                    weight_hist=None, weight_clf=None,
-                   scores=None):
+                   scores=None, systematics=True):
+
+        do_systematics = self.systematics and systematics
 
         rec = self.merged_records(category, region,
                 fields=field_hist.keys(), cuts=cuts,
@@ -813,7 +815,9 @@ class MC(Sample):
         else:
             weights = rec['weight']
 
-        sys_hists = {}
+        if do_systematics:
+            sys_hists = {}
+
         for field, hist in field_hist.items():
             if field_scale is not None and field in field_scale:
                 arr = rec[field] * field_scale[field]
@@ -822,11 +826,12 @@ class MC(Sample):
             if scores is not None:
                 arr = np.c_[arr, scores['NOMINAL'][0]]
             hist.fill_array(arr, weights=weights)
-            if not hasattr(hist, 'systematics'):
-                hist.systematics = {}
-            sys_hists[field] = hist.systematics
+            if do_systematics:
+                if not hasattr(hist, 'systematics'):
+                    hist.systematics = {}
+                sys_hists[field] = hist.systematics
 
-        if not self.systematics:
+        if not do_systematics:
             return
 
         for systematic in iter_systematics(False):
@@ -1332,7 +1337,9 @@ class QCD(Sample, Background):
                   cuts=None, weighted=True,
                   field_scale=None,
                   weight_hist=None, weight_clf=None,
-                  scores=None):
+                  scores=None, systematics=True):
+
+        do_systematics = self.systematics and systematics
 
         field_hist_MC_bkg = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
@@ -1342,7 +1349,7 @@ class QCD(Sample, Background):
                          cuts=cuts, weighted=weighted,
                          field_scale=field_scale,
                          weight_hist=weight_hist, weight_clf=weight_clf,
-                         scores=scores)
+                         scores=scores, systematics=systematics)
 
         field_hist_data = dict([(expr, hist.Clone())
             for expr, hist in field_hist.items()])
@@ -1352,12 +1359,15 @@ class QCD(Sample, Background):
                             cuts=cuts, weighted=weighted,
                             field_scale=field_scale,
                             weight_hist=weight_hist, weight_clf=weight_clf,
-                            scores=scores)
+                            scores=scores, systematics=systematics)
 
         for expr, h in field_hist.items():
             mc_h = field_hist_MC_bkg[expr]
             d_h = field_hist_data[expr]
             h += (d_h - mc_h) * self.scale
+            h.SetTitle(self.label)
+            if not do_systematics:
+                continue
             if hasattr(mc_h, 'systematics'):
                 if not hasattr(h, 'systematics'):
                     h.systematics = {}
@@ -1372,7 +1382,6 @@ class QCD(Sample, Background):
                         h.systematics[sys_term] = qcd_hist
                     else:
                         h.systematics[sys_term] += qcd_hist
-            h.SetTitle(self.label)
 
     def scores(self, clf, category, region,
                cuts=None, systematics=True,

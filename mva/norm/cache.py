@@ -48,8 +48,7 @@ def write_scales():
 def qcd_ztautau_norm(ztautau,
                      qcd,
                      category,
-                     param,
-                     shape_region):
+                     param):
 
     # if this is a control region then use the name of the parent category
     if category.is_control:
@@ -62,7 +61,7 @@ def qcd_ztautau_norm(ztautau,
 
     qcd_scale, qcd_scale_error, \
     ztautau_scale, ztautau_scale_error = get_scales(
-            ztautau.year, category, is_embedded, param, shape_region)
+            ztautau.year, category, is_embedded, param, qcd.shape_region)
 
     qcd.scale = qcd_scale
     qcd.scale_error = qcd_scale_error
@@ -89,8 +88,9 @@ def get_scales(year, category, embedded, param, shape_region, verbose=True):
             log.info("    ztt scale: %.3f +/- %.4f" % (
                     ztautau_scale, ztautau_scale_error))
         return qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error
-    else:
-        return None
+    raise ValueError(
+        "No scale factors for %d, %s, embedding: %s, param: %s, shape: %s" %
+        (year, category, embedded, param, shape_region))
 
 
 def has_category(year, category, embedded, param, shape_region):

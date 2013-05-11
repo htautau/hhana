@@ -20,7 +20,7 @@ import sys
 from rootpy.io import root_open
 from rootpy.plotting import Hist2D, Hist
 
-from mva.samples import Data, MC_Ztautau, Embedded_Ztautau, Others, QCD, Higgs
+from mva.analysis import Analysis
 from mva.stats import histfactory
 from mva.stats.fit import fit
 from mva.massregions import MassRegions
@@ -106,21 +106,22 @@ after_name = "bkg_after_%sfit" % param
 
 year = 2012
 
-# The year param below should eventually be given by the user from the command
-# line (defaulting to 2012) but currently is hard coded as 2012
-data = Data(2012)
+analysis = Analysis(
+    year=year,
+    systematics=True,
+    use_embedding=args.embedding)
+
 if args.embedding:
-    # Use embedded Z->tau+tau
-    ztt = Embedded_Ztautau(2012, systematics=True)
     before_name += '_embedded'
     after_name += '_embedded'
-else:
-    # Use ALPGEN Z->tau+tau
-    ztt = MC_Ztautau(2012, systematics=True)
-others = Others(2012, systematics=True)
-qcd = QCD(data, mc=(ztt, others))
+
+ztt = analysis.ztautau
+data = analysis.data
+others = analysis.others
+qcd = analysis.qcd
 qcd.label = 'QCD Multi-jet'
-higgs = Higgs(year=2012, mass=125, systematics=True)
+higgs = analysis.higgs_125
+
 systematics = False
 
 # loop over category definitions
