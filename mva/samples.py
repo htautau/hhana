@@ -136,7 +136,8 @@ class Sample(object):
             expr = expr_or_clf
             hist = hist_template.Clone()
             hist.Reset()
-            self.draw_into(hist, expr, category, region, cuts)
+            self.draw_into(hist, expr, category, region, cuts,
+                    systematics=systematics)
             if ndim > 1:
                 if do_systematics:
                     syst = hist.systematics
@@ -340,21 +341,24 @@ class Sample(object):
                 REGIONS[region] & self._cuts & sys_cut)
 
     def draw(self, expr, category, region, bins, min, max,
-             cuts=None, weighted=True):
+             cuts=None, weighted=True, systematics=True):
 
         hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
         self.draw_into(hist, expr, category, region,
-                       cuts=cuts, weighted=weighted)
+                       cuts=cuts, weighted=weighted,
+                       systematics=systematics)
         return hist
 
     def draw2d(self, expr, category, region,
                xbins, xmin, xmax,
                ybins, ymin, ymax,
-               cuts=None):
+               cuts=None,
+               systematics=True):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
                 title=self.label, **self.hist_decor)
-        self.draw_into(hist, expr, category, region, cuts=cuts)
+        self.draw_into(hist, expr, category, region, cuts=cuts,
+                systematics=systematics)
         return hist
 
 
@@ -384,7 +388,7 @@ class Data(Sample):
         return self.data.GetEntries(selection)
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, weighted=True):
+                  cuts=None, weighted=True, systematics=True):
 
         self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
 
@@ -655,17 +659,18 @@ class MC(Sample):
         return l
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, weighted=True):
+                  cuts=None, weighted=True, systematics=True):
 
         if isinstance(expr, (list, tuple)):
             exprs = expr
         else:
             exprs = (expr,)
 
-        if hasattr(hist, 'systematics'):
-            sys_hists = hist.systematics
-        else:
-            sys_hists = {}
+        if self.systematics and systematics:
+            if hasattr(hist, 'systematics'):
+                sys_hists = hist.systematics
+            else:
+                sys_hists = {}
 
         selection = self.cuts(category, region) & cuts
 
@@ -698,7 +703,7 @@ class MC(Sample):
 
             hist += current_hist
 
-            if not self.systematics:
+            if not self.systematics or not systematics:
                 continue
 
             # iterate over systematic variation trees
@@ -785,8 +790,9 @@ class MC(Sample):
                 else:
                     sys_hists[_term] += current_hist.Clone()
 
-        # set the systematics
-        hist.systematics = sys_hists
+        if self.systematics and systematics:
+            # set the systematics
+            hist.systematics = sys_hists
 
     def draw_array(self, field_hist, category, region,
                    cuts=None, weighted=True,
@@ -1272,30 +1278,36 @@ class QCD(Sample, Background):
                systematic='NOMINAL',
                raw=False):
 
-        total = self.data.events(category, self.shape_region, cuts=cuts)
+        data = self.data.events(category, self.shape_region, cuts=cuts)
+        mc_subtract = 0.
         for mc in self.mc:
-            if raw:
-                total += mc.events(category, self.shape_region, cuts=cuts,
-                        systematic=systematic, raw=raw)
-            else:
-                total -= mc.events(category, self.shape_region, cuts=cuts,
-                        systematic=systematic)
+            mc_subtract += mc.events(category, self.shape_region, cuts=cuts,
+                systematic=systematic, raw=raw)
+
+        log.info("QCD: data %f  subtracted MC %f" % (
+            data, mc_subtract))
+
         if raw:
-            return total
-        return total * self.scale
+            return data + mc_subtract
+        return (data - mc_subtract) * self.scale
 
     def draw_into(self, hist, expr, category, region,
-                  cuts=None, weighted=True):
+                  cuts=None, weighted=True, systematics=True):
 
         MC_bkg = hist.Clone()
         for mc in self.mc:
             mc.draw_into(MC_bkg, expr, category, self.shape_region,
-                         cuts=cuts, weighted=weighted)
+                         cuts=cuts, weighted=weighted,
+                         systematics=systematics)
 
         data_hist = hist.Clone()
         self.data.draw_into(data_hist, expr,
                             category, self.shape_region,
                             cuts=cuts, weighted=weighted)
+
+        log.info("QCD: data %f  subtracted MC %f" % (
+            data_hist.Integral(),
+            MC_bkg.Integral()))
 
         hist += (data_hist - MC_bkg) * self.scale
 

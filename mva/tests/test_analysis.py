@@ -3,7 +3,7 @@ from mva.analysis import Analysis
 from mva.categories import Category_VBF, Category_Boosted, Category_Preselection
 
 
-a = Analysis(2012, Category_VBF, systematics=True)
+a = Analysis(2012, Category_VBF, systematics=True, use_embedding=True)
 
 
 def test_cache():

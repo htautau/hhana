@@ -186,11 +186,12 @@ def plotting_parser(parser=None):
 def fit_parser():
 
     parser = base_parser()
-    parser.add_argument('categories', nargs='?', choices=CATEGORIES.keys(),
-            default='harmonize',
+    parser.add_argument('categories', nargs='+', choices=CATEGORIES.keys(),
             help='category definitions')
     parser.add_argument('--plot', action='store_true', default=False,
             help='plot distributions before and after fit')
+    parser.add_argument('--roofit', action='store_true', default=False,
+            help='use RooFit instead of TrackFit')
     parser.add_argument('--embedding', action='store_true', default=False,
             help='use embedded Z->tau+tau')
     parser.add_argument('--param', choices=('track', 'mass'),
