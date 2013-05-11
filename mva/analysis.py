@@ -15,30 +15,29 @@ class Analysis(object):
 
         if use_embedding:
             self.ztautau = samples.Embedded_Ztautau(
-                    year=year,
-                    systematics=systematics)
+                year=year,
+                systematics=systematics)
         else:
             self.ztautau = samples.MC_Ztautau(
-                    year=year,
-                    systematics=systematics)
-
-        self.others = samples.Others(
                 year=year,
                 systematics=systematics)
 
-        self.data = samples.Data(
-                year=year)
+        self.others = samples.Others(
+            year=year,
+            systematics=systematics)
+
+        self.data = samples.Data(year=year)
 
         self.higgs_125 = samples.Higgs(
-                year=year,
-                mass=125,
-                systematics=systematics,
-                linecolor='red')
+            year=year,
+            mass=125,
+            systematics=systematics,
+            linecolor='red')
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
             data=self.data,
-            mc=[self.others, self.ztautau],
+            mc=[self.ztautau, self.others],
             shape_region=qcd_shape_region)
 
         self.qcd.scale = 1.

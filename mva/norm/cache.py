@@ -75,19 +75,22 @@ def get_scales(year, category, embedded, param, shape_region, verbose=True):
     category = category.upper()
     param = param.upper()
     if has_category(year, category, embedded, param, shape_region):
-        qcd_scale, qcd_scale_error, \
-        ztautau_scale, ztautau_scale_error = \
-            SCALES[year][category][embedded][param][shape_region]
+        scales = SCALES[year][category][embedded][param][shape_region]
         if verbose:
             log.info("%d scale factors for %s category" % (year, category))
             log.info("embedding: %s" % str(embedded))
             log.info("QCD shape region: %s" % shape_region)
             log.info("scale factors were derived via fit using %s parameters" % param)
-            log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
-                qcd_scale_error))
-            log.info("    ztt scale: %.3f +/- %.4f" % (
-                    ztautau_scale, ztautau_scale_error))
-        return qcd_scale, qcd_scale_error, ztautau_scale, ztautau_scale_error
+            log.info("   QCD data scale: %.3f +/- %.4f" % (
+                scales['qcd_data_scale'], scales['qcd_data_scale_error']))
+            log.info("    QCD ztt scale: %.3f +/- %.4f" % (
+                scales['qcd_z_scale'], scales['qcd_z_scale_error']))
+            log.info(" QCD others scale: %.3f" % (
+                scales['others_scale']))
+            log.info("        ztt scale: %.3f +/- %.4f" % (
+                scales['z_scale'], scales['z_scale_error']))
+
+        return scales
     raise ValueError(
         "No scale factors for %d, %s, embedding: %s, param: %s, shape: %s" %
         (year, category, embedded, param, shape_region))
@@ -105,8 +108,10 @@ def has_category(year, category, embedded, param, shape_region):
 
 
 def set_scales(year, category, embedded, param, shape_region,
-               qcd_scale, qcd_scale_error,
-               ztautau_scale, ztautau_scale_error):
+               qcd_data_scale, qcd_data_scale_error,
+               qcd_z_scale,
+               qcd_others_scale,
+               z_scale, z_scale_error):
 
     global MODIFIED
     year %= 1E3
@@ -117,14 +122,16 @@ def set_scales(year, category, embedded, param, shape_region,
     log.info("embedding: %s" % str(embedded))
     log.info("QCD shape region: %s" % shape_region)
     log.info("new scale factors derived via fit using %s parameters" % param)
-    log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
-    log.info("    ztt scale: %.3f +/- %.4f" % (ztautau_scale,
-        ztautau_scale_error))
+    log.info("   QCD data scale: %.3f +/- %.4f" % (
+        qcd_data_scale, qcd_data_scale_error))
+    log.info("    QCD ztt scale: %.3f" % qcd_z_scale)
+    log.info(" QCD others scale: %.3f" % qcd_others_scale)
+    log.info("        ztt scale: %.3f +/- %.4f" % (z_scale, z_scale_error))
 
+    """
     if has_category(year, category, embedded, param, shape_region):
-        qcd_scale_old, qcd_scale_error_old, \
-        ztautau_scale_old, ztautau_scale_error_old = get_scales(
-                year, category, embedded, param, shape_region, verbose=False)
+        scales = get_scales(year, category, embedded, param, shape_region,
+                            verbose=False)
         log.info("scale factors were previously:")
         log.info("    qcd scale: %.3f +/- %.4f" % (
                 qcd_scale_old,
@@ -132,7 +139,7 @@ def set_scales(year, category, embedded, param, shape_region,
         log.info("    ztt scale: %.3f +/- %.4f" % (
                 ztautau_scale_old,
                 ztautau_scale_error_old))
-
+    """
     if year not in SCALES:
         SCALES[year] = {}
     if category not in SCALES[year]:
@@ -142,7 +149,12 @@ def set_scales(year, category, embedded, param, shape_region,
     if param not in SCALES[year][category][embedded]:
         SCALES[year][category][embedded][param] = {}
 
-    SCALES[year][category][embedded][param][shape_region] = (
-            qcd_scale, qcd_scale_error,
-            ztautau_scale, ztautau_scale_error)
+    SCALES[year][category][embedded][param][shape_region] = {
+        'qcd_data_scale': qcd_data_scale,
+        'qcd_data_scale_error': qcd_data_scale_error,
+        'qcd_z_scale': qcd_z_scale,
+        'qcd_others_scale': qcd_others_scale,
+        'z_scale': z_scale,
+        'z_scale_error': z_scale_error,
+        }
     MODIFIED = True

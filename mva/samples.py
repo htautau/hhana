@@ -1281,6 +1281,7 @@ class QCD(Sample, Background):
 
     def __init__(self, data, mc,
                  scale=1.,
+                 scale_error=0.,
                  data_scale=1.,
                  mc_scales=None,
                  shape_region='SS',
@@ -1302,7 +1303,7 @@ class QCD(Sample, Background):
         else:
             # default scales to 1.
             self.mc_scales = [1. for m in self.mc]
-        self.scale_error = 0.
+        self.scale_error = scale_error
         self.shape_region = shape_region
         self.systematics = mc[0].systematics
 
@@ -1320,8 +1321,7 @@ class QCD(Sample, Background):
                 raw=raw,
                 scale=mc_scale)
 
-        log.info("QCD: data %f  subtracted MC %f" % (
-            data, mc_subtract))
+        log.info("QCD: Data(%.3f) - MC(%.3f)" % (data, mc_subtract))
 
         if raw:
             return self.data_scale * data + mc_subtract
@@ -1343,7 +1343,7 @@ class QCD(Sample, Background):
                             category, self.shape_region,
                             cuts=cuts, weighted=weighted)
 
-        log.info("QCD: data %f  subtracted MC %f" % (
+        log.info("QCD: Data(%.3f) - MC(%.3f)" % (
             data_hist.Integral(),
             MC_bkg.Integral()))
 
