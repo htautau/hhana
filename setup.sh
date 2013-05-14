@@ -24,3 +24,7 @@ if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau/setup.sh ]
 then
     source ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau/setup.sh
 fi
+if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../TrackFit/setup.sh ]
+then
+    source ${DIR_HIGGSTAUTAU_MVA_SETUP}/../TrackFit/setup.sh
+fi
