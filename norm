@@ -81,7 +81,7 @@ param = 'TRACK'
 mass_regions = MassRegions(low_cutoff=60, low=100, high=180,
                            high_sideband_in_control=False)
 control_region = None
-control_region = mass_regions.control_region
+#control_region = mass_regions.control_region
 
 fit_region = 'SS'
 fit_region_alias = 'SS_TRK'
@@ -254,13 +254,13 @@ for cat_def in args.categories:
         QCD(nOS) =  A x -------------- x Data(nOS)
                          |Data(nOS)|
 
-                        |Z(SS_TRK)|
-                  - B x ----------- x Z(nOS)
-                         |Z(nOS)|
+                          |Z(SS_TRK)|
+                    - B x ----------- x Z(nOS)
+                           |Z(nOS)|
                   
-                    |Others(SS_TRK)|
-                  - ---------------- x Others(nOS)
-                     |Others(nOS)|
+                      |Others(SS_TRK)|
+                    - ---------------- x Others(nOS)
+                       |Others(nOS)|
         
         Correct the QCD scale to account for difference between fitting model
         and target model (SS vs !OS). The final OS model includes the
@@ -299,7 +299,7 @@ for cat_def in args.categories:
         qcd.scale_error = qcd_data_scale_error
         ztt.scale = z_scale
         ztt.scale_error = z_scale_error
-        
+
         if args.plot:
             # Draw the distribution after the fit
             draw_samples(hist_template, expr,
