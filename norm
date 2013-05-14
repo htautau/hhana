@@ -196,7 +196,10 @@ for cat_def in args.categories:
         C = 2
         A = 1.
         B = 1.
+        A_error = None
+        B_error = None
         
+        iteration = 1
         # converge on the fitted values of A and B until C is close to 1.
         while abs(C - 1) > 0.001:
 
@@ -213,12 +216,23 @@ for cat_def in args.categories:
             C = fit_result.sf_QCD
             B *= fit_result.sf_Z
             A *= C
+            
+            if A_error is None:
+                A_error = fit_result.sf_QCD_err
+                B_error = fit_result.sf_Z_err
+            else:
+                A_error *= fit_result.sf_QCD
+                B_error *= fit_result.sf_Z
+
+            log.info("TrackFit iteration %d" % iteration)
+            log.info("sf_QCD: %.4f +/- %.4f sf_Z: %.4f +/- %.4f" % (A, A_error, B, B_error))
+            iteration += 1
+        
+        qcd_data_scale = A 
+        qcd_data_scale_error = A_error
         
         z_scale = B * scale_init
-        z_scale_error = 0.
-
-        qcd_data_scale = A 
-        qcd_data_scale_error = 0.
+        z_scale_error = B_error * scale_init
 
         # Cache the fitted normalization scale factors for SS_TRK
         cache.set_scales(
