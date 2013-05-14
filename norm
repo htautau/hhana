@@ -48,7 +48,7 @@ xaxis_label = "Recounted Number of Tracks"
 hist_template = Hist2D(bins, min_edge, max_edge,
                        bins, min_edge, max_edge, type='D')
 
-# SS-OSff
+# SS-OSff from Daniele
 qcd_syst = hist_template.Clone()
 qcd_syst[0,0] = 1.08208
 qcd_syst[0,1] = 0.975144
