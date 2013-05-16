@@ -175,6 +175,8 @@ class Category(object):
 
     # common attrs for all categories. Override in subclasses
     is_control = False
+    # category used for normalization
+    norm_category = None
     year_cuts = {
         2011: ID_MEDIUM,
         2012: ID_MEDIUM_TIGHT}

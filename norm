@@ -105,8 +105,6 @@ ztt_embedded = samples.Embedded_Ztautau(
     year=year,
     systematics=False)
 
-#ztt = ztt_embedded
-
 others = samples.Others(
     year=year,
     systematics=systematics)
@@ -139,12 +137,16 @@ for cat_def in args.categories:
         
         log.info(data.cuts(category, model_region))
         
+        qcd.shape_region = fit_region
         ztt.scale = 1.
         ztt.scale_error = 0.
         qcd.scale = 1.
         qcd.scale_error = 0.
         scale_init = 1.
         
+        # Determine scale factor to get from 1p3p embedded Z to 1p3p ALPGEN Z
+        sf_embed_13 = ztt.events(category, 'OS_TRK') / ztt_embedded.events(category, 'OS_TRK')
+
         """
         # Initialize Z scale to (data - QCD - others) / Z
         # so we get good convergence for ALPGEN or embedded Z
@@ -206,71 +208,75 @@ for cat_def in args.categories:
 
         # QCD = C x [A x Data - B x Z - O]
 
-        C = 2
         A = 1.
         B = 1.
-        A_error = None
+        C = 1.
+        C_prev = 0
+        C_error = None
         B_error = None
         
         iteration = 1
         # converge on the fitted values of A and B until C is close to 1.
-        while abs(C - 1) > 0.001:
+        while abs(C - C_prev) > 0.01:
 
-            qcd_hist = qcd_data_hist * A - qcd_tau_hist * B - qcd_others_hist
+            qcd_hist = (qcd_data_hist * A - qcd_tau_hist * B - qcd_others_hist) * C
             tau_hist_float = tau_hist * B
 
             fit_result = fitter.fit(
-                data_hist, tau_hist_float, qcd_hist, others_hist, higgs_hist,
+                data_hist, tau_hist_float, qcd_hist, others_hist,
                 # qcd_syst, qcd_stat
                 qcd_syst, qcd_hist,
                 # tau PU low, tau PU high
                 tau_hist_float, tau_hist_float)
             
+            C_prev = C
             C = fit_result.sf_QCD
             B *= fit_result.sf_Z
-            A *= C
             
-            if A_error is None:
-                A_error = fit_result.sf_QCD_err
+            if C_error is None:
+                C_error = fit_result.sf_QCD_err
                 B_error = fit_result.sf_Z_err
             else:
-                A_error *= fit_result.sf_QCD
+                C_error *= fit_result.sf_QCD
                 B_error *= fit_result.sf_Z
 
             log.info("TrackFit iteration %d" % iteration)
-            log.info("sf_QCD: %.4f +/- %.4f sf_Z: %.4f +/- %.4f" % (A, A_error, B, B_error))
+            log.info("sf_QCD: %.4f +/- %.4f sf_Z: %.4f +/- %.4f" % (C, C_error, B, B_error))
             iteration += 1
+            break
         
-        qcd_data_scale = A
-        qcd_data_scale_error = A_error
+        qcd_scale = C
+        qcd_scale_error = C_error
         
         z_scale = B * scale_init
         z_scale_error = B_error * scale_init
         
-        qcd.data_scale = qcd_data_scale
-        qcd.scale_error = qcd_data_scale_error
+        qcd.scale = qcd_scale
+        qcd.scale_error = qcd_scale_error
         ztt.scale = z_scale
         ztt.scale_error = z_scale_error
 
         # correct to f13QCD
         f13_current = qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region) / qcd.events(category, 'SS', cuts=control_region)
-        qcd_data_scale *= fit_result.f13_QCD / f13_current
+        qcd_scale_correct = fit_result.f13_QCD / f13_current
+        
+        qcd_scale *= qcd_scale_correct
+        qcd_scale_error *= qcd_scale_correct
 
-        print fit_result.f13_QCD, f13_current
-
-        qcd.data_scale = qcd_data_scale
-
+        qcd.scale = qcd_scale
+        qcd.scale_error = qcd_scale_error
+        
         nZ = (data.events(category, 'OS_TRK', cuts=control_region)
                 - others.events(category, 'OS_TRK', cuts=control_region)
                 - qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region))
 
-        z_scale *= nZ / ztt.events(category, 'OS_TRK', cuts=control_region)
-        print z_scale
+        z_scale_correct = nZ / ztt.events(category, 'OS_TRK', cuts=control_region)
+        
+        z_scale *= z_scale_correct
+        z_scale_error *= z_scale_correct
 
-        #print ztt.events(category, 'OS', cuts=P1P3_RECOUNTED) / ztt.events(category, 'OS')
-
-        # Determine scale factor to get from 1p3p embedded Z to 1p3p ALPGEN Z
-        sf_embed_13 = ztt.events(category, 'OS_TRK') / ztt_embedded.events(category, 'OS_TRK')
+        ztt.scale = z_scale
+        ztt.scale_error = z_scale_error
 
         # Cache the fitted normalization scale factors for SS_TRK
         cache.set_scales(
@@ -279,8 +285,9 @@ for cat_def in args.categories:
             False,
             param,
             fit_region_alias,
-            qcd_data_scale=qcd_data_scale,
-            qcd_data_scale_error=qcd_data_scale_error,
+            qcd_scale=qcd_scale,
+            qcd_scale_error=qcd_scale_error,
+            qcd_data_scale=1.,
             qcd_z_scale=1.,
             qcd_others_scale=1.,
             z_scale=z_scale,
@@ -292,8 +299,9 @@ for cat_def in args.categories:
             True, # Embedded Z
             param,
             fit_region_alias,
-            qcd_data_scale=qcd_data_scale,
-            qcd_data_scale_error=qcd_data_scale_error,
+            qcd_scale=qcd_scale,
+            qcd_scale_error=qcd_scale_error,
+            qcd_data_scale=1.,
             qcd_z_scale=1.,
             qcd_others_scale=1.,
             z_scale=z_scale * sf_embed_13,
@@ -314,6 +322,14 @@ for cat_def in args.categories:
                       |Others(SS_TRK)|
                     - ---------------- x Others(nOS)
                        |Others(nOS)|
+
+
+        -  OR  -
+
+
+                   |QCD(SS_TRK)|
+        QCD(nOS) = ------------- x (Data(nOS) - Z(nOS) - Others(nOS))
+                    |QCD(nOS)|
         
         Correct the QCD scale to account for difference between fitting model
         and target model (SS vs !OS). The final OS model includes the
@@ -323,6 +339,9 @@ for cat_def in args.categories:
         
         Note: All regions are defined in mva/regions.py
         """
+
+        """
+        # correct each term separately
         sf_data   = (data.events(category, 'SS_TRK') /
                      float(data.events(category, 'nOS')))
         
@@ -333,9 +352,23 @@ for cat_def in args.categories:
                      float(others.events(category, 'nOS')))
 
         qcd_data_scale_nos = qcd_data_scale * sf_data
-        qcd_data_scale_error_nos = qcd_data_scale_error * sf_data
         qcd_z_scale_nos = sf_ztt
         qcd_others_scale_nos = sf_others
+        """
+
+        qcd_data_scale_nos = 1.
+        qcd_z_scale_nos = 1.
+        qcd_others_scale_nos = 1.
+        
+        qcd.shape_region = 'SS_TRK'
+        qcd_events_ss = qcd.events(category, 'SS_TRK')
+        qcd.shape_region = 'nOS'
+        qcd_events_nos = qcd.events(category, 'nOS')
+
+        sf_qcd = qcd_events_ss / float(qcd_events_nos)
+
+        qcd_scale_nos = qcd_scale * sf_qcd
+        qcd_scale_error_nos = qcd_scale_error * sf_qcd
 
         cache.set_scales(
             year,
@@ -343,8 +376,9 @@ for cat_def in args.categories:
             False,
             param,
             'nOS',
+            qcd_scale=qcd_scale_nos,
+            qcd_scale_error=qcd_scale_error_nos,
             qcd_data_scale=qcd_data_scale_nos,
-            qcd_data_scale_error=qcd_data_scale_error_nos,
             qcd_z_scale=qcd_z_scale_nos,
             qcd_others_scale=qcd_others_scale_nos,
             z_scale=z_scale,
@@ -356,8 +390,9 @@ for cat_def in args.categories:
             True, # embedded Z
             param,
             'nOS',
+            qcd_scale=qcd_scale_nos,
+            qcd_scale_error=qcd_scale_error_nos,
             qcd_data_scale=qcd_data_scale_nos,
-            qcd_data_scale_error=qcd_data_scale_error_nos,
             qcd_z_scale=qcd_z_scale_nos,
             qcd_others_scale=qcd_others_scale_nos,
             z_scale=z_scale * sf_embed_13,

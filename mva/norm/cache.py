@@ -50,8 +50,11 @@ def qcd_ztautau_norm(ztautau,
                      category,
                      param):
 
-    # if this is a control region then use the name of the parent category
-    if category.is_control:
+    norm_category = getattr(category, 'norm_category', None)
+    if norm_category is not None:
+        category = norm_category.name
+    elif category.is_control:
+        # if this is a control region then use the name of the parent category
         category = category.__bases__[0].name
     else:
         category = category.name
@@ -62,16 +65,16 @@ def qcd_ztautau_norm(ztautau,
     scales = get_scales(
         ztautau.year, category, is_embedded, param, qcd.shape_region)
 
+    qcd.scale = scales['qcd_scale']
+    qcd.scale_error = scales['qcd_scale_error']
     qcd.data_scale = scales['qcd_data_scale']
-    qcd.scale_error = scales['qcd_data_scale_error']
-
     # assume that the MC order is Z, Others
+    assert(isinstance(qcd.mc[0], samples.Ztautau))
     qcd.mc_scales = [
-        scales['qcd_z_scale'] * 10,
+        scales['qcd_z_scale'],
         scales['qcd_others_scale']
         ]
-
-    ztautau.scale = scales['z_scale'] * 1.1
+    ztautau.scale = scales['z_scale']
     ztautau.scale_error = scales['z_scale_error']
 
 
@@ -87,8 +90,9 @@ def get_scales(year, category, embedded, param, shape_region, verbose=True):
             log.info("embedding: %s" % str(embedded))
             log.info("QCD shape region: %s" % shape_region)
             log.info("scale factors were derived via fit using %s parameters" % param)
-            log.info("   QCD data scale: %.3f +/- %.4f" % (
-                scales['qcd_data_scale'], scales['qcd_data_scale_error']))
+            log.info("        QCD scale: %.3f +/- %.4f" % (
+                scales['qcd_scale'], scales['qcd_scale_error']))
+            log.info("   QCD data scale: %.3f" % scales['qcd_data_scale'])
             log.info("    QCD ztt scale: %.3f" % scales['qcd_z_scale'])
             log.info(" QCD others scale: %.3f" % scales['qcd_others_scale'])
             log.info("        ztt scale: %.3f +/- %.4f" % (
@@ -113,7 +117,7 @@ def has_category(year, category, embedded, param, shape_region):
 
 def set_scales(year, category, embedded, param, shape_region,
                qcd_scale, qcd_scale_error,
-               qcd_data_scale, qcd_data_scale_error,
+               qcd_data_scale,
                qcd_z_scale,
                qcd_others_scale,
                z_scale, z_scale_error):
