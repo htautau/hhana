@@ -64,13 +64,3 @@ class Analysis(object):
             qcd=self.qcd,
             category=category,
             param=fit_param)
-
-        """
-        # override with Daniele's values for now
-        data_events = self.data.events(category, 'OS_TRK')
-        qcd_events = self.qcd.events(category, 'OS_TRK')
-        z_events = self.ztautau.events(category, 'OS_TRK')
-
-        self.ztautau.scale *= 0.346914 / (z_events / data_events)
-        self.qcd.scale *= 0.6279539 / (qcd_events / data_events)
-        """

@@ -24,7 +24,7 @@ ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
 
-TAU_DR_CUT = Cut('dR_tau1_tau2 < 3.2')
+TAU_DR_CUT = Cut('0.8 < dR_tau1_tau2 < 3.2')
 TAU_DETA_CUT = Cut('dEta_tau1_tau2 < 1.5')
 TAU_DETA_CUT_CONTROL = Cut('dEta_tau1_tau2 >= 1.5')
 TAU_SAME_VERTEX = Cut('tau_same_vertex')

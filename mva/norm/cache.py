@@ -67,11 +67,11 @@ def qcd_ztautau_norm(ztautau,
 
     # assume that the MC order is Z, Others
     qcd.mc_scales = [
-        scales['qcd_z_scale'],
+        scales['qcd_z_scale'] * 10,
         scales['qcd_others_scale']
         ]
 
-    ztautau.scale = scales['z_scale']
+    ztautau.scale = scales['z_scale'] * 1.1
     ztautau.scale_error = scales['z_scale_error']
 
 
@@ -112,6 +112,7 @@ def has_category(year, category, embedded, param, shape_region):
 
 
 def set_scales(year, category, embedded, param, shape_region,
+               qcd_scale, qcd_scale_error,
                qcd_data_scale, qcd_data_scale_error,
                qcd_z_scale,
                qcd_others_scale,
@@ -126,8 +127,8 @@ def set_scales(year, category, embedded, param, shape_region,
     log.info("embedding: %s" % str(embedded))
     log.info("QCD shape region: %s" % shape_region)
     log.info("new scale factors derived via fit using %s parameters" % param)
-    log.info("   QCD data scale: %.3f +/- %.4f" % (
-        qcd_data_scale, qcd_data_scale_error))
+    log.info("        QCD scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
+    log.info("   QCD data scale: %.3f" % qcd_data_scale)
     log.info("    QCD ztt scale: %.3f" % qcd_z_scale)
     log.info(" QCD others scale: %.3f" % qcd_others_scale)
     log.info("        ztt scale: %.3f +/- %.4f" % (z_scale, z_scale_error))
@@ -154,8 +155,9 @@ def set_scales(year, category, embedded, param, shape_region,
         SCALES[year][category][embedded][param] = {}
 
     SCALES[year][category][embedded][param][shape_region] = {
+        'qcd_scale': qcd_scale,
+        'qcd_scale_error': qcd_scale_error,
         'qcd_data_scale': qcd_data_scale,
-        'qcd_data_scale_error': qcd_data_scale_error,
         'qcd_z_scale': qcd_z_scale,
         'qcd_others_scale': qcd_others_scale,
         'z_scale': z_scale,

@@ -192,11 +192,6 @@ def fit_parser():
             help='plot distributions before and after fit')
     parser.add_argument('--roofit', action='store_true', default=False,
             help='use RooFit instead of TrackFit')
-    parser.add_argument('--embedding', action='store_true', default=False,
-            help='use embedded Z->tau+tau')
-    parser.add_argument('--param', choices=('track', 'mass'),
-            default='track',
-            help='parameters used to determine normalization of QCD and Z')
 
     return parser
 

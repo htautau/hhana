@@ -19,8 +19,9 @@ import sys
 
 from rootpy.io import root_open
 from rootpy.plotting import Hist2D, Hist
+from rootpy.tree import Cut
 
-from mva.analysis import Analysis
+from mva import samples
 from mva.stats import histfactory
 from mva.stats.fit import fit
 from mva.massregions import MassRegions
@@ -28,6 +29,7 @@ from mva.norm import cache, log
 from mva.plotting import draw_samples
 from mva.systematics import SYSTEMATICS
 from mva.categories import CATEGORIES
+from mva.regions import P1P3_RECOUNTED
 
 from matplotlib.ticker import FuncFormatter
 
@@ -93,25 +95,36 @@ before_name = "bkg_before_%sfit" % param
 after_name = "bkg_after_%sfit" % param
 
 year = 2012
-
-analysis = Analysis(
-    year=year,
-    systematics=False,
-    use_embedding=args.embedding,
-    qcd_shape_region=fit_region)
-
-if args.embedding:
-    before_name += '_embedded'
-    after_name += '_embedded'
-
-ztt = analysis.ztautau
-data = analysis.data
-others = analysis.others
-qcd = analysis.qcd
-qcd.label = 'QCD Multi-jet'
-higgs = analysis.higgs_125
-
 systematics = False
+
+ztt = samples.MC_Ztautau(
+    year=year,
+    systematics=False)
+
+ztt_embedded = samples.Embedded_Ztautau(
+    year=year,
+    systematics=False)
+
+#ztt = ztt_embedded
+
+others = samples.Others(
+    year=year,
+    systematics=systematics)
+
+data = samples.Data(year=year)
+
+qcd = samples.QCD(
+    data=data,
+    mc=[ztt, others],
+    shape_region=fit_region)
+qcd.label = 'QCD Multi-jet'
+
+higgs = samples.Higgs(
+    year=year,
+    mass=125,
+    systematics=systematics,
+    linecolor='red')
+
 
 # loop over category definitions
 for cat_def in args.categories:
@@ -189,7 +202,7 @@ for cat_def in args.categories:
         higgs.draw_into(higgs_hist, expr, category, model_region,
                 cuts=control_region, systematics=False)
 
-        fitter = ROOT.TrackFit.TrackFitter()
+        fitter = ROOT.TrackFit.TrackFitter(1)
 
         # QCD = C x [A x Data - B x Z - O]
 
@@ -228,16 +241,43 @@ for cat_def in args.categories:
             log.info("sf_QCD: %.4f +/- %.4f sf_Z: %.4f +/- %.4f" % (A, A_error, B, B_error))
             iteration += 1
         
-        qcd_data_scale = A 
+        qcd_data_scale = A
         qcd_data_scale_error = A_error
         
         z_scale = B * scale_init
         z_scale_error = B_error * scale_init
+        
+        qcd.data_scale = qcd_data_scale
+        qcd.scale_error = qcd_data_scale_error
+        ztt.scale = z_scale
+        ztt.scale_error = z_scale_error
+
+        # correct to f13QCD
+        f13_current = qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region) / qcd.events(category, 'SS', cuts=control_region)
+        qcd_data_scale *= fit_result.f13_QCD / f13_current
+
+        print fit_result.f13_QCD, f13_current
+
+        qcd.data_scale = qcd_data_scale
+
+        nZ = (data.events(category, 'OS_TRK', cuts=control_region)
+                - others.events(category, 'OS_TRK', cuts=control_region)
+                - qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region))
+
+        z_scale *= nZ / ztt.events(category, 'OS_TRK', cuts=control_region)
+        print z_scale
+
+        #print ztt.events(category, 'OS', cuts=P1P3_RECOUNTED) / ztt.events(category, 'OS')
+
+        # Determine scale factor to get from 1p3p embedded Z to 1p3p ALPGEN Z
+        sf_embed_13 = ztt.events(category, 'OS_TRK') / ztt_embedded.events(category, 'OS_TRK')
 
         # Cache the fitted normalization scale factors for SS_TRK
         cache.set_scales(
             year,
-            category.name, args.embedding, param,
+            category.name,
+            False,
+            param,
             fit_region_alias,
             qcd_data_scale=qcd_data_scale,
             qcd_data_scale_error=qcd_data_scale_error,
@@ -245,7 +285,20 @@ for cat_def in args.categories:
             qcd_others_scale=1.,
             z_scale=z_scale,
             z_scale_error=z_scale_error)
-        
+            
+        cache.set_scales(
+            year,
+            category.name,
+            True, # Embedded Z
+            param,
+            fit_region_alias,
+            qcd_data_scale=qcd_data_scale,
+            qcd_data_scale_error=qcd_data_scale_error,
+            qcd_z_scale=1.,
+            qcd_others_scale=1.,
+            z_scale=z_scale * sf_embed_13,
+            z_scale_error=z_scale_error * sf_embed_13)
+
         """
                      nOS QCD Model
         ==========================================
@@ -286,7 +339,9 @@ for cat_def in args.categories:
 
         cache.set_scales(
             year,
-            category.name, args.embedding, param,
+            category.name,
+            False,
+            param,
             'nOS',
             qcd_data_scale=qcd_data_scale_nos,
             qcd_data_scale_error=qcd_data_scale_error_nos,
@@ -294,11 +349,19 @@ for cat_def in args.categories:
             qcd_others_scale=qcd_others_scale_nos,
             z_scale=z_scale,
             z_scale_error=z_scale_error)
-
-        qcd.data_scale = qcd_data_scale
-        qcd.scale_error = qcd_data_scale_error
-        ztt.scale = z_scale
-        ztt.scale_error = z_scale_error
+        
+        cache.set_scales(
+            year,
+            category.name,
+            True, # embedded Z
+            param,
+            'nOS',
+            qcd_data_scale=qcd_data_scale_nos,
+            qcd_data_scale_error=qcd_data_scale_error_nos,
+            qcd_z_scale=qcd_z_scale_nos,
+            qcd_others_scale=qcd_others_scale_nos,
+            z_scale=z_scale * sf_embed_13,
+            z_scale_error=z_scale_error * sf_embed_13)
 
         if args.plot:
             # Draw the distribution after the fit
