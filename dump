@@ -1,38 +1,62 @@
 #!/usr/bin/env python
 
-from rootpy.io import root_open
+from rootpy.extern.argparse import ArgumentParser
 
-f = root_open('ntuples/prod/HHProcessor/HHProcessor.embed12-HH-IM.root')
-t = f.higgstautauhh
-t.csv(branches=['RunNumber', 'EventNumber',
-                'MET',
-                'MET_bisecting',
-                'MET_phi',
-                'dPhi_min_tau_MET',
-                'tau_same_vertex',
-                'mass_mmc_tau1_tau2',
-                'dR_tau1_tau2',
-                'tau1_pt',
-                'tau1_phi',
-                'tau2_pt',
-                'tau2_phi',
-                'tau1_numTrack',
-                'tau2_numTrack',
-                'tau1_numTrack_recounted',
-                'tau2_numTrack_recounted',
-                'tau1_charge',
-                'tau2_charge',
-                'tau1_JetBDTSigMedium',
-                'tau1_JetBDTSigTight',
-                'tau2_JetBDTSigMedium',
-                'tau2_JetBDTSigTight',
-                'mc_weight',
-                'tau1_matched',
-                'tau2_matched',
-                'tau1_efficiency_scale_factor',
-                'tau2_efficiency_scale_factor',
-                'tau1_fakerate_scale_factor',
-                'tau2_fakerate_scale_factor',
-                'tau1_trigger_scale_factor',
-                'tau2_trigger_scale_factor',
-                ], limit=1000)
+parser = ArgumentParser()
+parser.add_argument('files', nargs='+')
+parser.add_argument('-e', '--entries', type=int, default=100)
+parser.add_argument('-s', '--select', default=None)
+args = parser.parse_args()
+
+from rootpy.io import root_open
+import os
+
+fields = [
+    'RunNumber',
+    'EventNumber',
+    'MET',
+    'MET_bisecting',
+    'MET_phi',
+    'dPhi_min_tau_MET',
+    'tau_same_vertex',
+    'mmc0_mass',
+    'mmc1_mass',
+    'mmc2_mass',
+    'dR_tau1_tau2',
+    'tau1_pt',
+    'tau1_phi',
+    'tau2_pt',
+    'tau2_phi',
+    'tau1_numTrack',
+    'tau2_numTrack',
+    'tau1_numTrack_recounted',
+    'tau2_numTrack_recounted',
+    'tau1_charge',
+    'tau2_charge',
+    'tau1_JetBDTSigMedium',
+    'tau1_JetBDTSigTight',
+    'tau2_JetBDTSigMedium',
+    'tau2_JetBDTSigTight',
+    'mc_weight',
+    'tau1_matched',
+    'tau2_matched',
+    'tau1_efficiency_scale_factor',
+    'tau2_efficiency_scale_factor',
+    'tau1_fakerate_scale_factor',
+    'tau2_fakerate_scale_factor',
+    'tau1_trigger_scale_factor',
+    'tau2_trigger_scale_factor',
+]
+
+
+for filename in args.files:
+    f = root_open(filename)
+    t = f.higgstautauhh
+    print os.path.basename(filename)
+    rec = t.to_array(fields, entries=args.entries, selection=args.select)
+    read_names = rec.dtype.names
+    print ','.join(read_names)
+    for row in rec:
+        print ','.join(map(str, row))
+    print 
+    print
