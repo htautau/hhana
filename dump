@@ -35,4 +35,4 @@ t.csv(branches=['RunNumber', 'EventNumber',
                 'tau2_fakerate_scale_factor',
                 'tau1_trigger_scale_factor',
                 'tau2_trigger_scale_factor',
-                ], limit=10)
+                ], limit=1000)
