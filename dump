@@ -2,10 +2,13 @@
 
 from rootpy.io import root_open
 
-f = root_open('ntuples/prod/HHProcessor/HHProcessor.data12-JetTauEtmiss.root')
+f = root_open('ntuples/prod/HHProcessor/HHProcessor.embed12-HH-IM.root')
 t = f.higgstautauhh
 t.csv(branches=['RunNumber', 'EventNumber',
-                'MET', 'MET_bisecting', 'MET_phi', 'dPhi_min_tau_MET',
+                'MET',
+                'MET_bisecting',
+                'MET_phi',
+                'dPhi_min_tau_MET',
                 'tau_same_vertex',
                 'mass_mmc_tau1_tau2',
                 'dR_tau1_tau2',
@@ -13,6 +16,8 @@ t.csv(branches=['RunNumber', 'EventNumber',
                 'tau1_phi',
                 'tau2_pt',
                 'tau2_phi',
+                'tau1_numTrack',
+                'tau2_numTrack',
                 'tau1_numTrack_recounted',
                 'tau2_numTrack_recounted',
                 'tau1_charge',
@@ -20,4 +25,14 @@ t.csv(branches=['RunNumber', 'EventNumber',
                 'tau1_JetBDTSigMedium',
                 'tau1_JetBDTSigTight',
                 'tau2_JetBDTSigMedium',
-                'tau2_JetBDTSigTight',], limit=100)
+                'tau2_JetBDTSigTight',
+                'mc_weight',
+                'tau1_matched',
+                'tau2_matched',
+                'tau1_efficiency_scale_factor',
+                'tau2_efficiency_scale_factor',
+                'tau1_fakerate_scale_factor',
+                'tau2_fakerate_scale_factor',
+                'tau1_trigger_scale_factor',
+                'tau2_trigger_scale_factor',
+                ], limit=10)
