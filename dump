@@ -54,6 +54,7 @@ for filename in args.files:
     t = f.higgstautauhh
     print os.path.basename(filename)
     rec = t.to_array(fields, entries=args.entries, selection=args.select)
+    rec.sort(order=['RunNumber', 'EventNumber'])
     read_names = rec.dtype.names
     print ','.join(read_names)
     for row in rec:
