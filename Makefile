@@ -3,6 +3,8 @@ HHSTUDENT ?= HHProcessor
 HHNTUP ?= ntuples/prod/HHProcessor
 HHNTUP_RUNNING ?= ntuples/running/HHProcessor
 
+.PHONY: dump
+
 default: clean
 
 clean-root:
@@ -98,3 +100,8 @@ bundle:
 
 test:
 	nosetests -s -v mva
+
+dump:
+	./dump -s taus_pass ntuples/running/HHProcessor/HHProcessor.embed12-HH-IM.root \
+		ntuples/running/HHProcessor/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root \
+		ntuples/running/HHProcessor/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root

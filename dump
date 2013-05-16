@@ -19,6 +19,7 @@ fields = [
     'MET_phi',
     'dPhi_min_tau_MET',
     'tau_same_vertex',
+    'numJets25',
     'mmc0_mass',
     'mmc1_mass',
     'mmc2_mass',
