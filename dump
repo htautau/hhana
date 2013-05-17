@@ -6,6 +6,7 @@ parser = ArgumentParser()
 parser.add_argument('files', nargs='+')
 parser.add_argument('-e', '--entries', type=int, default=100)
 parser.add_argument('-s', '--select', default=None)
+parser.add_argument('-o', '--order-by', default=None)
 args = parser.parse_args()
 
 from rootpy.io import root_open
@@ -49,13 +50,17 @@ fields = [
     'tau2_trigger_scale_factor',
 ]
 
+if args.order_by is not None:
+    args.order_by = args.order_by.split(',')
 
 for filename in args.files:
     f = root_open(filename)
     t = f.higgstautauhh
     print os.path.basename(filename)
-    rec = t.to_array(fields, entries=args.entries, selection=args.select)
-    rec.sort(order=['RunNumber', 'EventNumber'])
+    rec = t.to_array(fields, selection=args.select)
+    rec = rec[:args.entries]
+    if args.order_by is not None:
+        rec.sort(order=args.order_by)
     read_names = rec.dtype.names
     print ','.join(read_names)
     for row in rec:

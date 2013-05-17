@@ -102,6 +102,6 @@ test:
 	nosetests -s -v mva
 
 dump:
-	./dump -s taus_pass ntuples/running/HHProcessor/HHProcessor.embed12-HH-IM.root \
-		ntuples/running/HHProcessor/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root \
-		ntuples/running/HHProcessor/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
+	@./dump -e 50 -s "taus_pass && (RunNumber==207528)" -o RunNumber,EventNumber $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root
+	@./dump -e 50 -s "taus_pass" -o EventNumber $(HHNTUP_RUNNING)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
+	@./dump -e 50 -s "taus_pass" -o EventNumber $(HHNTUP_RUNNING)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
