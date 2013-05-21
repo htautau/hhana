@@ -82,7 +82,7 @@ param = 'TRACK'
 
 mass_regions = MassRegions(low_cutoff=60, low=100, high=180,
                            high_sideband_in_control=False)
-control_region = None
+control_region = Cut('mmc0_mass < 110')
 #control_region = mass_regions.control_region
 
 fit_region = 'SS'
@@ -230,15 +230,15 @@ for cat_def in args.categories:
                 tau_hist_float, tau_hist_float)
             
             C_prev = C
-            C = fit_result.sf_QCD
-            B *= fit_result.sf_Z
+            C = fit_result.sf13_QCD
+            B *= fit_result.sf13_Z
             
             if C_error is None:
-                C_error = fit_result.sf_QCD_err
-                B_error = fit_result.sf_Z_err
+                C_error = fit_result.sf13_QCD_err
+                B_error = fit_result.sf13_Z_err
             else:
-                C_error *= fit_result.sf_QCD
-                B_error *= fit_result.sf_Z
+                C_error *= fit_result.sf13_QCD
+                B_error *= fit_result.sf13_Z
 
             log.info("TrackFit iteration %d" % iteration)
             log.info("sf_QCD: %.4f +/- %.4f sf_Z: %.4f +/- %.4f" % (C, C_error, B, B_error))
@@ -255,7 +255,8 @@ for cat_def in args.categories:
         qcd.scale_error = qcd_scale_error
         ztt.scale = z_scale
         ztt.scale_error = z_scale_error
-
+        
+        """
         # correct to f13QCD
         f13_current = qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region) / qcd.events(category, 'SS', cuts=control_region)
         qcd_scale_correct = fit_result.f13_QCD / f13_current
@@ -277,6 +278,7 @@ for cat_def in args.categories:
 
         ztt.scale = z_scale
         ztt.scale_error = z_scale_error
+        """
 
         # Cache the fitted normalization scale factors for SS_TRK
         cache.set_scales(

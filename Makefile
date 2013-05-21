@@ -28,8 +28,8 @@ $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root:
 	hadd $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root $(HHNTUP_RUNNING)/data/HHProcessor.data12-JetTauEtmiss_*.root
 	
 	test -d $(HHNTUP_RUNNING)/data_log || mkdir $(HHNTUP_RUNNING)/data_log
-	-mv $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss_*.e[1-9]* $(HHNTUP_RUNNING)/data_log/
-	-mv $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss_*.o[1-9]* $(HHNTUP_RUNNING)/data_log/
+	-mv $(HHNTUP_RUNNING)/HHProcessor.data12_*.e[1-9]* $(HHNTUP_RUNNING)/data_log/
+	-mv $(HHNTUP_RUNNING)/HHProcessor.data12_*.o[1-9]* $(HHNTUP_RUNNING)/data_log/
 	-mv $(HHNTUP_RUNNING)/supervisor-HHProcessor-HHProcessor.data12-JetTauEtmiss_*.log $(HHNTUP_RUNNING)/data_log/
 
 

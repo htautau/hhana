@@ -19,7 +19,7 @@ ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 # ID cuts for control region where both taus are medium but not tight
 ID_MEDIUM_NOT_TIGHT = (TAU1_MEDIUM & -TAU1_TIGHT) & (TAU2_MEDIUM & -TAU2_TIGHT)
 
-Z_PEAK = Cut('60 < mass_mmc_tau1_tau2 < 120')
+Z_PEAK = Cut('60 < mmc0_mass < 120')
 ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
@@ -29,7 +29,7 @@ TAU_DETA_CUT = Cut('dEta_tau1_tau2 < 1.5')
 TAU_DETA_CUT_CONTROL = Cut('dEta_tau1_tau2 >= 1.5')
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
 BAD_MASS = 60
-MASS_FIX = Cut('mass_mmc_tau1_tau2 > %d' % BAD_MASS)
+MASS_FIX = Cut('mmc0_mass > %d' % BAD_MASS)
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
 
@@ -45,14 +45,14 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 CUTS_VBF = Cut('dEta_jets > 2.0')
-CUTS_BOOSTED = Cut('mmc_resonance_pt > 100') # GeV
+CUTS_BOOSTED = Cut('mmc0_resonance_pt > 100') # GeV
 
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
 
 features_2j = [
-    'mass_mmc_tau1_tau2',
+    'mmc0_mass',
     # !!! mass ditau + leading jet?
     'dEta_jets',
     #'dEta_jets_boosted', #
@@ -72,12 +72,12 @@ features_2j = [
     'MET_centrality',
     'vector_sum_pt',
     #'sum_pt_full', #
-    #'mmc_resonance_pt',
+    #'mmc0_resonance_pt',
     # !!! eta centrality of 3rd jet
 ]
 
 features_boosted = [
-    'mass_mmc_tau1_tau2',
+    'mmc0_mass',
     # !!! mass ditau + leading jet?
     #'dEta_jets',
     #'dEta_jets_boosted', #
@@ -97,14 +97,14 @@ features_boosted = [
     'tau1_x', #  <= ADD BACK IN
     'tau2_x', #  <= ADD BACK IN
     'MET_centrality',
-    #'mmc_resonance_pt',
+    #'mmc0_resonance_pt',
     'sum_pt_full',
     'tau_pt_ratio',
     # !!! eta centrality of 3rd jet
 ]
 
 features_1j = [
-    'mass_mmc_tau1_tau2',
+    'mmc0_mass',
     # !!! mass ditau + leading jet?
     #'sphericity',
     #'aplanarity',
@@ -117,11 +117,11 @@ features_1j = [
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
-    #'mmc_resonance_pt',
+    #'mmc0_resonance_pt',
 ]
 
 features_0j = [
-    'mass_mmc_tau1_tau2',
+    'mmc0_mass',
     #'cos_theta_tau1_tau2',
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
@@ -131,7 +131,7 @@ features_0j = [
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
-    #'mmc_resonance_pt',
+    #'mmc0_resonance_pt',
 ]
 
 
@@ -204,7 +204,7 @@ class Category_Cuts_Preselection(Category):
     common_cuts = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
         #& MET <= no MET cut in cut-based preselection
-        & Cut('mass_mmc_tau1_tau2 > 0')
+        & Cut('mmc0_mass > 0')
         & Cut('0.8 < dR_tau1_tau2 < 2.8')
         & TAU_DETA_CUT
         & TAU_SAME_VERTEX
@@ -219,7 +219,7 @@ class Category_Cuts_Preselection_DEta_Control(Category):
     common_cuts = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
         #& MET <= no MET cut in cut-based preselection
-        & Cut('mass_mmc_tau1_tau2 > 0')
+        & Cut('mmc0_mass > 0')
         & Cut('0.8 < dR_tau1_tau2 < 2.8')
         & TAU_DETA_CUT_CONTROL
         & TAU_SAME_VERTEX
@@ -302,6 +302,8 @@ class Category_VBF(Category):
     # train with only VBF
     signal_train_modes = ['VBF']
     halfblind_bins = 3
+
+    norm_category = Category_Preselection
 
 
 class Category_VBF_ID_Control(Category_VBF):

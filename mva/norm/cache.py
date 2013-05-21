@@ -25,8 +25,8 @@ def print_scales():
                         log.info("embedding: %s" % str(embedding))
                         log.info("QCD shape region: %s" % shape_region)
                         log.info("fits were derived via %s parameters" % param)
-                        log.info("    qcd scale: %.3f +/- %.4f" % (qcd_scale,
-                            qcd_scale_error))
+                        log.info("    qcd scale: %.3f +/- %.4f" %
+                            (qcd_scale, qcd_scale_error))
                         log.info("    ztautau scale: %.3f +/- %.4f" %
                             (ztautau_scale, ztautau_scale_error))
 

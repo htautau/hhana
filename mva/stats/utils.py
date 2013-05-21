@@ -2,6 +2,7 @@ from . import log; log = log[__name__]
 
 import numpy as np
 from rootpy.plotting import Hist
+from math import sqrt
 
 
 def get_safe_template(binning, bins, bkg_scores, sig_scores):
@@ -198,6 +199,9 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
 def kylefix(hist):
     """
 
+    Return a clone of the input histogram where the empty bins have been filled
+    with the average weight and the errors of these bins set to sqrt(<w^2>)
+
 
                                             ..
                                   ..'..,c::;;,.. . .,... .
@@ -254,63 +258,26 @@ def kylefix(hist):
     :;,:,';o:c;';oxxdcoclc:,,;';xlo.        ....... .,;c'::,l.'coc.oodooolllo:l
     ::::..o;:c;:cdxdoooolc;c;',cloO.    . ...;,.'''.  .,o':o ';;:o;ooclololc:k,
     """
-    """
-    double sumW2TotBin_Z=0, avWeightBin_Z=0, avW2Bin_Z=0;
-    double sumW2TotBin_QCD=0, avWeightBin_QCD=0, avW2Bin_QCD=0;
-    double sumW2TotBin_EW=0, avWeightBin_EW=0, avW2Bin_EW=0;
-    double sumW2TotBin_H=0, avWeightBin_H=0, avW2Bin_H=0;
+    fixed_hist = hist.Clone()
 
-    for(int j=1; j<=hmap_Sig[800001]->GetNbinsX(); ++j){
-        sumW2TotBin_Z   += pow( hmap_Sig[800001]->GetBinError(j) , 2); // DON't forget to square!
-        sumW2TotBin_QCD += pow( hist_QCD        ->GetBinError(j) , 2);
-        sumW2TotBin_EW  += pow( hmap_Sig[800005]->GetBinError(j) , 2);
-        sumW2TotBin_H   += pow( hmap_Sig[800000]->GetBinError(j) , 2);
-    }
-    avWeightBin_Z += hmap_Sig[800001]->GetSumOfWeights() / hmap_Sig[800001]->GetEntries();
-    avW2Bin_Z = sumW2TotBin_Z/hmap_Sig[800001]->GetEntries();
+    sumW2TotBin = 0
+    avWeightBin = 0
+    avW2Bin = 0
 
-    avWeightBin_QCD += hist_QCD->GetSumOfWeights() / hist_QCD->GetEntries();
-    avW2Bin_QCD = sumW2TotBin_QCD/hist_QCD->GetEntries();
+    for yerr in hist.yerrh():
+        # DON't forget to square!
+        sumW2TotBin_Z += yerr**2
 
-    avWeightBin_EW += hmap_Sig[800005]->GetSumOfWeights() / hmap_Sig[800005]->GetEntries();
-    avW2Bin_EW = sumW2TotBin_EW/hmap_Sig[800005]->GetEntries();
-
-    avWeightBin_H += hmap_Sig[800000]->GetSumOfWeights() / hmap_Sig[800000]->GetEntries();
-    avW2Bin_H = sumW2TotBin_H/hmap_Sig[800000]->GetEntries();
-
-    double Z = 999.; double Q = 999.; double EW = 999.;  double H = 999.;
+    avWeightBin_Z += hist.GetSumOfWeights() / hist.GetEntries()
+    avW2Bin_Z = sumW2TotBin_Z / hist.GetEntries()
 
     # now fill empty bins with
     # binContent = avWeight     [or avWeightbin]
     # binError = sqrt(avW2)     [or sqrt(avW2Bin)]
 
-    for(int j=1; j<=hmap_Sig[800001]->GetNbinsX(); ++j){
-        Z =  hmap_Sig[800001]->GetBinContent(j);
-        if( Z  < 1e-6 )  {
-            cout<<"empty Z: "<<hmap_Sig[800001]->GetBinCenter(j)<<endl;
-            hmap_Sig[800001]->SetBinContent(j,avWeightBin_Z);
-            hmap_Sig[800001]->SetBinError(j,sqrt(avW2Bin_Z));
-        }
-        Q =  hist_QCD->GetBinContent(j);
-        if( Q  < 1e-6 )  {
-            hist_QCD->SetBinContent(j,avWeightBin_QCD);
-            hist_QCD->SetBinError(j,sqrt(avW2Bin_QCD));
-        }
-        EW =  hmap_Sig[800005]->GetBinContent(j);
-        if( EW  < 1e-6 )  {
-            hmap_Sig[800005]->SetBinContent(j,avWeightBin_EW);
-            hmap_Sig[800005]->SetBinError(j,sqrt(avW2Bin_EW));
-        }
-        H =  hmap_Sig[800000]->GetBinContent(j);
-        if( H  < 1e-6 )  {
-            hmap_Sig[800000]->SetBinContent(j,avWeightBin_H);
-            hmap_Sig[800000]->SetBinError(j,sqrt(avW2Bin_H));
-        }
-
-    }
-
-    hist_BKG_empty_bin_fix->Add( hist_QCD, 1.0); ///qcd
-    hist_BKG_empty_bin_fix->Add( hmap_Sig[800005], 1.0);///ew
-    hist_BKG_empty_bin_fix->Add( hmap_Sig[800001], 1.0); ///Z
-    """
-    return hist
+    for i in xrange(hist):
+        if hist[i] < 1E-6:
+            log.warning("filling empty bin %d in %s" % (i, hist.GetName()))
+            fixed_hist[i] = avWeightBin_Z
+            fixed_hist.SetBinError(j + 1, sqrt(avW2Bin_Z))
+    return fixed_hist

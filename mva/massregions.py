@@ -16,12 +16,12 @@ class MassRegions(object):
             low_cutoff=None):
 
         # control region is low and high mass sidebands
-        self.__control_region = Cut('mass_mmc_tau1_tau2 < %d' % low)
+        self.__control_region = Cut('mmc0_mass < %d' % low)
         if low_cutoff is not None:
-            self.__control_region &= Cut('mass_mmc_tau1_tau2 > %d' % low_cutoff)
+            self.__control_region &= Cut('mmc0_mass > %d' % low_cutoff)
         if high_sideband_in_control:
             assert high > low
-            self.__control_region |= Cut('mass_mmc_tau1_tau2 > %d' % high)
+            self.__control_region |= Cut('mmc0_mass > %d' % high)
 
         if mass_window_signal_region:
             # signal region is the negation of the control region

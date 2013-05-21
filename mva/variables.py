@@ -67,7 +67,7 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
-    'mmc_resonance_pt': {
+    'mmc0_resonance_pt': {
         'title': r'MMC Resonance $p_T$',
         'root': 'MMC Resonance p_T',
         'filename': 'mmc_resonance_pt',
@@ -181,7 +181,7 @@ VARIABLES = {
         'units': 'GeV',
         'blind': (70, 110),
     },
-    'mass_mmc_tau1_tau2': {
+    'mmc0_mass': {
         'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
         'root': 'M^{MMC}_{#tau_{1}, #tau_{2}}',
         'filename': 'mass_MMC',
@@ -368,7 +368,7 @@ VARIABLES = {
         'title': r'$\Delta R_{\tau_{1},\/\tau_{2}}$',
         'root': '#Delta R_{#tau_{1}, #tau_{2}}',
         'filename': 'dr_tau1_tau2',
-        'bins': 20,
+        'bins': 10,
         'range': (0., 4.),
     },
     'dPhi_tau1_tau2': {
@@ -382,7 +382,7 @@ VARIABLES = {
         'title': r'$\Delta \eta_{\tau_{1},\/\tau_{2}}$',
         'root': '#Delta#eta_{#tau_{1}, #tau_{2}}',
         'filename': 'deta_tau1_tau2',
-        'bins': 20,
+        'bins': 10,
         'range': (0., 2.),
     },
     'tau1_charge': {
@@ -400,6 +400,13 @@ VARIABLES = {
         'bins': 5,
         'range': (-2.5, 2.5),
         'integer': True,
+    },
+    'tau1_seedCalo_centFrac': {
+        'title': r'$\tau_1$ Centrality Fraction',
+        'root': '#tau_1 Centrality Fraction',
+        'filename': 'tau1_centfrac',
+        'bins': 20,
+        'range': (0, 1),
     },
     'tau_centrality_product': {
         'title': r'$\tau$ Centrality Product',
