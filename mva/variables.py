@@ -1,4 +1,5 @@
 import math
+from . import MMC_VERSION
 
 WEIGHTS = {
     'pileup_weight': {
@@ -67,10 +68,10 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
-    'mmc0_resonance_pt': {
+    'mmc%d_resonance_pt' % MMC_VERSION: {
         'title': r'MMC Resonance $p_T$',
         'root': 'MMC Resonance p_T',
-        'filename': 'mmc_resonance_pt',
+        'filename': 'mmc%d_resonance_pt' % MMC_VERSION,
         'bins': 20,
         'range': (0, 200),
         'units': 'GeV',
@@ -101,15 +102,15 @@ VARIABLES = {
         'scale': 1./1000,
         'units': 'GeV',
     },
-    'MET_y': {
-        'title': r'$E^{miss}_{T_{y}}$',
-        'root': 'E^{miss}_{T_{y}}',
-        'filename': 'MET_y',
-        'bins': 20,
-        'range': (-75, 75),
-        'scale': 1./1000,
-        'units': 'GeV',
-    },
+    #'MET_y': {
+    #    'title': r'$E^{miss}_{T_{y}}$',
+    #    'root': 'E^{miss}_{T_{y}}',
+    #    'filename': 'MET_y',
+    #    'bins': 20,
+    #    'range': (-75, 75),
+    #    'scale': 1./1000,
+    #    'units': 'GeV',
+    #},
     'MET_phi': {
         'title': r'$E^{miss}_{T} \phi$',
         'root': 'E^{miss}_{T} #phi',
@@ -117,37 +118,30 @@ VARIABLES = {
         'bins': 20,
         'range': (-math.pi, math.pi),
     },
-    'MET_mmc': {
+    'mmc%d_MET' % MMC_VERSION: {
         'title': r'$E^{miss}_{T}$ MMC',
         'root': 'E^{miss}_{T} MMC',
-        'filename': 'MET_mmc',
+        'filename': 'mmc%d_MET' % MMC_VERSION,
         'bins': 20,
         'range': (0, 100),
         'units': 'GeV',
     },
-    'MET_mmc_x': {
+    'mmc%d_MET_x' % MMC_VERSION: {
         'title': r'$E^{miss}_{T_{x}}$ MMC',
         'root': 'E^{miss}_{T_{x}} MMC',
-        'filename': 'MET_mmc_x',
+        'filename': 'mmc%d_MET_x' % MMC_VERSION,
         'bins': 20,
         'range': (-75, 75),
         'units': 'GeV',
     },
-    'MET_mmc_y': {
+    'mmc%d_MET_y' % MMC_VERSION: {
         'title': r'$E^{miss}_{T_{y}}$ MMC',
         'root': 'E^{miss}_{T_{y}} MMC',
-        'filename': 'MET_mmc_y',
+        'filename': 'mmc%d_MET_y' % MMC_VERSION,
         'bins': 20,
         'range': (-75, 75),
         'units': 'GeV',
     },
-    #'MET_mmc_vec.Phi()': {
-    #    'title': r'$E^{miss}_{T} \phi$ MMC',
-    #    'root': 'E^{miss}_{T} #\phi MMC',
-    #    'filename': 'MET_mmc_phi',
-    #    'bins': 20,
-    #    'range': (-math.pi, math.pi),
-    #},
     'sphericity': {
         'title': r'sphericity',
         'root': 'sphericity',
@@ -181,10 +175,10 @@ VARIABLES = {
         'units': 'GeV',
         'blind': (70, 110),
     },
-    'mmc0_mass': {
+    'mmc%d_mass' % MMC_VERSION: {
         'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
         'root': 'M^{MMC}_{#tau_{1}, #tau_{2}}',
-        'filename': 'mass_MMC',
+        'filename': 'mmc%d_mass' % MMC_VERSION,
         'bins': 33,
         'range': (-8, 256),
         'units': 'GeV',

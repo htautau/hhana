@@ -23,7 +23,7 @@ from rootpy.math.stats.correlation import correlation_plot
 from rootpy.io import root_open
 
 from .variables import VARIABLES
-from . import PLOTS_DIR
+from . import PLOTS_DIR, MMC_MASS
 from .systematics import iter_systematics
 
 
@@ -407,7 +407,7 @@ def draw_2d_hist(classifier,
                  signals=None,
                  data=None,
                  cuts=None,
-                 y='mass_mmc_tau1_tau2',
+                 y=MMC_MASS,
                  output_suffix=''):
 
     fields = [y]

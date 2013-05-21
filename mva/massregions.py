@@ -1,4 +1,5 @@
 from rootpy.tree import Cut
+from . import MMC_MASS
 from . import log; log = log[__name__]
 
 
@@ -16,12 +17,12 @@ class MassRegions(object):
             low_cutoff=None):
 
         # control region is low and high mass sidebands
-        self.__control_region = Cut('mmc0_mass < %d' % low)
+        self.__control_region = Cut('%s < %d' % (MMC_MASS, low))
         if low_cutoff is not None:
-            self.__control_region &= Cut('mmc0_mass > %d' % low_cutoff)
+            self.__control_region &= Cut('%s > %d' % (MMC_MASS, low_cutoff))
         if high_sideband_in_control:
             assert high > low
-            self.__control_region |= Cut('mmc0_mass > %d' % high)
+            self.__control_region |= Cut('%s > %d' % (MMC_MASS, high))
 
         if mass_window_signal_region:
             # signal region is the negation of the control region

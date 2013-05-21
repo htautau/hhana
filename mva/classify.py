@@ -22,6 +22,7 @@ from rootpy.extern.tabulartext import PrettyTable
 from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
+from . import MMC_MASS, MMC_PT
 from .systematics import SYSTEMATICS
 from .plotting import (draw, plot_clf, plot_grid_scores, hist_scores,
     draw_samples_array)
@@ -93,8 +94,8 @@ class ClassificationProblem(object):
 
     # minimal list of spectators
     SPECTATORS = [
-        'mmc_resonance_pt',
-        'mass_mmc_tau1_tau2',
+        MMC_PT,
+        MMC_MASS,
     ]
 
     def __init__(self,
@@ -629,7 +630,7 @@ class ClassificationProblem(object):
 
         draw_samples_array(
             variables.VARIABLES,
-            plots=['mass_mmc_tau1_tau2'],
+            plots=[MMC_MASS],
             data=analysis.data,
             model=analysis.backgrounds,
             signal=[analysis.higgs_125],

@@ -1,5 +1,6 @@
 from rootpy.tree import Cut
 import math
+from . import MMC_MASS, MMC_PT
 
 # All basic cut definitions
 
@@ -19,7 +20,7 @@ ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 # ID cuts for control region where both taus are medium but not tight
 ID_MEDIUM_NOT_TIGHT = (TAU1_MEDIUM & -TAU1_TIGHT) & (TAU2_MEDIUM & -TAU2_TIGHT)
 
-Z_PEAK = Cut('60 < mmc0_mass < 120')
+Z_PEAK = Cut('60 < %s < 120' % MMC_MASS)
 ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
         (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
         (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
@@ -29,7 +30,7 @@ TAU_DETA_CUT = Cut('dEta_tau1_tau2 < 1.5')
 TAU_DETA_CUT_CONTROL = Cut('dEta_tau1_tau2 >= 1.5')
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
 BAD_MASS = 60
-MASS_FIX = Cut('mmc0_mass > %d' % BAD_MASS)
+MASS_FIX = Cut('%s > %d' % (MMC_MASS, BAD_MASS))
 MAX_NJET = Cut('numJets <= 3')
 MET = Cut('MET > 20000')
 
@@ -45,14 +46,14 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 CUTS_VBF = Cut('dEta_jets > 2.0')
-CUTS_BOOSTED = Cut('mmc0_resonance_pt > 100') # GeV
+CUTS_BOOSTED = Cut('%s > 100' % MMC_PT) # GeV
 
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
 
 features_2j = [
-    'mmc0_mass',
+    MMC_MASS,
     # !!! mass ditau + leading jet?
     'dEta_jets',
     #'dEta_jets_boosted', #
@@ -72,12 +73,12 @@ features_2j = [
     'MET_centrality',
     'vector_sum_pt',
     #'sum_pt_full', #
-    #'mmc0_resonance_pt',
+    #MMC_PT,
     # !!! eta centrality of 3rd jet
 ]
 
 features_boosted = [
-    'mmc0_mass',
+    MMC_MASS,
     # !!! mass ditau + leading jet?
     #'dEta_jets',
     #'dEta_jets_boosted', #
@@ -97,14 +98,14 @@ features_boosted = [
     'tau1_x', #  <= ADD BACK IN
     'tau2_x', #  <= ADD BACK IN
     'MET_centrality',
-    #'mmc0_resonance_pt',
+    #MMC_PT,
     'sum_pt_full',
     'tau_pt_ratio',
     # !!! eta centrality of 3rd jet
 ]
 
 features_1j = [
-    'mmc0_mass',
+    MMC_MASS,
     # !!! mass ditau + leading jet?
     #'sphericity',
     #'aplanarity',
@@ -117,11 +118,11 @@ features_1j = [
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
-    #'mmc0_resonance_pt',
+    #MMC_PT,
 ]
 
 features_0j = [
-    'mmc0_mass',
+    MMC_MASS,
     #'cos_theta_tau1_tau2',
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
@@ -131,7 +132,7 @@ features_0j = [
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
-    #'mmc0_resonance_pt',
+    #MMC_PT,
 ]
 
 
@@ -204,7 +205,7 @@ class Category_Cuts_Preselection(Category):
     common_cuts = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
         #& MET <= no MET cut in cut-based preselection
-        & Cut('mmc0_mass > 0')
+        & Cut('%s > 0' % MMC_MASS)
         & Cut('0.8 < dR_tau1_tau2 < 2.8')
         & TAU_DETA_CUT
         & TAU_SAME_VERTEX
@@ -219,7 +220,7 @@ class Category_Cuts_Preselection_DEta_Control(Category):
     common_cuts = (
         LEAD_TAU_35 & SUBLEAD_TAU_25
         #& MET <= no MET cut in cut-based preselection
-        & Cut('mmc0_mass > 0')
+        & Cut('%s > 0' % MMC_MASS)
         & Cut('0.8 < dR_tau1_tau2 < 2.8')
         & TAU_DETA_CUT_CONTROL
         & TAU_SAME_VERTEX
