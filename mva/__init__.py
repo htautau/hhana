@@ -4,20 +4,15 @@ import sys
 LIMITS_DIR = os.getenv('HIGGSTAUTAU_LIMITS_DIR')
 if not LIMITS_DIR:
     sys.exit('You did not source setup.sh!')
-LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
-
-NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
-DEFAULT_STUDENT = 'HHProcessor'
-
-BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
-CACHE_DIR = os.path.join(BASE_DIR, 'cache')
-
-if not os.path.exists(CACHE_DIR):
-    os.mkdir(CACHE_DIR)
 
 import ROOT
 import rootpy
 import logging
+
+LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
+
+NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
+DEFAULT_STUDENT = 'HHProcessor'
 
 ROOT.gROOT.SetBatch(True)
 rootpy.log.basic_config_colorized()
@@ -29,7 +24,18 @@ if not os.environ.get("DEBUG", False):
 if hasattr(logging, 'captureWarnings'):
     logging.captureWarnings(True)
 
+BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
+CACHE_DIR = os.path.join(BASE_DIR, 'cache')
+
+if not os.path.exists(CACHE_DIR):
+    log.info("creating directory %s" % CACHE_DIR)
+    os.mkdir(CACHE_DIR)
+
 PLOTS_DIR = os.path.join(BASE_DIR, 'plots')
+
+if not os.path.exists(PLOTS_DIR):
+    log.info("creating directory %s" % PLOTS_DIR)
+    os.mkdir(PLOTS_DIR)
 
 from .utils import mkdir_p
 
