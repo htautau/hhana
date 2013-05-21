@@ -9,30 +9,13 @@ TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
 TAU1_TIGHT = Cut('tau1_JetBDTSigTight==1')
 TAU2_TIGHT = Cut('tau2_JetBDTSigTight==1')
 
-TAU1_CENTRAL = Cut('fabs(tau1_eta) < 1.5')
-TAU1_FORWARD = Cut('fabs(tau1_eta) > 1.5')
-TAU2_CENTRAL = Cut('fabs(tau2_eta) < 1.5')
-TAU2_FORWARD = Cut('fabs(tau2_eta) > 1.5')
-
 ID_MEDIUM = TAU1_MEDIUM & TAU2_MEDIUM
 ID_TIGHT = TAU1_TIGHT & TAU2_TIGHT
 ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 # ID cuts for control region where both taus are medium but not tight
 ID_MEDIUM_NOT_TIGHT = (TAU1_MEDIUM & -TAU1_TIGHT) & (TAU2_MEDIUM & -TAU2_TIGHT)
 
-Z_PEAK = Cut('60 < %s < 120' % MMC_MASS)
-ID_MEDIUM_FORWARD_TIGHT_CENTRAL = (
-        (TAU1_MEDIUM & TAU1_FORWARD & TAU2_TIGHT & TAU2_CENTRAL) |
-        (TAU1_TIGHT & TAU1_CENTRAL & TAU2_MEDIUM & TAU2_FORWARD))
-
-TAU_DR_CUT = Cut('0.8 < dR_tau1_tau2 < 3.2')
-TAU_DETA_CUT = Cut('dEta_tau1_tau2 < 1.5')
-TAU_DETA_CUT_CONTROL = Cut('dEta_tau1_tau2 >= 1.5')
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
-BAD_MASS = 60
-MASS_FIX = Cut('%s > %d' % (MMC_MASS, BAD_MASS))
-MAX_NJET = Cut('numJets <= 3')
-MET = Cut('MET > 20000')
 
 LEAD_TAU_35 = Cut('tau1_pt > 35000')
 SUBLEAD_TAU_25 = Cut('tau2_pt > 25000')
@@ -48,6 +31,24 @@ CUTS_0J = (- LEAD_JET_50)
 CUTS_VBF = Cut('dEta_jets > 2.0')
 CUTS_BOOSTED = Cut('%s > 100' % MMC_PT) # GeV
 
+BAD_MASS = 60
+
+COMMON_CUTS_CUTBASED = (
+    LEAD_TAU_35 & SUBLEAD_TAU_25
+    #& MET <= no MET cut in cut-based preselection
+    & Cut('%s > 0' % MMC_MASS)
+    & Cut('0.8 < dR_tau1_tau2 < 2.8')
+    & TAU_SAME_VERTEX
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
+    )
+
+COMMON_CUTS_MVA = (
+    LEAD_TAU_35 & SUBLEAD_TAU_25
+    & Cut('MET > 20000')
+    & Cut('%s > %d' % (MMC_MASS, BAD_MASS))
+    & Cut('0.8 < dR_tau1_tau2 < 3.2')
+    & TAU_SAME_VERTEX
+    )
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
@@ -136,24 +137,6 @@ features_0j = [
 ]
 
 
-COMMON_CUTS = (
-    LEAD_TAU_35 & SUBLEAD_TAU_25
-    & MET
-    & MASS_FIX
-    & TAU_DR_CUT
-    & TAU_DETA_CUT
-    & TAU_SAME_VERTEX
-    )
-
-CONTROL_CUTS_DETA = (
-    LEAD_TAU_35 & SUBLEAD_TAU_25
-    & MET
-    & MASS_FIX
-    & TAU_DR_CUT
-    & TAU_DETA_CUT_CONTROL
-    & TAU_SAME_VERTEX
-    )
-
 
 class CategoryMeta(type):
     """
@@ -178,13 +161,10 @@ class Category(object):
     is_control = False
     # category used for normalization
     norm_category = None
-    year_cuts = {
-        2011: ID_MEDIUM,
-        2012: ID_MEDIUM_TIGHT}
     qcd_shape_region = 'nOS' # no track cut
     target_region = 'OS_TRK'
     cuts = Cut()
-    common_cuts = COMMON_CUTS
+    common_cuts = Cut()
     from . import samples
     train_signal_modes = samples.Higgs.MODES[:]
     clf_bins = 10
@@ -192,8 +172,20 @@ class Category(object):
     halfblind_bins = 0
 
     @classmethod
-    def get_cuts(cls, year):
-        return cls.cuts & cls.common_cuts & cls.year_cuts[year]
+    def get_cuts(cls, year, deta_cut=True):
+        cuts = cls.cuts & cls.common_cuts
+        if hasattr(cls, 'year_cuts') and year in cls.year_cuts:
+            cuts &= cls.year_cuts[year]
+        if 'DEta_Control' in cls.__name__:
+            cuts &= Cut('dEta_tau1_tau2 >= 1.5')
+        elif deta_cut:
+            cuts &= Cut('dEta_tau1_tau2 < 1.5')
+        # TODO
+        #if 'ID_Control' in cls.__name__ or 'FF' in region:
+        #    cuts &= TAUS_FAIL
+        #else:
+        #    cuts &= TAUS_PASS
+        return cuts
 
 
 # Cut-based categories
@@ -202,30 +194,13 @@ class Category_Cuts_Preselection(Category):
 
     name = 'cut_preselection'
     label = r'$\tau_{had}\tau_{had}$: At Cut-based Preselection'
-    common_cuts = (
-        LEAD_TAU_35 & SUBLEAD_TAU_25
-        #& MET <= no MET cut in cut-based preselection
-        & Cut('%s > 0' % MMC_MASS)
-        & Cut('0.8 < dR_tau1_tau2 < 2.8')
-        & TAU_DETA_CUT
-        & TAU_SAME_VERTEX
-        & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
-        )
+    common_cuts = COMMON_CUTS_CUTBASED
 
 
-class Category_Cuts_Preselection_DEta_Control(Category):
+class Category_Cuts_Preselection_DEta_Control(Category_Cuts_Preselection):
 
     name = 'cut_preselection_deta_control'
     label = r'$\tau_{had}\tau_{had}$: $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Cut-based Preselection'
-    common_cuts = (
-        LEAD_TAU_35 & SUBLEAD_TAU_25
-        #& MET <= no MET cut in cut-based preselection
-        & Cut('%s > 0' % MMC_MASS)
-        & Cut('0.8 < dR_tau1_tau2 < 2.8')
-        & TAU_DETA_CUT_CONTROL
-        & TAU_SAME_VERTEX
-        & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
-        )
 
 
 # MVA preselection categories
@@ -234,29 +209,26 @@ class Category_Preselection(Category):
 
     name = 'preselection'
     label = r'$\tau_{had}\tau_{had}$: At Preselection'
+    common_cuts = COMMON_CUTS_MVA
 
 
-class Category_Preselection_ID_Control(Category):
+class Category_Preselection_ID_Control(Category_Preselection):
 
     is_control = True
     name = 'preselection_id_control'
     label = r'$\tau_{had}\tau_{had}$: ID Control Region at Preselection'
-    year_cuts = {
-        2011: ID_MEDIUM_NOT_TIGHT,
-        2012: ID_MEDIUM_NOT_TIGHT}
 
 
-class Category_Preselection_DEta_Control(Category):
+class Category_Preselection_DEta_Control(Category_Preselection):
 
     is_control = True
     name = 'preselection_deta_control'
     label = r'$\tau_{had}\tau_{had}$: $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Preselection'
-    common_cuts = CONTROL_CUTS_DETA
 
 
 # Default categories
 
-class Category_2J(Category):
+class Category_2J(Category_Preselection):
 
     name = '2j'
     label = r'$\tau_{had}\tau_{had}$: 2-Jet Category'
@@ -267,7 +239,7 @@ class Category_2J(Category):
     features = features_2j
 
 
-class Category_1J(Category):
+class Category_1J(Category_Preselection):
 
     name = '1j'
     label = r'$\tau_{had}\tau_{had}$: 1-Jet Category'
@@ -278,7 +250,7 @@ class Category_1J(Category):
     features = features_1j
 
 
-class Category_0J(Category):
+class Category_0J(Category_Preselection):
 
     name = '0j'
     label = r'$\tau_{had}\tau_{had}$: 0-Jet Category'
@@ -291,7 +263,7 @@ class Category_0J(Category):
 
 # Harmonization
 
-class Category_VBF(Category):
+class Category_VBF(Category_Preselection):
 
     name = 'vbf'
     label = r'$\tau_{had}\tau_{had}$: VBF Category'
@@ -312,9 +284,6 @@ class Category_VBF_ID_Control(Category_VBF):
     is_control = True
     name = 'vbf_id_control'
     label = r'$\tau_{had}\tau_{had}$: VBF Category ID Control Region'
-    year_cuts = {
-        2011: ID_MEDIUM_NOT_TIGHT,
-        2012: ID_MEDIUM_NOT_TIGHT}
 
 
 class Category_VBF_DEta_Control(Category_VBF):
@@ -322,11 +291,9 @@ class Category_VBF_DEta_Control(Category_VBF):
     is_control = True
     name = 'vbf_deta_control'
     label = r'$\tau_{had}\tau_{had}$: VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    common_cuts = CONTROL_CUTS_DETA
 
 
-
-class Category_Boosted(Category):
+class Category_Boosted(Category_Preselection):
 
     name = 'boosted'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category'
@@ -356,11 +323,10 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     is_control = True
     name = 'boosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    common_cuts = CONTROL_CUTS_DETA
 
 
 
-class Category_Nonboosted_1J(Category):
+class Category_Nonboosted_1J(Category_Preselection):
 
     name = '1j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
@@ -379,9 +345,6 @@ class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
     is_control = True
     name = '1j_nonboosted_id_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category ID Control Region'
-    year_cuts = {
-        2011: ID_MEDIUM_NOT_TIGHT,
-        2012: ID_MEDIUM_NOT_TIGHT}
 
 
 class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
@@ -389,10 +352,9 @@ class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
     is_control = True
     name = '1j_nonboosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    common_cuts = CONTROL_CUTS_DETA
 
 
-class Category_Nonboosted_0J(Category):
+class Category_Nonboosted_0J(Category_Preselection):
 
     name = '0j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
@@ -411,9 +373,6 @@ class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
     is_control = True
     name = '0j_nonboosted_id_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category ID Control Region'
-    year_cuts = {
-        2011: ID_MEDIUM_NOT_TIGHT,
-        2012: ID_MEDIUM_NOT_TIGHT}
 
 
 class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
@@ -421,7 +380,6 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
     is_control = True
     name = '0j_nonboosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    common_cuts = CONTROL_CUTS_DETA
 
 
 CATEGORIES = {

@@ -327,7 +327,7 @@ class Sample(object):
                     term = ('%s_%s' % (type, variation),)
                     yield self.get_weight_branches(term), term
 
-    def cuts(self, category, region, systematic='NOMINAL'):
+    def cuts(self, category, region, systematic='NOMINAL', **kwargs):
 
         sys_cut = Cut()
         if isinstance(self, Embedded_Ztautau):
@@ -337,7 +337,7 @@ class Sample(object):
                     sys_cut &= variations[variation]
                 else:
                     sys_cut &= variations['NOMINAL']
-        return (category.get_cuts(self.year) &
+        return (category.get_cuts(self.year, **kwargs) &
                 REGIONS[region] & self._cuts & sys_cut)
 
     def draw(self, expr, category, region, bins, min, max,
