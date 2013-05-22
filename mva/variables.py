@@ -362,7 +362,7 @@ VARIABLES = {
         'title': r'$\Delta R_{\tau_{1},\/\tau_{2}}$',
         'root': '#Delta R_{#tau_{1}, #tau_{2}}',
         'filename': 'dr_tau1_tau2',
-        'bins': 10,
+        'bins': 20,
         'range': (0., 4.),
     },
     'dPhi_tau1_tau2': {

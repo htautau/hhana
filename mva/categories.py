@@ -276,7 +276,7 @@ class Category_VBF(Category_Preselection):
     signal_train_modes = ['VBF']
     halfblind_bins = 3
 
-    norm_category = Category_Preselection
+    #norm_category = Category_Preselection
 
 
 class Category_VBF_ID_Control(Category_VBF):
