@@ -747,7 +747,8 @@ def draw_samples_array(
                 category, region, cuts,
                 weighted=weighted,
                 field_scale=field_scale,
-                weight_hist=weight_hist, weight_clf=weight_clf)
+                weight_hist=weight_hist,
+                weight_clf=weight_clf)
         model_hists.append(field_hist)
 
     if signal is not None:
@@ -758,7 +759,8 @@ def draw_samples_array(
                     category, region, cuts,
                     weighted=weighted,
                     field_scale=field_scale,
-                    weight_hist=weight_hist, weight_clf=weight_clf)
+                    weight_hist=weight_hist,
+                    weight_clf=weight_clf)
             signal_hists.append(field_hist)
     else:
         signal_hists = None
@@ -766,9 +768,10 @@ def draw_samples_array(
     if data is not None:
         data_field_hist = get_field_hist(data, vars)
         data.draw_array(data_field_hist, category, region, cuts,
-                       weighted=weighted,
-                       field_scale=field_scale,
-                       weight_hist=weight_hist, weight_clf=weight_clf)
+                weighted=weighted,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                weight_clf=weight_clf)
         """
         log.info("Data events: %d" % sum(data_hist))
         log.info("Model events: %f" % sum(sum(model_hists)))

@@ -258,26 +258,20 @@ def kylefix(hist):
     :;,:,';o:c;';oxxdcoclc:,,;';xlo.        ....... .,;c'::,l.'coc.oodooolllo:l
     ::::..o;:c;:cdxdoooolc;c;',cloO.    . ...;,.'''.  .,o':o ';;:o;ooclololc:k,
     """
-    fixed_hist = hist.Clone()
+    fixed_hist = hist.Clone(name=hist.name + '_kylefix')
 
-    sumW2TotBin = 0
-    avWeightBin = 0
-    avW2Bin = 0
-
-    for yerr in hist.yerrh():
-        # DON't forget to square!
-        sumW2TotBin_Z += yerr**2
-
-    avWeightBin_Z += hist.GetSumOfWeights() / hist.GetEntries()
-    avW2Bin_Z = sumW2TotBin_Z / hist.GetEntries()
+    sumW2TotBin = sum([yerr**2 for yerr in hist.yerrh()])
+    avWeightBin = hist.GetSumOfWeights() / hist.GetEntries()
+    avW2Bin = sumW2TotBin / hist.GetEntries()
 
     # now fill empty bins with
     # binContent = avWeight     [or avWeightbin]
     # binError = sqrt(avW2)     [or sqrt(avW2Bin)]
 
-    for i in xrange(hist):
-        if hist[i] < 1E-6:
-            log.warning("filling empty bin %d in %s" % (i, hist.GetName()))
-            fixed_hist[i] = avWeightBin_Z
-            fixed_hist.SetBinError(j + 1, sqrt(avW2Bin_Z))
+    for i in xrange(len(fixed_hist)):
+        if fixed_hist[i] < 1E-6:
+            log.warning("filling empty bin %d in %s" % (i, hist.name))
+            fixed_hist[i] = avWeightBin
+            fixed_hist.SetBinError(j + 1, sqrt(avW2Bin))
+
     return fixed_hist

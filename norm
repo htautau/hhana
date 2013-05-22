@@ -81,10 +81,11 @@ xtick_formatter = FuncFormatter(xtick_track_func)
 xtick_rotation = 90
 param = 'TRACK'
 
-mass_regions = MassRegions(low_cutoff=60, low=100, high=180,
-                           high_sideband_in_control=False)
-control_region = Cut('mmc0_mass < 110')
+control_region = Cut('70 < mmc0_mass < 100')
+#mass_regions = MassRegions(low_cutoff=60, low=100, high=180,
+#                           high_sideband_in_control=False)
 #control_region = mass_regions.control_region
+#control_region = None
 
 fit_region = 'SS'
 fit_region_alias = 'SS_TRK'

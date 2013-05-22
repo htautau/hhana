@@ -53,7 +53,7 @@ def general_parser(parser=None):
     parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
     parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,
-            default='SS_TRK',
+            default='nOS',
             help='QCD shape region')
     parser.add_argument('--target-region', choices=TARGET_REGIONS,
             default='OS_TRK',

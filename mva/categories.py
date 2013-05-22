@@ -210,6 +210,7 @@ class Category_Preselection(Category):
     name = 'preselection'
     label = r'$\tau_{had}\tau_{had}$: At Preselection'
     common_cuts = COMMON_CUTS_MVA
+    cuts = Cut('theta_tau1_tau2 > 0.6')
 
 
 class Category_Preselection_ID_Control(Category_Preselection):
