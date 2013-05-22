@@ -380,7 +380,7 @@ class Data(Sample):
                           self.year, self.energy, LUMI[self.year] / 1e3))
         self.name = 'Data'
 
-    def events(self, category, region, cuts=None):
+    def events(self, category, region, cuts=None, raw=False):
 
         selection = self.cuts(category, region) & cuts
         log.debug("requesting number of events from %s using cuts: %s" %
@@ -405,8 +405,15 @@ class Data(Sample):
 
         if weight_hist is not None:
             clf_scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
+            print clf_scores.shape
+            print rec['weight'].shape
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(clf_scores) - 1)
+            if weights.shape[0] < rec.shape[0]:
+                log.warning(
+                    "applying temporary hack to work around PyTables issue")
+                weights = np.concatenate((
+                    weights, np.zeros(rec.shape[0] - weights.shape[0])))
             weights = rec['weight'] * weights
         else:
             weights = rec['weight']
@@ -467,9 +474,8 @@ class Data(Sample):
         log.debug("using selection: %s" % selection)
 
         # read the table with a selection
-        rec = self.h5data.readWhere(selection.where(),
-                                    stop=len(self.h5data),
-                                    **kwargs)
+        rec = self.h5data.read_where(selection.where(), **kwargs)
+
         # add weight field
         if include_weight:
             # data is not weighted
@@ -481,6 +487,24 @@ class Data(Sample):
         if fields is not None:
             rec = rec[fields]
         return [rec]
+
+    def indices(self,
+                category,
+                region,
+                cuts=None,
+                systematic='NOMINAL',
+                **kwargs):
+
+        Sample.check_systematic(systematic)
+        selection = self.cuts(category, region) & cuts
+
+        log.info("requesting indices from Data %d" % self.year)
+        log.debug("using selection: %s" % selection)
+
+        # read the table with a selection
+        idx = self.h5data.get_where_list(selection.where(), **kwargs)
+
+        return [idx]
 
 
 class Signal:
@@ -815,6 +839,11 @@ class MC(Sample):
                     systematics=True)
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(clf_scores['NOMINAL'][0]) - 1)
+            if weights.shape[0] < rec.shape[0]:
+                log.warning(
+                    "applying temporary hack to work around PyTables issue")
+                weights = np.concatenate((
+                    weights, np.zeros(rec.shape[0] - weights.shape[0])))
             weights = rec['weight'] * weights
         else:
             weights = rec['weight']
@@ -1021,7 +1050,7 @@ class MC(Sample):
                     xs * kfact * effic / events)
 
             # read the table with a selection
-            rec = table.readWhere(table_selection, stop=len(table), **kwargs)
+            rec = table.read_where(table_selection, **kwargs)
 
             # add weight field
             if include_weight:
@@ -1046,6 +1075,49 @@ class MC(Sample):
                     raise
             recs.append(rec)
         return recs
+
+    def indices(self,
+                category,
+                region,
+                cuts=None,
+                systematic='NOMINAL',
+                **kwargs):
+
+        selection = self.cuts(category, region, systematic) & cuts
+        table_selection = selection.where()
+
+        if systematic == 'NOMINAL':
+            log.info("requesting indices from %s" %
+                     (self.__class__.__name__))
+        else:
+            log.info("requesting indices from %s for systematic %s " %
+                     (self.__class__.__name__, systematic))
+        log.debug("using selection: %s" % selection)
+
+        if systematic in SYSTEMATICS_BY_WEIGHT:
+            systematic = 'NOMINAL'
+
+        idxs = []
+        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+
+            if systematic in (('ZFIT_UP',), ('ZFIT_DOWN',),
+                              ('QCDFIT_UP',), ('QCDFIT_DOWN',)):
+                table = sys_tables['NOMINAL']
+                events = sys_events['NOMINAL']
+            else:
+                table = sys_tables[systematic]
+                events = sys_events[systematic]
+
+                if table is None:
+                    log.debug("systematics table was None, using NOMINAL")
+                    table = sys_tables['NOMINAL']
+                    events = sys_events['NOMINAL']
+
+            # read the table with a selection
+            idx = table.get_where_list(table_selection, **kwargs)
+
+            idxs.append(idx)
+        return idxs
 
     def events(self, category, region,
                cuts=None,
@@ -1543,13 +1615,26 @@ class QCD(Sample, Background):
                 partition['weight'] *= scale
         return arrays
 
+    def indices(self,
+                category,
+                region,
+                cuts=None,
+                systematic='NOMINAL',
+                **kwargs):
 
-class MC_TauID(MC):
+        idxs = self.data.indices(
+                category=category,
+                region=self.shape_region,
+                cuts=cuts,
+                systematic='NOMINAL',
+                **kwargs)
 
-    def __init__(self, **kwargs):
+        for mc in self.mc:
+            idxs.append(mc.indices(
+                    category=category,
+                    region=self.shape_region,
+                    cuts=cuts,
+                    systematic=systematic,
+                    **kwargs))
 
-        self.name = 'TauID'
-        self._label = 'TauID'
-        self.samples = ['PythiaWtaunu_incl.mc11c']
-        super(MC_TauID, self).__init__(student='TauIDProcessor',
-                db=DB_TAUID, **kwargs)
+        return idxs

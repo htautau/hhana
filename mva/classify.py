@@ -469,6 +469,8 @@ class ClassificationProblem(object):
                 cuts=cuts,
                 systematic=systematic)
 
+        print left.shape, right.shape
+
         #print left.shape
         #print right.shape
         #print left.shape[0] + right.shape[0]
