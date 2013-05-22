@@ -46,7 +46,7 @@ COMMON_CUTS_MVA = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
     & Cut('MET > 20000')
     & Cut('%s > %d' % (MMC_MASS, BAD_MASS))
-    & Cut('0.8 < dR_tau1_tau2 < 3.2')
+    & Cut('0.8 < dR_tau1_tau2 < 2.8')
     & TAU_SAME_VERTEX
     )
 

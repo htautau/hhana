@@ -50,7 +50,8 @@ xaxis_label = "Recounted Number of Tracks"
 hist_template = Hist2D(bins, min_edge, max_edge,
                        bins, min_edge, max_edge, type='D')
 
-# SS-OSff from Daniele
+# temporary SS-OSff from Daniele
+"""
 qcd_syst = hist_template.Clone()
 qcd_syst[0,0] = 1.08208
 qcd_syst[0,1] = 0.975144
@@ -68,7 +69,7 @@ qcd_syst[3,0] = 0.942919
 qcd_syst[3,1] = 0.85719
 qcd_syst[3,2] = 0.977043
 qcd_syst[3,3] = 0.92383
-
+"""
 
 def xtick_track_func(x, pos):
     # used by matplotlib to label the x axis with the (#track1, #track2) tuples 
@@ -199,13 +200,54 @@ for cat_def in args.categories:
         qcd_others_hist = hist_template.Clone()
         others.draw_into(qcd_others_hist, expr, category, fit_region,
                 cuts=control_region, systematics=False)
+    
+        qcd_hist = qcd_data_hist - qcd_tau_hist - qcd_others_hist
 
-        higgs_hist = hist_template.Clone()
-        higgs.draw_into(higgs_hist, expr, category, model_region,
+        # construct QCD shape systematic from OSFF model
+        # OSFF x (SS / SSFF)
+        qcd_osff_data_hist = hist_template.Clone()
+        data.draw_into(qcd_osff_data_hist, expr, category, 'OSFF',
+                cuts=control_region, systematics=False)
+        
+        qcd_osff_tau_hist = hist_template.Clone() 
+        ztt.draw_into(qcd_osff_tau_hist, expr, category, 'OSFF',
+                cuts=control_region, systematics=False)
+        
+        qcd_osff_others_hist = hist_template.Clone()
+        others.draw_into(qcd_osff_others_hist, expr, category, 'OSFF',
+                cuts=control_region, systematics=False)
+        
+        qcd_ssff_data_hist = hist_template.Clone()
+        data.draw_into(qcd_ssff_data_hist, expr, category, 'SSFF',
+                cuts=control_region, systematics=False)
+        
+        qcd_ssff_tau_hist = hist_template.Clone() 
+        ztt.draw_into(qcd_ssff_tau_hist, expr, category, 'SSFF',
+                cuts=control_region, systematics=False)
+        
+        qcd_ssff_others_hist = hist_template.Clone()
+        others.draw_into(qcd_ssff_others_hist, expr, category, 'SSFF',
                 cuts=control_region, systematics=False)
 
-        fitter = ROOT.TrackFit.TrackFitter(1)
+        qcd_syst = (qcd_osff_data_hist - qcd_osff_tau_hist - qcd_osff_others_hist) * (
+                qcd_hist / (
+                    qcd_ssff_data_hist - qcd_ssff_tau_hist - qcd_ssff_others_hist))
 
+        fitter = ROOT.TrackFit.TrackFitter(1)
+        fit_result = fitter.fit(
+                data_hist, tau_hist, qcd_hist, others_hist,
+                # qcd_syst, qcd_stat
+                qcd_syst, qcd_hist,
+                # tau PU low, tau PU high
+                tau_hist, tau_hist)
+        
+        qcd_scale = fit_result.sf13_QCD
+        qcd_scale_error = fit_result.sf13_QCD_err
+        
+        z_scale = fit_result.sf13_Z * scale_init
+        z_scale_error = fit_result.sf13_Z_err * scale_init
+
+        """ Iterative approach
         # QCD = C x [A x Data - B x Z - O]
 
         A = 1.
@@ -250,7 +292,8 @@ for cat_def in args.categories:
         
         z_scale = B * scale_init
         z_scale_error = B_error * scale_init
-        
+        """
+
         qcd.scale = qcd_scale
         qcd.scale_error = qcd_scale_error
         ztt.scale = z_scale

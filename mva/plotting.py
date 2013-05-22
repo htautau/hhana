@@ -1,4 +1,3 @@
-from . import log; log = log[__name__]
 import os
 import sys
 import math
@@ -25,6 +24,7 @@ from rootpy.io import root_open
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
 from .systematics import iter_systematics
+from . import log; log = log[__name__]
 
 
 def package_path(name):
@@ -713,21 +713,32 @@ def draw_samples_array(
     # filter out plots that will not be made
     used_vars = {}
     field_scale = {}
-    for expr, var_info in vars.items():
-        if (var_info.get('cats', None) is not None and
-            category.name.upper() not in var_info['cats']):
-            continue
-        elif plots and expr not in plots:
-            continue
-        used_vars[expr] = var_info
-        if 'scale' in var_info:
-            field_scale[expr] = var_info['scale']
+    if plots is not None:
+        for plot in plots:
+            if plot in vars:
+                var_info = vars[plot]
+                if (var_info.get('cats', None) is not None and
+                    category.name.upper() not in var_info['cats']):
+                    raise ValueError(
+                        "variable %s is not valid in the category %s" %
+                        (plot, category.name.upper()))
+                used_vars[plot] = var_info
+                if 'scale' in var_info:
+                    field_scale[plot] = var_info['scale']
+            else:
+                raise ValueError(
+                    "variable %s is not defined in mva/variables.py" % plot)
+    else:
+        for expr, var_info in vars.items():
+            if (var_info.get('cats', None) is not None and
+                category.name.upper() not in var_info['cats']):
+                continue
+            used_vars[expr] = var_info
+            if 'scale' in var_info:
+                field_scale[expr] = var_info['scale']
     vars = used_vars
-
-    #log.info("")
-    #log.info("plotting %s in %s category" % (expr, category.name))
-    #log.info(category.cuts & cuts)
-    #ndim = hist_template.GetDimension()
+    if not vars:
+        raise RuntimeError("no variables selected")
 
     model_hists = []
     for sample in model:
@@ -738,21 +749,6 @@ def draw_samples_array(
                 field_scale=field_scale,
                 weight_hist=weight_hist, weight_clf=weight_clf)
         model_hists.append(field_hist)
-        """
-        if ndim > 1 and ravel:
-            # ravel() the nominal and systematics histograms
-            sys_hists = getattr(hist, 'systematics', None)
-            hist = hist.ravel()
-            hist.title = sample.label
-            hist.decorate(**sample.hist_decor)
-            if sys_hists is not None:
-                hist.systematics = sys_hists
-            if hasattr(hist, 'systematics'):
-                sys_hists = {}
-                for term, _hist in hist.systematics.items():
-                    sys_hists[term] = _hist.ravel()
-                hist.systematics = sys_hists
-        """
 
     if signal is not None:
         signal_hists = []
@@ -764,21 +760,6 @@ def draw_samples_array(
                     field_scale=field_scale,
                     weight_hist=weight_hist, weight_clf=weight_clf)
             signal_hists.append(field_hist)
-            """
-            if ndim > 1 and ravel:
-                # ravel() the nominal and systematics histograms
-                sys_hists = getattr(hist, 'systematics', None)
-                hist = hist.ravel()
-                hist.title = sample.label
-                hist.decorate(**sample.hist_decor)
-                if sys_hists is not None:
-                    hist.systematics = sys_hists
-                if hasattr(hist, 'systematics'):
-                    sys_hists = {}
-                    for term, _hist in hist.systematics.items():
-                        sys_hists[term] = _hist.ravel()
-                    hist.systematics = sys_hists
-            """
     else:
         signal_hists = None
 
@@ -788,9 +769,6 @@ def draw_samples_array(
                        weighted=weighted,
                        field_scale=field_scale,
                        weight_hist=weight_hist, weight_clf=weight_clf)
-        #if ndim > 1 and ravel:
-        #    data_hist = data_hist.ravel()
-
         """
         log.info("Data events: %d" % sum(data_hist))
         log.info("Model events: %f" % sum(sum(model_hists)))
@@ -1342,10 +1320,12 @@ def draw(name,
     if root:
         filename += '_root'
     for format in output_formats:
+        output_filename = '%s.%s' % (filename, format)
+        log.info("writing %s" % output_filename)
         if root:
-            fig.SaveAs('%s.%s' % (filename, format))
+            fig.SaveAs(output_filename)
         else:
-            plt.savefig('%s.%s' % (filename, format))
+            plt.savefig(output_filename)
     if not root:
         plt.close(fig)
     else:
