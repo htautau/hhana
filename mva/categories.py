@@ -276,7 +276,7 @@ class Category_VBF(Category_Preselection):
     signal_train_modes = ['VBF']
     halfblind_bins = 3
 
-    #norm_category = Category_Preselection
+    norm_category = Category_Preselection
 
 
 class Category_VBF_ID_Control(Category_VBF):
@@ -306,6 +306,8 @@ class Category_Boosted(Category_Preselection):
     # train with all modes
 
     halfblind_bins = 2
+
+    norm_category = Category_Preselection
 
 
 class Category_Boosted_ID_Control(Category_Boosted):
@@ -339,6 +341,8 @@ class Category_Nonboosted_1J(Category_Preselection):
 
     halfblind_bins = 5
 
+    norm_category = Category_Preselection
+
 
 class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
 
@@ -366,6 +370,8 @@ class Category_Nonboosted_0J(Category_Preselection):
     # train with all modes
 
     halfblind_bins = 5
+
+    norm_category = Category_Preselection
 
 
 class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
