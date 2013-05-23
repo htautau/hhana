@@ -306,7 +306,7 @@ class Category_Boosted(Category_Preselection):
     features = features_boosted
     # train with all modes
 
-    halfblind_bins = 2
+    halfblind_bins = 4
 
     norm_category = Category_Preselection
 
