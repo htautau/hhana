@@ -276,13 +276,3 @@ if 'limits' in args.actions:
                     lumi_rel_error=lumi_rel_error)
             limit_hist.SetName("combination_%d" % mass)
             limit_hist.Write()
-
-
-# save all variable plots in one large multipage pdf
-if figures and set(args.categories) == set(CATEGORIES.keys()) and not args.plots:
-    # only create multipage pdf of all plots if we created all plots
-    for category, exprs in figures.items():
-        figs = sorted(exprs.items(), key=lambda x: x[0])
-        make_multipage_pdf([fig[1] for fig in figs],
-                name=category,
-                dir=PLOTS_DIR)

@@ -1,23 +1,28 @@
 from rootpy.plotting import Hist
-from mva.samples import Embedded_Ztautau, MC_Ztautau, Data
-from mva.categories import Category_Preselection, Category_VBF
+from mva.samples import Embedded_Ztautau, MC_Ztautau, Data, Others
+from mva.categories import Category_Preselection, Category_VBF, Category_Boosted
 from nose.tools import assert_equals, assert_almost_equal
 
 samples = [
     Embedded_Ztautau(2012, systematics=False),
     MC_Ztautau(2012, systematics=False),
-    Data(2012)
+    Others(2012, systematics=False),
+    Data(2012),
 ]
 
 categories = [
     Category_Preselection,
+    Category_Boosted,
     Category_VBF
 ]
 
 def test_shape():
 
     for category in categories:
+        print category.name
         for sample in samples:
+            print sample.name
+            print sample.cuts(category, 'OS')
             events = sample.events(category, 'OS', raw=True)
             events_weighted = sample.events(category, 'OS')
             rec = sample.merged_records(category, 'OS')
