@@ -30,6 +30,7 @@ from mva.plotting import draw_samples
 from mva.systematics import SYSTEMATICS
 from mva.categories import CATEGORIES
 from mva.regions import P1P3_RECOUNTED
+from mva import MMC_MASS
 
 from matplotlib.ticker import FuncFormatter
 
@@ -81,7 +82,7 @@ xtick_formatter = FuncFormatter(xtick_track_func)
 xtick_rotation = 90
 param = 'TRACK'
 
-control_region = Cut('70 < mmc0_mass < 100')
+control_region = Cut('%s < 100' % MMC_MASS)
 #mass_regions = MassRegions(low_cutoff=60, low=100, high=180,
 #                           high_sideband_in_control=False)
 #control_region = mass_regions.control_region

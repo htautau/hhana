@@ -31,7 +31,8 @@ CUTS_0J = (- LEAD_JET_50)
 CUTS_VBF = Cut('dEta_jets > 2.0')
 CUTS_BOOSTED = Cut('%s > 100' % MMC_PT) # GeV
 
-BAD_MASS = 60
+BAD_MASS = 75
+MET = Cut('MET > 20000')
 
 COMMON_CUTS_CUTBASED = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
@@ -42,12 +43,20 @@ COMMON_CUTS_CUTBASED = (
     & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
     )
 
+# preselection cuts
 COMMON_CUTS_MVA = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
-    & Cut('MET > 20000')
-    & Cut('%s > %d' % (MMC_MASS, BAD_MASS))
+    & MET
+    & Cut('%s > 0' % MMC_MASS)
     & Cut('0.8 < dR_tau1_tau2 < 2.8')
     & TAU_SAME_VERTEX
+    # looser MET centrality
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < 1)')
+    )
+
+# additional cuts after preselection
+CATEGORY_CUTS_MVA = (
+    Cut('%s > 80' % MMC_MASS)
     )
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
@@ -137,7 +146,6 @@ features_0j = [
 ]
 
 
-
 class CategoryMeta(type):
     """
     Metaclass for all categories
@@ -210,7 +218,7 @@ class Category_Preselection(Category):
     name = 'preselection'
     label = r'$\tau_{had}\tau_{had}$: At Preselection'
     common_cuts = COMMON_CUTS_MVA
-    cuts = Cut('theta_tau1_tau2 > 0.6')
+    #cuts = Cut('theta_tau1_tau2 > 0.6')
 
 
 class Category_Preselection_ID_Control(Category_Preselection):
@@ -268,15 +276,15 @@ class Category_VBF(Category_Preselection):
 
     name = 'vbf'
     label = r'$\tau_{had}\tau_{had}$: VBF Category'
-    cuts = CUTS_VBF & CUTS_2J
+    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    cuts = CUTS_VBF & CUTS_2J & Cut('%s > 40' % MMC_PT)
     fitbins = 5
     limitbins = 8
     limitbinning = 'onebkg'
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
-    halfblind_bins = 3
-
+    halfblind_bins = 5
     norm_category = Category_Preselection
 
 
@@ -298,6 +306,7 @@ class Category_Boosted(Category_Preselection):
 
     name = 'boosted'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category'
+    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
@@ -305,9 +314,7 @@ class Category_Boosted(Category_Preselection):
     # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes
-
     halfblind_bins = 4
-
     norm_category = Category_Preselection
 
 
@@ -333,15 +340,14 @@ class Category_Nonboosted_1J(Category_Preselection):
 
     name = '1j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
-    cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
+    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    cuts = AT_LEAST_1JET & Cut('%s > 40' % MMC_PT) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
     limitbinning = 'onebkg'
     features = features_1j
     # train with all modes
-
     halfblind_bins = 5
-
     norm_category = Category_Preselection
 
 
@@ -363,15 +369,14 @@ class Category_Nonboosted_0J(Category_Preselection):
 
     name = '0j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
+    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
     limitbins = 10
     limitbinning = 'onebkg'
     features = features_0j
     # train with all modes
-
     halfblind_bins = 5
-
     norm_category = Category_Preselection
 
 

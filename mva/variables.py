@@ -1,5 +1,4 @@
 import math
-from . import MMC_VERSION
 
 WEIGHTS = {
     'pileup_weight': {
@@ -68,14 +67,6 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
-    'mmc%d_resonance_pt' % MMC_VERSION: {
-        'title': r'MMC Resonance $p_T$',
-        'root': 'MMC Resonance p_T',
-        'filename': 'mmc%d_resonance_pt' % MMC_VERSION,
-        'bins': 20,
-        'range': (0, 200),
-        'units': 'GeV',
-    },
     'numJets': {
         'title': r'Number of Jets with $p_T>25$ GeV',
         'root': 'Number of Jets with p_T>25 GeV',
@@ -118,29 +109,12 @@ VARIABLES = {
         'bins': 20,
         'range': (-math.pi, math.pi),
     },
-    'mmc%d_MET' % MMC_VERSION: {
-        'title': r'$E^{miss}_{T}$ MMC',
-        'root': 'E^{miss}_{T} MMC',
-        'filename': 'mmc%d_MET' % MMC_VERSION,
+    'dPhi_min_tau_MET': {
+        'title': r'min[$\Delta\phi$($\tau$,\/MET)]',
+        'root': '',
+        'filename': 'dPhi_min_tau_MET',
         'bins': 20,
-        'range': (0, 100),
-        'units': 'GeV',
-    },
-    'mmc%d_MET_x' % MMC_VERSION: {
-        'title': r'$E^{miss}_{T_{x}}$ MMC',
-        'root': 'E^{miss}_{T_{x}} MMC',
-        'filename': 'mmc%d_MET_x' % MMC_VERSION,
-        'bins': 20,
-        'range': (-75, 75),
-        'units': 'GeV',
-    },
-    'mmc%d_MET_y' % MMC_VERSION: {
-        'title': r'$E^{miss}_{T_{y}}$ MMC',
-        'root': 'E^{miss}_{T_{y}} MMC',
-        'filename': 'mmc%d_MET_y' % MMC_VERSION,
-        'bins': 20,
-        'range': (-75, 75),
-        'units': 'GeV',
+        'range': (0, math.pi),
     },
     'sphericity': {
         'title': r'sphericity',
@@ -174,15 +148,6 @@ VARIABLES = {
         'scale': 0.001,
         'units': 'GeV',
         'blind': (70, 110),
-    },
-    'mmc%d_mass' % MMC_VERSION: {
-        'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
-        'root': 'M^{MMC}_{#tau_{1}, #tau_{2}}',
-        'filename': 'mmc%d_mass' % MMC_VERSION,
-        'bins': 33,
-        'range': (-8, 256),
-        'units': 'GeV',
-        'blind': (100, 140),
     },
     'mass_collinear_tau1_tau2': {
         'title': r'$M^{col}_{\tau_{1},\/\tau_{2}}$',
@@ -545,3 +510,53 @@ VARIABLES = {
         'cats': ['2J', 'VBF']
     },
 }
+
+
+
+for mmc in range(2):
+
+    VARIABLES['mmc%d_mass' % mmc] = {
+        'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
+        'root': 'M^{MMC}_{#tau_{1}, #tau_{2}}',
+        'filename': 'mmc%d_mass' % mmc,
+        'bins': 33,
+        'range': (-8, 256),
+        'units': 'GeV',
+        'blind': (100, 140),
+    }
+
+    VARIABLES['mmc%d_MET' % mmc] = {
+        'title': r'$E^{miss}_{T}$ MMC',
+        'root': 'E^{miss}_{T} MMC',
+        'filename': 'mmc%d_MET' % mmc,
+        'bins': 20,
+        'range': (0, 100),
+        'units': 'GeV',
+    }
+
+    VARIABLES['mmc%d_MET_x' % mmc] = {
+        'title': r'$E^{miss}_{T_{x}}$ MMC',
+        'root': 'E^{miss}_{T_{x}} MMC',
+        'filename': 'mmc%d_MET_x' % mmc,
+        'bins': 20,
+        'range': (-75, 75),
+        'units': 'GeV',
+    }
+
+    VARIABLES['mmc%d_MET_y' % mmc] = {
+        'title': r'$E^{miss}_{T_{y}}$ MMC',
+        'root': 'E^{miss}_{T_{y}} MMC',
+        'filename': 'mmc%d_MET_y' % mmc,
+        'bins': 20,
+        'range': (-75, 75),
+        'units': 'GeV',
+    }
+
+    VARIABLES['mmc%d_resonance_pt' % mmc] = {
+        'title': r'MMC Resonance $p_T$',
+        'root': 'MMC Resonance p_T',
+        'filename': 'mmc%d_resonance_pt' % mmc,
+        'bins': 20,
+        'range': (0, 200),
+        'units': 'GeV',
+    }

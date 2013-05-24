@@ -3,8 +3,8 @@ from . import MMC_MASS
 from . import log; log = log[__name__]
 
 
-DEFAULT_LOW_MASS = 110
-DEFAULT_HIGH_MASS = 180
+DEFAULT_LOW_MASS = 100
+DEFAULT_HIGH_MASS = 140
 
 
 class MassRegions(object):

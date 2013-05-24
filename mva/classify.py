@@ -303,6 +303,8 @@ class ClassificationProblem(object):
             labels_train = labels_train[perm]
 
             log.info("training a new classifier...")
+
+            """
             log.info("plotting input variables as they are given to the BDT")
             # draw plots of the input variables
             for i, branch in enumerate(self.fields):
@@ -343,6 +345,7 @@ class ClassificationProblem(object):
             plt.legend()
             plt.savefig(os.path.join(PLOTS_DIR, 'train_sample_weight_%s%s.png' % (
                 self.category.name, self.output_suffix)))
+            """
 
             if partition_idx == 0:
 
