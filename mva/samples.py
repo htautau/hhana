@@ -408,11 +408,6 @@ class Data(Sample):
                     weight_clf, category, region, cuts=cuts)[0]
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(clf_scores) - 1)
-            if weights.shape[0] < rec.shape[0]:
-                log.warning(
-                    "applying temporary hack to work around PyTables issue")
-                weights = np.concatenate((
-                    weights, np.zeros(rec.shape[0] - weights.shape[0])))
             weights = rec['weight'] * weights
         else:
             weights = rec['weight']
@@ -834,11 +829,6 @@ class MC(Sample):
                     systematics=True)
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(clf_scores['NOMINAL'][0]) - 1)
-            if weights.shape[0] < rec.shape[0]:
-                log.warning(
-                    "applying temporary hack to work around PyTables issue")
-                weights = np.concatenate((
-                    weights, np.zeros(rec.shape[0] - weights.shape[0])))
             weights = rec['weight'] * weights
         else:
             weights = rec['weight']
