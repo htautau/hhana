@@ -4,6 +4,11 @@ from . import log; log = log[__name__]
 import os
 from glob import glob
 
+LUMI_UNCERT = {
+    2010: 0.034,
+    2011: 0.018,
+    2012: 0.028
+}
 
 LUMI = {}
 lumi_files = glob(os.path.join(NTUPLE_PATH, DEFAULT_STUDENT, 'lumi_*'))
@@ -14,3 +19,10 @@ for filename in lumi_files:
         lumi = float(f.read())
         LUMI[year] = lumi
         log.info("Using lumi of %f for %d" % (lumi, year))
+
+
+def get_lumi_uncert(year):
+
+    uncert = LUMI_UNCERT[year]
+    log.info("Using lumi uncertainty of %.1f%% for %d" % (uncert * 100., year))
+    return uncert

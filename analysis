@@ -36,11 +36,12 @@ from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
 from mva.analysis import Analysis
+from mva.lumi import get_lumi_uncert
 from mva import log, variables, plots_dir, samples
 
 
 PLOTS_DIR = plots_dir(__file__)
-
+lumi_rel_error = get_lumi_uncert(year)
 figures = {}
 category_scores = {}
 
@@ -239,6 +240,9 @@ for category in categories:
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
     if 'limits' in args.actions:
+        # TODO using the kylefix (in mva.stats.utils) determine the number of
+        # bins that yields the best limit at 125
+
         # construct a "channel" for each mass point
         channels = hypotests.channels(
                 clf, category, target_region,
@@ -258,9 +262,6 @@ for category in categories:
 
 if 'limits' in args.actions:
     
-    # 2012 lumi uncert
-    lumi_rel_error = 0.028
-
     with ropen('limits%s.root' % output_suffix, 'recreate') as limits_file:
         for mass, category_channel in all_channels.items():
             channels = []
