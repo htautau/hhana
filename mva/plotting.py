@@ -1348,7 +1348,7 @@ def plot_significance(signal, background, ax):
     sig, max_sig, max_cut = significance(signal, background)
     bins = list(background.xedges())[:-1]
 
-    print "Max signal significance %.2f at %.2f" % (max_sig, max_cut)
+    log.info("Max signal significance %.2f at %.2f" % (max_sig, max_cut))
 
     sig_ax.plot(bins, sig, 'k--', label='Signal Significance')
     sig_ax.set_ylabel(r'$S / \sqrt{S + B}$',

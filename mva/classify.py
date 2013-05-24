@@ -1,5 +1,6 @@
 import pickle
 from operator import itemgetter
+import types
 
 import numpy as np
 
@@ -97,6 +98,8 @@ class ClassificationProblem(object):
         MMC_PT,
         MMC_MASS,
     ]
+
+    TRANSFORM = False
 
     def __init__(self,
                  fields,
@@ -454,13 +457,15 @@ class ClassificationProblem(object):
             self.clfs[(partition_idx + 1) % 2] = clf
 
     def classify(self, sample, category, region,
-                 cuts=None, systematic='NOMINAL',
-                 transform=True):
+                 cuts=None, systematic='NOMINAL'):
 
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
 
-        assert(category == self.category)
+        if category != self.category:
+            raise RuntimeError(
+                "a classifier must be applied on the same "
+                "category it was trained in")
 
         left, right = sample.partitioned_records(
                 category=category,
@@ -468,12 +473,6 @@ class ClassificationProblem(object):
                 fields=self.fields,
                 cuts=cuts,
                 systematic=systematic)
-
-        print left.shape, right.shape
-
-        #print left.shape
-        #print right.shape
-        #print left.shape[0] + right.shape[0]
 
         left_weight = left['weight']
         right_weight = right['weight']
@@ -487,11 +486,16 @@ class ClassificationProblem(object):
         scores = np.concatenate((left_scores, right_scores))
         weights = np.concatenate((left_weight, right_weight))
 
-        if transform:
+        if ClassificationProblem.TRANSFORM:
             log.info("classifier scores are transformed")
             # logistic tranformation used by TMVA (MethodBDT.cxx)
-            scores = 2.0 / (1.0 +
-                np.exp(-2.0 * scores * self.clfs[0].n_estimators)) - 1.0
+            if isinstance(ClassificationProblem.TRANSFORM, types.FunctionType):
+                # user-defined transformation
+                scores = ClassificationProblem.TRANSFORM(scores)
+            else:
+                # default logistic transformation
+                scores = 2.0 / (1.0 +
+                    np.exp(-2.0 * scores * 10)) - 1.0
 
         return scores, weights
 

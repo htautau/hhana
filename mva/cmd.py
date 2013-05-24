@@ -122,13 +122,10 @@ def training_parser(parser=None):
     parser.add_argument('--retrain',
             action='store_false', dest='use_clf_cache',
             help="do not use cached classifier "
-            "and instead train a new one",
+                 "and instead train a new one",
             default=True)
     parser.add_argument('--nfold', type=int, default=5,
             help='the number of folds in the cross-validation')
-    parser.add_argument('--train-fraction', type=float, default=.5,
-            help='the fraction of events used for training and excluded from the '
-            'final limit histograms')
     parser.add_argument('--train-categories', nargs='*', default=[],
             help='only train in these categories')
     parser.add_argument('--quick-train', action='store_true', default=False,
@@ -144,7 +141,9 @@ def training_parser(parser=None):
             help='draw correlation plots')
     parser.add_argument('--ranking', action='store_true', default=False,
             help='only show the variable rankings')
-
+    parser.add_argument('--transform-scores', action='store_true',
+            default=False,
+            help='apply a logistic transformation to classifier scores')
     return parser
 
 

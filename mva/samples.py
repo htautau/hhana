@@ -404,9 +404,8 @@ class Data(Sample):
                 include_weight=True)
 
         if weight_hist is not None:
-            clf_scores = self.scores(weight_clf, category, region, cuts=cuts)[0]
-            print clf_scores.shape
-            print rec['weight'].shape
+            clf_scores = self.scores(
+                    weight_clf, category, region, cuts=cuts)[0]
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(clf_scores) - 1)
             if weights.shape[0] < rec.shape[0]:
@@ -430,17 +429,12 @@ class Data(Sample):
                 arr = np.c_[arr, scores]
             hist.fill_array(arr, weights=weights)
 
-    def scores(self, clf, category, region, cuts=None, transform=False):
-
-        if category != clf.category:
-            raise ValueError(
-                'classifier applied to category in which it was not trained')
+    def scores(self, clf, category, region, cuts=None):
 
         return clf.classify(self,
                 category=category,
                 region=region,
-                cuts=cuts,
-                transform=transform)
+                cuts=cuts)
 
     def trees(self,
               category,
@@ -835,7 +829,8 @@ class MC(Sample):
                 include_weight=True)
 
         if weight_hist is not None:
-            clf_scores = self.scores(weight_clf, category, region, cuts=cuts,
+            clf_scores = self.scores(
+                    weight_clf, category, region, cuts=cuts,
                     systematics=True)
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(weight_hist).take(edges.searchsorted(clf_scores['NOMINAL'][0]) - 1)
@@ -877,10 +872,6 @@ class MC(Sample):
             if weight_hist is not None:
                 edges = np.array(list(weight_hist.xedges()))
                 weights = np.array(weight_hist).take(edges.searchsorted(clf_scores[systematic][0]) - 1)
-                #print edges
-                #print edges.searchsorted(clf_scores[systematic][0]).shape
-                #print clf_scores[systematic][0].shape
-                #print weights.shape
                 try:
                     weights = rec['weight'] * weights
                 except:
@@ -908,14 +899,9 @@ class MC(Sample):
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=True,
-               transform=False,
                scale=1.):
 
         # TODO check that weight systematics are included
-
-        if category != clf.category:
-            raise ValueError(
-                'classifier applied to category in which it was not trained')
 
         if scores_dict is None:
             scores_dict = {}
@@ -930,8 +916,7 @@ class MC(Sample):
                     category=category,
                     region=region,
                     cuts=cuts,
-                    systematic=systematic,
-                    transform=transform)
+                    systematic=systematic)
 
             weights *= scale
 
@@ -1491,11 +1476,7 @@ class QCD(Sample, Background):
 
     def scores(self, clf, category, region,
                cuts=None, systematics=True,
-               transform=False):
-
-        if category != clf.category:
-            raise ValueError(
-                'classifier applied to category in which it was not trained')
+               **kwargs):
 
         # SS data
         data_scores, data_weights = self.data.scores(
@@ -1503,7 +1484,7 @@ class QCD(Sample, Background):
                 category,
                 region=self.shape_region,
                 cuts=cuts,
-                transform=transform)
+                **kwargs)
 
         scores_dict = {}
         # subtract SS MC
@@ -1515,8 +1496,8 @@ class QCD(Sample, Background):
                     cuts=cuts,
                     scores_dict=scores_dict,
                     systematics=systematics,
-                    transform=transform,
-                    scale=mc_scale)
+                    scale=mc_scale,
+                    **kwargs)
 
         for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]

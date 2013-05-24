@@ -77,6 +77,9 @@ analysis = Analysis(
     use_embedding=args.embedding,
     qcd_shape_region=args.qcd_shape_region)
 
+if args.transform_scores:
+    ClassificationProblem.TRANSFORM = True
+
 for category in categories:
     
     if category_names is not None and category.name not in category_names:
@@ -242,8 +245,6 @@ for category in categories:
     if 'limits' in args.actions:
         # TODO using the kylefix (in mva.stats.utils) determine the number of
         # bins that yields the best limit at 125
-
-
 
         # construct a "channel" for each mass point
         channels = hypotests.channels(
