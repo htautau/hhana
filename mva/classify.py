@@ -455,7 +455,7 @@ class ClassificationProblem(object):
 
     def classify(self, sample, category, region,
                  cuts=None, systematic='NOMINAL',
-                 transform=False):
+                 transform=True):
 
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
@@ -490,7 +490,8 @@ class ClassificationProblem(object):
         if transform:
             log.info("classifier scores are transformed")
             # logistic tranformation used by TMVA (MethodBDT.cxx)
-            scores = 2.0 / (1.0 + np.exp(-2.0 * scores)) - 1.0
+            scores = 2.0 / (1.0 +
+                np.exp(-2.0 * scores * self.clfs[0].n_estimators)) - 1.0
 
         return scores, weights
 

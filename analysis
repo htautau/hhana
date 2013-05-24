@@ -243,6 +243,8 @@ for category in categories:
         # TODO using the kylefix (in mva.stats.utils) determine the number of
         # bins that yields the best limit at 125
 
+
+
         # construct a "channel" for each mass point
         channels = hypotests.channels(
                 clf, category, target_region,
