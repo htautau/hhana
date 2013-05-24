@@ -39,6 +39,7 @@ def print_feature_ranking(clf, fields):
         importances = clf.feature_importances_
         indices = np.argsort(importances)[::-1]
         log.info("Feature ranking:")
+        print
         print r"\begin{tabular}{c|c|c}"
         table = PrettyTable(["Rank", "Variable", "Importance"])
         print r"\hline\hline"
@@ -53,6 +54,7 @@ def print_feature_ranking(clf, fields):
         print r"\end{tabular}"
         print
         print table.get_string(hrules=1)
+        print
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
@@ -170,7 +172,9 @@ class ClassificationProblem(object):
                     log.info("found existing classifier in %s" % clf_filename)
                     with open(clf_filename, 'r') as f:
                         clf = pickle.load(f)
-                    log.info(clf)
+                    print
+                    print clf
+                    print
                     print_feature_ranking(clf, self.fields)
                     # check that testing on training sample gives better
                     # performance by swapping the following lines
@@ -433,14 +437,18 @@ class ClassificationProblem(object):
                         sample_weight=sample_weight_train)
                 print
                 print "After scaling up min_leaf"
+                print
                 print clf
+                print
 
             else: # training on the other partition
                 log.info("training a new classifier ...")
 
                 # use same params as in first partition
                 clf = sklearn.clone(clf)
+                print
                 print clf
+                print
 
                 clf.fit(sample_train, labels_train,
                         sample_weight=sample_weight_train)
