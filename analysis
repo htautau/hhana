@@ -287,7 +287,7 @@ if 'limits' in args.actions:
                 limit_hist.Write()
                 channels.append(channel)
             # determine limit with combined model
-            limit_hist = hypotests.limit(channels,
+            limit_hist = hypotests.get_limit(channels,
                     lumi_rel_error=lumi_rel_error)
             limit_hist.SetName("combination_%d" % mass)
             limit_hist.Write()
