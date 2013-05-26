@@ -386,7 +386,7 @@ class Data(Sample):
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
 
         self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
-                      '$\int L dt = %.2f$ fb$^{-1}$' % (
+                      '$\int L dt = %.1f$ fb$^{-1}$' % (
                           self.year, self.energy, LUMI[self.year] / 1e3))
         self.name = 'Data'
 

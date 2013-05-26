@@ -51,13 +51,14 @@ COMMON_CUTS_MVA = (
     & Cut('0.8 < dR_tau1_tau2 < 2.8')
     & TAU_SAME_VERTEX
     # looser MET centrality
-    & Cut('MET_bisecting || (dPhi_min_tau_MET < 1)')
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (math.pi / 2))
     )
 
 # additional cuts after preselection
-CATEGORY_CUTS_MVA = (
-    Cut('%s > 80' % MMC_MASS)
-    )
+#CATEGORY_CUTS_MVA = (
+#    Cut('%s > 80' % MMC_MASS)
+#    )
+CATEGORY_CUTS_MVA = Cut()
 
 # TODO: possible new variable: ratio of core tracks to recounted tracks
 # TODO: add new pi0 info (new variables?)
@@ -335,13 +336,12 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     label = r'$\tau_{had}\tau_{had}$: Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
 
 
-
 class Category_Nonboosted_1J(Category_Preselection):
 
     name = '1j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = AT_LEAST_1JET & Cut('%s > 40' % MMC_PT) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
+    cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
     limitbinning = 'onebkg'

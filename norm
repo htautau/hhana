@@ -82,11 +82,11 @@ xtick_formatter = FuncFormatter(xtick_track_func)
 xtick_rotation = 90
 param = 'TRACK'
 
-control_region = Cut('%s < 100' % MMC_MASS)
+#control_region = Cut('%s < 100' % MMC_MASS)
 #mass_regions = MassRegions(low_cutoff=60, low=100, high=180,
 #                           high_sideband_in_control=False)
 #control_region = mass_regions.control_region
-#control_region = None
+control_region = None
 
 fit_region = 'SS'
 fit_region_alias = 'SS_TRK'
@@ -248,7 +248,7 @@ for cat_def in args.categories:
         
         z_scale = fit_result.sf13_Z * scale_init
         z_scale_error = fit_result.sf13_Z_err * scale_init
-
+        
         """ Iterative approach
         # QCD = C x [A x Data - B x Z - O]
 

@@ -342,7 +342,7 @@ VARIABLES = {
         'root': '#Delta#eta_{#tau_{1}, #tau_{2}}',
         'filename': 'deta_tau1_tau2',
         'bins': 10,
-        'range': (0., 2.),
+        'range': (0., 3.),
     },
     'tau1_charge': {
         'title': r'$\tau_1$ Charge',
