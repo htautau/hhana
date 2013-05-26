@@ -7,6 +7,9 @@ from math import sqrt
 
 def get_safe_template(binning, bins, bkg_scores, sig_scores):
 
+    # TODO: use full score range, not just min and max signal score
+
+    llog = log['get_safe_template']
     # determine min and max scores
     """
     min_score = float('inf')
@@ -40,15 +43,15 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
                 if _max > max_score_signal:
                     max_score_signal = _max
 
-    log.info("minimum signal score: %f" % min_score_signal)
-    log.info("maximum signal score: %f" % max_score_signal)
+    llog.info("minimum signal score: %f" % min_score_signal)
+    llog.info("maximum signal score: %f" % max_score_signal)
 
     # prevent bin threshold effects
     min_score_signal -= 0.00001
     max_score_signal += 0.00001
 
     if binning == 'flat':
-        log.info("binning such that background is flat")
+        llog.info("binning such that background is flat")
         # determine location that maximizes signal significance
         bkg_hist = Hist(100, min_score_signal, max_score_signal)
         sig_hist = bkg_hist.Clone()
@@ -65,7 +68,7 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
 
         # determine maximum significance
         sig, max_sig, max_cut = significance(sig_hist, bkg_hist, min_bkg=1)
-        log.info("maximum signal significance of %f at score > %f" % (
+        llog.info("maximum signal significance of %f at score > %f" % (
                 max_sig, max_cut))
 
         # determine N bins below max_cut or N+1 bins over the whole signal
@@ -96,7 +99,7 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
 
         # TODO: perform rebinning iteratively on all bins
 
-        log.info("binning such that each bin has at least one background")
+        llog.info("binning such that each bin has at least one background")
 
         default_bins = list(np.linspace(
                 min_score_signal,
@@ -153,18 +156,18 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
             bin_index_expected = int(view_cutoff - (nbins / bins))
             if (bin_index_expected <= 0 or
                 bin_index_expected <= (nbins / bins)):
-                log.warning("early termination of binning")
+                llog.warning("early termination of binning")
                 break
             # bump expected bin index down until each background is positive
             bin_index_expected_correct = all_positive[:bin_index_expected + 1][::-1].argmax()
             if bin_index_expected_correct > 0:
-                log.warning(
+                llog.warning(
                     "expected bin index corrected such that all "
                     "backgrounds are positive")
             bin_index_expected -= bin_index_expected_correct
             if (bin_index_expected <= 0 or
                 bin_index_expected <= (nbins / bins)):
-                log.warning("early termination of binning after correction")
+                llog.warning("early termination of binning after correction")
                 break
             bin_edge_expected = total_bkg_hist.xedges(int(bin_index_expected))
 
@@ -172,24 +175,24 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
             # constant-width binning over the whole range then just use the
             # original binning
             if bin_edge > bin_edge_expected:
-                log.info("expected bin edge %f is OK" % bin_edge_expected)
+                llog.info("expected bin edge %f is OK" % bin_edge_expected)
                 bin_edge = bin_edge_expected
                 view_cutoff = bin_index_expected
 
             else:
-                log.info("adjusting bin to contain >= one background")
-                log.info("original edge: %f  new edge: %f " %
+                llog.info("adjusting bin to contain >= one background")
+                llog.info("original edge: %f  new edge: %f " %
                         (bin_edge_expected, bin_edge))
                 view_cutoff = last_bin_one_bkg
 
             edges.append(bin_edge)
 
         edges.append(min_score_signal)
-        log.info("edges %s" % str(edges))
+        llog.info("edges %s" % str(edges))
         hist_template = Hist(edges[::-1])
 
     else:
-        log.info("using constant-width bins")
+        llog.info("using constant-width bins")
         hist_template = Hist(bins,
                 min_score_signal, max_score_signal)
     return hist_template
@@ -258,6 +261,7 @@ def kylefix(hist):
     :;,:,';o:c;';oxxdcoclc:,,;';xlo.        ....... .,;c'::,l.'coc.oodooolllo:l
     ::::..o;:c;:cdxdoooolc;c;',cloO.    . ...;,.'''.  .,o':o ';;:o;ooclololc:k,
     """
+    llog = log['kylefix']
     fixed_hist = hist.Clone(name=hist.name + '_kylefix')
 
     sumW2TotBin = sum([yerr**2 for yerr in hist.yerrh()])
@@ -270,8 +274,9 @@ def kylefix(hist):
 
     for i in xrange(len(fixed_hist)):
         if fixed_hist[i] < 1E-6:
-            log.warning("filling empty bin %d in %s" % (i, hist.name))
+            llog.warning("filling empty or negative bin %d in %s" %
+                         (i, hist.name))
             fixed_hist[i] = avWeightBin
-            fixed_hist.SetBinError(j + 1, sqrt(avW2Bin))
+            fixed_hist.SetBinError(i + 1, sqrt(avW2Bin))
 
     return fixed_hist

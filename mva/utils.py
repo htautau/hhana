@@ -8,10 +8,20 @@ import numpy as np
 
 def print_hist(hist):
 
-    print hist.GetTitle()
+    print
+    if hist.title:
+        print hist.title
     for ibin in xrange(len(hist)):
         print "%.5f +/- %.5f" % (hist[ibin], hist.yerrh(ibin))
     print
+
+
+def hist_to_dict(hist):
+
+    hist_dict = dict()
+    for i, value in enumerate(hist):
+        hist_dict[hist.xaxis.GetBinLabel(i + 1)] = value
+    return hist_dict
 
 
 def mkdir_p(path):

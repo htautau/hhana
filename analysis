@@ -89,7 +89,8 @@ for category in categories:
     log.info("=" * 40)
     log.info("%s category" % category.name)
     log.info("=" * 40)
-    log.info("Cuts: %s" % analysis.data.cuts(category, target_region))
+    log.info("Cuts: %s" % analysis.ztautau.cuts(category, target_region))
+    log.info("Weights: %s" % (', '.join(map(str, analysis.ztautau.get_weight_branches('NOMINAL')))))
 
     # apply normalization
     analysis.normalize(category, fit_param=args.fit_param)
@@ -245,7 +246,16 @@ for category in categories:
     if 'limits' in args.actions:
         # TODO using the kylefix (in mva.stats.utils) determine the number of
         # bins that yields the best limit at 125
-
+        channels = hypotests.optimized_channels(
+                clf, category, target_region,
+                analysis.backgrounds,
+                data=analysis.data, 
+                cuts=signal_region,
+                mass_points=[125],
+                systematics=args.systematics,
+                lumi_rel_error=lumi_rel_error)
+        
+        """
         # construct a "channel" for each mass point
         channels = hypotests.channels(
                 clf, category, target_region,
@@ -256,6 +266,7 @@ for category in categories:
                 binning=category.limitbinning,
                 mass_points=[125],
                 systematics=args.systematics)
+        """
 
         for mass, channel in channels.items():
             if mass not in all_channels:
@@ -270,7 +281,7 @@ if 'limits' in args.actions:
             channels = []
             # determine limits for each category separately
             for category, channel in category_channel.items():
-                limit_hist = hypotests.limit(channel,
+                limit_hist = hypotests.get_limit(channel,
                         lumi_rel_error=lumi_rel_error)
                 limit_hist.SetName("%s_%d" % (category, mass))
                 limit_hist.Write()

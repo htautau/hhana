@@ -38,6 +38,7 @@ from .systematics import *
 from .constants import *
 from .classify import histogram_scores
 from .stats.histfactory import to_uniform_binning
+from .stats.utils import kylefix
 from .cachedtable import CachedTable
 from .regions import REGIONS
 
@@ -85,8 +86,9 @@ class Sample(object):
 
     WEIGHT_BRANCHES = [
         'mc_weight',
-        'pileup_weight', # 2012 PROBLEM
+        'pileup_weight',
         'ggf_weight',
+        'embedding_reco_unfold',
     ]
 
     SYSTEMATICS_COMPONENTS = []
@@ -119,13 +121,17 @@ class Sample(object):
                                category, region,
                                cuts=None,
                                scores=None,
-                               systematics=True):
+                               systematics=True,
+                               apply_kylefix=False):
 
         log.info("creating histfactory sample for %s" % self.name)
         if isinstance(self, Data):
             sample = ROOT.RooStats.HistFactory.Data()
         else:
             sample = ROOT.RooStats.HistFactory.Sample(self.name)
+
+        if not isinstance(self, Background) and apply_kylefix:
+            log.warning("applying the kylefix on a non-background sample!")
 
         ndim = hist_template.GetDimension()
         do_systematics = (not isinstance(self, Data)
@@ -155,6 +161,8 @@ class Sample(object):
         # set the nominal histogram
         print_hist(hist)
         uniform_hist = to_uniform_binning(hist)
+        if apply_kylefix:
+            uniform_hist = kylefix(uniform_hist)
         sample.SetHisto(uniform_hist)
         keepalive(sample, uniform_hist)
 
@@ -180,6 +188,8 @@ class Sample(object):
 
                 uniform_hist_up = to_uniform_binning(hist_up)
                 uniform_hist_down = to_uniform_binning(hist_down)
+
+                # TODO also apply kylefix on systematics?
 
                 histsys.SetHistoHigh(uniform_hist_up)
                 histsys.SetHistoLow(uniform_hist_down)

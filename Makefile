@@ -105,6 +105,6 @@ test:
 	nosetests -s -v mva
 
 dump:
-	@./dump -t higgstautauhh -s "taus_pass && (RunNumber==207528)" --select-file embed_select_ac.txt -o RunNumber,EventNumber $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root
-	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP_RUNNING)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
-	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP_RUNNING)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
+	@./dump -t higgstautauhh -s "taus_pass && (RunNumber==207528)" --select-file etc/embed_select_ac.txt -o RunNumber,EventNumber $(HHNTUP)/HHProcessor.embed12-HH-IM.root
+	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
+	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
