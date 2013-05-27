@@ -23,7 +23,7 @@ from rootpy.io import root_open
 
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
-from .systematics import iter_systematics
+from .systematics import iter_systematics, systematic_name
 from . import log; log = log[__name__]
 
 
@@ -394,11 +394,6 @@ def get_2d_field_hist(var):
     return hist
 
 
-def sys_name(systematic):
-    if isinstance(systematic, basestring):
-        return systematic
-    return '_'.join(systematic)
-
 
 def draw_2d_hist(classifier,
                  category,
@@ -497,7 +492,7 @@ def draw_2d_hist(classifier,
                 y_array = array_dict[systematic][y] * yscale
                 weight = array_dict[systematic]['weight']
                 hist = hist_template.Clone(name=background.name +
-                        ('_%s' % sys_name(systematic)))
+                        ('_%s' % systematic_name(systematic)))
                 hist.fill_array(np.c_[y_array, x_array], weights=weight)
                 hist.Write()
 
@@ -510,7 +505,7 @@ def draw_2d_hist(classifier,
                     y_array = array_dict[systematic][y] * yscale
                     weight = array_dict[systematic]['weight']
                     hist = hist_template.Clone(name=signal.name +
-                            ('_%s' % sys_name(systematic)))
+                            ('_%s' % systematic_name(systematic)))
                     hist.fill_array(np.c_[y_array, x_array], weights=weight)
                     hist.Write()
 
@@ -534,7 +529,7 @@ def uncertainty_band(model, systematics):
     total_model = sum(model)
     var_high = []
     var_low = []
-    for variations in systematics:
+    for term, variations in systematics.items():
         if len(variations) == 2:
             high, low = variations
         elif len(variations) == 1:

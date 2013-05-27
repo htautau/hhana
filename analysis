@@ -31,7 +31,7 @@ from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf
 from mva.classify import ClassificationProblem
-from mva.systematics import SYSTEMATICS, iter_systematics
+from mva.systematics import get_systematics, iter_systematics
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
@@ -39,7 +39,7 @@ from mva.analysis import Analysis
 from mva.lumi import get_lumi_uncert
 from mva import log, variables, plots_dir, samples
 
-
+SYSTEMATICS = get_systematics(year)
 PLOTS_DIR = plots_dir(__file__)
 lumi_rel_error = get_lumi_uncert(year)
 figures = {}
@@ -139,7 +139,7 @@ for category in categories:
                 show_ratio=True,
                 show_qq=False,
                 plot_signal_significance=False,
-                systematics=SYSTEMATICS.values() if args.systematics else None,
+                systematics=SYSTEMATICS if args.systematics else None,
                 root=args.root,
                 output_formats=args.output_formats,
                 weighted=not args.no_weight,

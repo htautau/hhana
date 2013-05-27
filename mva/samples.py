@@ -168,7 +168,11 @@ class Sample(object):
 
         # add systematics samples
         if do_systematics:
-            for sys_component in self.__class__.SYSTEMATICS_COMPONENTS:
+
+            SYSTEMATICS = get_systematics(self.year)
+
+            for sys_component in self.SYSTEMATICS_COMPONENTS:
+
                 terms = SYSTEMATICS[sys_component]
                 if len(terms) == 1:
                     up_term = terms[0]
@@ -292,7 +296,7 @@ class Sample(object):
             systerm = None
             variation = 'NOMINAL'
         else:
-            systerm, variation = systematic[0].split('_')
+            systerm, variation = systematic[0].rsplit('_', 1)
         return systerm, variation
 
     def get_weight_branches(self, systematic,
@@ -589,34 +593,15 @@ class MC(Sample):
                 systematics_terms, systematics_samples = \
                     samples_db.get_systematics('hadhad', self.year, name)
 
-                # TODO: check that all expected systematics components are
-                # included
-
-                unused_terms = SYSTEMATICS_TERMS[:]
-
                 if systematics_terms:
                     for sys_term in systematics_terms:
 
-                        # merge terms such as JES_UP,TES_UP (embedding)
-                        # and TES_UP (MC)
-                        actual_sys_term = sys_term
-                        for term in unused_terms:
-                            if set(term) & set(sys_term):
-                                if len(sys_term) < len(term):
-                                    log.info("merging %s and %s" % (
-                                        term, sys_term))
-                                    sys_term = term
-                                break
-
-                        sys_name = treename + '_' + '_'.join(actual_sys_term)
+                        sys_name = treename + '_' + '_'.join(sys_term)
                         trees[sys_term] = rfile.Get(sys_name)
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sys_name))
-
                         weighted_events[sys_term] = rfile.Get(
                                 sys_name + events_hist_suffix)[events_bin]
-
-                        unused_terms.remove(sys_term)
 
                 if systematics_samples:
                     for sample_name, sys_term in systematics_samples.items():
@@ -627,24 +612,11 @@ class MC(Sample):
                         sys_ds = self.db[sample_name]
                         sample_name = sample_name.replace('.', '_')
                         sample_name = sample_name.replace('-', '_')
-
                         trees[sys_term] = rfile.Get(sample_name)
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sample_name))
-
                         weighted_events[sys_term] = getattr(rfile,
                                 sample_name + events_hist_suffix)[events_bin]
-
-                        unused_terms.remove(sys_term)
-
-                if unused_terms:
-                    log.debug("UNUSED TERMS for %s:" % self.name)
-                    log.debug(unused_terms)
-
-                    for term in unused_terms:
-                        trees[term] = None # flag to use NOMINAL
-                        tables[term] = None
-                        weighted_events[term] = None # flag to use NOMINAL
 
             if isinstance(self, Higgs):
                 # use yellowhiggs for cross sections
@@ -689,7 +661,9 @@ class MC(Sample):
         else:
             exprs = (expr,)
 
-        if self.systematics and systematics:
+        do_systematics = self.systematics and systematics
+
+        if do_systematics:
             if hasattr(hist, 'systematics'):
                 sys_hists = hist.systematics
             else:
@@ -697,7 +671,7 @@ class MC(Sample):
 
         selection = self.cuts(category, region) & cuts
 
-        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
 
             log.debug(ds.name)
 
@@ -705,9 +679,9 @@ class MC(Sample):
             nominal_events = sys_events['NOMINAL']
 
             nominal_weight = (
-                    LUMI[self.year] *
-                    scale * self.scale *
-                    xs * kfact * effic / nominal_events)
+                LUMI[self.year] *
+                scale * self.scale *
+                xs * kfact * effic / nominal_events)
 
             nominal_weighted_selection = (
                 '%f * %s * (%s)' %
@@ -724,33 +698,27 @@ class MC(Sample):
             # fill nominal histogram
             for expr in exprs:
                 nominal_tree.Draw(expr, nominal_weighted_selection,
-                        hist=current_hist)
+                                  hist=current_hist)
 
             hist += current_hist
 
-            if not self.systematics or not systematics:
+            if not do_systematics:
                 continue
 
-            # iterate over systematic variation trees
-            for sys_term in sys_trees.iterkeys():
-
-                # skip the nominal tree
-                if sys_term == 'NOMINAL':
-                    continue
+            # iterate over systematic variations skipping the nominal
+            for sys_term in iter_systematics(False):
 
                 sys_hist = current_hist.Clone()
 
-                sys_tree = sys_trees[sys_term]
-                sys_event = sys_events[sys_term]
-
-                if sys_tree is not None:
-
+                if sys_term in sys_trees:
+                    sys_tree = sys_trees[sys_term]
+                    sys_event = sys_events[sys_term]
                     sys_hist.Reset()
 
                     sys_weight = (
-                            LUMI[self.year] *
-                            scale * self.scale *
-                            xs * kfact * effic / sys_event)
+                        LUMI[self.year] *
+                        scale * self.scale *
+                        xs * kfact * effic / sys_event)
 
                     sys_weighted_selection = (
                         '%f * %s * (%s)' %
@@ -764,6 +732,22 @@ class MC(Sample):
 
                     for expr in exprs:
                         sys_tree.Draw(expr, sys_weighted_selection, hist=sys_hist)
+
+                else:
+                    log.debug(
+                        "tree for %s not present for %s "
+                        "using NOMINAL" % (systematic, ds.name))
+
+                    # QCD + Ztautau fit error
+                    if isinstance(self, Ztautau):
+                        if sys_term == ('ZFIT_UP',):
+                            sys_hist *= (
+                                    (self.scale + self.scale_error) /
+                                    self.scale)
+                        elif sys_term == ('ZFIT_DOWN',):
+                            sys_hist *= (
+                                    (self.scale - self.scale_error) /
+                                    self.scale)
 
                 if sys_term not in sys_hists:
                     sys_hists[sys_term] = sys_hist
@@ -792,32 +776,7 @@ class MC(Sample):
                 else:
                     sys_hists[sys_term] += sys_hist
 
-            # QCD + Ztautau fit error
-            if isinstance(self, Ztautau):
-                up_fit = current_hist.Clone()
-                up_fit *= ((self.scale + self.scale_error) / self.scale)
-                down_fit = current_hist.Clone()
-                down_fit *= ((self.scale - self.scale_error) / self.scale)
-                if ('ZFIT_UP',) not in sys_hists:
-                    sys_hists[('ZFIT_UP',)] = up_fit
-                    sys_hists[('ZFIT_DOWN',)] = down_fit
-                else:
-                    sys_hists[('ZFIT_UP',)] += up_fit
-                    sys_hists[('ZFIT_DOWN',)] += down_fit
-            else:
-                for _term in [('ZFIT_UP',), ('ZFIT_DOWN',)]:
-                    if _term not in sys_hists:
-                        sys_hists[_term] = current_hist.Clone()
-                    else:
-                        sys_hists[_term] += current_hist.Clone()
-
-            for _term in [('QCDFIT_UP',), ('QCDFIT_DOWN',)]:
-                if _term not in sys_hists:
-                    sys_hists[_term] = current_hist.Clone()
-                else:
-                    sys_hists[_term] += current_hist.Clone()
-
-        if self.systematics and systematics:
+        if do_systematics:
             # set the systematics
             hist.systematics = sys_hists
 
@@ -902,14 +861,14 @@ class MC(Sample):
                scale=1.):
 
         # TODO check that weight systematics are included
+        do_systematics = self.systematics and systematics
 
         if scores_dict is None:
             scores_dict = {}
 
         for systematic in iter_systematics(True):
 
-            if ((not systematics or not self.systematics)
-                 and systematic != 'NOMINAL'):
+            if not do_systematics and systematic != 'NOMINAL':
                 continue
 
             scores, weights = clf.classify(self,
@@ -940,19 +899,17 @@ class MC(Sample):
             systematic = 'NOMINAL'
 
         trees = []
-        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
 
-            if systematic in (('ZFIT_UP',), ('ZFIT_DOWN',),
-                              ('QCDFIT_UP',), ('QCDFIT_DOWN',)):
-                tree = sys_trees['NOMINAL']
-                events = sys_events['NOMINAL']
-            else:
+            try:
                 tree = sys_trees[systematic]
                 events = sys_events[systematic]
-
-                if tree is None:
-                    tree = sys_trees['NOMINAL']
-                    events = sys_events['NOMINAL']
+            except KeyError:
+                log.debug(
+                    "tree for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds.name))
+                tree = sys_trees['NOMINAL']
+                events = sys_events['NOMINAL']
 
             actual_scale = self.scale
             if isinstance(self, Ztautau):
@@ -1007,26 +964,25 @@ class MC(Sample):
             systematic = 'NOMINAL'
 
         recs = []
-        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+        for ds, _, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
-            if systematic in (('ZFIT_UP',), ('ZFIT_DOWN',),
-                              ('QCDFIT_UP',), ('QCDFIT_DOWN',)):
-                table = sys_tables['NOMINAL']
-                events = sys_events['NOMINAL']
-            else:
+            try:
                 table = sys_tables[systematic]
                 events = sys_events[systematic]
-
-                if table is None:
-                    log.debug("systematics table was None, using NOMINAL")
-                    table = sys_tables['NOMINAL']
-                    events = sys_events['NOMINAL']
+            except KeyError:
+                log.debug(
+                    "table for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds.name))
+                table = sys_tables['NOMINAL']
+                events = sys_events['NOMINAL']
 
             actual_scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
+                    log.debug("scaling up for ZFIT_UP")
                     actual_scale += self.scale_error
                 elif systematic == ('ZFIT_DOWN',):
+                    log.debug("scaling down for ZFIT_DOWN")
                     actual_scale -= self.scale_error
 
             weight = (
@@ -1083,20 +1039,17 @@ class MC(Sample):
             systematic = 'NOMINAL'
 
         idxs = []
-        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+        for ds, _, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
-            if systematic in (('ZFIT_UP',), ('ZFIT_DOWN',),
-                              ('QCDFIT_UP',), ('QCDFIT_DOWN',)):
-                table = sys_tables['NOMINAL']
-                events = sys_events['NOMINAL']
-            else:
+            try:
                 table = sys_tables[systematic]
                 events = sys_events[systematic]
-
-                if table is None:
-                    log.debug("systematics table was None, using NOMINAL")
-                    table = sys_tables['NOMINAL']
-                    events = sys_events['NOMINAL']
+            except KeyError:
+                log.debug(
+                    "table for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds))
+                table = sys_tables['NOMINAL']
+                events = sys_events['NOMINAL']
 
             # read the table with a selection
             idx = table.get_where_list(table_selection, **kwargs)
@@ -1113,9 +1066,18 @@ class MC(Sample):
 
         total = 0.
         hist = Hist(1, -100, 100)
-        for ds, sys_trees, sys_tables, sys_events, xs, kfact, effic in self.datasets:
-            tree = sys_trees[systematic]
-            events = sys_events[systematic]
+        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
+
+            try:
+                tree = sys_trees[systematic]
+                events = sys_events[systematic]
+            except KeyError:
+                log.debug(
+                    "tree for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds.name))
+                tree = sys_trees['NOMINAL']
+                events = sys_events['NOMINAL']
+
             if raw:
                 selection = self.cuts(category, region, systematic=systematic) & cuts
                 log.debug("requesing number of events from %s using cuts: %s"
@@ -1406,7 +1368,7 @@ class QCD(Sample, Background):
 
         hist += (data_hist * self.data_scale - MC_bkg) * self.scale
 
-        if hasattr(MC_bkg, 'systematics'):
+        if systematics and hasattr(MC_bkg, 'systematics'):
             if not hasattr(hist, 'systematics'):
                 hist.systematics = {}
             for sys_term, sys_hist in MC_bkg.systematics.items():

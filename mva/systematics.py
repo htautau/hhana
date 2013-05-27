@@ -1,27 +1,31 @@
 from rootpy.tree import Cut
 
-SYSTEMATICS_TERMS = [
-    ('JES_UP',),
-    ('JES_DOWN',),
-    ('TES_UP',),
-    ('TES_DOWN',),
-    ('JER_UP',),
-    ('MFS_UP',),
-    ('MFS_DOWN',),
-    ('ISOL_UP',),
-    ('ISOL_DOWN',),
-]
+class SYSTEMATICS_CATEGORIES:
+    TAUS, \
+    JETS, \
+    WEIGHTS, \
+    NORMALIZATION = range(4)
 
-SYSTEMATICS_BY_WEIGHT = [
-    ('TRIGGER_UP',),
-    ('TRIGGER_DOWN',),
-    ('FAKERATE_UP',),
-    ('FAKERATE_DOWN',),
-    ('TAUID_UP',),
-    ('TAUID_DOWN',),
-]
+# WIP:
+class Systematic(object):
 
-SYSTEMATICS = {
+    def __init__(self, name, variations=None):
+
+        if variations is None:
+            self.variations = ('UP', 'DOWN')
+        else:
+            if not isinstance(variations, (list, tuple)):
+                variations = (variations,)
+            self.variations = variations
+        self.name = name
+
+    def __iter__(self):
+
+        for var in self.variations:
+            yield '%s_%s' % (self.name, var)
+
+
+SYSTEMATICS_2011 = {
     'JES': (('JES_UP',), ('JES_DOWN',)),
     'JER': (('JER_UP',),),
     'TES': (('TES_UP',), ('TES_DOWN',)),
@@ -33,6 +37,35 @@ SYSTEMATICS = {
     'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
     'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
 }
+
+SYSTEMATICS_2012 = {
+    'JES_Modelling': (('JES_Modelling_UP',), ('JES_Modelling_DOWN',)),
+    'JES_Detector': (('JES_Detector_UP',), ('JES_Detector_DOWN',)),
+    'JES_EtaModelling': (('JES_EtaModelling_UP',), ('JES_EtaModelling_DOWN',)),
+    'JES_EtaMethod': (('JES_EtaMethod_UP',), ('JES_EtaMethod_DOWN',)),
+    'JES_PURho': (('JES_PURho_UP',), ('JES_PURho_DOWN',)),
+    'JES_FlavComp': (('JES_FlavComp_UP',), ('JES_FlavComp_DOWN',)),
+    'JES_FlavResp': (('JES_FlavResp_UP',), ('JES_FlavResp_DOWN',)),
+    'JVF': (('JVF_UP',), ('JVF_DOWN',)),
+    'JER': (('JER_UP',),),
+    'TES': (('TES_UP',), ('TES_DOWN',)),
+    #'MFS': (('MFS_UP',), ('MFS_DOWN',)),
+    #'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
+    'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
+    'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
+    'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
+    'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
+    'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
+}
+
+SYSTEMATICS_BY_WEIGHT = [
+    ('TRIGGER_UP',),
+    ('TRIGGER_DOWN',),
+    ('FAKERATE_UP',),
+    ('FAKERATE_DOWN',),
+    ('TAUID_UP',),
+    ('TAUID_DOWN',),
+]
 
 WEIGHT_SYSTEMATICS = {
     'TRIGGER': {
@@ -76,10 +109,28 @@ EMBEDDING_SYSTEMATICS = {
 }
 
 
-def iter_systematics(include_nominal=False):
+def iter_systematics(include_nominal=False, year=2012):
 
+    syst = get_systematics(year)
     if include_nominal:
         yield 'NOMINAL'
-    for term, variations in SYSTEMATICS.items():
+    for term, variations in syst.items():
         for var in variations:
             yield var
+
+
+def get_systematics(year=2012):
+
+    if year == 2012:
+        return SYSTEMATICS_2012
+    elif year == 2011:
+        return SYSTEMATICS_2011
+    else:
+        raise ValueError("No systematics defined for year %d" % year)
+
+
+def systematic_name(systematic):
+
+    if isinstance(systematic, basestring):
+        return systematic
+    return '_'.join(systematic)

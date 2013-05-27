@@ -24,9 +24,9 @@ from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
 from . import MMC_MASS, MMC_PT
-from .systematics import SYSTEMATICS
-from .plotting import (draw, plot_clf, plot_grid_scores, hist_scores,
-    draw_samples_array)
+from .plotting import (
+    draw, plot_clf, plot_grid_scores,
+    hist_scores, draw_samples_array)
 from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
@@ -514,7 +514,7 @@ class ClassificationProblem(object):
                  analysis,
                  signal_region,
                  control_region,
-                 systematics=False,
+                 systematics=None,
                  signal_scale=50,
                  unblind=False,
                  limitbins=10,
@@ -622,7 +622,7 @@ class ClassificationProblem(object):
             bins=category.clf_bins + 2,
             min_score=min_score,
             max_score=max_score,
-            systematics=SYSTEMATICS.values() if systematics else None)
+            systematics=systematics)
 
         # plot using the binning used for limit setting
         limit_binning_hist_template = get_safe_template(
@@ -638,7 +638,7 @@ class ClassificationProblem(object):
             draw_data=True,
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
-            systematics=SYSTEMATICS.values() if systematics else None)
+            systematics=systematics)
 
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
@@ -658,7 +658,7 @@ class ClassificationProblem(object):
             show_ratio=True,
             show_qq=False,
             plot_signal_significance=False,
-            systematics=SYSTEMATICS.values() if systematics else None,
+            systematics=systematics,
             output_formats=('png',),
             weight_hist=bkg_score_hist,
             weight_clf=self,
@@ -731,7 +731,7 @@ class ClassificationProblem(object):
             bins=category.clf_bins + 2,
             min_score=min_score,
             max_score=max_score,
-            systematics=SYSTEMATICS.values() if systematics else None)
+            systematics=systematics)
 
         #return bkg_scores, sig_scores_125
 
