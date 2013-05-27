@@ -27,7 +27,6 @@ from mva.stats.fit import fit
 from mva.massregions import MassRegions
 from mva.norm import cache, log
 from mva.plotting import draw_samples
-from mva.systematics import SYSTEMATICS
 from mva.categories import CATEGORIES
 from mva.regions import P1P3_RECOUNTED
 from mva import MMC_MASS
@@ -173,7 +172,7 @@ for cat_def in args.categories:
                 name=xaxis_label,
                 output_name=before_name,
                 show_ratio=True,
-                systematics=SYSTEMATICS.values() if systematics else None,
+                systematics=None,
                 ravel=hist_template.GetDimension() > 1,
                 integer=integer,
                 xtick_formatter=xtick_formatter,
@@ -456,7 +455,7 @@ for cat_def in args.categories:
                 name=xaxis_label,
                 output_name=after_name,
                 show_ratio=True,
-                systematics=SYSTEMATICS.values() if systematics else None,
+                systematics=None,
                 ravel=hist_template.GetDimension() > 1,
                 integer=integer,
                 xtick_formatter=xtick_formatter,
