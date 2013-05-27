@@ -986,9 +986,9 @@ class MC(Sample):
                     actual_scale -= self.scale_error
 
             weight = (
-                    scale * actual_scale *
-                    LUMI[self.year] *
-                    xs * kfact * effic / events)
+                scale * actual_scale *
+                LUMI[self.year] *
+                xs * kfact * effic / events)
 
             # read the table with a selection
             rec = table.read_where(table_selection, **kwargs)
