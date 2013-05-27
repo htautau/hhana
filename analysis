@@ -236,7 +236,7 @@ for category in categories:
                 signal_region=signal_region,
                 control_region=control_region,
                 unblind=args.unblind,
-                systematics=args.systematics,
+                systematics=SYSTEMATICS if args.systematics else None,
                 limitbins=category.limitbins,
                 limitbinning=category.limitbinning,
                 quick=args.quick_eval)

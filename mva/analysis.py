@@ -7,7 +7,7 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=False,
-                 qcd_shape_region='SS_TRK'):
+                 qcd_shape_region='nOS'):
 
         self.year = year
         self.systematics = systematics

@@ -736,7 +736,7 @@ class MC(Sample):
                 else:
                     log.debug(
                         "tree for %s not present for %s "
-                        "using NOMINAL" % (systematic, ds.name))
+                        "using NOMINAL" % (sys_term, ds.name))
 
                     # QCD + Ztautau fit error
                     if isinstance(self, Ztautau):
