@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+from rootpy.extern.argparse import ArgumentParser
+parser = ArgumentParser()
+parser.add_argument('filename')
+args = parser.parse_args()
+
+from rootpy.io import root_open
+from rootpy import log
+from rootpy.tree import Tree, TreeModel
+from rootpy.math.physics.vector import LorentzVector
+from rootpy.types import FloatCol
+import os
+
+fname, fext = os.path.splitext(args.filename)
+filename_out = '%s_patched%s' % (fname, fext)
+
+fin = root_open(args.filename)
+fout = root_open(filename_out, 'RECREATE')
+
+class Model(TreeModel):
+    resonance_pt = FloatCol()
+
+MET_4vect = LorentzVector()
+
+# write trees
+for dirpath, dirs, treenames in fin.walk(class_pattern='TTree'):
+    for treename in treenames:
+        treepath = os.path.join(dirpath, treename)
+        log.info("patching %s ..." % treepath)
+        intree = fin.Get(os.path.join(dirpath, treename))
+        intree.create_buffer()
+        fout.cd() 
+        outtree = Tree(name=treename, model=Model)
+        outtree.set_buffer(
+            intree._buffer,
+            create_branches=True)
+        for event in intree:
+            MET_4vect.SetPxPyPzE(event.MET_x, event.MET_y, 0., event.MET) 
+            outtree.resonance_pt = (event.tau1_fourvect + event.tau2_fourvect + MET_4vect).Pt()
+            outtree.Fill()
+        fout.cd()
+        outtree.Write()
+
+# write hists
