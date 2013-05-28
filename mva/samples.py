@@ -525,7 +525,14 @@ class MC(Sample):
     # TODO: remove 'JE[S|R]' here unless embedded classes should inherit from
     # elsewhere
     SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
-        'JES',
+        'JES_Modelling',
+        'JES_Detector',
+        'JES_EtaModelling',
+        'JES_EtaMethod',
+        'JES_PURho',
+        'JES_FlavComp',
+        'JES_FlavResp',
+        'JVF',
         'JER',
         'TES',
         'TAUID',
@@ -1119,7 +1126,11 @@ class MC_Ztautau(MC, Ztautau):
 
 class Embedded_Ztautau(MC, Ztautau):
 
-    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
+    SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
+        'TES',
+        'TAUID',
+        'TRIGGER',
+        'FAKERATE',
         'Z_FIT',
     ]
 

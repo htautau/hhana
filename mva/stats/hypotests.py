@@ -267,13 +267,15 @@ def get_limit(channels,
           lumi_rel_error=0.,
           POI='SigXsecOverSM'):
 
-    if not isinstance(channels, (list, tuple)):
-        channels = [channels]
-    measurement = histfactory.make_measurement(
-            'higgs', '',
-            channels,
+    workspace = histfactory.make_workspace('higgs', channels,
             lumi_rel_error=lumi_rel_error,
             POI=POI)
-    workspace = histfactory.make_model(measurement)
+    return get_limit_workspace(workspace, unblind=unblind)
+
+
+def get_limit_workspace(workspace, unblind=False):
+
     calculator = AsymptoticsCLs(workspace)
-    return asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
+    hist = asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
+    hist.SetName('%s_limit' % workspace.GetName())
+    return hist

@@ -37,7 +37,7 @@ def make_channel(name, samples, data=None):
     return chan
 
 
-def make_measurement(name, title,
+def make_measurement(name,
                      channels,
                      lumi=1.0, lumi_rel_error=0.,
                      output_prefix='./histfactory',
@@ -49,7 +49,7 @@ def make_measurement(name, title,
 
     # Create the measurement
     log.info("creating measurement %s" % name)
-    meas = ROOT.RooStats.HistFactory.Measurement(name, title)
+    meas = ROOT.RooStats.HistFactory.Measurement(name, '')
 
     meas.SetOutputFilePrefix(output_prefix)
     if POI is not None:
@@ -83,5 +83,24 @@ def make_model(measurement, channel=None):
 
     hist2workspace = ROOT.RooStats.HistFactory.HistoToWorkspaceFactoryFast(measurement)
     if channel is not None:
-        return hist2workspace.MakeSingleChannelModel(measurement, channel)
-    return hist2workspace.MakeCombinedModel(measurement)
+        workspace = hist2workspace.MakeSingleChannelModel(measurement, channel)
+    else:
+        workspace = hist2workspace.MakeCombinedModel(measurement)
+    keepalive(workspace, measurement)
+    return workspace
+
+
+def make_workspace(name, channels,
+        lumi_rel_error=0.,
+        POI='SigXsecOverSM'):
+
+    if not isinstance(channels, (list, tuple)):
+        channels = [channels]
+    measurement = make_measurement(
+            name,
+            channels,
+            lumi_rel_error=lumi_rel_error,
+            POI=POI)
+    workspace = make_model(measurement)
+    workspace.SetName(name)
+    return workspace

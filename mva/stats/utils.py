@@ -188,7 +188,7 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
             edges.append(bin_edge)
 
         edges.append(min_score_signal)
-        llog.info("edges %s" % str(edges))
+        #llog.info("edges %s" % str(edges))
         hist_template = Hist(edges[::-1])
 
     else:

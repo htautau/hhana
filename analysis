@@ -26,7 +26,7 @@ import ROOT
 import numpy as np
 
 # local imports
-from mva.stats import hypotests
+from mva.stats import hypotests, histfactory
 from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf
@@ -246,6 +246,7 @@ for category in categories:
     if 'limits' in args.actions:
         # TODO using the kylefix (in mva.stats.utils) determine the number of
         # bins that yields the best limit at 125
+        """
         channels = hypotests.optimized_channels(
                 clf, category, target_region,
                 analysis.backgrounds,
@@ -254,7 +255,6 @@ for category in categories:
                 mass_points=[125],
                 systematics=args.systematics,
                 lumi_rel_error=lumi_rel_error)
-        
         """
         # construct a "channel" for each mass point
         channels = hypotests.channels(
@@ -266,7 +266,6 @@ for category in categories:
                 binning=category.limitbinning,
                 mass_points=[125],
                 systematics=args.systematics)
-        """
 
         for mass, channel in channels.items():
             if mass not in all_channels:
@@ -281,13 +280,20 @@ if 'limits' in args.actions:
             channels = []
             # determine limits for each category separately
             for category, channel in category_channel.items():
-                limit_hist = hypotests.get_limit(channel,
-                        lumi_rel_error=lumi_rel_error)
-                limit_hist.SetName("%s_%d" % (category, mass))
+                name = "category_%s_%d" % (category, mass)
+                # make workspace
+                workspace = histfactory.make_workspace(name, channel,
+                    lumi_rel_error=lumi_rel_error)
+                workspace.Write()
+                # get limit
+                limit_hist = hypotests.get_limit_workspace(workspace)
                 limit_hist.Write()
                 channels.append(channel)
+            # make combined workspace
+            name = "combination_%d" % mass
+            workspace = histfactory.make_workspace(name, channels,
+                lumi_rel_error=lumi_rel_error)
+            workspace.Write()
             # determine limit with combined model
-            limit_hist = hypotests.get_limit(channels,
-                    lumi_rel_error=lumi_rel_error)
-            limit_hist.SetName("combination_%d" % mass)
+            limit_hist = hypotests.get_limit_workspace(workspace)
             limit_hist.Write()

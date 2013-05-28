@@ -53,3 +53,7 @@ class CachedTable(Table):
     @memoize
     def readWhere(self, *args, **kwargs):
         return Table.readWhere(self, *args, **kwargs)
+
+    @memoize
+    def read_where(self, *args, **kwargs):
+        return Table.read_where(self, *args, **kwargs)
