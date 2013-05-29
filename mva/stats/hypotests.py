@@ -158,6 +158,7 @@ def optimized_channels(clf, category, region, backgrounds,
     limit_hists = []
     best_limit = float('inf')
     best_hist_template = None
+    best_nbins = 0
     nbins_range = xrange(1, 101)
     for nbins in nbins_range:
         hist_template = Hist(nbins, min_score, max_score)
@@ -192,16 +193,31 @@ def optimized_channels(clf, category, region, backgrounds,
         limit_hists.append(hist_dict)
         if hist_dict['Expected'] < best_limit:
             best_limit = hist_dict['Expected']
+            best_nbins = nbins
             best_hist_template = hist_template
 
     # plot limit vs nbins
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     central_values = np.array([h['Expected'] for h in limit_hists])
-    high_values = np.array([h['+1sigma'] - h['Expected'] for h in limit_hists])
-    low_values = np.array([h['Expected'] - h['-1sigma'] for h in limit_hists])
-    plt.errorbar(nbins_range, central_values, yerr=[low_values, high_values], fmt='o')
+    high_values_1sig = np.array([h['+1sigma'] for h in limit_hists])
+    low_values_1sig = np.array([h['-1sigma'] for h in limit_hists])
+    high_values_2sig = np.array([h['+2sigma'] for h in limit_hists])
+    low_values_2sig = np.array([h['-2sigma'] for h in limit_hists])
+    plt.plot(nbins_range, central_values, 'k-')
+    plt.fill_between(nbins_range, low_values_2sig, high_values_2sig,
+            linewidth=0, facecolor='yellow')
+    plt.fill_between(nbins_range, low_values_1sig, high_values_1sig,
+            linewidth=0, facecolor='green')
+    plt.xlim(nbins_range[0], nbins_range[-1])
     plt.xlabel("Number of Bins")
     plt.ylabel("Limit")
+    plt.grid(True)
+    plt.text(.5, .8, "Best limit of %.2f at %d bins" % (best_limit, best_nbins),
+            horizontalalignment='center',
+            verticalalignment='center',
+            transform = ax.transAxes,
+            fontsize=20)
     plt.savefig('category_%s_limit_vs_nbins.png' % category.name)
 
     hist_template = best_hist_template
