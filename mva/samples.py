@@ -37,8 +37,7 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.histfactory import to_uniform_binning
-from .stats.utils import kylefix
+from .stats.utils import kylefix, uniform_binning
 from .cachedtable import CachedTable
 from .regions import REGIONS
 
@@ -121,17 +120,13 @@ class Sample(object):
                                category, region,
                                cuts=None,
                                scores=None,
-                               systematics=True,
-                               apply_kylefix=False):
+                               systematics=True):
 
         log.info("creating histfactory sample for %s" % self.name)
         if isinstance(self, Data):
             sample = ROOT.RooStats.HistFactory.Data()
         else:
             sample = ROOT.RooStats.HistFactory.Sample(self.name)
-
-        if not isinstance(self, Background) and apply_kylefix:
-            log.warning("applying the kylefix on a non-background sample!")
 
         ndim = hist_template.GetDimension()
         do_systematics = (not isinstance(self, Data)
@@ -158,11 +153,18 @@ class Sample(object):
                 scores = self.scores(expr_or_clf, category, region, cuts)
             hist = histogram_scores(hist_template, scores)
 
-        # set the nominal histogram
-        print_hist(hist)
-        uniform_hist = to_uniform_binning(hist)
-        if apply_kylefix:
+        hist.name = self.name
+        # convert to uniform binning
+        uniform_hist = uniform_binning(hist)
+
+        # always apply kylefix on backgrounds
+        if (isinstance(self, Background) and
+            not getattr(self, 'NO_KYLEFIX', False)):
+            log.info("applying kylefix()")
             uniform_hist = kylefix(uniform_hist)
+
+        print_hist(uniform_hist)
+        # set the nominal histogram
         sample.SetHisto(uniform_hist)
         keepalive(sample, uniform_hist)
 
@@ -179,19 +181,23 @@ class Sample(object):
                     down_term = terms[0]
                 else:
                     up_term, down_term = terms
+
                 log.info("adding histosys for %s" % sys_component)
                 histsys = ROOT.RooStats.HistFactory.HistoSys(sys_component)
 
                 hist_up = hist.systematics[up_term]
                 hist_down = hist.systematics[down_term]
 
+                hist_up.name = '%s_%s' % (self.name, systematic_name(up_term))
+                hist_down.name = '%s_%s' % (self.name, systematic_name(down_term))
+
                 if ndim > 1:
                     # convert to 1D hists
                     hist_up = hist_up.ravel()
                     hist_down = hist_down.ravel()
 
-                uniform_hist_up = to_uniform_binning(hist_up)
-                uniform_hist_down = to_uniform_binning(hist_down)
+                uniform_hist_up = uniform_binning(hist_up)
+                uniform_hist_down = uniform_binning(hist_down)
 
                 # TODO also apply kylefix on systematics?
 
@@ -205,6 +211,7 @@ class Sample(object):
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
             sample.AddNormFactor('SigXsecOverSM', 0., 0., 60.)
+
         elif isinstance(self, Background):
             # only activate stat error on background samples
             log.info("activating stat error for %s" % self.name)
@@ -510,12 +517,12 @@ class Data(Sample):
         return [idx]
 
 
-class Signal:
+class Signal(object):
     # mixin
     pass
 
 
-class Background:
+class Background(object):
     # mixin
     pass
 
@@ -1105,14 +1112,11 @@ class MC(Sample):
 
 
 class Ztautau(Background):
-    pass
 
+    def histfactory(self, sample, systematics=True):
 
-class MC_Ztautau(MC, Ztautau):
-
-    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
-        'Z_FIT',
-    ]
+        # not normalized by theory
+        sample.SetNormalizeByTheory(False)
 
     def __init__(self, *args, **kwargs):
         """
@@ -1120,11 +1124,17 @@ class MC_Ztautau(MC, Ztautau):
         the normalization is determined by a fit to the data
         """
         self.scale_error = 0.
-        super(MC_Ztautau, self).__init__(
-                *args, **kwargs)
+        super(Ztautau, self).__init__(*args, **kwargs)
 
 
-class Embedded_Ztautau(MC, Ztautau):
+class MC_Ztautau(Ztautau, MC):
+
+    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
+        'Z_FIT',
+    ]
+
+
+class Embedded_Ztautau(Ztautau, MC):
 
     SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
         'TES',
@@ -1134,34 +1144,25 @@ class Embedded_Ztautau(MC, Ztautau):
         'Z_FIT',
     ]
 
-    def __init__(self, *args, **kwargs):
-        """
-        Instead of setting the k factor here
-        the normalization is determined by a fit to the data
-        """
-        self.scale_error = 0.
-        super(Embedded_Ztautau, self).__init__(
-                *args, **kwargs)
-
 
 class EWK(MC, Background):
 
-    pass
+    NO_KYLEFIX = True
 
 
 class Top(MC, Background):
 
-    pass
+    NO_KYLEFIX = True
 
 
 class Diboson(MC, Background):
 
-    pass
+    NO_KYLEFIX = True
 
 
 class Others(MC, Background):
 
-    pass
+    NO_KYLEFIX = True
 
 
 class Higgs(MC, Signal):
@@ -1293,6 +1294,11 @@ class QCD(Sample, Background):
     SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
         'QCD_FIT',
     ]
+
+    def histfactory(self, sample, systematics=True):
+
+        # not normalized by theory
+        sample.SetNormalizeByTheory(False)
 
     @staticmethod
     def sample_compatibility(data, mc):

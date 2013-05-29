@@ -1,4 +1,4 @@
-from . import samples
+from . import samples, log; log = log[__name__]
 from .norm import cache as norm_cache
 
 
@@ -14,10 +14,12 @@ class Analysis(object):
         self.use_embedding = use_embedding
 
         if use_embedding:
+            log.info("Using embedded Ztautau")
             self.ztautau = samples.Embedded_Ztautau(
                 year=year,
                 systematics=systematics)
         else:
+            log.info("Using ALPGEN Ztautau")
             self.ztautau = samples.MC_Ztautau(
                 year=year,
                 systematics=systematics)

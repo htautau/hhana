@@ -10,9 +10,8 @@ args = get_parser().parse_args()
 year = args.year
 
 # stdlib imports
-import pickle
-from pprint import pprint
 import os
+import shutil
 
 # rootpy imports
 from rootpy.plotting import Hist
@@ -275,25 +274,35 @@ for category in categories:
 
 if 'limits' in args.actions:
     
-    with ropen('limits%s.root' % output_suffix, 'recreate') as limits_file:
+    with ropen('workspaces/limits%s.root' % output_suffix, 'recreate') as limits_file:
+        xml_output_dir = 'workspaces/xml%s' % output_suffix
+        if os.path.exists(xml_output_dir):
+            shutil.rmtree(xml_output_dir)
+        os.mkdir(xml_output_dir)
         for mass, category_channel in all_channels.items():
             channels = []
             # determine limits for each category separately
             for category, channel in category_channel.items():
                 name = "category_%s_%d" % (category, mass)
                 # make workspace
-                workspace = histfactory.make_workspace(name, channel,
+                workspace, measurement = histfactory.make_workspace(
+                    name, channel,
                     lumi_rel_error=lumi_rel_error)
                 workspace.Write()
+                measurement.Write()
+                measurement.PrintXML(xml_output_dir)
                 # get limit
                 limit_hist = hypotests.get_limit_workspace(workspace)
                 limit_hist.Write()
                 channels.append(channel)
             # make combined workspace
             name = "combination_%d" % mass
-            workspace = histfactory.make_workspace(name, channels,
+            workspace, measurement = histfactory.make_workspace(
+                name, channels,
                 lumi_rel_error=lumi_rel_error)
             workspace.Write()
+            measurement.Write()
+            measurement.PrintXML(xml_output_dir)
             # determine limit with combined model
             limit_hist = hypotests.get_limit_workspace(workspace)
             limit_hist.Write()

@@ -1,22 +1,6 @@
 from . import log; log = log[__name__]
-from rootpy.plotting import Hist
 from rootpy.memory.keepalive import keepalive
 import ROOT
-
-
-def to_uniform_binning(hist):
-    """
-    For some obscure technical reason, HistFactory can't handle histograms with
-    variable width bins. This function takes any 1D histogram and outputs a new
-    histogram with constant width bins by using the bin indices of the input
-    histogram as the x-axis of the new histogram.
-    """
-    new_hist = Hist(len(hist), 0, len(hist))
-    # assume yerrh == yerrl (as usual for ROOT histograms)
-    for i, (value, error) in enumerate(zip(hist, hist.yerrh())):
-        new_hist.SetBinContent(i + 1, value)
-        new_hist.SetBinError(i + 1, error)
-    return new_hist
 
 
 def make_channel(name, samples, data=None):
@@ -49,7 +33,8 @@ def make_measurement(name,
 
     # Create the measurement
     log.info("creating measurement %s" % name)
-    meas = ROOT.RooStats.HistFactory.Measurement(name, '')
+    meas = ROOT.RooStats.HistFactory.Measurement(
+        'measurement_%s' % name, '')
 
     meas.SetOutputFilePrefix(output_prefix)
     if POI is not None:
@@ -102,5 +87,5 @@ def make_workspace(name, channels,
             lumi_rel_error=lumi_rel_error,
             POI=POI)
     workspace = make_model(measurement)
-    workspace.SetName(name)
-    return workspace
+    workspace.SetName('workspace_%s' % name)
+    return workspace, measurement

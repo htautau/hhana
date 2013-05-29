@@ -48,8 +48,9 @@ def general_parser(parser=None):
             help='category names')
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
-    parser.add_argument('--embedding', action='store_true', default=False,
-            help='use embedded Z->tau+tau instead of ALPGEN')
+    parser.add_argument('--no-embedding', action='store_false', default=True,
+            dest='embedding',
+            help='use ALPGEN Z->tau+tau instead of embedding')
     parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
     parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,

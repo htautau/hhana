@@ -509,9 +509,15 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
+    'resonance_pt': {
+        'title': r'Resonance $p_T$',
+        'root': 'Resonance p_T',
+        'filename': 'resonance_pt',
+        'bins': 20,
+        'range': (0, 200),
+        'units': 'GeV',
+    },
 }
-
-
 
 for mmc in range(2):
 

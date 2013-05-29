@@ -160,15 +160,7 @@ def optimized_channels(clf, category, region, backgrounds,
         hist_template = Hist(nbins, min_score, max_score)
         # create HistFactory samples
         samples = []
-        for s, scores in bkg_scores:
-            sample = s.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=scores,
-                    apply_kylefix=True)
-            samples.append(sample)
-
-        for s, scores in sig_scores:
+        for s, scores in bkg_scores + sig_scores:
             sample = s.get_histfactory_sample(
                     hist_template, clf,
                     category, region,
@@ -231,15 +223,7 @@ def optimized_channels(clf, category, region, backgrounds,
 
         # create HistFactory samples
         samples = []
-        for s, scores in bkg_scores:
-            sample = s.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=scores,
-                    apply_kylefix=True)
-            samples.append(sample)
-
-        for s, scores in sig_scores:
+        for s, scores in bkg_scores + sig_scores:
             sample = s.get_histfactory_sample(
                     hist_template, clf,
                     category, region,

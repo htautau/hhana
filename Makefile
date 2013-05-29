@@ -21,6 +21,12 @@ check-files:
 check-ntup:
 	./checkfile $(HHNTUP)/$(HHSTUDENT).root
 
+browse:
+	rootpy browse $(HHNTUP)/$(HHSTUDENT).root
+
+roosh:
+	roosh $(HHNTUP)/$(HHSTUDENT).root
+
 $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root:
 	test -d $(HHNTUP_RUNNING)/data || mkdir $(HHNTUP_RUNNING)/data
 	-mv $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss_*.root $(HHNTUP_RUNNING)/data

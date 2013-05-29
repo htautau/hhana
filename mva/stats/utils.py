@@ -198,6 +198,21 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
     return hist_template
 
 
+def uniform_binning(hist):
+    """
+    For some obscure technical reason, HistFactory can't handle histograms with
+    variable width bins. This function takes any 1D histogram and outputs a new
+    histogram with constant width bins by using the bin indices of the input
+    histogram as the x-axis of the new histogram.
+    """
+    new_hist = Hist(len(hist), 0, len(hist),
+                    name=hist.name + '_uniform_binning')
+    # assume yerrh == yerrl (as usual for ROOT histograms)
+    for i, (value, error) in enumerate(zip(hist, hist.yerrh())):
+        new_hist.SetBinContent(i + 1, value)
+        new_hist.SetBinError(i + 1, error)
+    return new_hist
+
 
 def kylefix(hist):
     """

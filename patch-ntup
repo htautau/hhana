@@ -23,12 +23,21 @@ class Model(TreeModel):
 
 MET_4vect = LorentzVector()
 
+# write hists
+for dirpath, dirs, histnames in fin.walk(class_pattern='TH1D'):
+    for histname in histnames:
+        histpath = os.path.join(dirpath, histname)
+        log.info("copying %s ..." % histpath)
+        hist = fin.Get(histpath)
+        fout.cd()
+        hist.Write()
+
 # write trees
 for dirpath, dirs, treenames in fin.walk(class_pattern='TTree'):
     for treename in treenames:
         treepath = os.path.join(dirpath, treename)
         log.info("patching %s ..." % treepath)
-        intree = fin.Get(os.path.join(dirpath, treename))
+        intree = fin.Get(treepath)
         intree.create_buffer()
         fout.cd() 
         outtree = Tree(name=treename, model=Model)
@@ -41,5 +50,7 @@ for dirpath, dirs, treenames in fin.walk(class_pattern='TTree'):
             outtree.Fill()
         fout.cd()
         outtree.Write()
+        intree.Delete()
 
-# write hists
+fin.Close()
+fout.Close()
