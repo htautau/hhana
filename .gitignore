@@ -59,4 +59,4 @@ build
 *.pickle
 .svn
 grid-merge
-xsec_cache
+*.mp4
