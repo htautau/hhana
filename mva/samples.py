@@ -154,7 +154,7 @@ class Sample(object):
             hist = histogram_scores(hist_template, scores)
 
         hist.name = self.name
-        # convert to uniform binning
+        # convert to uniform binning and zero out negative bins
         uniform_hist = uniform_binning(hist)
 
         # always apply kylefix on backgrounds

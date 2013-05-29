@@ -214,6 +214,21 @@ def uniform_binning(hist):
     return new_hist
 
 
+def zero_negs(hist):
+    """
+    Return a clone of this histogram with all negative bins set to zero. The
+    errors of these bins are left untouched.
+    """
+    llog = log['zero_negs']
+    new_hist = hist.Clone(name=hist.name + '_nonegs')
+    for i, value in enumerate(new_hist):
+        if value < 0:
+            llog.warning("zeroing negative bin %d in %s" %
+                         (i, hist.name))
+            new_hist[i] = 0.
+    return new_hist
+
+
 def kylefix(hist):
     """
 
