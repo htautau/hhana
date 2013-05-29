@@ -205,6 +205,7 @@ def uniform_binning(hist, fix_systematics=True):
     histogram with constant width bins by using the bin indices of the input
     histogram as the x-axis of the new histogram.
     """
+    llog = log['uniform_binning']
     new_hist = Hist(len(hist), 0, len(hist),
                     name=hist.name + '_uniform_binning')
     # assume yerrh == yerrl (as usual for ROOT histograms)
@@ -213,12 +214,16 @@ def uniform_binning(hist, fix_systematics=True):
         new_hist.SetBinError(i + 1, error)
 
     # also fix systematics hists
-    if fix_systematics and hasattr(hist, 'systematics'):
-        new_systematics = {}
-        for term, sys_hist in hist.systematics.items():
-            new_systematics[term] = uniform_binning(sys_hist,
-                fix_systematics=False)
-        new_hist.systematics = new_systematics
+    if hasattr(hist, 'systematics'):
+        if fix_systematics:
+            llog.info("fixing systematics")
+            new_systematics = {}
+            for term, sys_hist in hist.systematics.items():
+                new_systematics[term] = uniform_binning(sys_hist,
+                    fix_systematics=False)
+            new_hist.systematics = new_systematics
+        else:
+            new_hist.systematics = hist.systematics
 
     return new_hist
 
@@ -237,12 +242,16 @@ def zero_negs(hist, fix_systematics=True):
             new_hist[i] = 0.
 
     # also fix systematics hists
-    if fix_systematics and hasattr(hist, 'systematics'):
-        new_systematics = {}
-        for term, sys_hist in hist.systematics.items():
-            new_systematics[term] = zero_negs(sys_hist,
-                fix_systematics=False)
-        new_hist.systematics = new_systematics
+    if hasattr(hist, 'systematics'):
+        if fix_systematics:
+            llog.info("fixing systematics")
+            new_systematics = {}
+            for term, sys_hist in hist.systematics.items():
+                new_systematics[term] = zero_negs(sys_hist,
+                    fix_systematics=False)
+            new_hist.systematics = new_systematics
+        else:
+            new_hist.systematics = hist.systematics
 
     return new_hist
 
@@ -337,12 +346,15 @@ def kylefix(hist, fix_systematics=False):
             fixed_hist.SetBinError(i + 1, sqrt(avW2Bin))
 
     # also fix systematics hists
-    if fix_systematics and hasattr(hist, 'systematics'):
-        llog.info("applying kylefix on systematics")
-        new_systematics = {}
-        for term, sys_hist in hist.systematics.items():
-            new_systematics[term] = kylefix(sys_hist,
-                fix_systematics=False)
-        fixed_hist.systematics = new_systematics
+    if hasattr(hist, 'systematics'):
+        if fix_systematics:
+            llog.info("applying kylefix on systematics")
+            new_systematics = {}
+            for term, sys_hist in hist.systematics.items():
+                new_systematics[term] = kylefix(sys_hist,
+                    fix_systematics=False)
+            fixed_hist.systematics = new_systematics
+        else:
+            fixed_hist.systematics = hist.systematics
 
     return fixed_hist
