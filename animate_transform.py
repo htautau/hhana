@@ -6,6 +6,12 @@ from matplotlib import animation
 fig = plt.figure()
 ax = plt.axes(xlim=(-1, 1))
 
+text = ax.text(.5, .8, '',
+        fontsize=30,
+        transform = ax.transAxes,
+        horizontalalignment='center',
+        verticalalignment='center')
+
 bkg_scores = np.random.normal(-.3, .2, size=10000)
 sig_scores = np.random.normal(.3, .2, size=10000)
 
@@ -32,12 +38,14 @@ def init():
 
 # animation function.  This is called sequentially
 def animate(i):
-    new_bkg, _ = np.histogram(transform(bkg_scores, i / 10.), bins=bins,
+    new_bkg, _ = np.histogram(transform(bkg_scores, i / 20.), bins=bins,
             range=(-1, 1),
             normed=True)
-    new_sig, _ = np.histogram(transform(sig_scores, i / 10.), bins=bins,
+    new_sig, _ = np.histogram(transform(sig_scores, i / 20.), bins=bins,
             range=(-1, 1),
             normed=True)
+
+    text.set_text(r'$\frac{2}{1 + e^{-%.2f x}} - 1$' % (i / 20.))
 
     for patch, v in zip(left_patches, new_bkg):
         patch.set_height(v)
@@ -57,4 +65,4 @@ anim = animation.FuncAnimation(fig, animate, init_func=init,
 # the video can be embedded in html5.  You may need to adjust this for
 # your system: for more information, see
 # http://matplotlib.sourceforge.net/api/animation_api.html
-anim.save('animate_transform.mp4', fps=24, extra_args=['-vcodec', 'libx264'])
+anim.save('animate_transform.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
