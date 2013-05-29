@@ -37,7 +37,7 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.utils import kylefix, uniform_binning
+from .stats.utils import kylefix, statsfix
 from .cachedtable import CachedTable
 from .regions import REGIONS
 
@@ -155,18 +155,19 @@ class Sample(object):
 
         hist.name = self.name
         # convert to uniform binning and zero out negative bins
-        uniform_hist = uniform_binning(hist)
+        hist = statsfix(hist)
 
         # always apply kylefix on backgrounds
         if (isinstance(self, Background) and
             not getattr(self, 'NO_KYLEFIX', False)):
             log.info("applying kylefix()")
-            uniform_hist = kylefix(uniform_hist)
+            # TODO also apply kylefix on systematics?
+            hist = kylefix(hist)
 
-        print_hist(uniform_hist)
+        print_hist(hist)
         # set the nominal histogram
-        sample.SetHisto(uniform_hist)
-        keepalive(sample, uniform_hist)
+        sample.SetHisto(hist)
+        keepalive(sample, hist)
 
         # add systematics samples
         if do_systematics:
@@ -196,14 +197,9 @@ class Sample(object):
                     hist_up = hist_up.ravel()
                     hist_down = hist_down.ravel()
 
-                uniform_hist_up = uniform_binning(hist_up)
-                uniform_hist_down = uniform_binning(hist_down)
-
-                # TODO also apply kylefix on systematics?
-
-                histsys.SetHistoHigh(uniform_hist_up)
-                histsys.SetHistoLow(uniform_hist_down)
-                keepalive(histsys, uniform_hist_up, uniform_hist_down)
+                histsys.SetHistoHigh(hist_up)
+                histsys.SetHistoLow(hist_down)
+                keepalive(histsys, hist_up, hist_down)
 
                 sample.AddHistoSys(histsys)
                 keepalive(sample, histsys)

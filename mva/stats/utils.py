@@ -198,7 +198,7 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores):
     return hist_template
 
 
-def uniform_binning(hist):
+def uniform_binning(hist, fix_systematics=True):
     """
     For some obscure technical reason, HistFactory can't handle histograms with
     variable width bins. This function takes any 1D histogram and outputs a new
@@ -211,10 +211,19 @@ def uniform_binning(hist):
     for i, (value, error) in enumerate(zip(hist, hist.yerrh())):
         new_hist.SetBinContent(i + 1, value)
         new_hist.SetBinError(i + 1, error)
+
+    # also fix systematics hists
+    if fix_systematics and hasattr(hist, 'systematics'):
+        new_systematics = {}
+        for term, sys_hist in hist.systematics.items():
+            new_systematics[term] = uniform_binning(sys_hist,
+                fix_systematics=False)
+        new_hist.systematics = new_systematics
+
     return new_hist
 
 
-def zero_negs(hist):
+def zero_negs(hist, fix_systematics=True):
     """
     Return a clone of this histogram with all negative bins set to zero. The
     errors of these bins are left untouched.
@@ -226,10 +235,28 @@ def zero_negs(hist):
             llog.warning("zeroing negative bin %d in %s" %
                          (i, hist.name))
             new_hist[i] = 0.
+
+    # also fix systematics hists
+    if fix_systematics and hasattr(hist, 'systematics'):
+        new_systematics = {}
+        for term, sys_hist in hist.systematics.items():
+            new_systematics[term] = zero_negs(sys_hist,
+                fix_systematics=False)
+        new_hist.systematics = new_systematics
+
     return new_hist
 
 
-def kylefix(hist):
+def statsfix(hist, fix_systematics=True):
+    """
+    Shortcut for applying ``uniform_binning`` and ``zero_negs``
+    """
+    return zero_negs(
+        uniform_binning(hist, fix_systematics=fix_systematics),
+        fix_systematics=fix_systematics)
+
+
+def kylefix(hist, fix_systematics=False):
     """
 
     Return a clone of the input histogram where the empty bins have been filled
@@ -308,5 +335,14 @@ def kylefix(hist):
                          (i, hist.name))
             fixed_hist[i] = avWeightBin
             fixed_hist.SetBinError(i + 1, sqrt(avW2Bin))
+
+    # also fix systematics hists
+    if fix_systematics and hasattr(hist, 'systematics'):
+        llog.info("applying kylefix on systematics")
+        new_systematics = {}
+        for term, sys_hist in hist.systematics.items():
+            new_systematics[term] = kylefix(sys_hist,
+                fix_systematics=False)
+        fixed_hist.systematics = new_systematics
 
     return fixed_hist
