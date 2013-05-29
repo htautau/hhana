@@ -1,6 +1,6 @@
 from rootpy.tree import Cut
 import math
-from . import MMC_MASS, MMC_PT
+from . import MMC_MASS
 
 # All basic cut definitions
 
@@ -29,7 +29,7 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 CUTS_VBF = Cut('dEta_jets > 2.0')
-CUTS_BOOSTED = Cut('%s > 100' % MMC_PT) # GeV
+CUTS_BOOSTED = Cut('resonance_pt > 100000') # MeV
 
 BAD_MASS = 75
 MET = Cut('MET > 20000')
@@ -84,7 +84,7 @@ features_2j = [
     'MET_centrality',
     'vector_sum_pt',
     #'sum_pt_full', #
-    #MMC_PT,
+    #'resonance_pt',
     # !!! eta centrality of 3rd jet
 ]
 
@@ -109,7 +109,7 @@ features_boosted = [
     'tau1_x', #  <= ADD BACK IN
     'tau2_x', #  <= ADD BACK IN
     'MET_centrality',
-    #MMC_PT,
+    #'resonance_pt',
     'sum_pt_full',
     'tau_pt_ratio',
     # !!! eta centrality of 3rd jet
@@ -129,7 +129,7 @@ features_1j = [
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
-    #MMC_PT,
+    #'resonance_pt',
 ]
 
 features_0j = [
@@ -143,7 +143,7 @@ features_0j = [
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
-    #MMC_PT,
+    #'resonance_pt',
 ]
 
 
@@ -278,7 +278,7 @@ class Category_VBF(Category_Preselection):
     name = 'vbf'
     label = r'$\tau_{had}\tau_{had}$: VBF Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = CUTS_VBF & CUTS_2J & Cut('%s > 40' % MMC_PT)
+    cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
     limitbins = 8
     limitbinning = 'onebkg'

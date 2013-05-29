@@ -515,6 +515,7 @@ VARIABLES = {
         'filename': 'resonance_pt',
         'bins': 20,
         'range': (0, 200),
+        'scale': 0.001,
         'units': 'GeV',
     },
 }
