@@ -179,6 +179,8 @@ class Category(object):
     clf_bins = 10
     # only unblind up to this number of bins in half-blind mode
     halfblind_bins = 0
+    # flat, onebkg or constant (see mva/stats/utils.py)
+    limitbinning = 'constant'
 
     @classmethod
     def get_cuts(cls, year, deta_cut=True):
@@ -245,7 +247,6 @@ class Category_2J(Category_Preselection):
     cuts = CUTS_2J
     fitbins = 5
     limitbins = 8
-    limitbinning = 'onebkg'
     features = features_2j
 
 
@@ -256,7 +257,6 @@ class Category_1J(Category_Preselection):
     cuts = CUTS_1J
     fitbins = 5
     limitbins = 10
-    limitbinning = 'onebkg'
     features = features_1j
 
 
@@ -267,7 +267,6 @@ class Category_0J(Category_Preselection):
     cuts = CUTS_0J
     fitbins = 8
     limitbins = 10
-    limitbinning = 'onebkg'
     features = features_0j
 
 
@@ -281,7 +280,6 @@ class Category_VBF(Category_Preselection):
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
     limitbins = 8
-    limitbinning = 'onebkg'
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
@@ -311,7 +309,6 @@ class Category_Boosted(Category_Preselection):
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
-    limitbinning = 'onebkg'
     # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes
@@ -344,7 +341,6 @@ class Category_Nonboosted_1J(Category_Preselection):
     cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 10
-    limitbinning = 'onebkg'
     features = features_1j
     # train with all modes
     halfblind_bins = 5
@@ -373,7 +369,6 @@ class Category_Nonboosted_0J(Category_Preselection):
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
     limitbins = 10
-    limitbinning = 'onebkg'
     features = features_0j
     # train with all modes
     halfblind_bins = 5

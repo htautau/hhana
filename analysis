@@ -243,28 +243,28 @@ for category in categories:
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
     if 'limits' in args.actions:
-        # TODO using the kylefix (in mva.stats.utils) determine the number of
-        # bins that yields the best limit at 125
-        """
-        channels = hypotests.optimized_channels(
-                clf, category, target_region,
-                analysis.backgrounds,
-                data=analysis.data, 
-                cuts=signal_region,
-                mass_points=[125],
-                systematics=args.systematics,
-                lumi_rel_error=lumi_rel_error)
-        """
-        # construct a "channel" for each mass point
-        channels = hypotests.channels(
-                clf, category, target_region,
-                analysis.backgrounds,
-                data=analysis.data, 
-                cuts=signal_region,
-                bins=category.limitbins,
-                binning=category.limitbinning,
-                mass_points=[125],
-                systematics=args.systematics)
+
+        if args.optimize_limits:
+            # Determine the number of bins that yields the best limit at 125
+            channels = hypotests.optimized_channels(
+                    clf, category, target_region,
+                    analysis.backgrounds,
+                    data=analysis.data, 
+                    cuts=signal_region,
+                    mass_points=[125],
+                    systematics=args.systematics,
+                    lumi_rel_error=lumi_rel_error)
+        else:
+            # construct a "channel" for each mass point
+            channels = hypotests.channels(
+                    clf, category, target_region,
+                    analysis.backgrounds,
+                    data=analysis.data, 
+                    cuts=signal_region,
+                    bins=category.limitbins,
+                    binning=category.limitbinning,
+                    mass_points=[125],
+                    systematics=args.systematics)
 
         for mass, channel in channels.items():
             if mass not in all_channels:

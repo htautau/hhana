@@ -251,7 +251,7 @@ def get_limit(channels,
           lumi_rel_error=0.,
           POI='SigXsecOverSM'):
 
-    workspace = histfactory.make_workspace('higgs', channels,
+    workspace, _ = histfactory.make_workspace('higgs', channels,
             lumi_rel_error=lumi_rel_error,
             POI=POI)
     return get_limit_workspace(workspace, unblind=unblind)
