@@ -153,7 +153,9 @@ class Sample(object):
                 scores = self.scores(expr_or_clf, category, region, cuts)
             hist = histogram_scores(hist_template, scores)
 
-        hist.name = self.name
+        histname = 'category_%s_%s' % (category.name, self.name)
+
+        hist.name = histname
         # convert to uniform binning and zero out negative bins
         hist = statsfix(hist)
 
@@ -167,6 +169,7 @@ class Sample(object):
         print_hist(hist)
         # set the nominal histogram
         sample.SetHisto(hist)
+        sample.SetHistoName(hist.name)
         keepalive(sample, hist)
 
         # add systematics samples
@@ -189,8 +192,8 @@ class Sample(object):
                 hist_up = hist.systematics[up_term]
                 hist_down = hist.systematics[down_term]
 
-                hist_up.name = '%s_%s' % (self.name, systematic_name(up_term))
-                hist_down.name = '%s_%s' % (self.name, systematic_name(down_term))
+                hist_up.name = '%s_%s' % (histname, systematic_name(up_term))
+                hist_down.name = '%s_%s' % (histname, systematic_name(down_term))
 
                 if ndim > 1:
                     # convert to 1D hists
@@ -198,7 +201,9 @@ class Sample(object):
                     hist_down = hist_down.ravel()
 
                 histsys.SetHistoHigh(hist_up)
+                histsys.SetHistoNameHigh(hist_up.name)
                 histsys.SetHistoLow(hist_down)
+                histsys.SetHistoNameLow(hist_down.name)
                 keepalive(histsys, hist_up, hist_down)
 
                 sample.AddHistoSys(histsys)

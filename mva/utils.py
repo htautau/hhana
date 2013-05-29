@@ -6,6 +6,7 @@ import datetime
 import numpy as np
 from rootpy.context import preserve_current_directory
 import ROOT
+from . import log; log = log[__name__]
 
 
 def print_hist(hist):
@@ -90,9 +91,15 @@ def braindump(outdir, indir=None):
     """
     Write out all objects in indir into outdir
     """
+    llog = log['braindump']
     if indir is None:
         indir = ROOT.gDirectory
     with preserve_current_directory():
         outdir.cd()
         for thing in indir.GetList():
+            if not thing.ClassName().startswith('TH'):
+                continue
+            llog.info("writing {0} in {1}".format(
+                thing.GetName(),
+                outdir.GetName()))
             thing.Write()

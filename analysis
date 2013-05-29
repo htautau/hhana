@@ -274,8 +274,10 @@ for category in categories:
 
 if 'limits' in args.actions:
     
+    dump_dir = ROOT.gDirectory.func()
+
     with ropen('workspaces/limits%s.root' % output_suffix, 'recreate') as limits_file:
-        braindump(limits_file)
+        braindump(limits_file, indir=dump_dir)
         xml_output_dir = 'workspaces/xml%s' % output_suffix
         if os.path.exists(xml_output_dir):
             shutil.rmtree(xml_output_dir)
