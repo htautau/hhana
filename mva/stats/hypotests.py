@@ -9,6 +9,8 @@ from . import histfactory
 from .utils import get_safe_template
 from ..utils import hist_to_dict
 
+from matplotlib import pyplot as plt
+
 
 def channels(clf, category, region, backgrounds,
             data=None, cuts=None, hist_template=None,
@@ -156,7 +158,8 @@ def optimized_channels(clf, category, region, backgrounds,
     limit_hists = []
     best_limit = float('inf')
     best_hist_template = None
-    for nbins in xrange(2, 21):
+    nbins_range = xrange(1, 101)
+    for nbins in nbins_range:
         hist_template = Hist(nbins, min_score, max_score)
         # create HistFactory samples
         samples = []
@@ -190,6 +193,16 @@ def optimized_channels(clf, category, region, backgrounds,
         if hist_dict['Expected'] < best_limit:
             best_limit = hist_dict['Expected']
             best_hist_template = hist_template
+
+    # plot limit vs nbins
+    plt.figure()
+    central_values = np.array([h['Expected'] for h in limit_hists])
+    high_values = np.array([h['+1sigma'] - h['Expected'] for h in limit_hists])
+    low_values = np.array([h['Expected'] - h['-1sigma'] for h in limit_hists])
+    plt.errorbar(nbins_range, central_values, yerr=[low_values, high_values], fmt='o')
+    plt.xlabel("Number of Bins")
+    plt.ylabel("Limit")
+    plt.savefig('category_%s_limit_vs_nbins.png' % category.name)
 
     hist_template = best_hist_template
     channels = dict()
