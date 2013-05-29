@@ -4,6 +4,8 @@ import errno
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 import numpy as np
+from rootpy.context import preserve_current_directory
+import ROOT
 
 
 def print_hist(hist):
@@ -82,3 +84,15 @@ def rec_to_ndarray(rec, fields=None):
         fields = rec.dtype.names
     # Creates a copy and recasts data to a consistent datatype
     return np.vstack([rec[field] for field in fields]).T
+
+
+def braindump(outdir, indir=None):
+    """
+    Write out all objects in indir into outdir
+    """
+    if indir is None:
+        indir = ROOT.gDirectory
+    with preserve_current_directory():
+        outdir.cd()
+        for thing in indir.GetList():
+            thing.Write()

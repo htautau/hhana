@@ -162,8 +162,9 @@ class AsymptoticsCLs
 {
     public:
 
-    AsymptoticsCLs(RooWorkspace* _w):
+    AsymptoticsCLs(RooWorkspace* _w, bool _verbose = false):
         w(_w),
+        verbose(_verbose),
         mc(NULL),
         data(NULL),
         firstPOI(NULL),
@@ -267,8 +268,12 @@ class AsymptoticsCLs
                 double NtimesSigma = getLimit(asimov_0_nll, N*med_limit/sqrt(3.84)); // use N * sigma(0) as an initial guess
                 N_status[N] += global_status;
                 sigma = NtimesSigma/N;
-                cout << endl;
-                cout << "Found N * sigma = " << N << " * " << sigma << endl;
+                
+                if (verbose)
+                {
+                    cout << endl;
+                    cout << "Found N * sigma = " << N << " * " << sigma << endl;
+                }
 
                 string muStr,muStrPr;
                 w->loadSnapshot("conditionalGlobs_0");
@@ -337,6 +342,7 @@ class AsymptoticsCLs
             cout << "--------------------------------" << endl;
         }
 
+        cout << endl;
         if (betterBands) cout << "Guess for bands" << endl;
         cout << "+2sigma:  " << mu_up_p2_approx << endl;
         cout << "+1sigma:  " << mu_up_p1_approx << endl;
@@ -373,16 +379,22 @@ class AsymptoticsCLs
         h_lim->GetXaxis()->SetBinLabel(5, "-1sigma");
         h_lim->GetXaxis()->SetBinLabel(6, "-2sigma");
         h_lim->GetXaxis()->SetBinLabel(7, "Global status"); // do something with this later
-
-        cout << "Finished with " << nrMinimize << " calls to minimize(nll)" << endl;
-        timer.Print();
+    
+        if (verbose)
+        {
+            cout << "Finished with " << nrMinimize << " calls to minimize(nll)" << endl;
+            timer.Print();
+        }
         return h_lim;
     }
 
     double getLimit(RooNLLVar* nll, double initial_guess)
     {
-        cout << "------------------------" << endl;
-        cout << "Getting limit for nll: " << nll->GetName() << endl;
+        if (verbose)
+        {
+            cout << "------------------------" << endl;
+            cout << "Getting limit for nll: " << nll->GetName() << endl;
+        }
         //get initial guess based on muhat and sigma(muhat)
         firstPOI->setConstant(0);
         global_status=0;
@@ -425,16 +437,20 @@ class AsymptoticsCLs
         double qmu95 = getQmu95(sigma_b, mu_guess);
         setMu(mu_guess);
 
-        cout << "Initial guess:  " << mu_guess << endl;
-        cout << "Sigma(obs):     " << sigma_guess << endl;
-        cout << "Sigma(mu,0):    " << sigma_b << endl;
-        cout << "muhat:          " << muhat << endl;
-        cout << "qmu95:          " << qmu95 << endl;
-        cout << "qmu:            " << qmu << endl;
-        cout << "pmu:            " << pmu << endl;
-        cout << "1-pb:           " << pb << endl;
-        cout << "CLs:            " << CLs << endl;
-        cout << endl;
+        
+        if (verbose)
+        {
+            cout << "Initial guess:  " << mu_guess << endl;
+            cout << "Sigma(obs):     " << sigma_guess << endl;
+            cout << "Sigma(mu,0):    " << sigma_b << endl;
+            cout << "muhat:          " << muhat << endl;
+            cout << "qmu95:          " << qmu95 << endl;
+            cout << "qmu:            " << qmu << endl;
+            cout << "pmu:            " << pmu << endl;
+            cout << "1-pb:           " << pb << endl;
+            cout << "CLs:            " << CLs << endl;
+            cout << endl;
+        }
 
         int nrDamping = 1;
         map<double, double> guess_to_corr;
@@ -445,8 +461,11 @@ class AsymptoticsCLs
         double mu_pre2 = muhat;
         while (fabs(mu_pre-mu_guess) > precision*mu_guess*direction)
         {
-            cout << "----------------------" << endl;
-            cout << "Starting iteration " << nrItr << " of " << nll->GetName() << endl;
+            if (verbose)
+            {
+                cout << "----------------------" << endl;
+                cout << "Starting iteration " << nrItr << " of " << nll->GetName() << endl;
+            }
             // do this to avoid comparing multiple minima in the conditional and unconditional fits
             if (nrItr == 0) loadSnapshot(nll, muhat);
             else if (usePredictiveFit) doPredictiveFit(nll, mu_pre2, mu_pre, mu_guess);
@@ -502,22 +521,25 @@ class AsymptoticsCLs
             pb = calcPb(qmu, sigma_b, mu_pre);
             CLs = calcCLs(qmu, sigma_b, mu_pre);
             qmu95 = getQmu95(sigma_b, mu_pre);
-
-            cout << "NLL:            " << nll->GetName() << endl;
-            cout << "Previous guess: " << mu_pre << endl;
-            cout << "Sigma(obs):     " << sigma_guess << endl;
-            cout << "Sigma(mu,0):    " << sigma_b << endl;
-            cout << "muhat:          " << muhat << endl;
-            cout << "pmu:            " << pmu << endl;
-            cout << "1-pb:           " << pb << endl;
-            cout << "CLs:            " << CLs << endl;
-            cout << "qmu95:          " << qmu95 << endl;
-            cout << "qmu:            " << qmu << endl;
-            cout << "qmuA0:          " << qmuA << endl;
-            cout << "Precision:      " << direction*mu_guess*precision << endl;
-            cout << "Correction:    "  << (-corr<0?" ":"") << -corr << endl;
-            cout << "New guess:      " << mu_guess << endl;
-            cout << endl;
+            
+            if (verbose)
+            {
+                cout << "NLL:            " << nll->GetName() << endl;
+                cout << "Previous guess: " << mu_pre << endl;
+                cout << "Sigma(obs):     " << sigma_guess << endl;
+                cout << "Sigma(mu,0):    " << sigma_b << endl;
+                cout << "muhat:          " << muhat << endl;
+                cout << "pmu:            " << pmu << endl;
+                cout << "1-pb:           " << pb << endl;
+                cout << "CLs:            " << CLs << endl;
+                cout << "qmu95:          " << qmu95 << endl;
+                cout << "qmu:            " << qmu << endl;
+                cout << "qmuA0:          " << qmuA << endl;
+                cout << "Precision:      " << direction*mu_guess*precision << endl;
+                cout << "Correction:    "  << (-corr<0?" ":"") << -corr << endl;
+                cout << "New guess:      " << mu_guess << endl;
+                cout << endl;
+            }
 
             nrItr++;
             if (nrItr > 25)
@@ -527,9 +549,12 @@ class AsymptoticsCLs
             }
         }
 
-        cout << "Found limit for nll " << nll->GetName() << ": " << mu_guess << endl;
-        cout << "Finished in " << nrItr << " iterations." << endl;
-        cout << endl;
+        if (verbose)
+        {
+            cout << "Found limit for nll " << nll->GetName() << ": " << mu_guess << endl;
+            cout << "Finished in " << nrItr << " iterations." << endl;
+            cout << endl;
+        }
         return mu_guess;
     }
 
@@ -1036,8 +1061,11 @@ class AsymptoticsCLs
     {
         if (mu_val_profile == -999) mu_val_profile = mu_val;
 
-
-        cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
+        
+        if (verbose)
+        {
+            cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
+        }
 
         //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
         //int strat = ROOT::Math::MinimizerOptions::SetDefaultStrategy(0);
@@ -1430,6 +1458,7 @@ class AsymptoticsCLs
     private:
 
     RooWorkspace* w;
+    bool verbose;
     map<RooNLLVar*, double> map_nll_muhat;
     map<RooNLLVar*, double> map_muhat;
     map<RooDataSet*, RooNLLVar*> map_data_nll;
