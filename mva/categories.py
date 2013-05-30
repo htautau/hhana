@@ -279,11 +279,11 @@ class Category_VBF(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
-    limitbins = 8
+    limitbins = 98
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
-    halfblind_bins = 5
+    halfblind_bins = 50
     norm_category = Category_Preselection
 
 
@@ -308,11 +308,11 @@ class Category_Boosted(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
-    limitbins = 10
+    limitbins = 86
     # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes
-    halfblind_bins = 4
+    halfblind_bins = 50
     norm_category = Category_Preselection
 
 
@@ -368,10 +368,10 @@ class Category_Nonboosted_0J(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
-    limitbins = 10
+    limitbins = 7
     features = features_0j
     # train with all modes
-    halfblind_bins = 5
+    halfblind_bins = 4
     norm_category = Category_Preselection
 
 

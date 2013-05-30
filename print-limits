@@ -7,9 +7,14 @@ from rootpy.io import root_open as ropen
 with ropen(sys.argv[1]) as f:
     for path, dirs, objects in f.walk(class_pattern="TH1*"):
         print r"\begin{tabular}{l|c}"
-        for hist_name in objects:
+        for hist_name in sorted(objects):
+            if not hist_name.endswith('limit'):
+                continue
             hist = f.Get(os.path.join(path, hist_name))
-            print r"{\bf %s} & " % hist.name.replace('_', ' ').upper(),
+            print r"{\bf %s} & " % hist.name.replace(
+                '_', ' ').replace('workspace', '').replace(
+                        'category',
+                        '').replace('limit', '').upper(),
             hist_dict = {}
             for i, limit in enumerate(hist):
                 hist_dict[hist.xaxis.GetBinLabel(i + 1)] = limit

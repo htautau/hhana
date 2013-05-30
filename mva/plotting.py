@@ -50,6 +50,17 @@ rc('text.latex', preamble=LATEX_PREAMBLE)
 #plt.rcParams['pdf.fonttype'] = 42
 
 
+def efficiency_cut(hist, effic):
+
+    integral = hist.Integral()
+    cumsum = 0.
+    for ibin, value in enumerate(hist):
+        cumsum += value
+        if cumsum / integral > effic:
+            return hist.xedges(ibin)
+    return hist.xedges(-1)
+
+
 def set_colours(hists, colour_map=cm.jet):
 
     for i, h in enumerate(hists):
@@ -73,7 +84,9 @@ def root_axes(ax,
               xtick_formatter=None,
               xtick_locator=None,
               xtick_rotation=None,
-              logy=False, integer=False, no_xlabels=False, vscale=1.):
+              logy=False, integer=False, no_xlabels=False,
+              vscale=1.,
+              bottom=None):
 
     ax.patch.set_linewidth(2)
     if integer:
@@ -865,7 +878,10 @@ def draw(name,
     else:
         right_margin = 0.05
     ratio_sep_margin = 0.025
-    ypadding = (.6, .1)
+    if logy:
+        ypadding = (.4, .1)
+    else:
+        ypadding = (.6, .1)
 
     width = 1. - right_margin - left_margin
     height = 1. - top_margin - bottom_margin
@@ -942,6 +958,9 @@ def draw(name,
         hist_ax = plt.axes(rect_hist)
         if logy:
             hist_ax.set_yscale('log')
+            bottom = 1E-1
+        else:
+            bottom = 0
 
     if model is not None and model_colour_map is not None:
         set_colours(model, model_colour_map)
@@ -992,7 +1011,8 @@ def draw(name,
                     stacked=True,
                     yerr='quadratic' if not systematics else False,
                     axes=hist_ax,
-                    ypadding=ypadding)
+                    ypadding=ypadding,
+                    bottom=bottom)
 
             if signal is not None and signal_on_top:
                 signal_bars = model_bars[len(model):]
@@ -1007,7 +1027,8 @@ def draw(name,
                     stacked=True, #yerr='quadratic',
                     axes=hist_ax,
                     alpha=alpha,
-                    ypadding=ypadding)
+                    ypadding=ypadding,
+                    bottom=bottom)
         else:
             signal_bars = rplt.hist(
                     scaled_signal,
@@ -1015,7 +1036,8 @@ def draw(name,
                     stacked=True,
                     alpha=alpha,
                     axes=hist_ax,
-                    ypadding=ypadding)
+                    ypadding=ypadding,
+                    bottom=bottom)
             # only keep the patch objects
             signal_bars = [res[2][0] for res in signal_bars]
 
@@ -1112,7 +1134,8 @@ def draw(name,
                     ypadding=ypadding,
                     emptybins=False,
                     barsabove=True,
-                    zorder=1000)
+                    zorder=1000,
+                    bottom=bottom)
         # draw ratio plot
         if model is not None and show_ratio:
             total_model = sum(model)
@@ -1315,6 +1338,8 @@ def draw(name,
             'var_%s_%s' %
             (category.name,
              output_name.lower().replace(' ', '_')))
+    if logy:
+        filename += '_logy'
     if root:
         filename += '_root'
     for format in output_formats:
@@ -1498,6 +1523,7 @@ def plot_clf(background_scores,
              signal_colour_map=cm.spring,
              plot_signal_significance=True,
              systematics=None,
+             unblind=False,
              **kwargs):
 
     if hist_template is None:
@@ -1544,16 +1570,23 @@ def plot_clf(background_scores,
     else:
         sig_hists = None
 
-    if data_scores is not None and draw_data:
+    if data_scores is not None and draw_data and unblind is not False:
         data, data_scores = data_scores
+        if isinstance(unblind, float):
+            if sig_hists is not None:
+                # unblind up to `unblind` % signal efficiency
+                sum_sig = sum(sig_hists)
+                cut = efficiency_cut(sum_sig, 0.3)
+                data_scores = data_scores[data_scores < cut]
         data_hist = hist_template.Clone(title=data.label)
         data_hist.decorate(**data.hist_decor)
         data_hist.fill_array(data_scores)
-        log.info("Data events: %d" % sum(data_hist))
-        log.info("Model events: %f" % sum(sum(bkg_hists)))
-        for hist in bkg_hists:
-            log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
-        log.info("Data / Model: %f" % (sum(data_hist) / sum(sum(bkg_hists))))
+        if unblind >= 1 or unblind is True:
+            log.info("Data events: %d" % sum(data_hist))
+            log.info("Model events: %f" % sum(sum(bkg_hists)))
+            for hist in bkg_hists:
+                log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+            log.info("Data / Model: %f" % (sum(data_hist) / sum(sum(bkg_hists))))
     else:
         data_hist = None
 
@@ -1561,20 +1594,22 @@ def plot_clf(background_scores,
         output_name = 'event_bdt_score'
         if name is not None:
             output_name += '_' + name
-        draw(data=data_hist,
-             model=bkg_hists,
-             signal=sig_hists,
-             signal_scale=signal_scale,
-             plot_signal_significance=plot_signal_significance,
-             category=category,
-             name="BDT Score",
-             output_name=output_name,
-             range=(hist_template.xedges(0), hist_template.xedges(-1)),
-             show_ratio=data_hist is not None,
-             model_colour_map=None,
-             signal_colour_map=signal_colour_map,
-             systematics=systematics,
-             **kwargs)
+        for logy in (True, False):
+            draw(data=data_hist,
+                 model=bkg_hists,
+                 signal=sig_hists,
+                 signal_scale=signal_scale,
+                 plot_signal_significance=False, #plot_signal_significance,
+                 category=category,
+                 name="BDT Score",
+                 output_name=output_name,
+                 range=(hist_template.xedges(0), hist_template.xedges(-1)),
+                 show_ratio=data_hist is not None,
+                 model_colour_map=None,
+                 signal_colour_map=signal_colour_map,
+                 systematics=systematics,
+                 logy=logy,
+                 **kwargs)
     return bkg_hists, sig_hists, data_hist
 
 

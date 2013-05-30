@@ -604,11 +604,13 @@ class ClassificationProblem(object):
         min_score -= bin_width
         max_score += bin_width
 
+        """
         if not unblind:
             # show a partial unblinding
             # get upper edge of half-blind bin
             upper_edge = min_score + (category.halfblind_bins + 1) * bin_width
             data_scores = data_scores[data_scores <= upper_edge]
+        """
 
         plot_clf(
             background_scores=bkg_scores,
@@ -622,7 +624,8 @@ class ClassificationProblem(object):
             bins=category.clf_bins + 2,
             min_score=min_score,
             max_score=max_score,
-            systematics=systematics)
+            systematics=systematics,
+            unblind=0.3)
 
         # plot using the binning used for limit setting
         limit_binning_hist_template = get_safe_template(
@@ -634,11 +637,12 @@ class ClassificationProblem(object):
             plot_label='Mass Signal Region' if signal_region else None,
             signal_scores=sig_scores,
             signal_scale=signal_scale if not unblind else 1.,
-            data_scores=None if not unblind else (data, data_scores),
+            data_scores=(data, data_scores),
             draw_data=True,
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
-            systematics=systematics)
+            systematics=systematics,
+            unblind=0.3)
 
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
@@ -731,7 +735,8 @@ class ClassificationProblem(object):
             bins=category.clf_bins + 2,
             min_score=min_score,
             max_score=max_score,
-            systematics=systematics)
+            systematics=systematics,
+            unblind=True)
 
         #return bkg_scores, sig_scores_125
 

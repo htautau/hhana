@@ -45,7 +45,7 @@ def animate(i):
             range=(-1, 1),
             normed=True)
 
-    text.set_text(r'$\frac{2}{1 + e^{-%.2f x}} - 1$' % (i / 20.))
+    text.set_text(r'$T(x) = \frac{2}{1 + e^{-%.2f x}} - 1$' % (i / 20.))
 
     for patch, v in zip(left_patches, new_bkg):
         patch.set_height(v)
