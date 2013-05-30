@@ -6,12 +6,6 @@ from matplotlib import animation
 fig = plt.figure()
 ax = plt.axes(xlim=(-1, 1))
 
-text = ax.text(.5, .8, '',
-        fontsize=30,
-        transform = ax.transAxes,
-        horizontalalignment='center',
-        verticalalignment='center')
-
 bkg_scores = np.random.normal(-.3, .2, size=10000)
 sig_scores = np.random.normal(.3, .2, size=10000)
 
@@ -26,6 +20,12 @@ _, _, right_patches = ax.hist(sig_scores, range=(-1, 1),
         alpha=.6,
         facecolor='red',
         normed=True)
+
+text = ax.text(.5, .8, '',
+        fontsize=30,
+        transform = ax.transAxes,
+        horizontalalignment='center',
+        verticalalignment='center')
 
 def transform(x, c):
     return 2.0 / (1.0 + np.exp(- c * x)) - 1.0
@@ -53,16 +53,16 @@ def animate(i):
     for patch, v in zip(right_patches, new_sig):
         patch.set_height(v)
 
-    ax.set_ylim(0, max(new_bkg.max(), new_sig.max()) * 1.3)
+    ax.set_ylim(0, max(new_bkg.max(), new_sig.max()) * 1.4)
     return left_patches, right_patches
 
 # call the animator.  blit=True means only re-draw the parts that have changed.
 anim = animation.FuncAnimation(fig, animate, init_func=init,
-                               frames=200, interval=10, blit=True)
+                               frames=200, interval=100, blit=True)
 
 # save the animation as an mp4.  This requires ffmpeg or mencoder to be
 # installed.  The extra_args ensure that the x264 codec is used, so that
 # the video can be embedded in html5.  You may need to adjust this for
 # your system: for more information, see
 # http://matplotlib.sourceforge.net/api/animation_api.html
-anim.save('animate_transform.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+anim.save('animate_transform.mp4', fps=5, dpi=200, extra_args=['-vcodec', 'libx264'])
