@@ -36,10 +36,9 @@ from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
 from mva.analysis import Analysis
 from mva.lumi import get_lumi_uncert
-from mva import log, variables, plots_dir, samples
+from mva import log, variables, samples
 
 SYSTEMATICS = get_systematics(year)
-PLOTS_DIR = plots_dir(__file__)
 lumi_rel_error = get_lumi_uncert(year)
 figures = {}
 category_scores = {}
@@ -47,6 +46,8 @@ category_scores = {}
 output_suffix = '_%sfit_%s' % (args.fit_param, args.qcd_shape_region)
 if args.embedding:
     output_suffix += '_embedding'
+else:
+    output_suffix += '_alpgen'
 if args.suffix:
     output_suffix += '_%s' % args.suffix
 output_suffix += '_%d' % (year % 1E3)
