@@ -946,7 +946,7 @@ def draw(name,
         fig.SetBottomMargin(0)
         fig.SetRightMargin(0)
         fig.SetTopMargin(0)
-        hist_pad = Pad("top", "top", 0, rect_hist[1], 1, 1)
+        hist_pad = Pad(0., rect_hist[1], 1., 1., name='top', title='top')
         hist_pad.SetBottomMargin(0)
         hist_pad.SetLeftMargin(rect_hist[0])
         hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
@@ -999,7 +999,7 @@ def draw(name,
             model_stack = HistStack()
             for hist in model:
                 hist.SetLineWidth(0)
-                hist.format = 'hist'
+                hist.drawstyle = 'hist'
                 model_stack.Add(hist)
             model_stack.Draw()
         else:
@@ -1021,28 +1021,29 @@ def draw(name,
     if signal is not None and not signal_on_top:
         if root:
             pass
-        if fill_signal:
-            signal_bars = rplt.bar(
-                    scaled_signal,
-                    stacked=True, #yerr='quadratic',
-                    axes=hist_ax,
-                    alpha=alpha,
-                    ypadding=ypadding,
-                    bottom=bottom)
         else:
-            signal_bars = rplt.hist(
-                    scaled_signal,
-                    histtype='stepfilled',
-                    stacked=True,
-                    alpha=alpha,
-                    axes=hist_ax,
-                    ypadding=ypadding,
-                    bottom=bottom)
-            # only keep the patch objects
-            signal_bars = [res[2][0] for res in signal_bars]
+            if fill_signal:
+                signal_bars = rplt.bar(
+                        scaled_signal,
+                        stacked=True, #yerr='quadratic',
+                        axes=hist_ax,
+                        alpha=alpha,
+                        ypadding=ypadding,
+                        bottom=bottom)
+            else:
+                signal_bars = rplt.hist(
+                        scaled_signal,
+                        histtype='stepfilled',
+                        stacked=True,
+                        alpha=alpha,
+                        axes=hist_ax,
+                        ypadding=ypadding,
+                        bottom=bottom)
+                # only keep the patch objects
+                signal_bars = [res[2][0] for res in signal_bars]
 
-        if plot_signal_significance:
-            plot_significance(signal, model, ax=hist_ax)
+            if plot_signal_significance:
+                plot_significance(signal, model, ax=hist_ax)
 
     if model is not None and show_qq:
         qq_ax = plt.axes(rect_qq)
@@ -1151,8 +1152,9 @@ def draw(name,
             error_hist *= 100
             if root:
                 fig.cd()
-                ratio_pad = Pad("ratio", "ratio",
-                    0, 0, 1, rect_ratio[1] + rect_ratio[3])
+                ratio_pad = Pad(
+                    0, 0, 1, rect_ratio[1] + rect_ratio[3],
+                    name='ratio', title='ratio')
                 ratio_pad.SetBottomMargin(rect_ratio[1])
                 ratio_pad.SetLeftMargin(rect_ratio[0])
                 ratio_pad.SetRightMargin(1. - rect_ratio[2] - rect_ratio[0])
@@ -1244,7 +1246,11 @@ def draw(name,
         right_legend.AddEntry(data, 'lep')
         if signal is not None:
             # TODO support list of signal
-            right_legend.AddEntry(signal, 'F')
+            if isinstance(signal, (list, tuple)):
+                for s in signal:
+                    right_legend.AddEntry(s, 'F')
+            else:
+                right_legend.AddEntry(signal, 'F')
         right_legend.Draw()
     else:
         right_legend_bars = []
@@ -1344,10 +1350,10 @@ def draw(name,
         filename += '_root'
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)
-        log.info("writing %s" % output_filename)
         if root:
             fig.SaveAs(output_filename)
         else:
+            log.info("writing %s" % output_filename)
             plt.savefig(output_filename)
     if not root:
         plt.close(fig)
@@ -1375,8 +1381,8 @@ def plot_significance(signal, background, ax):
             color='black', fontsize=15, position=(0., 1.), va='top')
     #sig_ax.tick_params(axis='y', colors='red')
     sig_ax.set_ylim(0, max_sig * 2)
-    plt.text(max_cut + 0.02, max_sig, '(%.2f, %.2f)' % (max_cut, max_sig),
-            ha='left', va='center',
+    plt.text(max_cut, max_sig + 0.02, '(%.2f, %.2f)' % (max_cut, max_sig),
+            ha='right', va='bottom',
             axes=sig_ax)
     """
     plt.annotate('(%.2f, %.2f)' % (max_cut, max_sig), xy=(max_cut, max_sig),
@@ -1599,7 +1605,7 @@ def plot_clf(background_scores,
                  model=bkg_hists,
                  signal=sig_hists,
                  signal_scale=signal_scale,
-                 plot_signal_significance=False, #plot_signal_significance,
+                 plot_signal_significance=plot_signal_significance,
                  category=category,
                  name="BDT Score",
                  output_name=output_name,

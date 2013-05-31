@@ -14,9 +14,9 @@ import os
 import shutil
 
 # rootpy imports
-from rootpy.plotting import Hist
 from rootpy.tree import Cut
 from rootpy.io import root_open as ropen
+from rootpy.plotting.style import set_style
 
 # root imports
 import ROOT
@@ -79,6 +79,8 @@ analysis = Analysis(
 
 if args.transform_scores:
     ClassificationProblem.TRANSFORM = True
+
+set_style('ATLAS')
 
 for category in categories:
     
