@@ -662,11 +662,7 @@ class MC(Sample):
     @property
     def label(self):
 
-        l = self._label
-        #if self.scale != 1. and not isinstance(self,
-        #        (MC_Ztautau, Embedded_Ztautau)):
-        #    l += r' ($\sigma_{SM} \times %g$)' % self.scale
-        return l
+        return self._label
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True, scale=1.):

@@ -957,7 +957,7 @@ def draw(name,
         prop = fm.FontProperties(size=14)
         hist_ax = plt.axes(rect_hist)
         if logy:
-            hist_ax.set_yscale('log')
+            hist_ax.set_yscale('log', nonposy='clip')
             bottom = 1E-1
         else:
             bottom = 0
@@ -973,7 +973,7 @@ def draw(name,
             scaled_signal = []
             for sig in signal:
                 scaled_h = sig * signal_scale
-                scaled_h.SetTitle(r'%s ($\sigma_{SM} \times\/%g$)' % (
+                scaled_h.SetTitle(r'%s ($\times\/%g$)' % (
                     sig.GetTitle(),
                     signal_scale))
                 scaled_signal.append(scaled_h)
