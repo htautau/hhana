@@ -16,7 +16,7 @@ import shutil
 # rootpy imports
 from rootpy.tree import Cut
 from rootpy.io import root_open as ropen
-from rootpy.plotting.style import set_style
+from rootpy.plotting.style import get_style, set_style
 
 # root imports
 import ROOT
@@ -80,7 +80,13 @@ analysis = Analysis(
 if args.transform_scores:
     ClassificationProblem.TRANSFORM = True
 
-set_style('ATLAS')
+style = get_style('ATLAS')
+#style.SetFrameLineWidth(2)
+style.SetLineWidth(2)
+style.SetTitleYOffset(1.6)
+style.SetTickLength(0.04, 'X')
+style.SetTickLength(0.02, 'Y')
+set_style(style)
 
 for category in categories:
     

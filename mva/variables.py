@@ -12,15 +12,15 @@ WEIGHTS = {
 
 VARIABLES = {
     'ntrack_pv': {
-        'title': r'Number of Tracks from PV',
-        'root': 'Number of Tracks from PV',
+        'title': r'Number of Tracks from the Primary Vertex',
+        'root': '#font[52]{Number of Tracks from the Primary Vertex}',
         'filename': 'ntrack_pv',
         'bins': 10,
         'range': (0.5, 120.5),
     },
     'ntrack_nontau_pv': {
-        'title': r'Number of Non-Tau Tracks from PV',
-        'root': 'Number of Non-Tau Tracks from PV',
+        'title': r'Number of Non-Tau Tracks from the Primary Vertex',
+        'root': '#font[52]{Number of Non-Tau Tracks from the Primary Vertex}',
         'filename': 'ntrack_nontau_pv',
         'bins': 10,
         'range': (0.5, 120.5),
@@ -40,8 +40,8 @@ VARIABLES = {
         'range': (1, 46),
     },
     'sum_pt': {
-        'title': r'$\sum p_T$',
-        'root': '#font[152]{#sum} #font[52]{p}_{T}',
+        'title': r'$\sum p_T$ Taus and Two Leading Jets',
+        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and Two Leading Jets}',
         'filename': 'sum_pt',
         'bins': 20,
         'range': (50, 550),
@@ -49,8 +49,8 @@ VARIABLES = {
         'units': 'GeV',
     },
     'sum_pt_full': {
-        'title': r'$\sum p_T$ (all)',
-        'root': '#font[152]{#sum} #font[52]{p}_{T} (all)',
+        'title': r'$\sum p_T$ Taus and All Selected Jets',
+        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and All Selected Jets}',
         'filename': 'sum_pt_full',
         'bins': 20,
         'range': (50, 550),
@@ -58,8 +58,8 @@ VARIABLES = {
         'units': 'GeV',
     },
     'vector_sum_pt': {
-        'title': r'$\sum \vec{p}_T$',
-        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{(vector sum)}',
+        'title': r'$\sum \vec{p}_T$ Taus, $E^{miss}_{T}$, and Two Leading Jets',
+        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus,} #font[52]{E}^{miss}_{T}, #font[52]{and Two Leading Jets}',
         'filename': 'vector_sum_pt',
         'bins': 20,
         'range': (0, 200),
@@ -68,8 +68,8 @@ VARIABLES = {
         'cats': ['2J', 'VBF']
     },
     'numJets': {
-        'title': r'Number of Jets with $p_T>25$ GeV',
-        'root': '#font[52]{Number of Jets with p}_{T}>25 #font[52]{GeV}',
+        'title': r'Number of Selected Jets',
+        'root': '#font[52]{Number of Selected Jets}',
         'filename': 'numjets',
         'bins': 7,
         'range': (-.5, 6.5),
@@ -140,8 +140,8 @@ VARIABLES = {
         'range': (-math.sqrt(2), math.sqrt(2)),
     },
     'mass_vis_tau1_tau2': {
-        'title': r'$M^{vis}_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[52]{M}^{vis}_{#font[152]{#tau_{1}, #tau_{2}}}',
+        'title': r'$M^{vis}(\tau_{1},\/\tau_{2})$',
+        'root': '#font[52]{M}^{vis}(#font[152]{#tau}_{1},#font[152]{#tau_{2}})',
         'filename': 'mass_vis',
         'bins': 20,
         'range': (0, 250),
@@ -150,8 +150,8 @@ VARIABLES = {
         'blind': (70, 110),
     },
     'mass_collinear_tau1_tau2': {
-        'title': r'$M^{col}_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[52]{M}^{col}_{#font[152]{#tau_{1}, #tau_{2}}}',
+        'title': r'$M^{col}(\tau_{1},\/\tau_{2})$',
+        'root': '#font[52]{M}^{col}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'mass_collinear',
         'bins': 20,
         'range': (0, 250),
@@ -160,15 +160,15 @@ VARIABLES = {
         'blind': (100, 150),
     },
     'tau_pt_ratio': {
-        'title': r'$p_{T_{\tau_{1}}} / p_{T_{\tau_{2}}}$',
-        'root': '#font[52]{p}_{T_{#font[152]{#tau}_{1}}} / #font[52]{p}_{T_{#font[152]{#tau}_{2}}}',
+        'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
+        'root': '#font[152]{#tau}_{1}  #font[52]{p}_{T} / #font[152]{#tau}_{2} #font[52]{p}_{T}',
         'filename': 'tau_pt_ratio',
         'bins': 20,
         'range': (0, 5),
     },
     'tau1_pt': {
-        'title': r'$p_{T_{\tau_{1}}}$',
-        'root': '#font[52]{p}_{T_{#font[152]{#tau}_{1}}}',
+        'title': r'$\tau_{1} p_{T}$',
+        'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
         'filename': 'tau1_pt',
         'bins': 20,
         'range': (20, 160),
@@ -176,8 +176,8 @@ VARIABLES = {
         'units': 'GeV',
     },
     'tau2_pt': {
-        'title': r'$p_{T_{\tau_{2}}}$',
-        'root': '#font[52]{p}_{T_{#font[152]{#tau}_{2}}}',
+        'title': r'$\tau_{2} p_{T}$',
+        'root': '#font[152]{#tau}_{2} #font[52]{p}_{T}',
         'filename': 'tau2_pt',
         'bins': 20,
         'range': (20, 160),
@@ -185,15 +185,15 @@ VARIABLES = {
         'units': 'GeV',
     },
     'tau1_eta': {
-        'title': r'$\eta_{\tau_{1}}$',
-        'root': '#font[152]{#eta}_{#font[152]{#tau}_{1}}',
+        'title': r'$\tau_{1} \eta$',
+        'root': '#font[152]{#tau}_{1} #font[152]{#eta}',
         'filename': 'tau1_eta',
         'bins': 20,
         'range': (-3, 3),
     },
     'tau2_eta': {
-        'title': r'$\eta_{\tau_{2}}$',
-        'root': '#font[152]{#eta}_{#font[152]{#tau}_{2}}',
+        'title': r'$\tau_{2} \eta$',
+        'root': '#font[152]{#tau}_{2} #font[152]{#eta}',
         'filename': 'tau2_eta',
         'bins': 20,
         'range': (-3, 3),
@@ -246,29 +246,29 @@ VARIABLES = {
         'integer': True,
     },
     'tau_x_product': {
-        'title': r'$\tau_{1_{x}} \times \tau_{2_{x}}$',
-        'root': '#font[152]{#tau}_{1_{x}} #times #font[152]{#tau}_{2_{x}}',
+        'title': r'Product of $\tau$ Visible Momentum Fractions',
+        'root': 'Product of #font[152]{#tau} #font[52]{Visible Momentum Fractions}',
         'filename': 'tau_x_product',
         'bins': 20,
         'range': (-9, 16),
     },
     'tau_x_sum': {
-        'title': r'$\tau_{1_{x}} + \tau_{2_{x}}$',
-        'root': '#font[152]{#tau}_{1_{x}} + #font[152]{#tau}_{2_{x}}',
+        'title': r'Sum of $\tau$ Visible Momentum Fractions',
+        'root': 'Sum of #font[152]{#tau} #font[52]{Visible Momentum Fractions}',
         'filename': 'tau_x_sum',
         'bins': 20,
         'range': (-6, 8),
     },
     'tau1_x': {
-        'title': r'$\tau_{1_{x}}$',
-        'root': '#font[152]{#tau}_{1_{x}}',
+        'title': r'$\tau_{1}$ Visible Momentum Fraction',
+        'root': '#font[152]{#tau}_{1} #font[52]{Visible Momentum Fraction}',
         'filename': 'tau1_x',
         'bins': 20,
         'range': (-3, 4),
     },
     'tau2_x': {
-        'title': r'$\tau_{2_{x}}$',
-        'root': '#font[152]{#tau}_{2_{x}}',
+        'title': r'$\tau_{2}$ Visible Momentum Fraction',
+        'root': '#font[152]{#tau}_{2} #font[52]{Visible Momentum Fraction}',
         'filename': 'tau2_x',
         'bins': 20,
         'range': (-3, 4),
@@ -310,36 +310,36 @@ VARIABLES = {
     #    'cats': ['0J', '1J', '2J',]
     #},
     'cos_theta_tau1_tau2': {
-        'title': r'$\cos(\alpha_{\tau_{1},\/\tau_{2}})$',
-        'root': '#font[152]{cos(#alpha_{#tau_{1}, #tau_{2}})}',
+        'title': r'$\cos[\alpha(\tau_{1},\/\tau_{2})]$',
+        'root': '#font[52]{cos}[#font[152]{#alpha}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})]',
         'filename': 'cos_theta_tau1_tau2',
         'bins': 20,
         'range': (-1, 1),
     },
     'theta_tau1_tau2': {
-        'title': r'$\alpha_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[152]{#alpha_{#tau_{1}, #tau_{2}}}',
+        'title': r'$\alpha(\tau_{1},\/\tau_{2})$',
+        'root': '#font[152]{#alpha}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'theta_tau1_tau2',
         'bins': 20,
         'range': (0, math.pi),
     },
     'dR_tau1_tau2': {
-        'title': r'$\Delta R_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[152]{#Delta} #font[52]{R}_{#font[152]{#tau_{1}, #tau_{2}}}',
+        'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
+        'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'dr_tau1_tau2',
         'bins': 20,
         'range': (0., 4.),
     },
     'dPhi_tau1_tau2': {
-        'title': r'$\Delta \phi_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[152]{#Delta#phi_{#tau_{1}, #tau_{2}}}',
+        'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
+        'root': '#font[152]{#Delta#phi}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})}',
         'filename': 'dphi_tau1_tau2',
         'bins': 20,
         'range': (0., math.pi),
     },
     'dEta_tau1_tau2': {
-        'title': r'$\Delta \eta_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[152]{#Delta#eta_{#tau_{1}, #tau_{2}}}',
+        'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
+        'root': '#font[152]{#Delta#eta}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'deta_tau1_tau2',
         'bins': 10,
         'range': (0., 3.),
@@ -408,24 +408,24 @@ VARIABLES = {
     #    'cats': ['2J', 'VBF']
     #},
     'jet1_eta': {
-        'title': r'$\eta_{jet_{1}}$',
-        'root': '#font[152]{#eta}_{jet_{1}}',
+        'title': r'jet$_{1}$ $\eta$',
+        'root': '#font[52]{jet}_{1} #font[152]{#eta}',
         'filename': 'jet1_eta',
         'bins': 20,
         'range': (-5, 5),
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
     'jet2_eta': {
-        'title': r'$\eta_{jet_{2}}$',
-        'root': '#font[152]{#eta}_{jet_{2}}',
+        'title': r'jet$_{2}$ $\eta$',
+        'root': '#font[52]{jet}_{2} #font[152]{#eta}',
         'filename': 'jet2_eta',
         'bins': 20,
         'range': (-5, 5),
         'cats': ['2J', 'VBF']
     },
     'jet1_pt': {
-        'title': r'$p_{T_{jet_{1}}}$',
-        'root': '#font[52]{p}_{T_{jet_{1}}}',
+        'title': r'jet$_{1}$ $p_{T}$',
+        'root': '#font[52]{jet}_{1} #font[52]{p}_{T}',
         'filename': 'jet1_pt',
         'bins': 20,
         'range': (20, 200),
@@ -434,8 +434,8 @@ VARIABLES = {
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
     'jet2_pt': {
-        'title': r'$p_{T_{jet_{2}}}$',
-        'root': '#font[52]{p}_{T_{jet_{2}}}',
+        'title': r'jet$_{2}$ $p_{T}$',
+        'root': '#font[52]{jet}_{2} #font[52]{p}_{T}',
         'filename': 'jet2_pt',
         'bins': 20,
         'range': (20, 200),
@@ -443,33 +443,9 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
-    #'jet1_fourvect_boosted_eta': {
-    #    'title': r'Boosted $\eta_{jet_{1}}$',
-    #    'root': 'Boosted #eta_{jet_{1}}',
-    #    'filename': 'jet1_eta_boosted',
-    #    'bins': 20,
-    #    'range': (-5, 5),
-    #    'cats': ['2J', 'VBF']
-    #},
-    #'jet2_fourvect_boosted_eta': {
-    #    'title': r'Boosted $\eta_{jet_{2}}$',
-    #    'root': 'Boosted #eta_{jet_{2}}',
-    #    'filename': 'jet2_eta_boosted',
-    #    'bins': 20,
-    #    'range': (-5, 5),
-    #    'cats': ['2J', 'VBF']
-    #},
-    #('jet1_fourvect_boosted_eta', 'jet2_fourvect_boosted_eta'): {
-    #    'title': r'Boosted $\eta_{jet_{1,\/2}}$',
-    #    'root': 'Boosted #eta_{jet_{1, 2}}',
-    #    'filename': 'jet_eta_boosted',
-    #    'bins': 20,
-    #    'range': (-5, 5),
-    #    'cats': ['2J', 'VBF']
-    #},
     'dEta_jets': {
-        'title': r'$|\Delta\eta_{jet_{1},\/jet_{2}}|$',
-        'root': '|#font[152]{#Delta#eta}_{jet_{1}, jet_{2}}|',
+        'title': r'$|\Delta\eta(jet_{1},\/jet_{2})|$',
+        'root': '|#font[152]{#Delta#eta}(#font[52]{jet}_{1}, #font[52]{jet}_{2})|',
         'filename': 'dEta_jets',
         'bins': 20,
         'range': (0, 6),
@@ -500,8 +476,8 @@ VARIABLES = {
     #    'cats': ['2J', 'VBF']
     #},
     'mass_jet1_jet2': {
-        'title': r'$M_{jet_{1},\/jet_{2}}$',
-        'root': '#font[52]{M}_{jet_{1}, jet_{2}}',
+        'title': r'$M(jet_{1},\/jet_{2})$',
+        'root': '#font[52]{M}(#font[52]{jet}_{1},#font[52]{jet}_{2})',
         'filename': 'mass_jet1_jet2',
         'bins': 20,
         'range': (0, 1000),
@@ -523,8 +499,8 @@ VARIABLES = {
 for mmc in range(2):
 
     VARIABLES['mmc%d_mass' % mmc] = {
-        'title': r'$M^{MMC}_{\tau_{1},\/\tau_{2}}$',
-        'root': '#font[52]{M}^{MMC}_{#font[152]{#tau_{1}, #tau_{2}}}',
+        'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
+        'root': '#font[52]{M}^{MMC}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'mmc%d_mass' % mmc,
         'bins': 33,
         'range': (-8, 256),

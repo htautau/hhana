@@ -20,6 +20,7 @@ import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
 from rootpy.math.stats.correlation import correlation_plot
 from rootpy.io import root_open
+from rootpy.plotting.shapes import Line
 
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
@@ -873,6 +874,7 @@ def draw(name,
     left_margin = 0.16
     bottom_margin = 0.16
     top_margin = 0.05
+
     if signal is not None and plot_signal_significance:
         right_margin = 0.10
     else:
@@ -947,7 +949,7 @@ def draw(name,
         fig.SetRightMargin(0)
         fig.SetTopMargin(0)
         hist_pad = Pad(0., rect_hist[1], 1., 1., name='top', title='top')
-        hist_pad.SetBottomMargin(0)
+        hist_pad.SetBottomMargin(0.01)
         hist_pad.SetLeftMargin(rect_hist[0])
         hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
         hist_pad.SetTopMargin(1. - rect_hist[3] - rect_hist[1])
@@ -1002,6 +1004,9 @@ def draw(name,
                 hist.drawstyle = 'hist'
                 model_stack.Add(hist)
             model_stack.Draw()
+            ratio_abs_height / figheight
+            model_stack.GetXaxis().SetTickLength(
+                model_stack.GetXaxis().GetTickLength() * figheight / hist_abs_height)
         else:
             model_bars = rplt.bar(
                     model + scaled_signal if (
@@ -1147,7 +1152,7 @@ def draw(name,
                 if value == 0:
                     error_hist[i] = 0
             error_hist.linecolor = 'black'
-            error_hist.linewidth = 1
+            #error_hist.linewidth = 2
             error_hist.fillstyle = 'hollow'
             error_hist *= 100
             if root:
@@ -1155,7 +1160,7 @@ def draw(name,
                 ratio_pad = Pad(
                     0, 0, 1, rect_ratio[1] + rect_ratio[3],
                     name='ratio', title='ratio')
-                ratio_pad.SetBottomMargin(rect_ratio[1])
+                ratio_pad.SetBottomMargin(rect_ratio[1] * 2.5)
                 ratio_pad.SetLeftMargin(rect_ratio[0])
                 ratio_pad.SetRightMargin(1. - rect_ratio[2] - rect_ratio[0])
                 ratio_pad.SetTopMargin(0)
@@ -1164,10 +1169,28 @@ def draw(name,
                 error_hist.Draw('hist')
                 error_hist.yaxis.SetLimits(-100, 100)
                 error_hist.yaxis.SetRangeUser(-100, 100)
+                error_hist.yaxis.SetTitle('#frac{Data - Model}{Model} [%]')
+                error_hist.yaxis.SetNdivisions(4)
                 xmin = model_stack.xaxis.GetXmin()
                 xmax = model_stack.xaxis.GetXmax()
                 error_hist.xaxis.SetLimits(xmin, xmax)
                 error_hist.xaxis.SetRangeUser(xmin, xmax)
+                error_hist.xaxis.SetTickLength(
+                    error_hist.xaxis.GetTickLength() * 2)
+                # draw horizontal lines
+                line = Line(error_hist.xedges(0), 0,
+                            error_hist.xedges(-1), 0)
+                line.linestyle = 'dashed'
+                line.Draw()
+                line_up = Line(error_hist.xedges(0), 50,
+                               error_hist.xedges(-1), 50)
+                line_up.linestyle = 'dashed'
+                line_up.Draw()
+                line_dn = Line(error_hist.xedges(0), -50,
+                               error_hist.xedges(-1), -50)
+                line_dn.linestyle = 'dashed'
+                line_dn.Draw()
+
             else:
                 ratio_ax = plt.axes(rect_ratio)
                 ratio_ax.axhline(y=0, color='black')
@@ -1300,10 +1323,16 @@ def draw(name,
         ylabel = 'Events'
 
     if root:
-        model_stack.yaxis.SetTitle('Events')
+        model_stack.yaxis.SetTitle(ylabel)
         base_hist = model_stack
         if show_ratio:
+            # hide x labels on top hist
+            model_stack.xaxis.SetLabelOffset(100)
             base_hist = error_hist
+            base_hist.xaxis.SetTitleOffset(base_hist.xaxis.GetTitleOffset() *
+                    2.5)
+            base_hist.xaxis.SetLabelOffset(base_hist.xaxis.GetLabelOffset() *
+                    4)
         base_hist.xaxis.SetTitle(label)
     else:
         hist_ax.set_ylabel(ylabel, position=(0., 1.), va='top')
