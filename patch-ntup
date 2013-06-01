@@ -36,8 +36,11 @@ for dirpath, dirs, histnames in fin.walk(class_pattern='TH1D'):
 for dirpath, dirs, treenames in fin.walk(class_pattern='TTree'):
     for treename in treenames:
         treepath = os.path.join(dirpath, treename)
-        log.info("patching %s ..." % treepath)
         intree = fin.Get(treepath)
+        if intree.has_branch('resonance_pt'):
+            log.info("skipping %s ..." % treepath)
+            continue
+        log.info("patching %s ..." % treepath)
         intree.create_buffer()
         fout.cd() 
         outtree = Tree(name=treename, model=Model)

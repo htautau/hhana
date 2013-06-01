@@ -89,7 +89,7 @@ def root_axes(ax,
               vscale=1.,
               bottom=None):
 
-    ax.patch.set_linewidth(2)
+    #ax.patch.set_linewidth(2)
     if integer:
         ax.xaxis.set_major_locator(
             xtick_locator or MultipleLocator(1))
@@ -109,7 +109,7 @@ def root_axes(ax,
     if xtick_rotation is not None:
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=xtick_rotation)
 
-    ax.yaxis.set_label_coords(-0.12, 1.)
+    ax.yaxis.set_label_coords(-0.13, 1.)
     ax.xaxis.set_label_coords(1., -0.15 / vscale)
 
 
@@ -879,7 +879,7 @@ def draw(name,
         right_margin = 0.10
     else:
         right_margin = 0.05
-    ratio_sep_margin = 0.025
+    ratio_sep_margin = 0.030
     if logy:
         ypadding = (.4, .1)
     else:
@@ -1094,7 +1094,7 @@ def draw(name,
                 # and height of high_band + low_band
                 rplt.fill_between(total_model + high_band_model,
                             total_model - low_band_model,
-                            edgecolor='yellow',
+                            edgecolor='0.75',
                             linewidth=0,
                             facecolor=(0,0,0,0),
                             hatch='////',
@@ -1114,7 +1114,7 @@ def draw(name,
                 rplt.fill_between(
                         high,
                         low,
-                        edgecolor='green',
+                        edgecolor='0.75',
                         linewidth=0,
                         facecolor=(0,0,0,0),
                         hatch=r'\\\\',
@@ -1193,9 +1193,12 @@ def draw(name,
 
             else:
                 ratio_ax = plt.axes(rect_ratio)
-                ratio_ax.axhline(y=0, color='black')
-                ratio_ax.axhline(y=50, color='black', linestyle='--')
-                ratio_ax.axhline(y=-50, color='black', linestyle='--')
+                ratio_ax.axhline(y=0, color='black', linestyle=':',
+                        linewidth=1.5)
+                ratio_ax.axhline(y=50, color='black', linestyle=':',
+                        linewidth=1.5)
+                ratio_ax.axhline(y=-50, color='black', linestyle=':',
+                        linewidth=1.5)
                 rplt.hist(
                         error_hist,
                         axes=ratio_ax,
@@ -1204,7 +1207,7 @@ def draw(name,
                 ratio_ax.set_xlim(hist_ax.get_xlim())
                 #ratio_ax.yaxis.tick_right()
                 ratio_ax.set_ylabel(r'$\frac{\rm{Data - Model}}{\rm{Model}}$ [\%]',
-                        position=(0., 1.), va='top')
+                        position=(0., 1.), va='center', ha='right')
             if systematics:
                 # plot band on ratio plot
                 # uncertainty on top is data + model
@@ -1335,7 +1338,7 @@ def draw(name,
                     4)
         base_hist.xaxis.SetTitle(label)
     else:
-        hist_ax.set_ylabel(ylabel, position=(0., 1.), va='top')
+        hist_ax.set_ylabel(ylabel, position=(0., 1.), va='center', ha='right')
         base_ax = hist_ax
         if show_ratio:
             base_ax = ratio_ax

@@ -83,7 +83,7 @@ if args.transform_scores:
 style = get_style('ATLAS')
 #style.SetFrameLineWidth(2)
 style.SetLineWidth(2)
-style.SetTitleYOffset(1.6)
+style.SetTitleYOffset(1.8)
 style.SetTickLength(0.04, 'X')
 style.SetTickLength(0.02, 'Y')
 set_style(style)

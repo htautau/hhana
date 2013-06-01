@@ -110,8 +110,8 @@ VARIABLES = {
         'range': (-math.pi, math.pi),
     },
     'dPhi_min_tau_MET': {
-        'title': r'min[$\Delta\phi$($\tau$,\/MET)]',
-        'root': '#font[52]{min}[#font[152]{#Delta#phi}(#font[152]{#tau}, #font[52]{MET})]',
+        'title': r'min[$\Delta\phi$($\tau$,\/$E^{miss}_{T}$)]',
+        'root': '#font[52]{min}[#font[152]{#Delta#phi}(#font[152]{#tau},#font[52]{E}^{miss}_{T})]',
         'filename': 'dPhi_min_tau_MET',
         'bins': 20,
         'range': (0, math.pi),
@@ -141,7 +141,7 @@ VARIABLES = {
     },
     'mass_vis_tau1_tau2': {
         'title': r'$M^{vis}(\tau_{1},\/\tau_{2})$',
-        'root': '#font[52]{M}^{vis}(#font[152]{#tau}_{1},#font[152]{#tau_{2}})',
+        'root': '#font[52]{M}^{vis}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'mass_vis',
         'bins': 20,
         'range': (0, 250),
@@ -332,7 +332,7 @@ VARIABLES = {
     },
     'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta#phi}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})}',
+        'root': '#font[152]{#Delta#phi}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'dphi_tau1_tau2',
         'bins': 20,
         'range': (0., math.pi),
@@ -460,8 +460,8 @@ VARIABLES = {
     #    'cats': ['2J', 'VBF']
     #},
     'eta_product_jets': {
-        'title': r'$\eta_{jet_{1}} \times \/ \eta_{jet_{2}}$',
-        'root': '#font[152]{#eta}_{jet_{1}} #times #font[152]{#eta}_{jet_{2}}',
+        'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
+        'root': '#font[52]{jet}_{1} #font[152]{#eta} #times #font[52]{jet}_{2} #font[152]{#eta}',
         'filename': 'eta_product_jets',
         'bins': 20,
         'range': (-10, 10),
