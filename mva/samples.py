@@ -211,7 +211,7 @@ class Sample(object):
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
-            sample.AddNormFactor('SigXsecOverSM', 0., 0., 60.)
+            sample.AddNormFactor('SigXsecOverSM', 1., 0., 200.)
 
         elif isinstance(self, Background):
             # only activate stat error on background samples
