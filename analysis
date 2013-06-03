@@ -310,6 +310,8 @@ if 'limits' in args.actions:
                 workspace, measurement = histfactory.make_workspace(
                     name, channel,
                     lumi_rel_error=lumi_rel_error)
+                # mu=1 for Asimov data
+                measurement.SetParamValue('SigXsecOverSM', 1)
                 workspace.Write()
                 measurement.Write()
                 measurement.PrintXML(xml_output_dir)
@@ -322,6 +324,8 @@ if 'limits' in args.actions:
             workspace, measurement = histfactory.make_workspace(
                 name, channels,
                 lumi_rel_error=lumi_rel_error)
+            # mu=1 for Asimov data
+            measurement.SetParamValue('SigXsecOverSM', 1)
             workspace.Write()
             measurement.Write()
             measurement.PrintXML(xml_output_dir)
