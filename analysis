@@ -43,24 +43,11 @@ lumi_rel_error = get_lumi_uncert(year)
 figures = {}
 category_scores = {}
 
-output_suffix = '_%sfit_%s' % (args.fit_param, args.qcd_shape_region)
-if args.embedding:
-    output_suffix += '_embedding'
-else:
-    output_suffix += '_alpgen'
-if args.suffix:
-    output_suffix += '_%s' % args.suffix
-output_suffix += '_%d' % (year % 1E3)
-output_suffix += '_%s' % args.categories
-clf_output_suffix = output_suffix
-if not args.systematics:
-    output_suffix += '_statsonly'
-
 mass_regions = MassRegions(
-        low=args.low_mass_cut,
-        high=args.high_mass_cut,
-        high_sideband_in_control=args.high_sideband_in_control,
-        mass_window_signal_region=args.mass_window_signal_region)
+    low=args.low_mass_cut,
+    high=args.high_mass_cut,
+    high_sideband_in_control=args.high_sideband_in_control,
+    mass_window_signal_region=args.mass_window_signal_region)
 
 control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
@@ -76,6 +63,11 @@ analysis = Analysis(
     systematics=args.systematics,
     use_embedding=args.embedding,
     qcd_shape_region=args.qcd_shape_region)
+
+output_suffix = analysis.get_suffix(args.categories, args.fit_param, args.suffix)
+clf_output_suffix = output_suffix
+if not args.systematics:
+    output_suffix += '_statsonly'
 
 if args.transform_scores:
     ClassificationProblem.TRANSFORM = True

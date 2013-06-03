@@ -12,6 +12,7 @@ class Analysis(object):
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
+        self.qcd_shape_region = qcd_shape_region
 
         if use_embedding:
             log.info("Using embedded Ztautau")
@@ -66,3 +67,18 @@ class Analysis(object):
             qcd=self.qcd,
             category=category,
             param=fit_param)
+
+    def get_suffix(self, categories, fit_param='TRACK', suffix=None):
+
+        output_suffix = '_%sfit_%s' % (fit_param.lower(), self.qcd_shape_region)
+        if self.use_embedding:
+            output_suffix += '_embedding'
+        else:
+            output_suffix += '_alpgen'
+        if suffix:
+            output_suffix += '_%s' % suffix
+        output_suffix += '_%d' % (self.year % 1E3)
+        output_suffix += '_%s' % categories
+        return  output_suffix
+        #if not self.systematics:
+        #    output_suffix += '_statsonly'

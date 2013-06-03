@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+from rootpy.io import root_open
+import numpy as np
+from mva.analysis import Analysis
+from mva.categories import Category_VBF
+from mva.classify import ClassificationProblem
+from root_numpy import array2tree
+
+a = Analysis(2012,
+             systematics=False,
+             use_embedding=True)
+
+category = Category_VBF
+
+clf = ClassificationProblem(
+        fields=category.features,
+        category=category,
+        region='OS',
+        clf_output_suffix=a.get_suffix('harmonize'))
+
+clf.load()
+
+d = a.data
+t = d.trees(category, 'OS')[0]
+
+scores, weights = d.scores(clf, category, 'OS')
+
+new_fields = np.c_[scores, weights]
+rec = np.core.records.fromarrays(new_fields.transpose(),
+                                 names='BDT, weight',
+                                 formats='f4, f4')
+
+array2tree(rec, tree=t)
+with root_open('bdt_scores_for_theory.root', 'RECREATE'):
+    out_t = t.CloneTree(-1, 'fast')
+    out_t.Write()
