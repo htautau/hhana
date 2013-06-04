@@ -21,6 +21,8 @@ from rootpy.math.stats.qqplot import qqplot
 from rootpy.math.stats.correlation import correlation_plot
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
+from rootpy.plotting.utils import get_limits
+from rootpy.plotting.style.atlas.labels import ATLAS_label
 
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
@@ -1004,6 +1006,12 @@ def draw(name,
                 hist.drawstyle = 'hist'
                 model_stack.Add(hist)
             model_stack.Draw()
+            xmin, xmax, ymin, ymax = get_limits(model_stack,
+                    logy=logy,
+                    ypadding=ypadding)
+            model_stack.SetMinimum(ymin)
+            model_stack.SetMaximum(ymax)
+            model_stack.Draw()
             ratio_abs_height / figheight
             model_stack.GetXaxis().SetTickLength(
                 model_stack.GetXaxis().GetTickLength() * figheight / hist_abs_height)
@@ -1131,6 +1139,7 @@ def draw(name,
         if root:
             hist_pad.cd()
             data.Draw('same E1')
+
         else:
             data_bars = rplt.errorbar(data,
                     fmt='o', axes=hist_ax,
@@ -1244,11 +1253,17 @@ def draw(name,
     if model is not None:
         if root:
             hist_pad.cd()
-            model_legend = Legend(len(model), pad=hist_pad,
-                    leftmargin=0.05, rightmargin=0.5)
+            model_legend = Legend(len(model),
+                    pad=hist_pad,
+                    leftmargin=0.02,
+                    rightmargin=0.5,
+                    margin=0.3,
+                    textsize=20,
+                    sep=0.3,
+                    entryheight=0.08)
             for hist in model:
                 model_legend.AddEntry(hist, 'F')
-            model_legend.SetHeader(category.label)
+            model_legend.SetHeader(category.root_label)
             model_legend.Draw()
         else:
             model_legend = hist_ax.legend(
@@ -1261,7 +1276,18 @@ def draw(name,
 
     if root:
         hist_pad.cd()
-        right_legend = Legend(2 if signal is not None else 1, pad=hist_pad)
+        right_legend = Legend(2 if signal is not None else 1,
+                pad=hist_pad,
+                leftmargin=0.4,
+                rightmargin=0.12,
+                margin=0.3,
+                textsize=20,
+                sep=0.3,
+                entryheight=0.08)
+        if '\n' in data.title:
+            dtitle = data.title.split('\n')
+            right_legend.SetHeader(dtitle[1])
+            data.title = dtitle[0]
         right_legend.AddEntry(data, 'lep')
         if signal is not None:
             # TODO support list of signal
@@ -1365,6 +1391,15 @@ def draw(name,
             else:
                 ratio_ax.set_xlim(range)
 
+    """
+    if root:
+        xmin, xmax, ymin, ymax = get_limits(model_stack,
+                    logy=logy,
+                    ypadding=ypadding)
+        print xmin,ymin,xmax,ymax
+        hist_pad.DrawFrame(xmin,ymin,xmax,ymax)
+    """
+
     filename = os.path.join(PLOTS_DIR,
             'var_%s_%s' %
             (category.name,
@@ -1376,6 +1411,12 @@ def draw(name,
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)
         if root:
+            hist_pad.Update()
+            hist_pad.Modified()
+            hist_pad.RedrawAxis()
+            ATLAS_label(.6, .7, text="Work in Progress", sqrts=None,
+                    pad=hist_pad,
+                    sep=0.1)
             fig.SaveAs(output_filename)
         else:
             log.info("writing %s" % output_filename)

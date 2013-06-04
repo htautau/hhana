@@ -205,6 +205,7 @@ class Category_Cuts_Preselection(Category):
 
     name = 'cut_preselection'
     label = r'$\tau_{had}\tau_{had}$: At Cut-based Preselection'
+    root_label = '#tau_{had}#tau_{had}: At Cut-based Preselection'
     common_cuts = COMMON_CUTS_CUTBASED
 
 
@@ -220,6 +221,7 @@ class Category_Preselection(Category):
 
     name = 'preselection'
     label = r'$\tau_{had}\tau_{had}$: At Preselection'
+    root_label = '#tau_{had}#tau_{had}: At Preselection'
     common_cuts = COMMON_CUTS_MVA
     #cuts = Cut('theta_tau1_tau2 > 0.6')
 
@@ -276,6 +278,7 @@ class Category_VBF(Category_Preselection):
 
     name = 'vbf'
     label = r'$\tau_{had}\tau_{had}$: VBF Category'
+    root_label = '#tau_{had}#tau_{had}: VBF Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
@@ -292,6 +295,7 @@ class Category_VBF_ID_Control(Category_VBF):
     is_control = True
     name = 'vbf_id_control'
     label = r'$\tau_{had}\tau_{had}$: VBF Category ID Control Region'
+    root_label = '#tau_{had}#tau_{had}: VBF Category ID Control Region'
 
 
 class Category_VBF_DEta_Control(Category_VBF):
@@ -305,6 +309,7 @@ class Category_Boosted(Category_Preselection):
 
     name = 'boosted'
     label = r'$\tau_{had}\tau_{had}$: Boosted Category'
+    root_label = '#tau_{had}#tau_{had}: Boosted Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
@@ -337,6 +342,7 @@ class Category_Nonboosted_1J(Category_Preselection):
 
     name = '1j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 1-Jet Category'
+    root_label = '#tau_{had}#tau_{had}: Non-boosted 1-Jet Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
@@ -365,6 +371,7 @@ class Category_Nonboosted_0J(Category_Preselection):
 
     name = '0j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$: Non-boosted 0-Jet Category'
+    root_label = '#tau_{had}#tau_{had}: Non-boosted 0-Jet Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8

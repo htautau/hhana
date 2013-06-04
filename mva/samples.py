@@ -94,6 +94,7 @@ class Sample(object):
 
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
+                 root=False,
                  **hist_decor):
 
         self.year = year
@@ -107,6 +108,8 @@ class Sample(object):
             self._cuts = Cut()
         else:
             self._cuts = cuts
+
+        self.root = root
         self.student = student
         self.hist_decor = hist_decor
         #if isinstance(self, Higgs):
@@ -114,6 +117,13 @@ class Sample(object):
         #else:
         if 'fillstyle' not in hist_decor:
             self.hist_decor['fillstyle'] = 'solid'
+
+    @property
+    def label(self):
+
+        if self.root:
+            return self._label_root
+        return self._label
 
     def get_histfactory_sample(self, hist_template,
                                expr_or_clf,
@@ -397,9 +407,13 @@ class Data(Sample):
         self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
 
-        self.label = ('%s Data $\sqrt{s} = %d$ TeV\n'
-                      '$\int L dt = %.1f$ fb$^{-1}$' % (
+        self._label = ('%s Data $\sqrt{s} = %d$ TeV\n'
+                      '$\int dt L = %.1f$ fb$^{-1}$' % (
                           self.year, self.energy, LUMI[self.year] / 1e3))
+        self._label_root = ('%s Data #sqrt{s} = %d TeV\n'
+                            '#scale[0.7]{#int}dt L = %.1f fb^{-1}' % (
+                          self.year, self.energy, LUMI[self.year] / 1e3))
+
         self.name = 'Data'
 
     def events(self, category, region, cuts=None, raw=False):
@@ -658,11 +672,6 @@ class MC(Sample):
             log.debug("{0} {1} {2} {3}".format(ds.name, xs, kfact, effic))
             self.datasets.append(
                     (ds, trees, tables, weighted_events, xs, kfact, effic))
-
-    @property
-    def label(self):
-
-        return self._label
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True, scale=1.):
@@ -1255,6 +1264,8 @@ class Higgs(MC, Signal):
         #self._label = r'%s$H%s\rightarrow\tau_{\mathrm{had}}\tau_{\mathrm{had}}$' % (
         #        str_mode, str_mass)
         self._label = r'%sH%s$\rightarrow\tau_{h}\tau_{h}$' % (str_mode, str_mass)
+        self._label_root = '%sH%s#rightarrow#tau_{h}#tau_{h}' % (str_mode, str_mass)
+
         if year == 2011:
             suffix = 'mc11c'
             generator_index = 1
@@ -1319,14 +1330,20 @@ class QCD(Sample, Background):
                  mc_scales=None,
                  shape_region='SS',
                  cuts=None,
-                 color='#59d454'):
+                 color='#59d454',
+                 root=False):
 
         QCD.sample_compatibility(data, mc)
-        super(QCD, self).__init__(year=data.year, scale=scale, color=color)
+        super(QCD, self).__init__(
+            year=data.year,
+            scale=scale,
+            color=color,
+            root=root)
         self.data = data
         self.mc = mc
         self.name = 'QCD'
-        self.label = 'QCD Multi-jet (%s)' % shape_region.replace('_', ' ')
+        self._label = 'QCD Multi-jet (%s)' % shape_region.replace('_', ' ')
+        self._label_root = self._label
         self.scale = 1.
         self.data_scale = data_scale
         if mc_scales is not None:
@@ -1354,10 +1371,14 @@ class QCD(Sample, Background):
                 raw=raw,
                 scale=mc_scale)
 
-        log.info("QCD: Data(%.3f) - MC(%.3f)" % (data, mc_subtract))
-
         if raw:
             return self.data_scale * data + mc_subtract
+
+        log.info("QCD: Data(%.3f) - MC(%.3f)" % (
+            self.data_scale * data, mc_subtract))
+        log.info("MC subtraction: %.1f%%" % (
+            100. * mc_subtract / (self.data_scale * data)))
+
         return (self.data_scale * data - mc_subtract) * self.scale
 
     def draw_into(self, hist, expr, category, region,

@@ -7,41 +7,50 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=False,
-                 qcd_shape_region='nOS'):
+                 qcd_shape_region='nOS',
+                 root=False):
 
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
         self.qcd_shape_region = qcd_shape_region
+        self.root = root
 
         if use_embedding:
             log.info("Using embedded Ztautau")
             self.ztautau = samples.Embedded_Ztautau(
                 year=year,
-                systematics=systematics)
+                systematics=systematics,
+                root=root)
         else:
             log.info("Using ALPGEN Ztautau")
             self.ztautau = samples.MC_Ztautau(
                 year=year,
-                systematics=systematics)
+                systematics=systematics,
+                root=root)
 
         self.others = samples.Others(
             year=year,
-            systematics=systematics)
+            systematics=systematics,
+            root=root)
 
-        self.data = samples.Data(year=year)
+        self.data = samples.Data(year=year, root=root)
 
         self.higgs_125 = samples.Higgs(
             year=year,
             mass=125,
             systematics=systematics,
-            linecolor='red')
+            linecolor='red',
+            linewidth=2,
+            linestyle='dashed',
+            root=root)
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
             data=self.data,
             mc=[self.ztautau, self.others],
-            shape_region=qcd_shape_region)
+            shape_region=qcd_shape_region,
+            root=root)
 
         self.qcd.scale = 1.
         self.ztautau.scale = 1.
@@ -58,7 +67,8 @@ class Analysis(object):
                 year=year,
                 mode=mode,
                 mass=125,
-                systematics=systematics))
+                systematics=systematics,
+                root=root))
 
     def normalize(self, category, fit_param='TRACK'):
 
