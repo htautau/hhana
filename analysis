@@ -252,7 +252,6 @@ for category in categories:
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
     if 'limits' in args.actions:
-
         if args.optimize_limits:
             # Determine the number of bins that yields the best limit at 125
             channels = hypotests.optimized_channels(
@@ -262,7 +261,9 @@ for category in categories:
                     cuts=signal_region,
                     mass_points=[125],
                     systematics=args.systematics,
-                    lumi_rel_error=lumi_rel_error)
+                    lumi_rel_error=lumi_rel_error,
+    #                 algo='EvenBinningByLimit')
+                    algo='UnevenBinningBySignificance')
         else:
             # construct a "channel" for each mass point
             channels = hypotests.channels(
