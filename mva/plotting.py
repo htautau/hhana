@@ -1016,8 +1016,7 @@ def draw(name,
                     stacked=True,
                     yerr='quadratic' if not systematics else False,
                     axes=hist_ax,
-                    ypadding=ypadding,
-                    bottom=bottom)
+                    ypadding=ypadding)
 
             if signal is not None and signal_on_top:
                 signal_bars = model_bars[len(model):]
@@ -1033,8 +1032,7 @@ def draw(name,
                         stacked=True, #yerr='quadratic',
                         axes=hist_ax,
                         alpha=alpha,
-                        ypadding=ypadding,
-                        bottom=bottom)
+                        ypadding=ypadding)
             else:
                 signal_bars = rplt.hist(
                         scaled_signal,
@@ -1042,8 +1040,7 @@ def draw(name,
                         stacked=True,
                         alpha=alpha,
                         axes=hist_ax,
-                        ypadding=ypadding,
-                        bottom=bottom)
+                        ypadding=ypadding)
                 # only keep the patch objects
                 signal_bars = [res[2][0] for res in signal_bars]
 
@@ -1140,8 +1137,7 @@ def draw(name,
                     ypadding=ypadding,
                     emptybins=False,
                     barsabove=True,
-                    zorder=4000,
-                    bottom=bottom)
+                    zorder=4000)
         # draw ratio plot
         if model is not None and show_ratio:
             total_model = sum(model)
