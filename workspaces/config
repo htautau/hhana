@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import re
+from glob import glob
+import shutil
+
+inputfile = sys.argv[1]
+xmldir = sys.argv[2]
+xmloutdir = xmldir + '_render'
+xmlfiles = glob('%s/*.xml' % xmldir)
+resultsdir = '%s_results' % xmldir
+
+if os.path.exists(xmloutdir):
+    shutil.rmtree(xmloutdir)
+os.mkdir(xmloutdir)
+
+if not os.path.exists(resultsdir):
+    os.mkdir(resultsdir)
+
+for xmlfilename in xmlfiles:
+    fin = open(xmlfilename, 'r')
+    fout = open(os.path.join(xmloutdir, os.path.basename(xmlfilename)), 'w')
+    for line in fin:
+        line = line.replace(xmldir, xmloutdir)
+        line = line.replace(
+            '<StatError Activate="True"  InputFile=""  HistoName=""  HistoPath=""  />',
+            '<StatError Activate="True" />')
+        line = line.replace('InputFile=""', 'InputFile="%s"' % inputfile)
+        line = line.replace('<Combination OutputFilePrefix="" >',
+                            '<Combination OutputFilePrefix="%s/hist2workspace" >' %
+                            resultsdir)
+        line = re.sub('\w+=""', '', line)
+        line = line.replace('<Input>./workspaces/', '<Input>./')
+        # HistFactory bug:
+        line = line.replace('<ParamSetting Const="True"></ParamSetting>', '')
+        fout.write(line)
+    fin.close()
+    fout.close()
+
+rootsys = os.getenv('ROOTSYS')
+shutil.copy('%s/etc/HistFactorySchema.dtd' % rootsys, xmloutdir)

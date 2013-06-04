@@ -70,6 +70,8 @@ lines.markersize  : 6            # markersize, in points
 #lines.solid_capstyle : projecting   # butt|round|projecting
 lines.antialiased : False         # render lines in antialised (no jaggies)
 
+hatch.linewidth : 1
+
 ### PATCHES
 # Patches are graphical objects that fill 2D space, like polygons or
 # circles.  See

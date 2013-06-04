@@ -139,6 +139,45 @@ class ClassificationProblem(object):
         # each trained on the opposite partition
         self.clfs = None
 
+    def load(self):
+
+        use_cache = True
+        # attempt to load existing classifiers
+        clfs = [None, None]
+        for partition_idx in range(2):
+
+            clf_filename = os.path.join(CACHE_DIR, 'classify',
+                    'clf_%s%s_%d.pickle' % (
+                    self.category.name, self.clf_output_suffix, partition_idx))
+
+            log.info("attempting to open %s ..." % clf_filename)
+            if os.path.isfile(clf_filename):
+                # use a previously trained classifier
+                log.info("found existing classifier in %s" % clf_filename)
+                with open(clf_filename, 'r') as f:
+                    clf = pickle.load(f)
+                print
+                print clf
+                print
+                print_feature_ranking(clf, self.fields)
+                # check that testing on training sample gives better
+                # performance by swapping the following lines
+                #clfs[partition_idx] = clf
+                clfs[(partition_idx + 1) % 2] = clf
+            else:
+                log.warning("could not open %s" % clf_filename)
+                use_cache = False
+                break
+        if use_cache:
+            self.clfs = clfs
+            log.info("using previously trained classifiers")
+            return True
+        else:
+            log.warning(
+                "unable to load previously trained "
+                "classifiers; train new ones")
+            return False
+
     def train(self,
               signals,
               backgrounds,
@@ -157,41 +196,9 @@ class ClassificationProblem(object):
         Determine best BDTs on left and right partitions. Each BDT will then be
         used on the other partition.
         """
-        if use_cache:
-            # attempt to load existing classifiers
-            clfs = [None, None]
-            for partition_idx in range(2):
-
-                clf_filename = os.path.join(CACHE_DIR, 'classify',
-                        'clf_%s%s_%d.pickle' % (
-                        self.category.name, self.clf_output_suffix, partition_idx))
-
-                log.info("attempting to open %s ..." % clf_filename)
-                if os.path.isfile(clf_filename):
-                    # use a previously trained classifier
-                    log.info("found existing classifier in %s" % clf_filename)
-                    with open(clf_filename, 'r') as f:
-                        clf = pickle.load(f)
-                    print
-                    print clf
-                    print
-                    print_feature_ranking(clf, self.fields)
-                    # check that testing on training sample gives better
-                    # performance by swapping the following lines
-                    #clfs[partition_idx] = clf
-                    clfs[(partition_idx + 1) % 2] = clf
-                else:
-                    log.warning("could not open %s" % clf_filename)
-                    use_cache = False
-                    break
-            if use_cache:
-                self.clfs = clfs
-                log.info("using previously trained classifiers")
+        if use_cache and not self.clfs:
+            if self.load():
                 return
-            else:
-                log.warning(
-                    "unable to load previously trained "
-                    "classifiers; will train new ones")
 
         signal_recs = []
         signal_arrs = []

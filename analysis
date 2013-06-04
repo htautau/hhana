@@ -43,24 +43,11 @@ lumi_rel_error = get_lumi_uncert(year)
 figures = {}
 category_scores = {}
 
-output_suffix = '_%sfit_%s' % (args.fit_param, args.qcd_shape_region)
-if args.embedding:
-    output_suffix += '_embedding'
-else:
-    output_suffix += '_alpgen'
-if args.suffix:
-    output_suffix += '_%s' % args.suffix
-output_suffix += '_%d' % (year % 1E3)
-output_suffix += '_%s' % args.categories
-clf_output_suffix = output_suffix
-if not args.systematics:
-    output_suffix += '_statsonly'
-
 mass_regions = MassRegions(
-        low=args.low_mass_cut,
-        high=args.high_mass_cut,
-        high_sideband_in_control=args.high_sideband_in_control,
-        mass_window_signal_region=args.mass_window_signal_region)
+    low=args.low_mass_cut,
+    high=args.high_mass_cut,
+    high_sideband_in_control=args.high_sideband_in_control,
+    mass_window_signal_region=args.mass_window_signal_region)
 
 control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
@@ -76,6 +63,11 @@ analysis = Analysis(
     systematics=args.systematics,
     use_embedding=args.embedding,
     qcd_shape_region=args.qcd_shape_region)
+
+output_suffix = analysis.get_suffix(args.categories, args.fit_param, args.suffix)
+clf_output_suffix = output_suffix
+if not args.systematics:
+    output_suffix += '_statsonly'
 
 if args.transform_scores:
     ClassificationProblem.TRANSFORM = True
@@ -283,6 +275,16 @@ for category in categories:
 
 
 if 'limits' in args.actions:
+
+    """
+    TODO: set const and nonconst params:
+
+    Nils:
+
+    <ParamSetting Const="True">mu_XS8_ggH mu_XS8_VBF mu_XS8_ZH mu_XS8_WH mu_BR_tautau </ParamSetting>
+    <ParamSetting Const="True">Lumi </ParamSetting>
+    <ParamSetting Const="False">alpha_ATLAS_ANA_EMB alpha_ATLAS_ANA_EMB_ISO alpha_ATLAS_BR_tautau alpha_ATLAS_EL_EFF_2012 alpha_ATLAS_EL_PSSTAT alpha_ATLAS_EL_RES alpha_ATLAS_EL_SCALER12 alpha_ATLAS_EL_ZEE alpha_ATLAS_JESB alpha_ATLAS_JESDET alpha_ATLAS_JESETAINTERMODEL alpha_ATLAS_JESETAINTERSTAT alpha_ATLAS_JESFLAV alpha_ATLAS_JESFLAVRESP alpha_ATLAS_JESMIX alpha_ATLAS_JESMODEL alpha_ATLAS_JESMU alpha_ATLAS_JESNPV alpha_ATLAS_JESPUPT alpha_ATLAS_JESPURHO alpha_ATLAS_JESSTAT alpha_ATLAS_LUMI_2012 alpha_ATLAS_MET_RESOSOFT alpha_ATLAS_MET_RESOSOFT_BKG_LH alpha_ATLAS_MET_SCALESOFT alpha_ATLAS_MET_SCALESOFT_BKG_LH alpha_ATLAS_MU_EFF_2012 alpha_ATLAS_MU_SCALE alpha_ATLAS_TAU_ID_2012 alpha_ATLAS_TAU_TES alpha_ATLAS_UE alpha_ATLAS_norm_SFEmb_2012 alpha_ATLAS_norm_SFEmb_2012_Ele alpha_ATLAS_norm_SFTopS_2012 alpha_ATLAS_norm_SFWJets_2012lh_1j__2012 alpha_ATLAS_norm_SFWJets_2012lh_boost__2012 alpha_ATLAS_norm_SFWJets_2012lh_e0j__2012 alpha_ATLAS_norm_SFWJets_2012lh_m0j__2012 alpha_ATLAS_norm_SFWJets_2012lh_vbf__2012 alpha_ATLAS_norm_SFZlllll2TauS_2012 alpha_ATLAS_norm_SF_QCD_2012 alpha_ATLAS_norm_SF_QCD_2012_Ele alpha_ATLAS_norm_SF_QCD_2012_Muon alpha_ATLAS_norm_SFdibosonS_2012 alpha_BTag_C alpha_BTag_b alpha_BTag_l alpha_EleID alpha_EleIso alpha_EleReco alpha_EleTrig alpha_MuonIDScaleFact alpha_MuonIso alpha_MuonTrig alpha_PU alpha_QCDscale_ggH alpha_QCDscale_ggH1in alpha_QCDscale_ggH2in alpha_QCDscale_qqH alpha_TauElFake alpha_TauTrig alpha_WPTDependence alpha_pdf_gg alpha_pdf_qqbar  </ParamSetting>
+    """
     
     dump_dir = ROOT.gDirectory.func()
 
@@ -301,6 +303,8 @@ if 'limits' in args.actions:
                 workspace, measurement = histfactory.make_workspace(
                     name, channel,
                     lumi_rel_error=lumi_rel_error)
+                # mu=1 for Asimov data
+                #measurement.SetParamValue('SigXsecOverSM', 1)
                 workspace.Write()
                 measurement.Write()
                 measurement.PrintXML(xml_output_dir)
@@ -313,6 +317,8 @@ if 'limits' in args.actions:
             workspace, measurement = histfactory.make_workspace(
                 name, channels,
                 lumi_rel_error=lumi_rel_error)
+            # mu=1 for Asimov data
+            #measurement.SetParamValue('SigXsecOverSM', 1)
             workspace.Write()
             measurement.Write()
             measurement.PrintXML(xml_output_dir)

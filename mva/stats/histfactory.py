@@ -50,6 +50,8 @@ def make_measurement(name,
     meas.SetLumi(lumi)
     meas.SetLumiRelErr(lumi_rel_error)
     meas.SetExportOnly(True)
+    # TODO: is this correct?
+    #meas.AddConstantParam('Lumi')
 
     for channel in channels:
         log.info("adding channel %s" % channel.GetName())

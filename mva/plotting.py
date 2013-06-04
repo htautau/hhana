@@ -1099,7 +1099,7 @@ def draw(name,
                             facecolor=(0,0,0,0),
                             hatch='////',
                             axes=hist_ax,
-                            zorder=100)
+                            zorder=3000)
         if signal is not None:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
                     signal, systematics)
@@ -1119,7 +1119,7 @@ def draw(name,
                         facecolor=(0,0,0,0),
                         hatch=r'\\\\',
                         axes=hist_ax,
-                        zorder=101)
+                        zorder=-1)
 
     if data is not None and blind is not True:
         if isinstance(blind, tuple):
@@ -1140,7 +1140,7 @@ def draw(name,
                     ypadding=ypadding,
                     emptybins=False,
                     barsabove=True,
-                    zorder=1000,
+                    zorder=4000,
                     bottom=bottom)
         # draw ratio plot
         if model is not None and show_ratio:
