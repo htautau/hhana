@@ -977,9 +977,14 @@ def draw(name,
             scaled_signal = []
             for sig in signal:
                 scaled_h = sig * signal_scale
-                scaled_h.SetTitle(r'%s ($\times\/%g$)' % (
-                    sig.GetTitle(),
-                    signal_scale))
+                if root:
+                    scaled_h.SetTitle(r'%s (#times %g)' % (
+                        sig.GetTitle(),
+                        signal_scale))
+                else:
+                    scaled_h.SetTitle(r'%s ($\times\/%g$)' % (
+                        sig.GetTitle(),
+                        signal_scale))
                 scaled_signal.append(scaled_h)
         else:
             scaled_signal = signal
@@ -1032,7 +1037,21 @@ def draw(name,
 
     if signal is not None and not signal_on_top:
         if root:
-            pass
+            hist_pad.cd()
+            signal_stack = HistStack()
+            for hist in scaled_signal:
+                hist.drawstyle = 'hist'
+                hist.fillstyle = 'hollow'
+                signal_stack.Add(hist)
+            signal_stack.Draw('SAME')
+            """
+            xmin, xmax, ymin, ymax = get_limits(model_stack,
+                    logy=logy,
+                    ypadding=ypadding)
+            """
+            signal_stack.SetMinimum(ymin)
+            signal_stack.SetMaximum(ymax)
+            signal_stack.Draw('SAME')
         else:
             if fill_signal:
                 signal_bars = rplt.bar(
