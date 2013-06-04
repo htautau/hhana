@@ -1036,13 +1036,13 @@ def draw(name,
             else:
                 signal_bars = rplt.hist(
                         scaled_signal,
-                        histtype='stepfilled',
                         stacked=True,
                         alpha=alpha,
                         axes=hist_ax,
-                        ypadding=ypadding)
+                        ypadding=ypadding,
+                        zorder=1000)
                 # only keep the patch objects
-                signal_bars = [res[2][0] for res in signal_bars]
+                #signal_bars = [res[2][0] for res in signal_bars]
 
             if plot_signal_significance:
                 plot_significance(signal, model, ax=hist_ax)
@@ -1116,7 +1116,7 @@ def draw(name,
                         facecolor=(0,0,0,0),
                         hatch=r'\\\\',
                         axes=hist_ax,
-                        zorder=-1)
+                        zorder=4000)
 
     if data is not None and blind is not True:
         if isinstance(blind, tuple):
@@ -1137,7 +1137,7 @@ def draw(name,
                     ypadding=ypadding,
                     emptybins=False,
                     barsabove=True,
-                    zorder=4000)
+                    zorder=5000)
         # draw ratio plot
         if model is not None and show_ratio:
             total_model = sum(model)
@@ -1148,7 +1148,7 @@ def draw(name,
                 if value == 0:
                     error_hist[i] = 0
             error_hist.linecolor = 'black'
-            #error_hist.linewidth = 2
+            error_hist.linewidth = 2
             error_hist.fillstyle = 'hollow'
             error_hist *= 100
             if root:
@@ -1195,10 +1195,7 @@ def draw(name,
                         linewidth=1.5)
                 ratio_ax.axhline(y=-50, color='black', linestyle=':',
                         linewidth=1.5)
-                rplt.hist(
-                        error_hist,
-                        axes=ratio_ax,
-                        histtype='stepfilled')
+                rplt.step(error_hist, axes=ratio_ax)
                 ratio_ax.set_ylim((-100., 100.))
                 ratio_ax.set_xlim(hist_ax.get_xlim())
                 #ratio_ax.yaxis.tick_right()
