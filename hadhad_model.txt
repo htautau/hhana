@@ -1,0 +1,97 @@
+The Had-Had Background Model
+============================
+
+
+Definitions
+-----------
+
+OS = Opposite Sign: (tau1_charge * tau2_charge) == -1
+!OS = Not Opposite Sign: (tau1_charge * tau2_charge) != -1
+SS = Same Sign: (tau1_charge * tau2_charge) == +1
+OSFF = Opposite sign, but both taus fail tau-ID requirement
+SSFF = Same sign, but both taus fail tau-ID requirement
+
+
+Description
+-----------
+
+* Two major backgrounds are Ztautau and QCD. All others are minor.
+
+* Using embedded Ztautau, data-driven QCD and all else is MC.
+
+* Four QCD models are defined as::
+
+    !OS QCD = A_nos x [!OS Data - B_nos x !OS Z (embedded) - !OS Other MC]
+
+    SS QCD = A_ss x [SS Data - B_ss x SS Z (embedded) - SS Other MC]
+
+    SSFF QCD = A_ssff x [SSFF Data - B_ssff x SSFF Z (embedded) - SSFF Other MC]
+
+                 SS QCD
+    OSFF QCD = ---------- x A_osff x [OSFF Data - B_osff x OSFF Z (embedded) - OSFF Other MC]
+                SSFF QCD
+
+* Using the SS QCD model, `A_ss` and `B_ss` are determined via a fit of the
+  2D recounted tau #track distribution (the so-called "TrackFit")::
+
+    [B_ss x OS Z + SS QCD + OS Other MC] fitted to [OS Data]
+
+  The normalization of "Other MC" is fixed
+
+  The two floating parameters are `A_ss` and `B_ss`.
+  `A_ss` is present in the SS QCD model.
+  `B_ss` is present in *both* the SS QCD model scaling the SS Z subtraction, and OS Z.
+
+  The tracks have been recounted in a larger dR<0.6 cone to get a better handle on QCD.
+
+* The SS QCD model is used in the TrackFit to get the normalizations of QCD
+  and Z, but the !OS QCD model is used from here onwards.
+
+  `A_nos` and `B_nos` are determined from `A_ss` and `B_ss` such that::
+
+    |SS QCD| == |!OS QCD| and |SS Z| == |!OS Z|
+
+  i.e. the number of expected QCD and Z events between models are the same.
+
+* The OSFF QCD model is used only as a shape systematic on the SS QCD model in
+  the TrackFit.
+
+  `A_osff` and `A_ssff` are set to 1.0 (reasonable approximation)
+  `B_osff`, `B_ssff` are determined such that the number of expected QCD
+  events between models are the same.
+
+* The SS QCD model will be used as a shape systematic on the !OS QCD model in
+  the signal extraction.
+
+* Currently performing the TrackFit separately from the signal extraction.
+  The uncertainty on this fit is then a separate NP in the final fit in the
+  signal extraction.
+
+* The final model will involve performing the TrackFit (using SS QCD)
+  simultaneously with a fit of the BDT score distribution (using !OS QCD).
+
+* Currently, All NPs (excluding theory NPs) are treated as shape+norm
+  systematics (HistFactory::HistoSys).
+
+
+Known Problems
+--------------
+
+* In the QCD template we need to fix the MC subtraction (using b=1)
+  since HistFactory cannot handle the Z and MC subtraction. There is no
+  mechanism for "subsamples" in HistFactory.
+
+  We cannot handle a *floating subtraction* of Z in the QCD model using HistFactory.
+
+  MC subtraction is anyway small, however, it would be nice to have the
+  possibility of treating this properly in the future.
+
+
+FAQ
+---
+
+Q: Why do you need to use SS QCD in the TrackFit and not !OS?
+
+A: The !OS QCD model includes taus with an even number of tracks and this
+   biases the recounted track distribution. Since we are fitting to OS data we
+   need to use SS QCD.
