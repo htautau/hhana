@@ -21,7 +21,7 @@ from rootpy.math.stats.qqplot import qqplot
 from rootpy.math.stats.correlation import correlation_plot
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
-from rootpy.plotting.utils import get_limits
+from rootpy.plotting.utils import get_limits, get_band
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 
 from .variables import VARIABLES
@@ -951,7 +951,7 @@ def draw(name,
         fig.SetRightMargin(0)
         fig.SetTopMargin(0)
         hist_pad = Pad(0., rect_hist[1], 1., 1., name='top', title='top')
-        hist_pad.SetBottomMargin(0.01)
+        hist_pad.SetBottomMargin(0.03)
         hist_pad.SetLeftMargin(rect_hist[0])
         hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
         hist_pad.SetTopMargin(1. - rect_hist[3] - rect_hist[1])
@@ -1111,19 +1111,29 @@ def draw(name,
             # draw systematics band
             total_model, high_band_model, low_band_model = uncertainty_band(
                     model, systematics)
+            high = total_model + high_band_model
+            low = total_model - low_band_model
             if root:
-                pass
+                hist_pad.cd()
+                error_band_model = get_band(total_model,
+                                      low,
+                                      high)
+                error_band_model.fillstyle = '/'
+                error_band_model.fillcolor = 'black'
+                error_band_model.Draw('same e2')
+
             else:
                 # draw band as hatched histogram with base of model - low_band
                 # and height of high_band + low_band
-                rplt.fill_between(total_model + high_band_model,
-                            total_model - low_band_model,
+                rplt.fill_between(high,
+                            low,
                             edgecolor='0.75',
                             linewidth=0,
                             facecolor=(0,0,0,0),
                             hatch='////',
                             axes=hist_ax,
                             zorder=3000)
+
         if signal is not None:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
                     signal, systematics)
@@ -1133,7 +1143,14 @@ def draw(name,
                 high += total_model
                 low += total_model
             if root:
-                pass
+                hist_pad.cd()
+                error_band_signal = get_band(total_signal * signal_scale,
+                                      low,
+                                      high)
+                error_band_signal.fillstyle = '\\'
+                error_band_signal.fillcolor = 'black'
+                error_band_signal.Draw('same e2')
+
             else:
                 rplt.fill_between(
                         high,
@@ -1166,6 +1183,7 @@ def draw(name,
                     emptybins=False,
                     barsabove=True,
                     zorder=5000)
+
         # draw ratio plot
         if model is not None and show_ratio:
             total_model = sum(model)
@@ -1187,7 +1205,7 @@ def draw(name,
                 ratio_pad.SetBottomMargin(rect_ratio[1] * 2.5)
                 ratio_pad.SetLeftMargin(rect_ratio[0])
                 ratio_pad.SetRightMargin(1. - rect_ratio[2] - rect_ratio[0])
-                ratio_pad.SetTopMargin(0)
+                ratio_pad.SetTopMargin(0.04)
                 ratio_pad.Draw()
                 ratio_pad.cd()
                 error_hist.Draw('hist')
@@ -1229,6 +1247,7 @@ def draw(name,
                 #ratio_ax.yaxis.tick_right()
                 ratio_ax.set_ylabel(r'$\frac{\rm{Data - Model}}{\rm{Model}}$ [\%]',
                         position=(0., 1.), va='center', ha='right')
+
             if systematics:
                 # plot band on ratio plot
                 # uncertainty on top is data + model
@@ -1258,7 +1277,14 @@ def draw(name,
                                 (low_band_top[i] / numerator[i])**2 +
                                 (low_band_model[i] / total_model[i])**2)
                 if root:
-                    pass
+                    ratio_pad.cd()
+                    error_band = get_band(error_hist,
+                                          error_hist + high_band_full,
+                                          error_hist - low_band_full)
+                    error_band.fillstyle = '\\'
+                    error_band.fillcolor = 'black'
+                    error_band.Draw('same e2')
+
                 else:
                     rplt.fill_between(
                         error_hist + high_band_full,
