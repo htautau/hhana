@@ -960,7 +960,7 @@ def draw(name,
         hist_pad.SetBottomMargin(0.03)
         hist_pad.SetLeftMargin(rect_hist[0])
         hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
-        hist_pad.SetTopMargin(1. - rect_hist[3] - rect_hist[1])
+        hist_pad.SetTopMargin(1.01 - rect_hist[3] - rect_hist[1])
         if logy:
             hist_pad.SetLogy()
         hist_pad.Draw()

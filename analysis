@@ -232,6 +232,7 @@ for category in categories:
                 limitbins=category.limitbins,
                 limitbinning=category.limitbinning,
                 quick=args.quick_eval,
+                output_formats=args.output_formats,
                 root=args.root)
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
