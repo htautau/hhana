@@ -886,7 +886,9 @@ def draw(name,
     else:
         right_margin = 0.05
     ratio_sep_margin = 0.030
-    if logy:
+    if logy and root:
+        ypadding = (.45, .1)
+    elif logy:
         ypadding = (.4, .1)
     else:
         ypadding = (.6, .1)

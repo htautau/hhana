@@ -627,14 +627,6 @@ class ClassificationProblem(object):
         min_score -= bin_width
         max_score += bin_width
 
-        """
-        if not unblind:
-            # show a partial unblinding
-            # get upper edge of half-blind bin
-            upper_edge = min_score + (category.halfblind_bins + 1) * bin_width
-            data_scores = data_scores[data_scores <= upper_edge]
-        """
-
         plot_clf(
             background_scores=bkg_scores,
             category=category,
