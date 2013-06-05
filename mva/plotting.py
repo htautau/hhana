@@ -1249,26 +1249,26 @@ def draw(name,
                 error_hist.xaxis.SetTickLength(
                     error_hist.xaxis.GetTickLength() * 2)
                 # draw horizontal lines
-                line = Line(error_hist.xedges(0), 0,
-                            error_hist.xedges(-1), 0)
+                line = Line(error_hist.xedges(0), 1,
+                            error_hist.xedges(-1), 1)
                 line.linestyle = 'dashed'
                 line.Draw()
-                line_up = Line(error_hist.xedges(0), 50,
-                               error_hist.xedges(-1), 50)
+                line_up = Line(error_hist.xedges(0), 1.50,
+                               error_hist.xedges(-1), 1.50)
                 line_up.linestyle = 'dashed'
                 line_up.Draw()
-                line_dn = Line(error_hist.xedges(0), -50,
-                               error_hist.xedges(-1), -50)
+                line_dn = Line(error_hist.xedges(0), 0.50,
+                               error_hist.xedges(-1), 0.50)
                 line_dn.linestyle = 'dashed'
                 line_dn.Draw()
 
             else:
                 ratio_ax = plt.axes(rect_ratio)
-                ratio_ax.axhline(y=0, color='black', linestyle=':',
+                ratio_ax.axhline(y=1, color='black', linestyle=':',
                         linewidth=1.5)
-                ratio_ax.axhline(y=50, color='black', linestyle=':',
+                ratio_ax.axhline(y=1.5, color='black', linestyle=':',
                         linewidth=1.5)
-                ratio_ax.axhline(y=-50, color='black', linestyle=':',
+                ratio_ax.axhline(y=0.5, color='black', linestyle=':',
                         linewidth=1.5)
                 rplt.step(error_hist, axes=ratio_ax)
                 ratio_ax.set_ylim(ratio_range)
