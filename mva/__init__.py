@@ -56,3 +56,17 @@ np.random.seed(1987) # my birth year ;)
 MMC_VERSION = 1
 MMC_MASS = 'mmc%d_mass' % MMC_VERSION
 MMC_PT = 'mmc%d_resonance_pt' % MMC_VERSION
+
+from rootpy.plotting.style import get_style, set_style
+
+style = get_style('ATLAS')
+#style.SetFrameLineWidth(2)
+style.SetLineWidth(2)
+style.SetTitleYOffset(1.8)
+style.SetTickLength(0.04, 'X')
+style.SetTickLength(0.02, 'Y')
+style.SetHistTopMargin(0.)
+style.SetHatchesLineWidth(4)
+set_style(style)
+
+#ROOT.TGaxis.SetMaxDigits(3)

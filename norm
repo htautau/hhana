@@ -117,7 +117,8 @@ qcd = samples.QCD(
     data=data,
     mc=[ztt, others],
     shape_region=fit_region)
-qcd.label = 'QCD Multi-jet'
+qcd._label = 'QCD Multi-jet'
+qcd._label_root = qcd._label
 
 higgs = samples.Higgs(
     year=year,
@@ -176,7 +177,8 @@ for cat_def in args.categories:
                 ravel=hist_template.GetDimension() > 1,
                 integer=integer,
                 xtick_formatter=xtick_formatter,
-                xtick_rotation=xtick_rotation)
+                xtick_rotation=xtick_rotation,
+                output_formats=['eps', 'png'])
         
         data_hist = hist_template.Clone()
         data.draw_into(data_hist, expr, category, model_region,
@@ -299,6 +301,24 @@ for cat_def in args.categories:
         qcd.scale_error = qcd_scale_error
         ztt.scale = z_scale
         ztt.scale_error = z_scale_error
+        
+        if args.plot:
+            # Draw the distribution after the fit
+            draw_samples(hist_template, expr,
+                model=[qcd, others, ztt],
+                data=data,
+                category=category,
+                region=model_region,
+                cuts=control_region,
+                name=xaxis_label,
+                output_name=after_name,
+                show_ratio=True,
+                systematics=None,
+                ravel=hist_template.GetDimension() > 1,
+                integer=integer,
+                xtick_formatter=xtick_formatter,
+                xtick_rotation=xtick_rotation,
+                output_formats=['eps', 'png'])       
         
         """
         # correct to f13QCD
@@ -443,20 +463,3 @@ for cat_def in args.categories:
             qcd_others_scale=qcd_others_scale_nos,
             z_scale=z_scale * sf_embed_13,
             z_scale_error=z_scale_error * sf_embed_13)
-
-        if args.plot:
-            # Draw the distribution after the fit
-            draw_samples(hist_template, expr,
-                model=[qcd, others, ztt],
-                data=data,
-                category=category,
-                region=model_region,
-                cuts=control_region,
-                name=xaxis_label,
-                output_name=after_name,
-                show_ratio=True,
-                systematics=None,
-                ravel=hist_template.GetDimension() > 1,
-                integer=integer,
-                xtick_formatter=xtick_formatter,
-                xtick_rotation=xtick_rotation)
