@@ -887,7 +887,7 @@ def draw(name,
         right_margin = 0.05
     ratio_sep_margin = 0.030
     if logy and root:
-        ypadding = (.45, .1)
+        ypadding = (.6, .1)
     elif logy:
         ypadding = (.4, .1)
     else:
@@ -1030,6 +1030,8 @@ def draw(name,
             ratio_abs_height / figheight
             model_stack.GetXaxis().SetTickLength(
                 model_stack.GetXaxis().GetTickLength() * figheight / hist_abs_height)
+            model_stack.yaxis.SetLimits(ymin, ymax)
+            model_stack.yaxis.SetRangeUser(ymin, ymax)
         else:
             model_bars = rplt.bar(
                     model + scaled_signal if (
@@ -1055,16 +1057,21 @@ def draw(name,
                 hist.linewidth = 4
                 signal_stack.Add(hist)
             signal_stack.Draw('SAME')
-            _, _, _ymin, _ymax = get_limits(model_stack,
+            _, _, _ymin, _ymax = get_limits(signal_stack,
                     logy=logy,
                     ypadding=ypadding)
             if _ymin < ymin:
                 ymin = _ymin
             if _ymax > ymax:
                 ymax = _ymax
+            model_stack.SetMinimum(ymin)
+            model_stack.SetMaximum(ymax)
             signal_stack.SetMinimum(ymin)
             signal_stack.SetMaximum(ymax)
             signal_stack.Draw('SAME')
+            signal_stack.yaxis.SetLimits(ymin, ymax)
+            signal_stack.yaxis.SetRangeUser(ymin, ymax)
+
         else:
             if fill_signal:
                 signal_bars = rplt.bar(
@@ -1197,6 +1204,8 @@ def draw(name,
             data.SetMinimum(ymin)
             data.SetMaximum(ymax)
             data.Draw('same E1')
+            data.yaxis.SetLimits(ymin, ymax)
+            data.yaxis.SetRangeUser(ymin, ymax)
 
         else:
             data_bars = rplt.errorbar(data,
