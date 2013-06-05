@@ -242,7 +242,8 @@ class Sample(object):
               cuts=None,
               include_weight=True,
               systematic='NOMINAL',
-              num_partitions=2):
+              num_partitions=2,
+              return_idx=False):
         """
         Partition sample into num_partitions chunks of roughly equal size
         assuming no correlation between record index and field values.
@@ -256,9 +257,13 @@ class Sample(object):
                 include_weight=include_weight,
                 cuts=cuts,
                 systematic=systematic,
+                return_idx=return_idx,
                 start=start,
                 step=num_partitions)
-            partitions.append(np.hstack(recs))
+            if return_idx:
+                partitions.append(recs)
+            else:
+                partitions.append(np.hstack(recs))
 
         return partitions
 
@@ -486,6 +491,7 @@ class Data(Sample):
                 cuts=None,
                 include_weight=True,
                 systematic='NOMINAL',
+                return_idx=False,
                 **kwargs):
 
         if include_weight and fields is not None:
@@ -511,25 +517,11 @@ class Data(Sample):
                     dtypes='f4')
         if fields is not None:
             rec = rec[fields]
+
+        if return_idx:
+            idx = self.h5data.get_where_list(selection.where(), **kwargs)
+            return [(rec, idx)]
         return [rec]
-
-    def indices(self,
-                category,
-                region,
-                cuts=None,
-                systematic='NOMINAL',
-                **kwargs):
-
-        Sample.check_systematic(systematic)
-        selection = self.cuts(category, region) & cuts
-
-        log.info("requesting indices from Data %d" % self.year)
-        log.debug("using selection: %s" % selection)
-
-        # read the table with a selection
-        idx = self.h5data.get_where_list(selection.where(), **kwargs)
-
-        return [idx]
 
 
 class Signal(object):
@@ -961,6 +953,7 @@ class MC(Sample):
                 include_weight=True,
                 systematic='NOMINAL',
                 scale=1.,
+                return_idx=False,
                 **kwargs):
 
         if include_weight and fields is not None:
@@ -984,6 +977,8 @@ class MC(Sample):
             systematic = 'NOMINAL'
 
         recs = []
+        if return_idx:
+            idxs = []
         for ds, _, sys_tables, sys_events, xs, kfact, effic in self.datasets:
 
             try:
@@ -1013,6 +1008,10 @@ class MC(Sample):
             # read the table with a selection
             rec = table.read_where(table_selection, **kwargs)
 
+            if return_idx:
+                idx = table.get_where_list(table_selection, **kwargs)
+                idxs.append(idx)
+
             # add weight field
             if include_weight:
                 weights = np.empty(rec.shape[0], dtype='f4')
@@ -1035,47 +1034,10 @@ class MC(Sample):
                     print rec.dtype
                     raise
             recs.append(rec)
+
+        if return_idx:
+            return zip(recs, idxs)
         return recs
-
-    def indices(self,
-                category,
-                region,
-                cuts=None,
-                systematic='NOMINAL',
-                **kwargs):
-
-        selection = self.cuts(category, region, systematic) & cuts
-        table_selection = selection.where()
-
-        if systematic == 'NOMINAL':
-            log.info("requesting indices from %s" %
-                     (self.__class__.__name__))
-        else:
-            log.info("requesting indices from %s for systematic %s " %
-                     (self.__class__.__name__, systematic))
-        log.debug("using selection: %s" % selection)
-
-        if systematic in SYSTEMATICS_BY_WEIGHT:
-            systematic = 'NOMINAL'
-
-        idxs = []
-        for ds, _, sys_tables, sys_events, xs, kfact, effic in self.datasets:
-
-            try:
-                table = sys_tables[systematic]
-                events = sys_events[systematic]
-            except KeyError:
-                log.debug(
-                    "table for %s not present for %s "
-                    "using NOMINAL" % (systematic, ds))
-                table = sys_tables['NOMINAL']
-                events = sys_events['NOMINAL']
-
-            # read the table with a selection
-            idx = table.get_where_list(table_selection, **kwargs)
-
-            idxs.append(idx)
-        return idxs
 
     def events(self, category, region,
                cuts=None,
@@ -1551,6 +1513,7 @@ class QCD(Sample, Background):
                 cuts=None,
                 include_weight=True,
                 systematic='NOMINAL',
+                return_idx=False,
                 **kwargs):
 
         assert include_weight == True
@@ -1562,6 +1525,7 @@ class QCD(Sample, Background):
                 cuts=cuts,
                 include_weight=include_weight,
                 systematic='NOMINAL',
+                return_idx=return_idx,
                 **kwargs)
         arrays = data_records
 
@@ -1574,11 +1538,16 @@ class QCD(Sample, Background):
                     include_weight=include_weight,
                     systematic=systematic,
                     scale=mc_scale,
+                    return_idx=return_idx,
                     **kwargs)
             # FIX: weight may not be present if include_weight=False
             for array in _arrays:
-                for partition in array:
-                    partition['weight'] *= -1
+                if return_idx:
+                    for partition, idx in array:
+                        partition['weight'] *= -1
+                else:
+                    for partition in array:
+                        partition['weight'] *= -1
             arrays.extend(_arrays)
 
         scale = self.scale
@@ -1589,30 +1558,11 @@ class QCD(Sample, Background):
 
         # FIX: weight may not be present if include_weight=False
         for array in arrays:
-            for partition in array:
-                partition['weight'] *= scale
+            if return_idx:
+                for partition, idx in array:
+                    partition['weight'] *= scale
+            else:
+                for partition in array:
+                    partition['weight'] *= scale
+
         return arrays
-
-    def indices(self,
-                category,
-                region,
-                cuts=None,
-                systematic='NOMINAL',
-                **kwargs):
-
-        idxs = self.data.indices(
-                category=category,
-                region=self.shape_region,
-                cuts=cuts,
-                systematic='NOMINAL',
-                **kwargs)
-
-        for mc in self.mc:
-            idxs.append(mc.indices(
-                    category=category,
-                    region=self.shape_region,
-                    cuts=cuts,
-                    systematic=systematic,
-                    **kwargs))
-
-        return idxs

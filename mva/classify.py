@@ -485,24 +485,39 @@ class ClassificationProblem(object):
                 "a classifier must be applied on the same "
                 "category it was trained in")
 
-        left, right = sample.partitioned_records(
+        partitions = sample.partitioned_records(
                 category=category,
                 region=region,
                 fields=self.fields,
                 cuts=cuts,
-                systematic=systematic)
+                systematic=systematic,
+                num_partitions=2,
+                return_idx=True)
 
-        left_weight = left['weight']
-        right_weight = right['weight']
-        left = rec_to_ndarray(left, self.fields)
-        right = rec_to_ndarray(right, self.fields)
+        score_idx = [[], []]
+        for i, partition in enumerate(partitions):
+            for rec, idx in partition:
+                weight = rec['weight']
+                arr = rec_to_ndarray(rec, self.fields)
+                # each classifier is never used on the partition that trained it
+                scores = self.clfs[i].decision_function(arr)
+                score_idx[i].append((idx, scores, weight))
 
-        # each classifier is never used on the partition that trained it
-        left_scores = self.clfs[0].decision_function(left)
-        right_scores = self.clfs[1].decision_function(right)
+        # must preserve order of scores wrt the other fields!
+        # merge the scores and weights according to the idx
+        merged_scores = []
+        merged_weight = []
+        for left, right in zip(*score_idx):
+            left_idx, left_scores, left_weight = left
+            right_idx, right_scores, right_weight = right
+            insert_idx = np.searchsorted(left_idx, right_idx)
+            scores = np.insert(left_scores, insert_idx, right_scores)
+            weight = np.insert(left_weight, insert_idx, right_weight)
+            merged_scores.append(scores)
+            merged_weight.append(weight)
 
-        scores = np.concatenate((left_scores, right_scores))
-        weights = np.concatenate((left_weight, right_weight))
+        scores = np.concatenate(merged_scores)
+        weight = np.concatenate(merged_weight)
 
         if ClassificationProblem.TRANSFORM:
             log.info("classifier scores are transformed")
@@ -515,7 +530,7 @@ class ClassificationProblem(object):
                 scores = 2.0 / (1.0 +
                     np.exp((-self.clfs[0].n_estimators / 2.) * scores)) - 1.0
 
-        return scores, weights
+        return scores, weight
 
     def evaluate(self,
                  analysis,

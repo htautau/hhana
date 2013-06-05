@@ -1042,6 +1042,7 @@ def draw(name,
             for hist in scaled_signal:
                 hist.drawstyle = 'hist'
                 hist.fillstyle = 'hollow'
+                hist.linewidth = 4
                 signal_stack.Add(hist)
             signal_stack.Draw('SAME')
             """
@@ -1150,7 +1151,7 @@ def draw(name,
                 error_band_signal.fillstyle = '\\'
                 error_band_signal.fillcolor = 'black'
                 error_band_signal.Draw('same e2')
-
+                signal_stack.Draw('SAME')
             else:
                 rplt.fill_between(
                         high,
