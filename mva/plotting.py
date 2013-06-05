@@ -1090,8 +1090,6 @@ def draw(name,
                         axes=hist_ax,
                         ypadding=ypadding,
                         zorder=1000)
-                # only keep the patch objects
-                #signal_bars = [res[2][0] for res in signal_bars]
 
             if plot_signal_significance:
                 plot_significance(signal, model, ax=hist_ax)
@@ -1362,12 +1360,9 @@ def draw(name,
         right_legend_titles =[]
 
         if signal is not None:
-            if isinstance(signal, (list, tuple)):
-                right_legend_bars += signal_bars[::-1]
-                right_legend_titles += [s.title for s in scaled_signal]
-            else:
-                right_legend_bars.append(signal_bars[0])
-                right_legend_titles.append(scaled_signal.title)
+            right_legend_bars += signal_bars
+            right_legend_titles += [s.title for s in scaled_signal]
+
         if data is not None:
             right_legend_bars.append(data_bars)
             right_legend_titles.append(data.title)
