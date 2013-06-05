@@ -502,8 +502,8 @@ for mmc in range(2):
         'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
         'root': '#font[52]{M}^{MMC}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'mmc%d_mass' % mmc,
-        'bins': 33,
-        'range': (-8, 256),
+        'bins': 25,
+        'range': (0, 250),
         'units': 'GeV',
         'blind': (100, 140),
     }

@@ -873,6 +873,8 @@ def draw(name,
         show_ratio=False
         show_qq=False
 
+    ratio_range = (0, 2)
+
     figheight = baseheight = 6.
     figwidth = basewidth = width
 
@@ -1218,16 +1220,14 @@ def draw(name,
         # draw ratio plot
         if model is not None and show_ratio:
             total_model = sum(model)
-            numerator = data - total_model
-            error_hist = Hist.divide(numerator, total_model, option='B')
+            error_hist = Hist.divide(data, total_model, option='B')
             # zero out bins where data is zero
             for i, value in enumerate(data):
                 if value == 0:
-                    error_hist[i] = 0
+                    error_hist[i] = 1
             error_hist.linecolor = 'black'
             error_hist.linewidth = 2
             error_hist.fillstyle = 'hollow'
-            error_hist *= 100
             if root:
                 fig.cd()
                 ratio_pad = Pad(
@@ -1240,9 +1240,9 @@ def draw(name,
                 ratio_pad.Draw()
                 ratio_pad.cd()
                 error_hist.Draw('hist')
-                error_hist.yaxis.SetLimits(-100, 100)
-                error_hist.yaxis.SetRangeUser(-100, 100)
-                error_hist.yaxis.SetTitle('#frac{Data - Model}{Model} [%]')
+                error_hist.yaxis.SetLimits(*ratio_range)
+                error_hist.yaxis.SetRangeUser(*ratio_range)
+                error_hist.yaxis.SetTitle('Data / Model')
                 error_hist.yaxis.SetNdivisions(4)
                 xmin = model_stack.xaxis.GetXmin()
                 xmax = model_stack.xaxis.GetXmax()
@@ -1273,39 +1273,27 @@ def draw(name,
                 ratio_ax.axhline(y=-50, color='black', linestyle=':',
                         linewidth=1.5)
                 rplt.step(error_hist, axes=ratio_ax)
-                ratio_ax.set_ylim((-100., 100.))
+                ratio_ax.set_ylim(ratio_range)
                 ratio_ax.set_xlim(hist_ax.get_xlim())
                 #ratio_ax.yaxis.tick_right()
-                ratio_ax.set_ylabel(r'$\frac{\rm{Data - Model}}{\rm{Model}}$ [\%]',
+                ratio_ax.set_ylabel(r'Data / Model',
                         position=(0., 1.), va='center', ha='right')
 
             if systematics:
                 # plot band on ratio plot
-                # uncertainty on top is data + model
-                high_band_top = high_band_model.Clone()
-                low_band_top = low_band_model.Clone()
-                # quadrature sum of model uncert + data stat uncert in numerator
-                for i in xrange(len(high_band_top)):
-                    high_band_top[i] = math.sqrt(
-                            high_band_model[i]**2 +
-                            data.yerrh(i)**2)
-                    low_band_top[i] = math.sqrt(
-                            low_band_model[i]**2 +
-                            data.yerrl(i)**2)
-                # full uncert
                 high_band_full = high_band_model.Clone()
                 low_band_full = low_band_model.Clone()
                 # quadrature sum of numerator and denominator
                 for i in xrange(len(high_band_full)):
-                    if numerator[i] == 0 or total_model[i] == 0:
+                    if data[i] == 0 or total_model[i] == 0:
                         high_band_full[i] = 0.
                         low_band_full[i] = 0.
                     else:
                         high_band_full[i] = abs(error_hist[i]) * math.sqrt(
-                                (high_band_top[i] / numerator[i])**2 +
+                                (data.yerrh(i) / data[i])**2 +
                                 (high_band_model[i] / total_model[i])**2)
                         low_band_full[i] = abs(error_hist[i]) * math.sqrt(
-                                (low_band_top[i] / numerator[i])**2 +
+                                (data.yerrl(i) / data[i])**2 +
                                 (low_band_model[i] / total_model[i])**2)
                 if root:
                     ratio_pad.cd()
