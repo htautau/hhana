@@ -541,6 +541,7 @@ class ClassificationProblem(object):
                  unblind=False,
                  limitbins=10,
                  limitbinning='flat',
+                 root=False,
                  quick=False):
 
         backgrounds = analysis.backgrounds
@@ -647,6 +648,7 @@ class ClassificationProblem(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
+            root=root,
             unblind=0.3)
 
         # plot using the binning used for limit setting
@@ -664,6 +666,7 @@ class ClassificationProblem(object):
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
             systematics=systematics,
+            root=root,
             unblind=0.3)
 
         ###############################################################
@@ -690,6 +693,7 @@ class ClassificationProblem(object):
             weight_clf=self,
             output_suffix="_reweighted" + self.output_suffix,
             cuts=signal_region,
+            root=root,
             unblind=True)
 
         ############################################################
@@ -758,6 +762,7 @@ class ClassificationProblem(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
+            root=root,
             unblind=True)
 
         #return bkg_scores, sig_scores_125

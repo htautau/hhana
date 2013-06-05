@@ -855,6 +855,10 @@ def draw(name,
         raise ValueError(
             'at least one of model, data, or signal must be specified')
 
+    if root:
+        # not supported for now
+        plot_signal_significance = False
+
     if show_ratio and model is None:
         show_ratio = False
 
@@ -955,6 +959,8 @@ def draw(name,
         hist_pad.SetLeftMargin(rect_hist[0])
         hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
         hist_pad.SetTopMargin(1. - rect_hist[3] - rect_hist[1])
+        if logy:
+            hist_pad.SetLogy()
         hist_pad.Draw()
     else:
         fig = plt.figure(figsize=(figwidth, figheight), dpi=100)
@@ -1001,6 +1007,8 @@ def draw(name,
                 s.linestyle = 'dashed'
                 alpha = 1.
 
+    ymin, ymax = float('-inf'), float('inf')
+
     if model is not None:
         if root:
             # plot model stack with ROOT
@@ -1011,7 +1019,7 @@ def draw(name,
                 hist.drawstyle = 'hist'
                 model_stack.Add(hist)
             model_stack.Draw()
-            xmin, xmax, ymin, ymax = get_limits(model_stack,
+            _, _, ymin, ymax = get_limits(model_stack,
                     logy=logy,
                     ypadding=ypadding)
             model_stack.SetMinimum(ymin)
@@ -1045,11 +1053,13 @@ def draw(name,
                 hist.linewidth = 4
                 signal_stack.Add(hist)
             signal_stack.Draw('SAME')
-            """
-            xmin, xmax, ymin, ymax = get_limits(model_stack,
+            _, _, _ymin, _ymax = get_limits(model_stack,
                     logy=logy,
                     ypadding=ypadding)
-            """
+            if _ymin < ymin:
+                ymin = _ymin
+            if _ymax > ymax:
+                ymax = _ymax
             signal_stack.SetMinimum(ymin)
             signal_stack.SetMaximum(ymax)
             signal_stack.Draw('SAME')
@@ -1175,6 +1185,15 @@ def draw(name,
         # draw data
         if root:
             hist_pad.cd()
+            _, _, _ymin, _ymax = get_limits(data,
+                    logy=logy,
+                    ypadding=ypadding)
+            if _ymin < ymin:
+                ymin = _ymin
+            if _ymax > ymax:
+                ymax = _ymax
+            data.SetMinimum(ymin)
+            data.SetMaximum(ymax)
             data.Draw('same E1')
 
         else:
@@ -1307,7 +1326,7 @@ def draw(name,
                     textsize=20,
                     sep=0.3,
                     entryheight=0.08)
-            for hist in model:
+            for hist in reversed(model):
                 model_legend.AddEntry(hist, 'F')
             model_legend.SetHeader(category.root_label)
             model_legend.Draw()
@@ -1322,26 +1341,22 @@ def draw(name,
 
     if root:
         hist_pad.cd()
-        right_legend = Legend(2 if signal is not None else 1,
+        right_legend = Legend(len(signal) + 1 if signal is not None else 1,
                 pad=hist_pad,
                 leftmargin=0.4,
                 rightmargin=0.12,
                 margin=0.3,
                 textsize=20,
                 sep=0.3,
-                entryheight=0.08)
+                entryheight=0.065)
         if '\n' in data.title:
             dtitle = data.title.split('\n')
             right_legend.SetHeader(dtitle[1])
             data.title = dtitle[0]
         right_legend.AddEntry(data, 'lep')
         if signal is not None:
-            # TODO support list of signal
-            if isinstance(signal, (list, tuple)):
-                for s in signal:
-                    right_legend.AddEntry(s, 'F')
-            else:
-                right_legend.AddEntry(signal, 'F')
+            for s in reversed(scaled_signal):
+                right_legend.AddEntry(s, 'F')
         right_legend.Draw()
     else:
         right_legend_bars = []
@@ -1437,15 +1452,6 @@ def draw(name,
             else:
                 ratio_ax.set_xlim(range)
 
-    """
-    if root:
-        xmin, xmax, ymin, ymax = get_limits(model_stack,
-                    logy=logy,
-                    ypadding=ypadding)
-        print xmin,ymin,xmax,ymax
-        hist_pad.DrawFrame(xmin,ymin,xmax,ymax)
-    """
-
     filename = os.path.join(PLOTS_DIR,
             'var_%s_%s' %
             (category.name,
@@ -1460,9 +1466,11 @@ def draw(name,
             hist_pad.Update()
             hist_pad.Modified()
             hist_pad.RedrawAxis()
+            """
             ATLAS_label(.6, .7, text="Work in Progress", sqrts=None,
                     pad=hist_pad,
                     sep=0.1)
+            """
             fig.SaveAs(output_filename)
         else:
             log.info("writing %s" % output_filename)
@@ -1490,7 +1498,7 @@ def plot_significance(signal, background, ax):
 
     sig_ax.plot(bins, sig, 'k--', label='Signal Significance')
     sig_ax.set_ylabel(r'$S / \sqrt{S + B}$',
-            color='black', fontsize=15, position=(0., 1.), va='top')
+            color='black', fontsize=15, position=(0., 1.), va='top', ha='right')
     #sig_ax.tick_params(axis='y', colors='red')
     sig_ax.set_ylim(0, max_sig * 2)
     plt.text(max_cut, max_sig + 0.02, '(%.2f, %.2f)' % (max_cut, max_sig),

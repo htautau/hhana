@@ -231,7 +231,8 @@ for category in categories:
                 systematics=SYSTEMATICS if args.systematics else None,
                 limitbins=category.limitbins,
                 limitbinning=category.limitbinning,
-                quick=args.quick_eval)
+                quick=args.quick_eval,
+                root=args.root)
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
