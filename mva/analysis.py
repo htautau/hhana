@@ -78,7 +78,7 @@ class Analysis(object):
             category=category,
             param=fit_param)
 
-    def get_suffix(self, categories, fit_param='TRACK', suffix=None):
+    def get_suffix(self, fit_param='TRACK', suffix=None):
 
         output_suffix = '_%sfit_%s' % (fit_param.lower(), self.qcd_shape_region)
         if self.use_embedding:
@@ -88,7 +88,6 @@ class Analysis(object):
         if suffix:
             output_suffix += '_%s' % suffix
         output_suffix += '_%d' % (self.year % 1E3)
-        output_suffix += '_%s' % categories
         return  output_suffix
         #if not self.systematics:
         #    output_suffix += '_statsonly'

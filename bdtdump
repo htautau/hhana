@@ -17,7 +17,7 @@ clf = ClassificationProblem(
         fields=category.features,
         category=category,
         region='OS',
-        clf_output_suffix=a.get_suffix('harmonize'))
+        clf_output_suffix=a.get_suffix())
 
 clf.load()
 

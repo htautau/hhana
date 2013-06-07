@@ -146,9 +146,10 @@ class ClassificationProblem(object):
         clfs = [None, None]
         for partition_idx in range(2):
 
+            category_name = self.category.get_parent().name
             clf_filename = os.path.join(CACHE_DIR, 'classify',
                     'clf_%s%s_%d.pickle' % (
-                    self.category.name, self.clf_output_suffix, partition_idx))
+                    category_name, self.clf_output_suffix, partition_idx))
 
             log.info("attempting to open %s ..." % clf_filename)
             if os.path.isfile(clf_filename):
@@ -643,7 +644,7 @@ class ClassificationProblem(object):
             systematics=systematics,
             root=root,
             output_formats=output_formats,
-            unblind=0.3)
+            unblind=unblind or 0.3)
 
         # plot using the binning used for limit setting
         limit_binning_hist_template = get_safe_template(
@@ -662,7 +663,7 @@ class ClassificationProblem(object):
             systematics=systematics,
             root=root,
             output_formats=output_formats,
-            unblind=0.3)
+            unblind=unblind or 0.3)
 
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")

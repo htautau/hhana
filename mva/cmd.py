@@ -41,7 +41,7 @@ def general_parser(parser=None):
             dest='systematics',
             help="turn off systematics",
             default=True)
-    parser.add_argument('--categories', default='harmonize',
+    parser.add_argument('--categories', default='mva',
             choices=CATEGORIES.keys(),
             help='category definitions')
     parser.add_argument('--category-names', nargs="+", default=None,

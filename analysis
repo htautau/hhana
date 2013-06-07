@@ -64,7 +64,7 @@ analysis = Analysis(
     qcd_shape_region=args.qcd_shape_region,
     root=args.root)
 
-output_suffix = analysis.get_suffix(args.categories, args.fit_param, args.suffix)
+output_suffix = analysis.get_suffix(args.fit_param, args.suffix)
 clf_output_suffix = output_suffix
 if not args.systematics:
     output_suffix += '_statsonly'

@@ -15,6 +15,7 @@ from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
+import ROOT
 from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.math.stats.qqplot import qqplot
@@ -888,12 +889,11 @@ def draw(name,
     else:
         right_margin = 0.05
     ratio_sep_margin = 0.030
-    if logy and root:
-        ypadding = (.6, .1)
-    elif logy:
-        ypadding = (.4, .1)
+
+    if logy:
+        ypadding = (.35, 0.)
     else:
-        ypadding = (.6, .1)
+        ypadding = (.4, .1)
 
     width = 1. - right_margin - left_margin
     height = 1. - top_margin - bottom_margin
@@ -1035,6 +1035,8 @@ def draw(name,
             model_stack.yaxis.SetLimits(ymin, ymax)
             model_stack.yaxis.SetRangeUser(ymin, ymax)
         else:
+            print "model"
+            print hist_ax.get_ylim()
             model_bars = rplt.bar(
                     model + scaled_signal if (
                         signal is not None and signal_on_top)
@@ -1044,6 +1046,7 @@ def draw(name,
                     yerr='quadratic' if not systematics else False,
                     axes=hist_ax,
                     ypadding=ypadding)
+            print hist_ax.get_ylim()
 
             if signal is not None and signal_on_top:
                 signal_bars = model_bars[len(model):]
@@ -1062,10 +1065,6 @@ def draw(name,
             _, _, _ymin, _ymax = get_limits(signal_stack,
                     logy=logy,
                     ypadding=ypadding)
-            if _ymin < ymin:
-                ymin = _ymin
-            if _ymax > ymax:
-                ymax = _ymax
             model_stack.SetMinimum(ymin)
             model_stack.SetMaximum(ymax)
             signal_stack.SetMinimum(ymin)
@@ -1075,6 +1074,8 @@ def draw(name,
             signal_stack.yaxis.SetRangeUser(ymin, ymax)
 
         else:
+            print "signal"
+            print hist_ax.get_ylim()
             if fill_signal:
                 signal_bars = rplt.bar(
                         scaled_signal,
@@ -1090,7 +1091,7 @@ def draw(name,
                         axes=hist_ax,
                         ypadding=ypadding,
                         zorder=1000)
-
+            print hist_ax.get_ylim()
             if plot_signal_significance:
                 plot_significance(signal, model, ax=hist_ax)
 
@@ -1208,12 +1209,15 @@ def draw(name,
             data.yaxis.SetRangeUser(ymin, ymax)
 
         else:
+            print data
+            print hist_ax.get_ylim()
             data_bars = rplt.errorbar(data,
                     fmt='o', axes=hist_ax,
                     ypadding=ypadding,
                     emptybins=False,
                     barsabove=True,
                     zorder=5000)
+            print hist_ax.get_ylim()
 
         # draw ratio plot
         if model is not None and show_ratio:
@@ -1321,11 +1325,11 @@ def draw(name,
                     rightmargin=0.5,
                     margin=0.3,
                     textsize=20,
-                    sep=0.3,
-                    entryheight=0.08)
+                    entrysep=0.02,
+                    entryheight=0.08,
+                    topmargin=0.1)
             for hist in reversed(model):
                 model_legend.AddEntry(hist, 'F')
-            model_legend.SetHeader(category.root_label)
             model_legend.Draw()
         else:
             model_legend = hist_ax.legend(
@@ -1336,6 +1340,7 @@ def draw(name,
                     loc='upper left')
             format_legend(model_legend)
 
+    data_lumi = None
     if root:
         hist_pad.cd()
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
@@ -1344,12 +1349,13 @@ def draw(name,
                 rightmargin=0.12,
                 margin=0.3,
                 textsize=20,
-                sep=0.3,
-                entryheight=0.065)
+                entrysep=0.02,
+                entryheight=0.065,
+                topmargin=0.09)
         if '\n' in data.title:
             dtitle = data.title.split('\n')
-            right_legend.SetHeader(dtitle[1])
             data.title = dtitle[0]
+            data_lumi = dtitle[1]
         right_legend.AddEntry(data, 'lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -1454,17 +1460,30 @@ def draw(name,
         filename += '_logy'
     if root:
         filename += '_root'
+        hist_pad.cd()
+        label = ROOT.TLatex()
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(20)
+        label.DrawLatex(rect_hist[0] + 0.02, 0.9, category.root_label)
+        if data_lumi is not None:
+            label_lumi = ROOT.TLatex()
+            label_lumi.SetNDC()
+            label_lumi.SetTextFont(43)
+            label_lumi.SetTextSize(20)
+            label_lumi.DrawLatex(0.77, 0.9, data_lumi)
+        hist_pad.Update()
+        hist_pad.Modified()
+        hist_pad.RedrawAxis()
+        """
+        ATLAS_label(.6, .7, text="Work in Progress", sqrts=None,
+            pad=hist_pad,
+                sep=0.1)
+        """
+
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)
         if root:
-            hist_pad.Update()
-            hist_pad.Modified()
-            hist_pad.RedrawAxis()
-            """
-            ATLAS_label(.6, .7, text="Work in Progress", sqrts=None,
-                    pad=hist_pad,
-                    sep=0.1)
-            """
             fig.SaveAs(output_filename)
         else:
             log.info("writing %s" % output_filename)

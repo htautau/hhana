@@ -198,6 +198,12 @@ class Category(object):
         #    cuts &= TAUS_PASS
         return cuts
 
+    @classmethod
+    def get_parent(cls):
+        if cls.is_control:
+            return cls.__bases__[0]
+        return cls
+
 
 # Cut-based categories
 
@@ -240,40 +246,6 @@ class Category_Preselection_DEta_Control(Category_Preselection):
     label = r'$\tau_{h}\tau_{h}$: $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Preselection'
 
 
-# Default categories
-
-class Category_2J(Category_Preselection):
-
-    name = '2j'
-    label = r'$\tau_{h}\tau_{h}$: 2-Jet Category'
-    cuts = CUTS_2J
-    fitbins = 5
-    limitbins = 8
-    features = features_2j
-
-
-class Category_1J(Category_Preselection):
-
-    name = '1j'
-    label = r'$\tau_{h}\tau_{h}$: 1-Jet Category'
-    cuts = CUTS_1J
-    fitbins = 5
-    limitbins = 10
-    features = features_1j
-
-
-class Category_0J(Category_Preselection):
-
-    name = '0j'
-    label = r'$\tau_{h}\tau_{h}$: 0-Jet Category'
-    cuts = CUTS_0J
-    fitbins = 8
-    limitbins = 10
-    features = features_0j
-
-
-# Harmonization
-
 class Category_VBF(Category_Preselection):
 
     name = 'vbf'
@@ -303,6 +275,8 @@ class Category_VBF_DEta_Control(Category_VBF):
     is_control = True
     name = 'vbf_deta_control'
     label = r'$\tau_{h}\tau_{h}$: VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    root_label = '#tau_{h}#tau_{h}: VBF Category QCD Control Region'
+    norm_category = Category_Preselection_DEta_Control
 
 
 class Category_Boosted(Category_Preselection):
@@ -336,13 +310,15 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     is_control = True
     name = 'boosted_deta_control'
     label = r'$\tau_{h}\tau_{h}$: Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    root_label = '#tau_{h}#tau_{h}: Boosted Category QCD Control Region'
+    norm_category = Category_Preselection_DEta_Control
 
 
 class Category_Nonboosted_1J(Category_Preselection):
 
     name = '1j_nonboosted'
-    label = r'$\tau_{h}\tau_{h}$: Non-boosted 1-Jet Category'
-    root_label = '#tau_{h}#tau_{h}: Non-boosted 1-Jet Category'
+    label = r'$\tau_{h}\tau_{h}$: 1-Jet Category'
+    root_label = '#tau_{h}#tau_{h}: 1-Jet Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
@@ -357,21 +333,23 @@ class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
 
     is_control = True
     name = '1j_nonboosted_id_control'
-    label = r'$\tau_{h}\tau_{h}$: Non-boosted 1-Jet Category ID Control Region'
+    label = r'$\tau_{h}\tau_{h}$: 1-Jet Category ID Control Region'
 
 
 class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
 
     is_control = True
     name = '1j_nonboosted_deta_control'
-    label = r'$\tau_{h}\tau_{h}$: Non-boosted 1-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    label = r'$\tau_{h}\tau_{h}$: 1-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    root_label = '#tau_{h}#tau_{h}: 1-Jet Category QCD Control Region'
+    norm_category = Category_Preselection_DEta_Control
 
 
 class Category_Nonboosted_0J(Category_Preselection):
 
     name = '0j_nonboosted'
-    label = r'$\tau_{h}\tau_{h}$: Non-boosted 0-Jet Category'
-    root_label = '#tau_{h}#tau_{h}: Non-boosted 0-Jet Category'
+    label = r'$\tau_{h}\tau_{h}$: 0-Jet Category'
+    root_label = '#tau_{h}#tau_{h}: 0-Jet Category'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
@@ -386,14 +364,16 @@ class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
 
     is_control = True
     name = '0j_nonboosted_id_control'
-    label = r'$\tau_{h}\tau_{h}$: Non-boosted 0-Jet Category ID Control Region'
+    label = r'$\tau_{h}\tau_{h}$: 0-Jet Category ID Control Region'
 
 
 class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
 
     is_control = True
     name = '0j_nonboosted_deta_control'
-    label = r'$\tau_{h}\tau_{h}$: Non-boosted 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    label = r'$\tau_{h}\tau_{h}$: 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
+    root_label = '#tau_{h}#tau_{h}: 0-Jet Category QCD Control Region'
+    norm_category = Category_Preselection_DEta_Control
 
 
 CATEGORIES = {
@@ -409,27 +389,24 @@ CATEGORIES = {
         Category_Preselection,
         ],
     'presel_id_controls': [
+        Category_Preselection_ID_Control,
         ],
     'presel_deta_controls': [
+        Category_Preselection_DEta_Control,
         ],
-    'default': [
-        Category_2J,
-        Category_1J,
-        Category_0J,
-        ],
-    'harmonize': [
+    'mva': [
         Category_VBF,
         Category_Boosted,
         Category_Nonboosted_1J,
         Category_Nonboosted_0J,
     ],
-    'harmonize_id_controls': [
+    'mva_id_controls': [
         Category_VBF_ID_Control,
         Category_Boosted_ID_Control,
         Category_Nonboosted_1J_ID_Control,
         Category_Nonboosted_0J_ID_Control,
     ],
-    'harmonize_deta_controls': [
+    'mva_deta_controls': [
         Category_VBF_DEta_Control,
         Category_Boosted_DEta_Control,
         Category_Nonboosted_1J_DEta_Control,
