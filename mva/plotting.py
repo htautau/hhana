@@ -713,7 +713,9 @@ def draw_samples_array(
         ravel=False,
         weighted=True,
         weight_hist=None,
-        weight_clf=None,
+        clf=None,
+        min_score=None,
+        max_score=None,
         plots=None,
         root=False,
         output_suffix='',
@@ -760,7 +762,9 @@ def draw_samples_array(
                 weighted=weighted,
                 field_scale=field_scale,
                 weight_hist=weight_hist,
-                weight_clf=weight_clf)
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score,)
         model_hists.append(field_hist)
 
     if signal is not None:
@@ -772,7 +776,9 @@ def draw_samples_array(
                     weighted=weighted,
                     field_scale=field_scale,
                     weight_hist=weight_hist,
-                    weight_clf=weight_clf)
+                    clf=clf,
+                    min_score=min_score,
+                    max_score=max_score)
             signal_hists.append(field_hist)
     else:
         signal_hists = None
@@ -783,7 +789,9 @@ def draw_samples_array(
                 weighted=weighted,
                 field_scale=field_scale,
                 weight_hist=weight_hist,
-                weight_clf=weight_clf)
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score)
         """
         log.info("Data events: %d" % sum(data_hist))
         log.info("Model events: %f" % sum(sum(model_hists)))
@@ -893,7 +901,7 @@ def draw(name,
     if logy:
         ypadding = (.35, 0.)
     else:
-        ypadding = (.4, .1)
+        ypadding = (.4, .05)
 
     width = 1. - right_margin - left_margin
     height = 1. - top_margin - bottom_margin
@@ -1326,10 +1334,10 @@ def draw(name,
                     margin=0.3,
                     textsize=20,
                     entrysep=0.02,
-                    entryheight=0.08,
+                    entryheight=0.06,
                     topmargin=0.1)
             for hist in reversed(model):
-                model_legend.AddEntry(hist, 'F')
+                model_legend.AddEntry(hist, style='F')
             model_legend.Draw()
         else:
             model_legend = hist_ax.legend(
@@ -1350,16 +1358,16 @@ def draw(name,
                 margin=0.3,
                 textsize=20,
                 entrysep=0.02,
-                entryheight=0.065,
+                entryheight=0.06,
                 topmargin=0.09)
         if '\n' in data.title:
             dtitle = data.title.split('\n')
             data.title = dtitle[0]
             data_lumi = dtitle[1]
-        right_legend.AddEntry(data, 'lep')
+        right_legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
-                right_legend.AddEntry(s, 'F')
+                right_legend.AddEntry(s, style='F')
         right_legend.Draw()
     else:
         right_legend_bars = []

@@ -26,7 +26,8 @@ from . import CACHE_DIR
 from . import MMC_MASS, MMC_PT
 from .plotting import (
     draw, plot_clf, plot_grid_scores,
-    hist_scores, draw_samples_array)
+    hist_scores, draw_samples_array,
+    efficiency_cut)
 from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
@@ -587,9 +588,9 @@ class ClassificationProblem(object):
         # signal scores
         for sig in signals:
             scores_dict = sig.scores(self,
-                    category=category,
-                    region=region,
-                    cuts=signal_region)
+                category=category,
+                region=region,
+                cuts=signal_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
                 assert len(scores) == len(weights)
@@ -606,9 +607,9 @@ class ClassificationProblem(object):
 
         # data scores
         data_scores, _ = data.scores(self,
-                category=category,
-                region=region,
-                cuts=signal_region)
+            category=category,
+            region=region,
+            cuts=signal_region)
         _min = np.min(data_scores)
         _max = np.max(data_scores)
         if _min < min_score:
@@ -685,8 +686,38 @@ class ClassificationProblem(object):
             plot_signal_significance=False,
             systematics=systematics,
             weight_hist=bkg_score_hist,
-            weight_clf=self,
+            clf=self,
             output_suffix="_reweighted" + self.output_suffix,
+            cuts=signal_region,
+            root=root,
+            output_formats=output_formats,
+            unblind=True)
+
+        ############################################################
+        # show the MMC below a BDT score that unblinds 30% of signal
+        # determine BDT score with 30% of 125 signal below:
+        signal_score_hist = Hist(1000, -1, 1)
+        for s, scores_dict in sig_scores:
+            histogram_scores(signal_score_hist, scores_dict, inplace=True)
+        max_score = efficiency_cut(signal_score_hist, 0.3)
+        log.info("plotting mmc below BDT score of %.2f" % max_score)
+
+        draw_samples_array(
+            variables.VARIABLES,
+            plots=[MMC_MASS],
+            data=analysis.data,
+            model=analysis.backgrounds,
+            signal=[analysis.higgs_125],
+            signal_scale=50,
+            category=category,
+            region=region,
+            show_ratio=True,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=systematics,
+            clf=self,
+            max_score=max_score,
+            output_suffix="_lowbdt" + self.output_suffix,
             cuts=signal_region,
             root=root,
             output_formats=output_formats,
@@ -698,9 +729,9 @@ class ClassificationProblem(object):
         log.info(control_region)
         # data scores
         data_scores, _ = data.scores(self,
-                category=category,
-                region=region,
-                cuts=control_region)
+            category=category,
+            region=region,
+            cuts=control_region)
 
         # determine min and max scores
         min_score = 1e10
@@ -716,9 +747,9 @@ class ClassificationProblem(object):
         bkg_scores = []
         for bkg in backgrounds:
             scores_dict = bkg.scores(self,
-                    category=category,
-                    region=region,
-                    cuts=control_region)
+                category=category,
+                region=region,
+                cuts=control_region)
 
             for sys_term, (scores, weights) in scores_dict.items():
                 assert len(scores) == len(weights)
@@ -823,29 +854,34 @@ def staged_score(self, X, y, sample_weight, n_estimators=-1):
         yield s_sig_max * acc
 
 
-def histogram_scores(hist_template, scores):
+def histogram_scores(hist_template, scores, inplace=False):
 
-    hist_template = hist_template.Clone()
-    hist_template.Reset()
+    original_hist_template = hist_template.Clone()
 
     if isinstance(scores, tuple):
         # data
         scores, weight = scores
         assert (weight == 1).all()
-        hist = hist_template.Clone()
+        if not inplace:
+            hist = hist_template.Clone()
+        else:
+            hist = hist_template
         hist.fill_array(scores)
     elif isinstance(scores, dict):
         # non-data with possible systematics
         # nominal case:
         nom_scores, nom_weight = scores['NOMINAL']
-        hist = hist_template.Clone()
+        if not inplace:
+            hist = hist_template.Clone()
+        else:
+            hist = hist_template
         hist.fill_array(nom_scores, nom_weight)
         # systematics
         sys_hists = {}
         for sys_term, (sys_scores, sys_weights) in scores.items():
             if sys_term == 'NOMINAL':
                 continue
-            sys_hist = hist_template.Clone()
+            sys_hist = original_hist_template.Clone()
             sys_hist.fill_array(sys_scores, sys_weights)
             sys_hists[sys_term] = sys_hist
         hist.systematics = sys_hists
