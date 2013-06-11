@@ -879,7 +879,7 @@ def histogram_scores(hist_template, scores, inplace=False):
         for sys_term, (sys_scores, sys_weights) in scores.items():
             if sys_term == 'NOMINAL':
                 continue
-            sys_hist = hist.Clone(name=hist.name + systematic_name(sys_term))
+            sys_hist = hist.Clone(name=hist.name + "_" + systematic_name(sys_term))
             sys_hist.Reset()
             sys_hist.fill_array(sys_scores, sys_weights)
             sys_hists[sys_term] = sys_hist

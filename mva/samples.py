@@ -134,6 +134,13 @@ class Sample(object):
                                suffix=None):
 
         log.info("creating histfactory sample for %s" % self.name)
+
+        histname = 'category_%s_%s' % (category.name, self.name)
+        if suffix is not None:
+            histname += suffix
+        hist = hist_template.Clone(name=histname)
+        hist.Reset()
+
         if isinstance(self, Data):
             sample = ROOT.RooStats.HistFactory.Data()
         else:
@@ -146,8 +153,6 @@ class Sample(object):
 
         if isinstance(expr_or_clf, basestring):
             expr = expr_or_clf
-            hist = hist_template.Clone()
-            hist.Reset()
             self.draw_into(hist, expr, category, region, cuts,
                     systematics=systematics)
             if ndim > 1:
@@ -162,13 +167,8 @@ class Sample(object):
             # histogram classifier output
             if scores is None:
                 scores = self.scores(expr_or_clf, category, region, cuts)
-            hist = histogram_scores(hist_template, scores)
+            histogram_scores(hist_template, scores, inplace=True)
 
-        histname = 'category_%s_%s' % (category.name, self.name)
-        if suffix is not None:
-            histname += suffix
-
-        hist.name = histname
         # convert to uniform binning and zero out negative bins
         hist = statsfix(hist, fix_systematics=True)
 
