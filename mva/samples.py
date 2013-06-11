@@ -233,8 +233,6 @@ class Sample(object):
             log.info("calling %s histfactory method" % self.name)
             self.histfactory(sample, systematics=do_systematics)
 
-        print hist
-        print hist.systematics
         return sample
 
     def partitioned_records(self,
