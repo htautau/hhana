@@ -861,6 +861,7 @@ def histogram_scores(hist_template, scores, inplace=False):
         hist = hist_template.Clone(name=hist_template.name + "_scores")
     else:
         hist = hist_template
+        hist.Reset()
 
     if isinstance(scores, np.ndarray):
         hist.fill_array(scores)

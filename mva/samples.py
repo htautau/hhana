@@ -167,7 +167,7 @@ class Sample(object):
             # histogram classifier output
             if scores is None:
                 scores = self.scores(expr_or_clf, category, region, cuts)
-            histogram_scores(hist_template, scores, inplace=True)
+            histogram_scores(hist, scores, inplace=True)
 
         # convert to uniform binning and zero out negative bins
         hist = statsfix(hist, fix_systematics=True)
