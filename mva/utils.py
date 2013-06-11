@@ -87,7 +87,7 @@ def rec_to_ndarray(rec, fields=None):
     return np.vstack([rec[field] for field in fields]).T
 
 
-def braindump(outdir, indir=None):
+def braindump(outdir, indir=None, func=None):
     """
     Write out all objects in indir into outdir
     """
@@ -97,7 +97,7 @@ def braindump(outdir, indir=None):
     with preserve_current_directory():
         outdir.cd()
         for thing in indir.GetList():
-            if not thing.ClassName().startswith('TH'):
+            if func is not None and not func(thing):
                 continue
             llog.info("writing {0} in {1}".format(
                 thing.GetName(),

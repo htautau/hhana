@@ -72,6 +72,11 @@ if not args.systematics:
 if args.transform_scores:
     ClassificationProblem.TRANSFORM = True
 
+if args.mass_points == 'all':
+    args.mass_points = Higgs.MASS_POINTS
+else:
+    args.mass_points = map(int, args.mass_points.split(','))
+
 for category in categories:
     
     if category_names is not None and category.name not in category_names:
@@ -237,7 +242,7 @@ for category in categories:
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
-    if 'limits' in args.actions:
+    if 'workspace' in args.actions:
         if args.optimize_limits:
             # Determine the number of bins that yields the best limit at 125
             channels = hypotests.optimized_channels(
@@ -245,10 +250,10 @@ for category in categories:
                     analysis.backgrounds,
                     data=analysis.data, 
                     cuts=signal_region,
-                    mass_points=[125],
+                    mass_points=args.mass_points,
                     systematics=args.systematics,
                     lumi_rel_error=lumi_rel_error,
-    #                 algo='EvenBinningByLimit')
+                    #algo='EvenBinningByLimit')
                     algo='UnevenBinningBySignificance')
         else:
             # construct a "channel" for each mass point
@@ -259,7 +264,7 @@ for category in categories:
                     cuts=signal_region,
                     bins=category.limitbins,
                     binning=category.limitbinning,
-                    mass_points=[125],
+                    mass_points=args.mass_points,
                     systematics=args.systematics)
 
         for mass, channel in channels.items():
@@ -268,7 +273,7 @@ for category in categories:
             all_channels[mass][category.name] = channel
 
 
-if 'limits' in args.actions:
+if 'workspace' in args.actions:
 
     """
     TODO: set const and nonconst params:
@@ -283,7 +288,10 @@ if 'limits' in args.actions:
     dump_dir = ROOT.gDirectory.func()
 
     with ropen('workspaces/limits%s.root' % output_suffix, 'recreate') as limits_file:
-        braindump(limits_file, indir=dump_dir)
+        braindump(limits_file, indir=dump_dir,
+            func=lambda h: h.ClassName().startswith('TH') and
+                           h.GetName().startswith('category'))
+
         xml_output_dir = 'workspaces/xml%s' % output_suffix
         if os.path.exists(xml_output_dir):
             shutil.rmtree(xml_output_dir)
@@ -302,9 +310,10 @@ if 'limits' in args.actions:
                 workspace.Write()
                 measurement.Write()
                 measurement.PrintXML(xml_output_dir)
-                # get limit
-                limit_hist = hypotests.get_limit_workspace(workspace)
-                limit_hist.Write()
+                if 'limits' in args.actions:
+                    # get limit
+                    limit_hist = hypotests.get_limit_workspace(workspace)
+                    limit_hist.Write()
                 channels.append(channel)
             # make combined workspace
             name = "combination_%d" % mass
@@ -316,6 +325,7 @@ if 'limits' in args.actions:
             workspace.Write()
             measurement.Write()
             measurement.PrintXML(xml_output_dir)
-            # determine limit with combined model
-            limit_hist = hypotests.get_limit_workspace(workspace)
-            limit_hist.Write()
+            if 'limits' in args.actions:
+                # determine limit with combined model
+                limit_hist = hypotests.get_limit_workspace(workspace)
+                limit_hist.Write()

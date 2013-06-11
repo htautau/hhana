@@ -32,6 +32,7 @@ from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
 from .utils import rec_to_ndarray, std
+from .systematics import systematic_name
 
 
 def print_feature_ranking(clf, fields):
@@ -856,37 +857,35 @@ def staged_score(self, X, y, sample_weight, n_estimators=-1):
 
 def histogram_scores(hist_template, scores, inplace=False):
 
-    original_hist_template = hist_template.Clone()
+    if not inplace:
+        hist = hist_template.Clone(name=hist_template.name + "_scores")
+    else:
+        hist = hist_template
 
-    if isinstance(scores, tuple):
+    if isinstance(scores, np.ndarray):
+        hist.fill_array(scores)
+    elif isinstance(scores, tuple):
         # data
         scores, weight = scores
         assert (weight == 1).all()
-        if not inplace:
-            hist = hist_template.Clone()
-        else:
-            hist = hist_template
         hist.fill_array(scores)
     elif isinstance(scores, dict):
         # non-data with possible systematics
         # nominal case:
         nom_scores, nom_weight = scores['NOMINAL']
-        if not inplace:
-            hist = hist_template.Clone()
-        else:
-            hist = hist_template
         hist.fill_array(nom_scores, nom_weight)
         # systematics
         sys_hists = {}
         for sys_term, (sys_scores, sys_weights) in scores.items():
             if sys_term == 'NOMINAL':
                 continue
-            sys_hist = original_hist_template.Clone()
+            sys_hist = hist.Clone(name=hist.name + systematic_name(sys_term))
+            sys_hist.Reset()
             sys_hist.fill_array(sys_scores, sys_weights)
             sys_hists[sys_term] = sys_hist
         hist.systematics = sys_hists
     else:
-        raise TypeError("scores not a tuple or dict")
+        raise TypeError("scores not an np.array, tuple or dict")
     return hist
 
 

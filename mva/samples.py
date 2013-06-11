@@ -130,7 +130,8 @@ class Sample(object):
                                category, region,
                                cuts=None,
                                scores=None,
-                               systematics=True):
+                               systematics=True,
+                               suffix=None):
 
         log.info("creating histfactory sample for %s" % self.name)
         if isinstance(self, Data):
@@ -159,22 +160,24 @@ class Sample(object):
 
         else:
             # histogram classifier output
-            if scores is not None:
+            if scores is None:
                 scores = self.scores(expr_or_clf, category, region, cuts)
             hist = histogram_scores(hist_template, scores)
 
         histname = 'category_%s_%s' % (category.name, self.name)
+        if suffix is not None:
+            histname += suffix
 
         hist.name = histname
         # convert to uniform binning and zero out negative bins
-        hist = statsfix(hist)
+        hist = statsfix(hist, fix_systematics=True)
 
         # always apply kylefix on backgrounds
         if (isinstance(self, Background) and
             not getattr(self, 'NO_KYLEFIX', False)):
             log.info("applying kylefix()")
             # TODO also apply kylefix on systematics?
-            hist = kylefix(hist)
+            hist = kylefix(hist, fix_systematics=False)
 
         print_hist(hist)
         # set the nominal histogram
@@ -201,9 +204,6 @@ class Sample(object):
 
                 hist_up = hist.systematics[up_term]
                 hist_down = hist.systematics[down_term]
-
-                hist_up.name = '%s_%s' % (histname, systematic_name(up_term))
-                hist_down.name = '%s_%s' % (histname, systematic_name(down_term))
 
                 if ndim > 1:
                     # convert to 1D hists
@@ -233,6 +233,8 @@ class Sample(object):
             log.info("calling %s histfactory method" % self.name)
             self.histfactory(sample, systematics=do_systematics)
 
+        print hist
+        print hist.systematics
         return sample
 
     def partitioned_records(self,
@@ -413,11 +415,11 @@ class Data(Sample):
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
 
         self._label = ('%s Data $\sqrt{s} = %d$ TeV\n'
-                      '$\int dt L = %.1f$ fb$^{-1}$' % (
-                          self.year, self.energy, LUMI[self.year] / 1e3))
+                       '$\int dt L = %.1f$ fb$^{-1}$' % (
+                       self.year, self.energy, LUMI[self.year] / 1e3))
         self._label_root = ('%s Data #sqrt{s} = %d TeV\n'
                             '#scale[0.7]{#int}dt L = %.1f fb^{-1}' % (
-                          self.year, self.energy, LUMI[self.year] / 1e3))
+                            self.year, self.energy, LUMI[self.year] / 1e3))
 
         self.name = 'Data'
 
@@ -1016,7 +1018,7 @@ class MC(Sample):
                      (self.__class__.__name__))
         else:
             log.info("requesting table from %s for systematic %s " %
-                     (self.__class__.__name__, systematic))
+                     (self.__class__.__name__, systematic_name(systematic)))
         log.debug("using selection: %s" % selection)
 
         # TODO: handle cuts in weight expressions

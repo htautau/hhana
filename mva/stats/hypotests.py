@@ -21,7 +21,7 @@ def get_stat_w2(hist, x, y=0, z=0):
     assert x >= 0 and x < xl
     assert y >= 0 and y < yl
     assert z >= 0 and z < zl
-    
+
     if hist.DIM < 3:
         z = 0
     if hist.DIM < 2:
@@ -60,9 +60,9 @@ def add_stat_w2(hist1, bins1, hist2, bins2):
 def rebin_hist(hist, new_binning, axis='x'):
     """
     Redo the binning of the hist and returns: rebinned_hist, hist_template
-    
+
     new_binning = list of bin edges
-    
+
     WARNING: doesn't assert that the edges of the new binning matches the old one.
     """
     assert axis in ['x', 'y', 'z']
@@ -108,7 +108,7 @@ def rebin_hist(hist, new_binning, axis='x'):
                 new_hist.SetBinContent(new_x, new_y, new_z, v + new_v)
                 comb_w2N = add_stat_w2( hist, (x, y, z), new_hist, (new_x, new_y, new_z) )
                 set_stat_w2(new_hist, comb_w2N, new_x, new_y, new_z)
-                
+
                 # Rebin the systematics histograms, too
                 for sys_term in hist.systematics:
                     v = hist.systematics[sys_term].GetBinContent(x, y, z)
@@ -182,7 +182,7 @@ def significance(sig_hist, bkg_hist, xbinrange=None, ybinrange=None, zbinrange=N
                                 syst += get_stat_w2(bkg_hist, x, y, z)
                                 for sys_term in bkg_hist.systematics:
                                     syst += (this_bkg - bkg_hist.systematics[sys_term].GetBinContent(x, y, z)) ** 2.
-                            
+
                 if sig > 0 and bkg > 0:
                     s += sig**2. / (bkg + syst)
     return math.sqrt(s)
@@ -190,12 +190,12 @@ def significance(sig_hist, bkg_hist, xbinrange=None, ybinrange=None, zbinrange=N
 def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
     """
     Searches for the best uneven binning. starting_point can be 'fine' or 'merged'
-    
+
     Starting point = 'fine':
         1. For each adjacent bin-pair in all axes, find the bin-pair merge that gives the
            best improvement in significance.
         2. If this 'improvement' is not negative, then merge it and repeat from (1).
-    
+
     Starting point = 'merged':
         1. Start from a single partition (all bins merged)
         2. Try splitting the partition by exactly half, in each axes individually, and
@@ -204,7 +204,7 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
         4. Repeat from step (2) for the two newly split partitions
 
     Note that bkg_hist.systematics must be set to at least {}!
-    
+
     Returns the optimized sig_hist, bkg_hist and hist_template. hist_template is None if nothing is changed.
     """
     assert hasattr(bkg_hist, 'systematics') and type(bkg_hist.systematics) is dict
@@ -212,7 +212,7 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
     original_s = significance(sig_hist, bkg_hist)
     current_template = None
     count = 0
-    
+
     if starting_point == 'fine':
         current_binning = None
         current_binning_axis = None
@@ -345,19 +345,19 @@ def channels(clf, category, region, backgrounds,
     bkg_scores = []
     for bkg in backgrounds:
         scores_dict = bkg.scores(
-                clf,
-                category=category,
-                region=region,
-                cuts=cuts)
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
         bkg_scores.append((bkg, scores_dict))
 
     # data scores
     if data is not None:
         data_scores, _ = data.scores(
-                clf,
-                category=category,
-                region=region,
-                cuts=cuts)
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
 
     # signal scores
     for mass in Higgs.MASS_POINTS:
@@ -380,10 +380,10 @@ def channels(clf, category, region, backgrounds,
                     systematics=systematics)
 
             scores_dict = sig.scores(
-                    clf,
-                    category=category,
-                    region=region,
-                    cuts=cuts)
+                clf,
+                category=category,
+                region=region,
+                cuts=cuts)
             sig_scores.append((sig, scores_dict))
 
         # get templates that are safe for hypo tests
@@ -393,21 +393,24 @@ def channels(clf, category, region, backgrounds,
         samples = []
         for s, scores in bkg_scores + sig_scores:
             sample = s.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=scores)
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=scores,
+                suffix='_%d' % mass)
             samples.append(sample)
 
         data_sample = None
         if data is not None:
             data_sample = data.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=data_scores)
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=data_scores,
+                suffix='_%d' % mass)
 
         # create channel for this mass point
-        channel = histfactory.make_channel("%s_%d" % (category.name, mass),
-                               samples, data=data_sample)
+        channel = histfactory.make_channel(
+            "%s_%d" % (category.name, mass),
+            samples, data=data_sample)
         channels[mass] = channel
     return channels
 
@@ -421,7 +424,7 @@ def optimized_channels(clf, category, region, backgrounds,
     Determine the number of bins that yields the best limit at the 125 GeV mass
     hypothesis. Then construct and return the channels for all requested mass
     hypotheses.
-    
+
     algos: EvenBinningByLimit, UnevenBinningBySignificance
     """
     log.info("constructing optimized channels")
@@ -432,10 +435,10 @@ def optimized_channels(clf, category, region, backgrounds,
     bkg_scores = []
     for bkg in backgrounds:
         scores_dict = bkg.scores(
-                clf,
-                category=category,
-                region=region,
-                cuts=cuts)
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
         bkg_scores.append((bkg, scores_dict))
 
     # 125 GeV signal scores
@@ -444,19 +447,19 @@ def optimized_channels(clf, category, region, backgrounds,
         sig = Higgs(year=year, mode=mode, mass=125,
                     systematics=systematics)
         scores_dict = sig.scores(
-                clf,
-                category=category,
-                region=region,
-                cuts=cuts)
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
         sig_scores.append((sig, scores_dict))
 
     # data scores
     if data is not None:
         data_scores, _ = data.scores(
-                clf,
-                category=category,
-                region=region,
-                cuts=cuts)
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
         min_score = data_scores.min()
         max_score = data_scores.max()
     else:
@@ -486,26 +489,26 @@ def optimized_channels(clf, category, region, backgrounds,
             samples = []
             for s, scores in bkg_scores + sig_scores:
                 sample = s.get_histfactory_sample(
-                        hist_template, clf,
-                        category, region,
-                        cuts=cuts, scores=scores)
+                    hist_template, clf,
+                    category, region,
+                    cuts=cuts, scores=scores)
                 samples.append(sample)
 
             data_sample = None
             if data is not None:
                 data_sample = data.get_histfactory_sample(
-                        hist_template, clf,
-                        category, region,
-                        cuts=cuts, scores=data_scores)
+                    hist_template, clf,
+                    category, region,
+                    cuts=cuts, scores=data_scores)
 
             # create channel for this mass point
             channel = histfactory.make_channel(
-                    "%s_%d" % (category.name, 125),
-                    samples, data=data_sample)
+                "%s_%d" % (category.name, 125),
+                samples, data=data_sample)
 
             # get limit
             limit_hist = get_limit(channel,
-                    lumi_rel_error=lumi_rel_error)
+                lumi_rel_error=lumi_rel_error)
             limit_hist.SetName("%s_%d_%d" % (category, 125, nbins))
 
             # is this better than the best limit so far?
@@ -525,18 +528,18 @@ def optimized_channels(clf, category, region, backgrounds,
         low_values_2sig = np.array([h['-2sigma'] for h in limit_hists])
         plt.plot(nbins_range, central_values, 'k-')
         plt.fill_between(nbins_range, low_values_2sig, high_values_2sig,
-                linewidth=0, facecolor='yellow')
+            linewidth=0, facecolor='yellow')
         plt.fill_between(nbins_range, low_values_1sig, high_values_1sig,
-                linewidth=0, facecolor='green')
+            linewidth=0, facecolor='green')
         plt.xlim(nbins_range[0], nbins_range[-1])
         plt.xlabel("Number of Bins")
         plt.ylabel("Limit")
         plt.grid(True)
         plt.text(.5, .8, "Best limit of %.2f at %d bins" % (best_limit, best_nbins),
-                horizontalalignment='center',
-                verticalalignment='center',
-                transform = ax.transAxes,
-                fontsize=20)
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 transform = ax.transAxes,
+                 fontsize=20)
         plt.savefig('category_%s_limit_vs_nbins.png' % category.name)
 
     elif algo == 'UnevenBinningBySignificance':
@@ -612,32 +615,34 @@ def optimized_channels(clf, category, region, backgrounds,
             sig = Higgs(year=year, mode=mode, mass=mass,
                         systematics=systematics)
             scores_dict = sig.scores(
-                    clf,
-                    category=category,
-                    region=region,
-                    cuts=cuts)
+                clf,
+                category=category,
+                region=region,
+                cuts=cuts)
             sig_scores.append((sig, scores_dict))
 
         # create HistFactory samples
         samples = []
         for s, scores in bkg_scores + sig_scores:
             sample = s.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=scores)
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=scores,
+                suffix='_%d' % mass)
             samples.append(sample)
 
         data_sample = None
         if data is not None:
             data_sample = data.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=data_scores)
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=data_scores,
+                suffix='_%d' % mass)
 
         # create channel for this mass point
         channel = histfactory.make_channel(
-                "%s_%d" % (category.name, mass),
-                samples, data=data_sample)
+            "%s_%d" % (category.name, mass),
+            samples, data=data_sample)
 
         channels[mass] = channel
     return channels
@@ -649,8 +654,8 @@ def get_limit(channels,
           POI='SigXsecOverSM'):
 
     workspace, _ = histfactory.make_workspace('higgs', channels,
-            lumi_rel_error=lumi_rel_error,
-            POI=POI)
+        lumi_rel_error=lumi_rel_error,
+        POI=POI)
     return get_limit_workspace(workspace, unblind=unblind)
 
 
