@@ -4,7 +4,8 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('-s', '--student', required=True)
-parser.add_argument('path')
+parser.add_argument('-o', '--output', default=None)
+parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
 import re
@@ -12,31 +13,39 @@ import os
 from glob import glob
 from rootpy.io import root_open as ropen
 from rootpy.tree import Tree
+import ROOT
+
+if args.output is None:
+    args.output = '%s.root' % args.student
 
 ds_pattern = re.compile('%s\.(?P<name>.+)\.root$' % (args.student))
-output_filename = os.path.join(args.path, args.student) + '.root'
 
-with ropen(output_filename, 'RECREATE') as outfile:
-    for filename in glob(os.path.join(args.path, '*.root')):
-        if filename == output_filename:
-            continue
-        match = re.search(ds_pattern, filename)
-        if not match:
-            print "%s is not a valid filename" % filename
-            continue
-        # replace . and - with _ for natural naming in PyTables
-        name = match.group('name').replace('.', '_').replace('-', '_')
-        print "Merging in %s ..." % filename
-        with ropen(filename, 'READ') as infile:
-            intree = infile.higgstautauhh
-            outfile.cd()
-            outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
-            outtree.OptimizeBaskets()
-            outtree.SetName(name)
-            outtree.Write()
-            # will need to be upated for the next skim
-            outcutflow = infile.cutflow.Clone(name=name + '_cutflow')
-            outcutflow_event = infile.cutflow_event.Clone(name=name + '_cutflow_event')
-            outfile.cd()
-            outcutflow.Write()
-            outcutflow_event.Write()
+with ropen(args.output, 'UPDATE') as outfile:
+    for path in args.paths:
+        if os.path.isdir(path):
+            filenames = glob(os.path.join(path, '*.root'))
+        else:
+            filenames = [path]
+        for filename in filenames:
+            if os.path.normpath(filename) == os.path.normpath(args.output):
+                continue
+            match = re.search(ds_pattern, filename)
+            if not match:
+                print "%s is not a valid filename" % filename
+                continue
+            # replace . and - with _ for natural naming in PyTables
+            name = match.group('name').replace('.', '_').replace('-', '_')
+            print "Merging in %s ..." % filename
+            with ropen(filename, 'READ') as infile:
+                intree = infile.higgstautauhh
+                outfile.cd()
+                outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
+                outtree.OptimizeBaskets()
+                outtree.SetName(name)
+                outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
+                # will need to be upated for the next skim
+                outcutflow = infile.cutflow.Clone(name=name + '_cutflow')
+                outcutflow_event = infile.cutflow_event.Clone(name=name + '_cutflow_event')
+                outfile.cd()
+                outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)
+                outcutflow_event.Write(outcutflow_event.GetName(), ROOT.TObject.kOverwrite)

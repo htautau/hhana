@@ -74,7 +74,7 @@ init-mc-12:
 init-ntup: init-data-12 init-embed-12 init-mc-12
 
 $(HHNTUP)/$(HHSTUDENT).root:
-	./merge-ntup -s $(HHSTUDENT) $(HHNTUP)
+	./merge-ntup -s $(HHSTUDENT) -o $(HHNTUP)/$(HHSTUDENT).root $(HHNTUP)/$(HHSTUDENT).*.root
 
 $(HHNTUP)/$(HHSTUDENT).h5: $(HHNTUP)/$(HHSTUDENT).root
 	root2hdf5 --complib lzo --complevel 0 --quiet $^
@@ -98,7 +98,7 @@ clean-grl:
 	rm -f $(HHNTUP)/merged_grl.xml
 
 clean-pyc:                                                                      
-	find . -name "*.pyc" | xargs rm -f
+	find . -name "*.pyc" -exec rm {} \;
 
 clean: clean-pyc
 

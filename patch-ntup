@@ -2,58 +2,61 @@
 
 from rootpy.extern.argparse import ArgumentParser
 parser = ArgumentParser()
-parser.add_argument('filename')
+parser.add_argument('filenames', nargs='+')
 args = parser.parse_args()
 
+import rootpy
+rootpy.log.basic_config_colorized()
 from rootpy.io import root_open
 from rootpy import log
-from rootpy.tree import Tree, TreeModel
+from rootpy.tree import Tree, TreeModel, FloatCol
 from rootpy.math.physics.vector import LorentzVector
-from rootpy.types import FloatCol
 import os
-
-fname, fext = os.path.splitext(args.filename)
-filename_out = '%s_patched%s' % (fname, fext)
-
-fin = root_open(args.filename)
-fout = root_open(filename_out, 'RECREATE')
 
 class Model(TreeModel):
     resonance_pt = FloatCol()
 
 MET_4vect = LorentzVector()
 
-# write hists
-for dirpath, dirs, histnames in fin.walk(class_pattern='TH1D'):
-    for histname in histnames:
-        histpath = os.path.join(dirpath, histname)
-        log.info("copying %s ..." % histpath)
-        hist = fin.Get(histpath)
-        fout.cd()
-        hist.Write()
+for filename in args.filenames:
+    fname, fext = os.path.splitext(filename)
+    filename_out = '%s_patched%s' % (fname, fext)
 
-# write trees
-for dirpath, dirs, treenames in fin.walk(class_pattern='TTree'):
-    for treename in treenames:
-        treepath = os.path.join(dirpath, treename)
-        intree = fin.Get(treepath)
-        if intree.has_branch('resonance_pt'):
-            log.info("skipping %s ..." % treepath)
-            continue
-        log.info("patching %s ..." % treepath)
-        intree.create_buffer()
-        fout.cd() 
-        outtree = Tree(name=treename, model=Model)
-        outtree.set_buffer(
-            intree._buffer,
-            create_branches=True)
-        for event in intree:
-            MET_4vect.SetPxPyPzE(event.MET_x, event.MET_y, 0., event.MET) 
-            outtree.resonance_pt = (event.tau1_fourvect + event.tau2_fourvect + MET_4vect).Pt()
-            outtree.Fill()
-        fout.cd()
-        outtree.Write()
-        intree.Delete()
+    fin = root_open(filename)
+    fout = root_open(filename_out, 'RECREATE')
+    log.info("creating %s ..." % filename_out)
 
-fin.Close()
-fout.Close()
+    # write hists
+    for dirpath, dirs, histnames in fin.walk(class_pattern='TH1D'):
+        for histname in histnames:
+            histpath = os.path.join(dirpath, histname)
+            log.info("copying %s ..." % histpath)
+            hist = fin.Get(histpath)
+            fout.cd()
+            hist.Write()
+
+    # write trees
+    for dirpath, dirs, treenames in fin.walk(class_pattern='TTree'):
+        for treename in treenames:
+            treepath = os.path.join(dirpath, treename)
+            intree = fin.Get(treepath)
+            if intree.has_branch('resonance_pt'):
+                log.info("skipping %s ..." % treepath)
+                continue
+            log.info("patching %s ..." % treepath)
+            intree.create_buffer()
+            fout.cd() 
+            outtree = Tree(name=treename, model=Model)
+            outtree.set_buffer(
+                intree._buffer,
+                create_branches=True)
+            for event in intree:
+                MET_4vect.SetPxPyPzE(event.MET_x, event.MET_y, 0., event.MET) 
+                outtree.resonance_pt = (event.tau1_fourvect + event.tau2_fourvect + MET_4vect).Pt()
+                outtree.Fill()
+            fout.cd()
+            outtree.Write()
+            intree.Delete()
+
+    fin.Close()
+    fout.Close()
