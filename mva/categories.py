@@ -327,6 +327,15 @@ class Category_Nonboosted_1J(Category_Preselection):
     # train with all modes
     halfblind_bins = 5
     norm_category = Category_Preselection
+    workspace_min_clf = 0.
+
+
+class Category_Nonboosted_1J_Control(Category_Nonboosted_1J):
+    # used only for the trackfit control region in the workspace
+    name = '1j_nonboosted_control'
+    is_control = True
+    workspace_min_clf = None
+    workspace_max_clf = 0.
 
 
 class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
@@ -358,6 +367,15 @@ class Category_Nonboosted_0J(Category_Preselection):
     # train with all modes
     halfblind_bins = 4
     norm_category = Category_Preselection
+    workspace_min_clf = 0.
+
+
+class Category_Nonboosted_0J_Control(Category_Nonboosted_0J):
+    # used only for the trackfit control region in the workspace
+    name = '0j_nonboosted_control'
+    is_control = True
+    workspace_min_clf = None
+    workspace_max_clf = 0.
 
 
 class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
@@ -411,5 +429,9 @@ CATEGORIES = {
         Category_Boosted_DEta_Control,
         Category_Nonboosted_1J_DEta_Control,
         Category_Nonboosted_0J_DEta_Control,
+    ],
+    'mva_workspace_controls': [
+        Category_Nonboosted_1J_Control,
+        Category_Nonboosted_0J_Control,
     ]
 }

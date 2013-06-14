@@ -1,15 +1,19 @@
 from . import log; log = log[__name__]
+
+import math, array
+
+from matplotlib import pyplot as plt
 import numpy as np
+
 from rootpy import asrootpy
 from rootpy.plotting import Hist
+from rootpy.fit import histfactory
+
 from .asymptotics import AsymptoticsCLs
 from ..samples import Higgs
 from ..plotting import significance
-from . import histfactory
 from .utils import get_safe_template
 from ..utils import hist_to_dict
-import math, array
-from matplotlib import pyplot as plt
 
 def get_stat_w2(hist, x, y=0, z=0):
     """
@@ -650,10 +654,12 @@ def optimized_channels(clf, category, region, backgrounds,
 
 def get_limit(channels,
           unblind=False,
+          lumi=1.,
           lumi_rel_error=0.,
           POI='SigXsecOverSM'):
 
     workspace, _ = histfactory.make_workspace('higgs', channels,
+        lumi=lumi,
         lumi_rel_error=lumi_rel_error,
         POI=POI)
     return get_limit_workspace(workspace, unblind=unblind)

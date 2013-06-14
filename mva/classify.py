@@ -483,7 +483,7 @@ class ClassificationProblem(object):
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
 
-        if category != self.category:
+        if category.get_parent() != self.category:
             raise RuntimeError(
                 "a classifier must be applied on the same "
                 "category it was trained in")
@@ -855,34 +855,67 @@ def staged_score(self, X, y, sample_weight, n_estimators=-1):
         yield s_sig_max * acc
 
 
-def histogram_scores(hist_template, scores, inplace=False):
+def histogram_scores(hist_template, scores,
+                     min_score=None, max_score=None,
+                     inplace=False):
 
     if not inplace:
         hist = hist_template.Clone(name=hist_template.name + "_scores")
     else:
         hist = hist_template
         hist.Reset()
-
+    if min_score is not None:
+        log.info("cutting out scores below %f" % min_score)
+    if max_score is not None:
+        log.info("cutting out scores above %f" % max_score)
     if isinstance(scores, np.ndarray):
+        if min_score is not None:
+            scores = scores[scores > min_score]
+        if max_score is not None:
+            scores = scores[scores < max_score]
         hist.fill_array(scores)
     elif isinstance(scores, tuple):
         # data
         scores, weight = scores
+        if min_score is not None:
+            scores_idx = scores > min_score
+            scores = scores[scores_idx]
+            weight = weight[scores_idx]
+        if max_score is not None:
+            scores_idx = scores < max_score
+            scores = scores[scores_idx]
+            weight = weight[scores_idx]
         assert (weight == 1).all()
         hist.fill_array(scores)
     elif isinstance(scores, dict):
         # non-data with possible systematics
         # nominal case:
         nom_scores, nom_weight = scores['NOMINAL']
+        if min_score is not None:
+            scores_idx = nom_scores > min_score
+            nom_scores = nom_scores[scores_idx]
+            nom_weight = nom_weight[scores_idx]
+        if max_score is not None:
+            scores_idx = nom_scores < max_score
+            nom_scores = nom_scores[scores_idx]
+            nom_weight = nom_weight[scores_idx]
         hist.fill_array(nom_scores, nom_weight)
         # systematics
         sys_hists = {}
-        for sys_term, (sys_scores, sys_weights) in scores.items():
+        for sys_term, (sys_scores, sys_weight) in scores.items():
             if sys_term == 'NOMINAL':
                 continue
+            if min_score is not None:
+                scores_idx = sys_scores > min_score
+                sys_scores = sys_scores[scores_idx]
+                sys_weight = sys_weight[scores_idx]
+            if max_score is not None:
+                scores_idx = sys_scores < max_score
+                sys_scores = sys_scores[scores_idx]
+                sys_weight = sys_weight[scores_idx]
             sys_hist = hist.Clone(name=hist.name + "_" + systematic_name(sys_term))
             sys_hist.Reset()
-            sys_hist.fill_array(sys_scores, sys_weights)
+            sys_hist.fill_array(sys_scores, sys_weight)
             sys_hists[sys_term] = sys_hist
         hist.systematics = sys_hists
     else:

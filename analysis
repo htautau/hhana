@@ -10,12 +10,14 @@ args = get_parser().parse_args()
 year = args.year
 
 # stdlib imports
-import os
+import os, sys
 import shutil
 
 # rootpy imports
 from rootpy.tree import Cut
 from rootpy.io import root_open as ropen
+from rootpy.fit import histfactory
+from rootpy.plotting import Hist2D
 
 # root imports
 import ROOT
@@ -24,7 +26,7 @@ import ROOT
 import numpy as np
 
 # local imports
-from mva.stats import hypotests, histfactory
+from mva.stats import hypotests
 from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf, braindump
@@ -126,49 +128,48 @@ for category in categories:
             VARS = VARIABLES
 
         figs = draw_samples_array(
-                vars=VARS,
-                data=analysis.data,
-                model=analysis.backgrounds,
-                signal=[analysis.higgs_125],
-                signal_scale=50,
-                category=category,
-                region=target_region,
-                show_ratio=True,
-                show_qq=False,
-                plot_signal_significance=False,
-                systematics=SYSTEMATICS if args.systematics else None,
-                root=args.root,
-                output_formats=args.output_formats,
-                weighted=not args.no_weight,
-                plots=args.plots,
-                output_suffix=output_suffix,
-                unblind=args.unblind,
-                cuts=cuts)
+            vars=VARS,
+            data=analysis.data,
+            model=analysis.backgrounds,
+            signal=[analysis.higgs_125],
+            signal_scale=50,
+            category=category,
+            region=target_region,
+            show_ratio=True,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=SYSTEMATICS if args.systematics else None,
+            root=args.root,
+            output_formats=args.output_formats,
+            weighted=not args.no_weight,
+            plots=args.plots,
+            output_suffix=output_suffix,
+            unblind=args.unblind,
+            cuts=cuts)
         figures[category.name] = figs
     
     if 'weights' in args.actions:
         cuts = Cut(args.plot_cut)
         draw_samples_array(
-                WEIGHTS,
-                data=analysis.data,
-                model=analysis.backgrounds,
-                signal=[analysis.higgs_125],
-                signal_scale=50,
-                category=category,
-                region=target_region,
-                show_ratio=False,
-                show_qq=False,
-                plot_signal_significance=False,
-                systematics=None,
-                root=args.root,
-                output_formats=args.output_formats,
-                output_suffix=output_suffix,
-                weighted=False,
-                stacked_model=False,
-                cuts=cuts)
+            WEIGHTS,
+            data=analysis.data,
+            model=analysis.backgrounds,
+            signal=[analysis.higgs_125],
+            signal_scale=50,
+            category=category,
+            region=target_region,
+            show_ratio=False,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=None,
+            root=args.root,
+            output_formats=args.output_formats,
+            output_suffix=output_suffix,
+            weighted=False,
+            stacked_model=False,
+            cuts=cuts)
 
     if 'train' in args.actions:
-        
         # all modes, all masses
         signals_train = [
             Higgs(
@@ -179,32 +180,33 @@ for category in categories:
         ]
 
         clf = ClassificationProblem(
-                fields=category.features,
-                category=category,
-                region=target_region,
-                clf_output_suffix=clf_output_suffix,
-                output_suffix=output_suffix)
+            fields=category.features,
+            category=category,
+            region=target_region,
+            clf_output_suffix=clf_output_suffix,
+            output_suffix=output_suffix)
         
         clf.train(
-                signals=signals_train,
-                backgrounds=analysis.backgrounds,
-                cuts=train_region,
-                grid_search=args.grid_search,
-                quick=args.quick_train,
-                cv_nfold=args.nfold,
-                use_cache=args.use_clf_cache)
+            signals=signals_train,
+            backgrounds=analysis.backgrounds,
+            cuts=train_region,
+            grid_search=args.grid_search,
+            quick=args.quick_train,
+            cv_nfold=args.nfold,
+            use_cache=args.use_clf_cache)
 
     if '2d' in args.actions:
         log.info("plotting 2d mass vs classifier output")
-        draw_2d_hist(clf,
-                 category,
-                 target_region,
-                 analysis.backgrounds,
-                 signals=analysis.signals,
-                 data=analysis.data,
-                 cuts=signal_region,
-                 y='mass_mmc_tau1_tau2',
-                 output_suffix=output_suffix)
+        draw_2d_hist(
+            clf,
+            category,
+            target_region,
+            analysis.backgrounds,
+            signals=analysis.signals,
+            data=analysis.data,
+            cuts=signal_region,
+            y='mass_mmc_tau1_tau2',
+            output_suffix=output_suffix)
 
     if 'correlate' in args.actions:
         log.info("drawing correlation matrices")
@@ -215,65 +217,104 @@ for category in categories:
     if 'scatter' in args.actions:
         # show 2D plots of all input variables and with BDT output
         log.info("drawing scatter plots of input variables")
-        draw_scatter(clf.all_fields,
-                     category,
-                     target_region,
-                     output_suffix,
-                     analysis.backgrounds,
-                     data=analysis.data,
-                     signals=analysis.signals,
-                     signal_scale=300.,
-                     classifier=clf if 'train' in args.actions else None,
-                     unblind=args.unblind)
+        draw_scatter(
+            clf.all_fields,
+            category,
+            target_region,
+            output_suffix,
+            analysis.backgrounds,
+            data=analysis.data,
+            signals=analysis.signals,
+            signal_scale=300.,
+            classifier=clf if 'train' in args.actions else None,
+            unblind=args.unblind)
 
     if 'evaluate' in args.actions:
         # create BDT validation plots
         clf.evaluate(
-                analysis,
-                signal_region=signal_region,
-                control_region=control_region,
-                unblind=args.unblind,
-                systematics=SYSTEMATICS if args.systematics else None,
-                limitbins=category.limitbins,
-                limitbinning=category.limitbinning,
-                quick=args.quick_eval,
-                output_formats=args.output_formats,
-                root=args.root)
+            analysis,
+            signal_region=signal_region,
+            control_region=control_region,
+            unblind=args.unblind,
+            systematics=SYSTEMATICS if args.systematics else None,
+            limitbins=category.limitbins,
+            limitbinning=category.limitbinning,
+            quick=args.quick_eval,
+            output_formats=args.output_formats,
+            root=args.root)
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
-    if 'workspace' in args.actions:
+
+if 'workspace' in args.actions:
+    
+    # create control region Channels here
+    controls = []
+    expr = ('tau1_numTrack_recounted', 'tau2_numTrack_recounted')
+    # define the 2D boundaries and number of bins
+    min_edge, max_edge = .5, 4.5
+    bins = int(max_edge - min_edge)
+    # define the histogram template
+    hist_template = Hist2D(bins, min_edge, max_edge,
+                           bins, min_edge, max_edge, type='D')
+
+    for category in CATEGORIES['mva_workspace_controls']:
+        parent_category = category.get_parent()
+        clf = ClassificationProblem(
+            fields=parent_category.features,
+            category=parent_category,
+            region=target_region,
+            clf_output_suffix=clf_output_suffix,
+            output_suffix=output_suffix)
+        clf.load()
+        contr = analysis.get_channel(hist_template, expr,
+            category, target_region,
+            clf=clf,
+            include_signal=False)
+        controls.append(contr)
+    
+    # yup, adding Channels using rootpy's HistFactory pythonizations
+    controls = [sum(controls)]
+
+    for category in categories:
+        
+        clf = ClassificationProblem(
+            fields=category.features,
+            category=category,
+            region=target_region,
+            clf_output_suffix=clf_output_suffix,
+            output_suffix=output_suffix)
+        if not clf.load():
+            sys.exit("train BDTs before requesting workspaces")
+
         if args.optimize_limits:
             # Determine the number of bins that yields the best limit at 125
             channels = hypotests.optimized_channels(
-                    clf, category, target_region,
-                    analysis.backgrounds,
-                    data=analysis.data, 
-                    cuts=signal_region,
-                    mass_points=args.mass_points,
-                    systematics=args.systematics,
-                    lumi_rel_error=lumi_rel_error,
-                    #algo='EvenBinningByLimit')
-                    algo='UnevenBinningBySignificance')
+                clf, category, target_region,
+                analysis.backgrounds,
+                data=analysis.data, 
+                cuts=signal_region,
+                mass_points=args.mass_points,
+                systematics=args.systematics,
+                lumi_rel_error=lumi_rel_error,
+                #algo='EvenBinningByLimit')
+                algo='UnevenBinningBySignificance')
         else:
             # construct a "channel" for each mass point
             channels = hypotests.channels(
-                    clf, category, target_region,
-                    analysis.backgrounds,
-                    data=analysis.data, 
-                    cuts=signal_region,
-                    bins=category.limitbins,
-                    binning=category.limitbinning,
-                    mass_points=args.mass_points,
-                    systematics=args.systematics)
+                clf, category, target_region,
+                analysis.backgrounds,
+                data=analysis.data, 
+                cuts=signal_region,
+                bins=category.limitbins,
+                binning=category.limitbinning,
+                mass_points=args.mass_points,
+                systematics=args.systematics)
 
         for mass, channel in channels.items():
             if mass not in all_channels:
                 all_channels[mass] = {}
             all_channels[mass][category.name] = channel
-
-
-if 'workspace' in args.actions:
 
     """
     TODO: set const and nonconst params:
@@ -303,7 +344,9 @@ if 'workspace' in args.actions:
                 name = "category_%s_%d" % (category, mass)
                 # make workspace
                 workspace, measurement = histfactory.make_workspace(
-                    name, channel,
+                    name, [channel] + controls,
+                    POI='SigXsecOverSM',
+                    lumi=1.0,
                     lumi_rel_error=lumi_rel_error)
                 # mu=1 for Asimov data
                 #measurement.SetParamValue('SigXsecOverSM', 1)
@@ -318,7 +361,9 @@ if 'workspace' in args.actions:
             # make combined workspace
             name = "combination_%d" % mass
             workspace, measurement = histfactory.make_workspace(
-                name, channels,
+                name, channels + controls,
+                POI='SigXsecOverSM',
+                lumi=1.0,
                 lumi_rel_error=lumi_rel_error)
             # mu=1 for Asimov data
             #measurement.SetParamValue('SigXsecOverSM', 1)

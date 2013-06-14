@@ -27,6 +27,7 @@ from rootpy.io import root_open as ropen, TemporaryFile
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
 from rootpy.memory.keepalive import keepalive
+from rootpy.fit import histfactory
 
 # local imports
 from . import log; log = log[__name__]
@@ -129,11 +130,21 @@ class Sample(object):
                                expr_or_clf,
                                category, region,
                                cuts=None,
+                               clf=None,
                                scores=None,
+                               min_score=None,
+                               max_score=None,
                                systematics=True,
-                               suffix=None):
+                               suffix=None,
+                               field_scale=None,
+                               weight_hist=None):
 
         log.info("creating histfactory sample for %s" % self.name)
+
+        if min_score is None:
+            min_score = getattr(category, 'workspace_min_clf', None)
+        if max_score is None:
+            max_score = getattr(category, 'workspace_max_clf', None)
 
         histname = 'category_%s_%s' % (category.name, self.name)
         if suffix is not None:
@@ -142,20 +153,30 @@ class Sample(object):
         hist.Reset()
 
         if isinstance(self, Data):
-            sample = ROOT.RooStats.HistFactory.Data()
+            sample = histfactory.Data(self.name)
         else:
-            sample = ROOT.RooStats.HistFactory.Sample(self.name)
+            sample = histfactory.Sample(self.name)
 
         ndim = hist_template.GetDimension()
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
                           and systematics)
 
-        if isinstance(expr_or_clf, basestring):
+        if isinstance(expr_or_clf, (basestring, tuple, list)):
             expr = expr_or_clf
-            self.draw_into(hist, expr, category, region, cuts,
-                    systematics=systematics)
-            if ndim > 1:
+            field_hist = dict()
+            field_hist[expr] = hist
+            self.draw_array(field_hist, category, region,
+                cuts=cuts,
+                weighted=True,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=systematics)
+
+            if ndim == 2:
                 if do_systematics:
                     syst = hist.systematics
                 # convert to 1D hist
@@ -167,7 +188,10 @@ class Sample(object):
             # histogram classifier output
             if scores is None:
                 scores = self.scores(expr_or_clf, category, region, cuts)
-            histogram_scores(hist, scores, inplace=True)
+            histogram_scores(hist, scores,
+                             min_score=min_score,
+                             max_score=max_score,
+                             inplace=True)
 
         # convert to uniform binning and zero out negative bins
         hist = statsfix(hist, fix_systematics=True)
@@ -200,24 +224,19 @@ class Sample(object):
                     up_term, down_term = terms
 
                 log.info("adding histosys for %s" % sys_component)
-                histsys = ROOT.RooStats.HistFactory.HistoSys(sys_component)
 
                 hist_up = hist.systematics[up_term]
                 hist_down = hist.systematics[down_term]
 
-                if ndim > 1:
+                if ndim == 2:
                     # convert to 1D hists
                     hist_up = hist_up.ravel()
                     hist_down = hist_down.ravel()
 
-                histsys.SetHistoHigh(hist_up)
-                histsys.SetHistoNameHigh(hist_up.name)
-                histsys.SetHistoLow(hist_down)
-                histsys.SetHistoNameLow(hist_down.name)
-                keepalive(histsys, hist_up, hist_down)
-
+                histsys = histfactory.HistoSys(sys_component,
+                                               low=hist_down,
+                                               high=hist_up)
                 sample.AddHistoSys(histsys)
-                keepalive(sample, histsys)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
@@ -390,13 +409,99 @@ class Sample(object):
                xbins, xmin, xmax,
                ybins, ymin, ymax,
                cuts=None,
-               systematics=True):
+               systematics=True,
+               ravel=False):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
                 title=self.label, **self.hist_decor)
         self.draw_into(hist, expr, category, region, cuts=cuts,
                 systematics=systematics)
+        if ravel:
+            rhist = hist.ravel()
+            if hasattr(hist, 'sytematics'):
+                rhist.systematics = {}
+                for term, syshist in hist.systematics.items():
+                    rhist.systematics[term] = syshist.ravel()
+            return rhist
         return hist
+
+    def draw_array_helper(self, field_hist, category, region,
+                          cuts=None,
+                          weighted=True,
+                          field_scale=None,
+                          weight_hist=None,
+                          scores=None,
+                          min_score=None,
+                          max_score=None,
+                          systematic='NOMINAL'):
+
+        all_fields = []
+        for f in field_hist.iterkeys():
+            if isinstance(f, basestring):
+                all_fields.append(f)
+            else:
+                all_fields.extend(list(f))
+
+        # TODO: only get unblinded vars
+        rec = self.merged_records(category, region,
+            fields=all_fields, cuts=cuts,
+            include_weight=True,
+            systematic=systematic)
+
+        if scores is not None:
+            # sanity
+            assert (scores[1] == rec['weight']).all()
+            # ignore the score weights since they should be the same as the rec
+            # weights
+            scores = scores[0]
+
+        if weight_hist is not None and scores is not None:
+            edges = np.array(list(weight_hist.xedges()))
+            weights = np.array(weight_hist).take(
+                edges.searchsorted(scores) - 1)
+            weights = rec['weight'] * weights
+        else:
+            weights = rec['weight']
+
+        if scores is not None:
+            if min_score is not None:
+                idx = scores > min_score
+                rec = rec[idx]
+                weights = weights[idx]
+                scores = scores[idx]
+
+            if max_score is not None:
+                idx = scores < max_score
+                rec = rec[idx]
+                weights = weights[idx]
+                scores = scores[idx]
+
+        for fields, hist in field_hist.items():
+            # fields can be a single field or list of fields
+            if not isinstance(fields, (list, tuple)):
+                fields = [fields]
+            if hist is None:
+                # this var might be blinded
+                continue
+            # defensive copy
+            if isinstance(fields, tuple):
+                # select columns in numpy recarray with a list
+                fields = list(fields)
+            arr = np.copy(rec[fields])
+            if field_scale is not None:
+                for field in fields:
+                    if field in field_scale:
+                        arr[field] *= field_scale[field]
+            # convert to array
+            arr = rec_to_ndarray(arr, fields=fields)
+            # include the scores if the histogram dimensionality allows
+            if scores is not None and hist.GetDimension() == len(fields) + 1:
+                arr = np.c_[arr, scores]
+            elif hist.GetDimension() != len(fields):
+                raise TypeError(
+                    'histogram dimensionality does not match '
+                    'number of fields: %s' % (', '.join(fields)))
+            hist.fill_array(arr, weights=weights)
 
 
 class Data(Sample):
@@ -434,7 +539,8 @@ class Data(Sample):
         self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
 
     def draw_array(self, field_hist, category, region,
-                   cuts=None, weighted=True,
+                   cuts=None,
+                   weighted=True,
                    field_scale=None,
                    weight_hist=None,
                    clf=None,
@@ -443,45 +549,18 @@ class Data(Sample):
                    max_score=None,
                    systematics=True):
 
-        # TODO: only get unblinded vars
-        rec = self.merged_records(category, region,
-            fields=field_hist.keys(), cuts=cuts,
-            include_weight=True)
-
         if scores is None and clf is not None:
             scores = self.scores(
-                clf, category, region, cuts=cuts)[0]
+                clf, category, region, cuts=cuts)
 
-        if weight_hist is not None and scores is not None:
-            edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(
-                edges.searchsorted(scores) - 1)
-            weights = rec['weight'] * weights
-        else:
-            weights = rec['weight']
-
-        if scores is not None:
-            if min_score is not None:
-                idx = scores > min_score
-                rec = rec[idx]
-                weights = weights[idx]
-
-            if max_score is not None:
-                idx = scores < max_score
-                rec = rec[idx]
-                weights = weights[idx]
-
-        for field, hist in field_hist.items():
-            if hist is None:
-                # this var might be blinded
-                continue
-            if field_scale is not None and field in field_scale:
-                arr = rec[field] * field_scale[field]
-            else:
-                arr = rec[field]
-            if scores is not None and hist.GetDimension() == 2:
-                arr = np.c_[arr, scores]
-            hist.fill_array(arr, weights=weights)
+        self.draw_array_helper(field_hist, category, region,
+            cuts=cuts,
+            weighted=weighted,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            scores=scores,
+            min_score=min_score,
+            max_score=max_score)
 
     def scores(self, clf, category, region, cuts=None):
 
@@ -514,7 +593,7 @@ class Data(Sample):
 
         if include_weight and fields is not None:
             if 'weight' not in fields:
-                fields = fields + ['weight']
+                fields = list(fields) + ['weight']
 
         Sample.check_systematic(systematic)
         selection = self.cuts(category, region) & cuts
@@ -811,7 +890,8 @@ class MC(Sample):
             hist.systematics = sys_hists
 
     def draw_array(self, field_hist, category, region,
-                   cuts=None, weighted=True,
+                   cuts=None,
+                   weighted=True,
                    field_scale=None,
                    weight_hist=None,
                    clf=None,
@@ -823,97 +903,52 @@ class MC(Sample):
 
         do_systematics = self.systematics and systematics
 
-        rec = self.merged_records(category, region,
-            fields=field_hist.keys(), cuts=cuts,
-            include_weight=True)
-
         if scores is None and clf is not None:
             scores = self.scores(
                 clf, category, region, cuts=cuts,
                 systematics=systematics)
 
-        if weight_hist is not None and scores is not None:
-            edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(
-                edges.searchsorted(scores['NOMINAL'][0]) - 1)
-            weights = rec['weight'] * weights
-        else:
-            weights = rec['weight']
-
-        if do_systematics:
-            sys_hists = {}
-
-        if scores is not None:
-            assert (scores['NOMINAL'][1] == rec['weight']).all()
-
-            if min_score is not None:
-                idx = scores['NOMINAL'][0] > min_score
-                rec = rec[idx]
-                weights = weights[idx]
-
-            if max_score is not None:
-                idx = scores['NOMINAL'][0] < max_score
-                rec = rec[idx]
-                weights = weights[idx]
-
-        for field, hist in field_hist.items():
-            if field_scale is not None and field in field_scale:
-                arr = rec[field] * field_scale[field]
-            else:
-                arr = rec[field]
-            if scores is not None and hist.GetDimension() == 2:
-                arr = np.c_[arr, scores['NOMINAL'][0]]
-            hist.fill_array(arr, weights=weights * scale)
-            if do_systematics:
-                if not hasattr(hist, 'systematics'):
-                    hist.systematics = {}
-                sys_hists[field] = hist.systematics
+        self.draw_array_helper(field_hist, category, region,
+            cuts=cuts,
+            weighted=weighted,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            scores=scores['NOMINAL'],
+            min_score=min_score,
+            max_score=max_score,
+            systematic='NOMINAL')
 
         if not do_systematics:
             return
 
+        all_sys_hists = {}
+
+        for field, hist in field_hist.items():
+            if not hasattr(hist, 'systematics'):
+                hist.systematics = {}
+            all_sys_hists[field] = hist.systematics
+
         for systematic in iter_systematics(False):
 
-            rec = self.merged_records(category, region,
-                fields=field_hist.keys(), cuts=cuts,
-                include_weight=True,
-                systematic=systematic)
-
-            if weight_hist is not None and scores is not None:
-                edges = np.array(list(weight_hist.xedges()))
-                weights = np.array(weight_hist).take(
-                    edges.searchsorted(scores[systematic][0]) - 1)
-                weights = rec['weight'] * weights
-            else:
-                weights = rec['weight']
-
-            if scores is not None:
-                assert (scores[systematic][1] == rec['weight']).all()
-
-                if min_score is not None:
-                    idx = scores[systematic][0] > min_score
-                    rec = rec[idx]
-                    weights = weights[idx]
-
-                if max_score is not None:
-                    idx = scores[systematic][0] < max_score
-                    rec = rec[idx]
-                    weights = weights[idx]
-
+            sys_field_hist = {}
             for field, hist in field_hist.items():
-                sys_hist = hist.Clone()
-                sys_hist.Reset()
-                if field_scale is not None and field in field_scale:
-                    arr = rec[field] * field_scale[field]
+                if systematic in all_sys_hists[field]:
+                    sys_hist = all_sys_hists[field][systematic]
                 else:
-                    arr = rec[field]
-                if scores is not None and hist.GetDimension() == 2:
-                    arr = np.c_[arr, scores[systematic][0]]
-                sys_hist.fill_array(arr, weights=weights * scale)
-                if systematic not in sys_hists[field]:
-                    sys_hists[field][systematic] = sys_hist
-                else:
-                    sys_hists[field][systematic] += sys_hist
+                    sys_hist = hist.Clone()
+                    sys_hist.Reset()
+                    all_sys_hists[field][systematic] = sys_hist
+                sys_field_hist[field] = sys_hist
+
+            self.draw_array_helper(sys_field_hist, category, region,
+                cuts=cuts,
+                weighted=weighted,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                scores=scores[systematic] if scores else None,
+                min_score=min_score,
+                max_score=max_score,
+                systematic=systematic)
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
@@ -1431,7 +1466,8 @@ class QCD(Sample, Background):
         hist.SetTitle(self.label)
 
     def draw_array(self, field_hist, category, region,
-                   cuts=None, weighted=True,
+                   cuts=None,
+                   weighted=True,
                    field_scale=None,
                    weight_hist=None,
                    clf=None,
@@ -1447,7 +1483,8 @@ class QCD(Sample, Background):
 
         for mc_scale, mc in zip(self.mc_scales, self.mc):
             mc.draw_array(field_hist_MC_bkg, category, self.shape_region,
-                cuts=cuts, weighted=weighted,
+                cuts=cuts,
+                weighted=weighted,
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 clf=clf,
@@ -1462,7 +1499,8 @@ class QCD(Sample, Background):
 
         self.data.draw_array(field_hist_data,
             category, self.shape_region,
-            cuts=cuts, weighted=weighted,
+            cuts=cuts,
+            weighted=weighted,
             field_scale=field_scale,
             weight_hist=weight_hist,
             clf=clf,

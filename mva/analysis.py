@@ -1,3 +1,5 @@
+from rootpy.fit import histfactory
+
 from . import samples, log; log = log[__name__]
 from .norm import cache as norm_cache
 
@@ -61,14 +63,19 @@ class Analysis(object):
             self.ztautau,
         ]
 
-        self.signals = []
+        self.signals = self.get_signals(125)
+
+    def get_signals(self, mass):
+
+        signals = []
         for mode in samples.Higgs.MODES:
-            self.signals.append(samples.Higgs(
-                year=year,
+            signals.append(samples.Higgs(
+                year=self.year,
                 mode=mode,
-                mass=125,
-                systematics=systematics,
-                root=root))
+                mass=mass,
+                systematics=self.systematics,
+                root=self.root))
+        return signals
 
     def normalize(self, category, fit_param='TRACK'):
 
@@ -91,3 +98,38 @@ class Analysis(object):
         return  output_suffix
         #if not self.systematics:
         #    output_suffix += '_statsonly'
+
+    def get_channel(self, hist_template, expr_or_clf, category, region,
+                    cuts=None,
+                    include_signal=True,
+                    mass=125,
+                    clf=None,
+                    min_score=None,
+                    max_score=None,
+                    systematics=True):
+
+        log.info("constructing channels")
+        samples = [self.data] + self.backgrounds
+        channel_name = category.name
+        suffix = None
+        if include_signal:
+            suffix = '_%d' % mass
+            channel_name += suffix
+            samples += self.get_signals(mass)
+
+        # create HistFactory samples
+        histfactory_samples = []
+        for s in samples:
+            sample = s.get_histfactory_sample(
+                hist_template, expr_or_clf,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score,
+                suffix=suffix)
+            histfactory_samples.append(sample)
+
+        # create channel for this mass point
+        return histfactory.make_channel(
+            channel_name, histfactory_samples[1:], data=histfactory_samples[0])
