@@ -177,13 +177,17 @@ class Sample(object):
                 systematics=systematics)
 
             if ndim == 2:
-                if do_systematics:
-                    syst = hist.systematics
                 # convert to 1D hist
-                hist = hist.ravel()
-                hist.name = histname + '_ravel'
+                rhist = hist.ravel()
+                rhist.name = hist.name + '_ravel'
                 if do_systematics:
-                    hist.systematics = syst
+                    rsyst = {}
+                    for term, syshist in hist.systematics.items():
+                        rhist = syshist.ravel()
+                        rhist.name = syshist.name + '_ravel'
+                        rsyst[term] = rhist
+                    rhist.systematics = rsyst
+                hist = rhist
 
         else:
             # histogram classifier output
@@ -228,13 +232,6 @@ class Sample(object):
 
                 hist_up = hist.systematics[up_term]
                 hist_down = hist.systematics[down_term]
-
-                if ndim == 2:
-                    # convert to 1D hists
-                    hist_up = hist_up.ravel()
-                    hist_up.name = histname + '_ravel'
-                    hist_down = hist_down.ravel()
-                    hist_down.name = histname + '_ravel'
 
                 histsys = histfactory.HistoSys(sys_component,
                                                low=hist_down,
