@@ -148,6 +148,7 @@ for cat_def in args.categories:
         
         # Determine scale factor to get from 1p3p embedded Z to 1p3p ALPGEN Z
         sf_embed_13 = ztt.events(category, 'OS_TRK') / ztt_embedded.events(category, 'OS_TRK')
+        sf_embed = ztt.events(category, 'OS') / ztt_embedded.events(category, 'OS')
 
         """
         # Initialize Z scale to (data - QCD - others) / Z
@@ -243,6 +244,35 @@ for cat_def in args.categories:
                 # tau PU low, tau PU high
                 tau_hist, tau_hist)
         
+        # Cache the fitted normalization scale factors for SS
+        cache.set_scales(
+            year,
+            category.name,
+            False,
+            param,
+            fit_region,
+            qcd_scale=fit_result.sf_QCD,
+            qcd_scale_error=fit_result.sf_QCD_err,
+            qcd_data_scale=1.,
+            qcd_z_scale=1.,
+            qcd_others_scale=1.,
+            z_scale=fit_result.sf_Z,
+            z_scale_error=fit_result.sf_Z_err)
+            
+        cache.set_scales(
+            year,
+            category.name,
+            True, # Embedded Z
+            param,
+            fit_region,
+            qcd_scale=fit_result.sf_QCD,
+            qcd_scale_error=fit_result.sf_QCD_err,
+            qcd_data_scale=1.,
+            qcd_z_scale=1.,
+            qcd_others_scale=1.,
+            z_scale=fit_result.sf_Z * sf_embed,
+            z_scale_error=fit_result.sf_Z_err * sf_embed)
+
         qcd_scale = fit_result.sf13_QCD
         qcd_scale_error = fit_result.sf13_QCD_err
         
