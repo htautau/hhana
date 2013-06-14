@@ -249,6 +249,13 @@ for category in categories:
 if 'workspace' in args.actions:
     
     # create control region Channels here
+    control_analysis = Analysis(
+        year=year,
+        systematics=args.systematics,
+        use_embedding=args.embedding,
+        qcd_shape_region='SS',
+        root=args.root)
+    
     controls = []
     expr = ('tau1_numTrack_recounted', 'tau2_numTrack_recounted')
     # define the 2D boundaries and number of bins
@@ -260,18 +267,22 @@ if 'workspace' in args.actions:
 
     for category in CATEGORIES['mva_workspace_controls']:
         parent_category = category.get_parent()
+        # apply normalization
+        control_analysis.normalize(parent_category, fit_param=args.fit_param)
         clf = ClassificationProblem(
             fields=parent_category.features,
             category=parent_category,
-            region=target_region,
+            region='OS',
             clf_output_suffix=clf_output_suffix,
             output_suffix=output_suffix)
         clf.load()
-        contr = analysis.get_channel(hist_template, expr,
-            category, target_region,
+        contr = control_analysis.get_channel(hist_template, expr,
+            category=category,
+            region='OS',
             clf=clf,
             include_signal=False)
         controls.append(contr)
+        # TODO check that number of SS events is consistent with nOS
     
     # yup, adding Channels using rootpy's HistFactory pythonizations
     controls = [sum(controls)]

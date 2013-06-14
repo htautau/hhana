@@ -181,6 +181,7 @@ class Sample(object):
                     syst = hist.systematics
                 # convert to 1D hist
                 hist = hist.ravel()
+                hist.name = histname + '_ravel'
                 if do_systematics:
                     hist.systematics = syst
 
@@ -231,7 +232,9 @@ class Sample(object):
                 if ndim == 2:
                     # convert to 1D hists
                     hist_up = hist_up.ravel()
+                    hist_up.name = histname + '_ravel'
                     hist_down = hist_down.ravel()
+                    hist_down.name = histname + '_ravel'
 
                 histsys = histfactory.HistoSys(sys_component,
                                                low=hist_down,
@@ -240,7 +243,7 @@ class Sample(object):
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
-            sample.AddNormFactor('SigXsecOverSM', 0., 0., 200.)
+            sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
 
         elif isinstance(self, Background):
             # only activate stat error on background samples
@@ -935,7 +938,8 @@ class MC(Sample):
                 if systematic in all_sys_hists[field]:
                     sys_hist = all_sys_hists[field][systematic]
                 else:
-                    sys_hist = hist.Clone()
+                    sys_hist = hist.Clone(
+                        name=hist.name + '_' + systematic_name(systematic))
                     sys_hist.Reset()
                     all_sys_hists[field][systematic] = sys_hist
                 sys_field_hist[field] = sys_hist
@@ -1168,6 +1172,7 @@ class Ztautau(Background):
 
         # not normalized by theory
         sample.SetNormalizeByTheory(False)
+        sample.AddNormFactor('z_scale', 1., 0., 50., False)
 
     def __init__(self, *args, **kwargs):
         """
@@ -1180,9 +1185,7 @@ class Ztautau(Background):
 
 class MC_Ztautau(Ztautau, MC):
 
-    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
-        'Z_FIT',
-    ]
+    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS
 
 
 class Embedded_Ztautau(Ztautau, MC):
@@ -1192,7 +1195,6 @@ class Embedded_Ztautau(Ztautau, MC):
         'TAUID',
         'TRIGGER',
         'FAKERATE',
-        'Z_FIT',
     ]
 
 
@@ -1344,14 +1346,13 @@ class Higgs(MC, Signal):
 
 class QCD(Sample, Background):
 
-    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS + [
-        'QCD_FIT',
-    ]
+    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS
 
     def histfactory(self, sample, systematics=True):
 
         # not normalized by theory
         sample.SetNormalizeByTheory(False)
+        sample.AddNormFactor('qcd_scale', 1., 0., 50., False)
 
     @staticmethod
     def sample_compatibility(data, mc):
