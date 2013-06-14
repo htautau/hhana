@@ -176,18 +176,21 @@ class Sample(object):
                 max_score=max_score,
                 systematics=systematics)
 
+            print hist
+            print getattr(hist, 'systematics', None)
+
             if ndim == 2:
                 # convert to 1D hist
-                rhist = hist.ravel()
-                rhist.name = hist.name + '_ravel'
+                rhist = hist.ravel(name = hist.name + '_ravel')
                 if do_systematics:
                     rsyst = {}
                     for term, syshist in hist.systematics.items():
-                        rhist = syshist.ravel()
-                        rhist.name = syshist.name + '_ravel'
-                        rsyst[term] = rhist
+                        rsyst[term] = syshist.ravel(name=syshist.name + '_ravel')
                     rhist.systematics = rsyst
                 hist = rhist
+
+            print hist
+            print getattr(hist, 'systematics', None)
 
         else:
             # histogram classifier output
@@ -1524,6 +1527,7 @@ class QCD(Sample, Background):
                     elif sys_term == ('QCDFIT_DOWN',):
                         scale = self.scale - self.scale_error
                     qcd_hist = (d_h * self.data_scale - sys_hist) * scale
+                    qcd_hist.name = h.name + '_' + systematic_name(sys_term)
                     if sys_term not in h.systematics:
                         h.systematics[sys_term] = qcd_hist
                     else:
@@ -1545,14 +1549,14 @@ class QCD(Sample, Background):
         # subtract SS MC
         for mc_scale, mc in zip(self.mc_scales, self.mc):
             mc.scores(
-                    clf,
-                    category,
-                    region=self.shape_region,
-                    cuts=cuts,
-                    scores_dict=scores_dict,
-                    systematics=systematics,
-                    scale=mc_scale,
-                    **kwargs)
+                clf,
+                category,
+                region=self.shape_region,
+                cuts=cuts,
+                scores_dict=scores_dict,
+                systematics=systematics,
+                scale=mc_scale,
+                **kwargs)
 
         for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]
@@ -1627,15 +1631,15 @@ class QCD(Sample, Background):
 
         for mc_scale, mc in zip(self.mc_scales, self.mc):
             _arrays = mc.records(
-                    category=category,
-                    region=self.shape_region,
-                    fields=fields,
-                    cuts=cuts,
-                    include_weight=include_weight,
-                    systematic=systematic,
-                    scale=mc_scale,
-                    return_idx=return_idx,
-                    **kwargs)
+                category=category,
+                region=self.shape_region,
+                fields=fields,
+                cuts=cuts,
+                include_weight=include_weight,
+                systematic=systematic,
+                scale=mc_scale,
+                return_idx=return_idx,
+                **kwargs)
             # FIX: weight may not be present if include_weight=False
             for array in _arrays:
                 if return_idx:
