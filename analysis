@@ -39,6 +39,19 @@ from mva.analysis import Analysis
 from mva.lumi import get_lumi_uncert
 from mva import log, variables, samples
 
+CONST_PARAMS = [
+    'Lumi',
+    'mu_XS8_ggH',
+    'mu_XS7_ggH',
+    'mu_XS8_VBF',
+    'mu_XS7_VBF',
+    'mu_XS8_WH',
+    'mu_XS7_WH',
+    'mu_XS8_ZH',
+    'mu_XS7_ZH',
+    'mu_BR_tautau',
+]
+
 SYSTEMATICS = get_systematics(year)
 lumi_rel_error = get_lumi_uncert(year)
 figures = {}
@@ -358,7 +371,8 @@ if 'workspace' in args.actions:
                     name, [channel] + controls,
                     POI='SigXsecOverSM',
                     lumi=1.0,
-                    lumi_rel_error=lumi_rel_error)
+                    lumi_rel_error=lumi_rel_error,
+                    const_params=CONST_PARAMS)
                 # mu=1 for Asimov data
                 #measurement.SetParamValue('SigXsecOverSM', 1)
                 workspace.Write()
@@ -375,7 +389,8 @@ if 'workspace' in args.actions:
                 name, channels + controls,
                 POI='SigXsecOverSM',
                 lumi=1.0,
-                lumi_rel_error=lumi_rel_error)
+                lumi_rel_error=lumi_rel_error,
+                const_params=CONST_PARAMS)
             # mu=1 for Asimov data
             #measurement.SetParamValue('SigXsecOverSM', 1)
             workspace.Write()

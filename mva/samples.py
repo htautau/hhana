@@ -176,9 +176,6 @@ class Sample(object):
                 max_score=max_score,
                 systematics=systematics)
 
-            print hist
-            print getattr(hist, 'systematics', None)
-
             if ndim == 2:
                 # convert to 1D hist
                 rhist = hist.ravel(name = hist.name + '_ravel')
@@ -188,9 +185,6 @@ class Sample(object):
                         rsyst[term] = syshist.ravel(name=syshist.name + '_ravel')
                     rhist.systematics = rsyst
                 hist = rhist
-
-            print hist
-            print getattr(hist, 'systematics', None)
 
         else:
             # histogram classifier output

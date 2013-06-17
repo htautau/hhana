@@ -70,3 +70,5 @@ style.SetHatchesLineWidth(2)
 set_style(style)
 
 #ROOT.TGaxis.SetMaxDigits(3)
+
+from rootpy.fit import mute_roostats; mute_roostats()
