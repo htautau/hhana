@@ -41,6 +41,7 @@ from .classify import histogram_scores
 from .stats.utils import kylefix, statsfix
 from .cachedtable import CachedTable
 from .regions import REGIONS
+from .lumi import get_lumi_uncert
 
 # Higgs cross sections
 import yellowhiggs
@@ -243,6 +244,17 @@ class Sample(object):
             # only activate stat error on background samples
             log.info("activating stat error for %s" % self.name)
             sample.ActivateStatError()
+
+        if not isinstance(self, Data):
+            norm_by_theory = getattr(self, 'NORM_BY_THEORY', True)
+            sample.SetNormalizeByTheory(norm_by_theory)
+            if norm_by_theory:
+                lumi_uncert = get_lumi_uncert(self.year)
+                lumi_sys = histfactory.OverallSys(
+                    'ATLAS_LUMI_{0:d}'.format(self.year),
+                    high=1. + lumi_uncert,
+                    low=1. - lumi_uncert)
+                sample.AddOverallSys(lumi_sys)
 
         if hasattr(self, 'histfactory'):
             # perform sample-specific items
@@ -1162,10 +1174,10 @@ class MC(Sample):
 
 class Ztautau(Background):
 
+    NORM_BY_THEORY = False
+
     def histfactory(self, sample, systematics=True):
 
-        # not normalized by theory
-        sample.SetNormalizeByTheory(False)
         sample.AddNormFactor('z_scale', 1., 0., 50., False)
 
     def __init__(self, *args, **kwargs):
@@ -1195,21 +1207,25 @@ class Embedded_Ztautau(Ztautau, MC):
 class EWK(MC, Background):
 
     NO_KYLEFIX = True
+    NORM_BY_THEORY = True
 
 
 class Top(MC, Background):
 
     NO_KYLEFIX = True
+    NORM_BY_THEORY = True
 
 
 class Diboson(MC, Background):
 
     NO_KYLEFIX = True
+    NORM_BY_THEORY = True
 
 
 class Others(MC, Background):
 
     NO_KYLEFIX = True
+    NORM_BY_THEORY = True
 
 
 class Higgs(MC, Signal):
@@ -1240,6 +1256,8 @@ class Higgs(MC, Signal):
         'pdf_qqbar': (1.039, 0.961),
         'QCDscale_VH': (1.007, 0.992),
     }
+
+    NORM_BY_THEORY = True
 
     def histfactory(self, sample, systematics=True):
         if not systematics:
@@ -1341,11 +1359,10 @@ class Higgs(MC, Signal):
 class QCD(Sample, Background):
 
     SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS
+    NORM_BY_THEORY = False
 
     def histfactory(self, sample, systematics=True):
 
-        # not normalized by theory
-        sample.SetNormalizeByTheory(False)
         sample.AddNormFactor('qcd_scale', 1., 0., 50., False)
 
     @staticmethod
