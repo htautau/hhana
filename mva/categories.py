@@ -327,7 +327,7 @@ class Category_Nonboosted_1J(Category_Preselection):
     # train with all modes
     halfblind_bins = 5
     norm_category = Category_Preselection
-    workspace_min_clf = 0.
+    #workspace_min_clf = 0.
 
 
 class Category_Nonboosted_1J_Control(Category_Nonboosted_1J):
@@ -367,7 +367,7 @@ class Category_Nonboosted_0J(Category_Preselection):
     # train with all modes
     halfblind_bins = 4
     norm_category = Category_Preselection
-    workspace_min_clf = 0.
+    #workspace_min_clf = 0.
 
 
 class Category_Nonboosted_0J_Control(Category_Nonboosted_0J):
