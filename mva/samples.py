@@ -236,6 +236,9 @@ class Sample(object):
                                                high=hist_up)
 
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
+                # if you fit the ratio of nominal to up / down to a "pol0" and
+                # get reasonably good chi2, then you may consider dropping the
+                # histosys part
                 sample.AddOverallSys(norm)
                 sample.AddHistoSys(shape)
 
