@@ -62,6 +62,10 @@ def general_parser(parser=None):
     parser.add_argument('--target-region', choices=TARGET_REGIONS,
             default='OS_TRK',
             help='target signal region')
+    parser.add_argument('--suffix', default=None, nargs='?',
+            help='suffix to add to any output files or plots')
+    parser.add_argument('--workspace-suffix', default=None, nargs='?',
+            help='suffix to add to workspace output files')
 
     return parser
 
@@ -177,8 +181,6 @@ def plotting_parser(parser=None):
             help='draw plots with ROOT. default is matplotlib')
     parser.add_argument('--no-weight', action='store_true', default=False,
             help='do not apply correction weights')
-    parser.add_argument('--suffix', default=None, nargs='?',
-            help='suffix to add to any output files or plots')
     parser.add_argument('--output-formats', default=['png'], nargs='+',
             choices=('png', 'eps', 'pdf'),
             help='output formats')

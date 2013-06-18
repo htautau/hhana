@@ -260,6 +260,10 @@ for category in categories:
 
 
 if 'workspace' in args.actions:
+
+    workspace_suffix = output_suffix
+    if args.workspace_suffix:
+        workspace_suffix += '_' + args.workspace_suffix
     
     # create control region Channels here
     control_analysis = Analysis(
@@ -352,12 +356,12 @@ if 'workspace' in args.actions:
     
     dump_dir = ROOT.gDirectory.func()
 
-    with ropen('workspaces/limits%s.root' % output_suffix, 'recreate') as limits_file:
+    with ropen('workspaces/limits%s.root' % workspace_suffix, 'recreate') as limits_file:
         braindump(limits_file, indir=dump_dir,
             func=lambda h: h.ClassName().startswith('TH') and
                            h.GetName().startswith('category'))
 
-        xml_output_dir = 'workspaces/xml%s' % output_suffix
+        xml_output_dir = 'workspaces/xml%s' % workspace_suffix
         if os.path.exists(xml_output_dir):
             shutil.rmtree(xml_output_dir)
         os.mkdir(xml_output_dir)

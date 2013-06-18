@@ -416,7 +416,7 @@ CATEGORIES = {
         Category_VBF,
         Category_Boosted,
         Category_Nonboosted_1J,
-        Category_Nonboosted_0J,
+        #Category_Nonboosted_0J,
     ],
     'mva_id_controls': [
         Category_VBF_ID_Control,
@@ -431,7 +431,8 @@ CATEGORIES = {
         Category_Nonboosted_0J_DEta_Control,
     ],
     'mva_workspace_controls': [
-        Category_Nonboosted_1J_Control,
-        Category_Nonboosted_0J_Control,
+        #Category_Nonboosted_1J_Control,
+        #Category_Nonboosted_0J_Control,
+        Category_Nonboosted_0J,
     ]
 }
