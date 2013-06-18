@@ -1184,7 +1184,8 @@ class Ztautau(Background):
 
     def histfactory(self, sample, systematics=True):
 
-        sample.AddNormFactor('z_scale', 1., 0., 50., False)
+        sample.AddNormFactor('ATLAS_NORM_{0:d}_Z'.format(self.year),
+                             1., 0., 50., False)
 
     def __init__(self, *args, **kwargs):
         """
@@ -1369,7 +1370,8 @@ class QCD(Sample, Background):
 
     def histfactory(self, sample, systematics=True):
 
-        sample.AddNormFactor('qcd_scale', 1., 0., 50., False)
+        sample.AddNormFactor('ATLAS_NORM_{0:d}_QCD'.format(self.year),
+                             1., 0., 50., False)
 
     @staticmethod
     def sample_compatibility(data, mc):
