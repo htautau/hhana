@@ -3,4 +3,4 @@
 import sys
 from mva.stats.npcheck import plot
 
-plot(sys.argv[1], sys.argv[2], 'workspace_combination_125')
+plot(*sys.argv[1:])
