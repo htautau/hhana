@@ -123,7 +123,7 @@ namespace LimitCrossCheck{
   // User configuration one
   bool drawPlots(false);                    // create eps & png files and creat a webpage
   bool plotRelative(false);                 // plot % shift of systematic
-  bool draw1DResponse(false);		    // draw 1D response for each NP 
+  bool draw1DResponse(true);		    // draw 1D response for each NP 
   bool UseMinosError(false);                // compute minos error (if false : use minuit error)
   int isBlind(1);                           // 0: Use observed Data 1: use Asimov data 2: use toydata
   double mu_asimov(1.0);                    // mu value used to generate Asimov dataset (not used if isBlind==0)
@@ -144,7 +144,8 @@ namespace LimitCrossCheck{
   TDirectory   *MainDirModelInspector;
   TDirectory   *MainDirStatTest;
   map <string,double> MapNuisanceParamNom;
-  vector<NPContainer> AllNPafterEachFit;
+  map <TString,RooFitResult*> AllFitResults_map;
+  vector<NPContainer> AllNPafterEachFit_vec;
   TString OutputDir;
   
   //Global functions
@@ -155,7 +156,8 @@ namespace LimitCrossCheck{
   void     PlotHistosAfterFitGlobal(bool IsConditionnal , double mu);
   void     PlotsNuisanceParametersVSmu();
   void     PlotsStatisticalTest(double mu_pe, double mu_hyp);
-  void 	   Plot1DResponse(RooAbsReal* nll, RooRealVar* var, TString cname, TCanvas* can, TF1* poly, bool IsFloating, TLatex* latex, TDirectory* tdir, RooArgSet* SliceSet = 0);
+  void 	   Plot1DResponse(RooAbsReal* nll, RooRealVar* var, TString cname, TCanvas* can, 
+			  TF1* poly, bool IsFloating, TLatex* latex, TDirectory* tdir, RooArgSet* SliceSet = 0);
   double   FindMuUpperLimit();
   void     PrintModelObservables();
   void     PrintNuisanceParameters();
@@ -173,6 +175,7 @@ namespace LimitCrossCheck{
   void     SetPOI(double mu);
   void     SetStyle();
   void     LegendStyle(TLegend* l);
+  bool     IsAnormFactor(RooRealVar *var);
   int 	   GetPosition(RooRealVar* var, TH2D* corrMatrix);
   list< pair<RooRealVar*, float> > GetOrderedCorrelations(RooRealVar* var, RooFitResult* fitres);
   TCanvas* DrawShift(TString channel, TString var, TString comp, double mu, TH1* d, TH1* n, TH1* p1s, TH1* m1s);
@@ -217,9 +220,9 @@ namespace LimitCrossCheck{
     // --------------------------------------------------------------------------------------------
     // 4 - Plot the unconditionnal fitted nuisance paramters value (theta fitted while mu is fixed)
     // -------------------------------------------------------------------------------------------
-    IsConditional = true;
-    PlotHistosAfterFitEachSubChannel(IsConditional, 0.0);
-    PlotHistosAfterFitGlobal(IsConditional,0.0);
+    //IsConditional = true;
+    //PlotHistosAfterFitEachSubChannel(IsConditional, 0.0);
+    //PlotHistosAfterFitGlobal(IsConditional,0.0);
 
 
     // -------------------------------------------
@@ -238,10 +241,6 @@ namespace LimitCrossCheck{
   
   }
   
-
-
-
-
 
 
 
@@ -415,12 +414,7 @@ namespace LimitCrossCheck{
 
         // one sigma not defined for floating parameters 
         // is there a more general way of getting to this fact?
-        if ( varname.find("ATLAS_norm")!=string::npos ){
-          continue;
-        }
-        if ( varname.find("ATLAS_sampleNorm")!=string::npos ){
-	  continue;
-        }
+	if (IsAnormFactor(var)) continue;
 
         // user firendly label / name
         TString varName(var->GetName());
@@ -1002,6 +996,9 @@ namespace LimitCrossCheck{
       ROOT::Math::MinimizerOptions::SetDefaultStrategy(2);
 
       RooFitResult *fitres = FitPDF( mc, pdftmp, datatmp, "Minuit2", UseMinosError );
+      TString FitName = (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
+      FitName += mu;
+      AllFitResults_map[FitName] = fitres;
       cout << endl;
       cout << endl;
       if (IsConditionnal) cout << "Conditionnal fit : mu is fixed at " << mu << endl;
@@ -1010,11 +1007,14 @@ namespace LimitCrossCheck{
       firstPOI->setConstant(kFALSE);
   
       // Plotting the nuisance paramaters correlations during the fit
-      TString cname = "can_NuisPara_" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
-      cname += mu;
-      TCanvas* c1 = new TCanvas( cname, cname, 1260, 500);
+      TString cname1 = "can_NuisPara" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
+      cname1 += mu;
+      TCanvas* c1 = new TCanvas( cname1, cname1, 1260, 500);
       c1->Divide(2,1);
-      TH2D *h2Dcorrelation = (TH2D*) fitres->correlationHist(cname);
+      TString cname2 = "can_NormFactor" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
+      cname2 += mu;
+      TCanvas* c3 = new TCanvas( cname2, cname2, 650, 500);
+      TH2D *h2Dcorrelation = (TH2D*) fitres->correlationHist(cname1);
       TString hname = "Corr_NuisPara_"+ (TString)tt->GetName() + "_"  + TS_IsConditionnal + "_mu";
       h2Dcorrelation->SetName(hname);
       c1->cd(1); h2Dcorrelation->Draw("colz");
@@ -1022,14 +1022,19 @@ namespace LimitCrossCheck{
       // Plotting the nuisance paramaters after fit
       TString h1name = "h_NuisParaPull_" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
       h1name += mu;
+      TString h2name = "h_NormFactor_" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
+      h2name += mu;
       TIterator* it1 = mc->GetNuisanceParameters()->createIterator();
       RooRealVar* var = NULL;
       int Npar=0;
       int NparNotStat=0;
+      int NparNormFactor=0;
       while( (var = (RooRealVar*) it1->Next()) ) {
 	Npar++;
 	string varname = (string) var->GetName();      
-	if (varname.find("gamma_stat")==string::npos) NparNotStat++;
+	if (varname.find("gamma_stat")==string::npos &&
+	    !IsAnormFactor(var) ) NparNotStat++;
+	if (IsAnormFactor(var)) NparNormFactor++;
       }
       NparNotStat=NparNotStat;
       TH1F * h1Dpull_axis = new TH1F(h1name,h1name,NparNotStat,0,NparNotStat);
@@ -1042,6 +1047,17 @@ namespace LimitCrossCheck{
       h1Dpull_axis->GetYaxis()->SetRangeUser(-5.5,5.5);
       h1Dpull_axis->GetXaxis()->SetTitle("#theta");
       h1Dpull_axis->GetYaxis()->SetTitle("(#theta_{fit} - #theta_{0}) / #Delta#theta");
+
+      TH1F * hNormFactor_axis = new TH1F(h2name,h2name,NparNormFactor,0,NparNormFactor);
+      TGraphAsymmErrors *hNormFactor = new TGraphAsymmErrors(NparNormFactor);
+      hNormFactor->SetLineWidth(2);
+      hNormFactor->SetLineColor(1);
+      hNormFactor->SetMarkerColor(1);
+      hNormFactor->SetMarkerStyle(21);
+      hNormFactor->SetMarkerSize(1.2);      
+      hNormFactor_axis->GetYaxis()->SetRangeUser(0.8,1.2);
+      hNormFactor_axis->GetXaxis()->SetTitle("Normalization factor");
+      hNormFactor_axis->GetYaxis()->SetTitle("Post fit value");
 
       // Create a latex table of NPs after fit
       vector <NPContainer> MyNPContainerVector; MyNPContainerVector.clear();
@@ -1075,7 +1091,8 @@ namespace LimitCrossCheck{
 
       vector<TGraphAsymmErrors*> vec_MyGraph;
       vec_MyGraph.clear();
-      int ib=0;
+      int ibNPs=0;
+      int ibNormFactor=0;
       TIterator* it2 = mc->GetNuisanceParameters()->createIterator();
       while( (var = (RooRealVar*) it2->Next()) ){
 
@@ -1111,41 +1128,53 @@ namespace LimitCrossCheck{
 
 	MyNPsTemp.WhichFit = TS_IsConditionnal+"_FitOnChannel_"+(TString)tt->GetName()+"_Mu";
 	MyNPsTemp.WhichFit += mu;
-	AllNPafterEachFit.push_back(MyNPsTemp);
+	if (!IsAnormFactor(var)) AllNPafterEachFit_vec.push_back(MyNPsTemp);
 
-	ib++;
-	double xc = h1Dpull_axis->GetBinCenter(ib);
+	
 	TString vname2=var->GetName();
 	vname2.ReplaceAll("alpha_","");
 	vname2.ReplaceAll("gamma_","");
 	vname2.ReplaceAll("ATLAS_","");
-	h1Dpull_axis->GetXaxis()->SetBinLabel(ib,vname2);
-
-	h1Dpull->SetPoint(ib-1,xc,pull);
-	h1Dpull->SetPointEXlow(ib-1 ,h1Dpull_axis->GetBinWidth(ib)/3.0);
-	h1Dpull->SetPointEXhigh(ib-1,h1Dpull_axis->GetBinWidth(ib)/3.0);
-	h1Dpull->SetPointEYlow(ib-1 ,fabs(errorLo));
-	h1Dpull->SetPointEYhigh(ib-1,fabs(errorHi));
 	
+	if (IsAnormFactor(var)){
+	  ibNormFactor++;
+	  double xcNF = hNormFactor_axis->GetBinCenter(ibNormFactor);
+	  hNormFactor_axis->GetXaxis()->SetBinLabel(ibNormFactor,vname2);
+	  hNormFactor->SetPoint(ibNormFactor-1,xcNF,pull);
+	  hNormFactor->SetPointEXlow(ibNormFactor-1 ,hNormFactor_axis->GetBinWidth(ibNormFactor)/3.0);
+	  hNormFactor->SetPointEXhigh(ibNormFactor-1,hNormFactor_axis->GetBinWidth(ibNormFactor)/3.0);
+	  hNormFactor->SetPointEYlow(ibNormFactor-1 ,fabs(errorLo));
+	  hNormFactor->SetPointEYhigh(ibNormFactor-1,fabs(errorHi));
+	} else {
+	  ibNPs++;
+	  double xc = h1Dpull_axis->GetBinCenter(ibNPs);
+	  h1Dpull_axis->GetXaxis()->SetBinLabel(ibNPs,vname2);
+	  h1Dpull->SetPoint(ibNPs-1,xc,pull);
+	  h1Dpull->SetPointEXlow(ibNPs-1 ,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	  h1Dpull->SetPointEXhigh(ibNPs-1,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	  h1Dpull->SetPointEYlow(ibNPs-1 ,fabs(errorLo));
+	  h1Dpull->SetPointEYhigh(ibNPs-1,fabs(errorHi));
 	
-	// Put in red NP with pull>1.5 OR Err<0.2, in black otherwise
-	bool IsTooPulled = fabs(pull)>PullMaxAcceptable;
-	bool IsOverConst = (fabs(errorLo)+fabs(errorHi))/2.0<ErrorMinAcceptable;
-	bool IsOnesided  = UseMinosError && (errorHi==0 || errorLo==0);
-	if (IsTooPulled || IsOverConst || IsOnesided){
-	  TGraphAsymmErrors *myGraph = new TGraphAsymmErrors(1);
-	  myGraph->SetLineWidth(2);
-	  myGraph->SetLineColor(kRed+1);
-	  myGraph->SetMarkerColor(kRed+1);
-	  myGraph->SetMarkerStyle(21);
-	  myGraph->SetMarkerSize(1.2); 
-	  myGraph->SetPoint(0,xc,pull);
-	  myGraph->SetPointEXlow(0 ,h1Dpull_axis->GetBinWidth(ib)/3.0);
-	  myGraph->SetPointEXhigh(0,h1Dpull_axis->GetBinWidth(ib)/3.0);
-	  myGraph->SetPointEYlow(0 ,fabs(errorLo));
-	  myGraph->SetPointEYhigh(0,fabs(errorHi));
-	  vec_MyGraph.push_back(myGraph);	
+	  // Put in red NP with pull>1.5 OR Err<0.2, in black otherwise
+	  bool IsTooPulled = fabs(pull)>PullMaxAcceptable;
+	  bool IsOverConst = (fabs(errorLo)+fabs(errorHi))/2.0<ErrorMinAcceptable;
+	  bool IsOnesided  = UseMinosError && (errorHi==0 || errorLo==0);
+	  if (IsTooPulled || IsOverConst || IsOnesided){
+	    TGraphAsymmErrors *myGraph = new TGraphAsymmErrors(1);
+	    myGraph->SetLineWidth(2);
+	    myGraph->SetLineColor(kRed+1);
+	    myGraph->SetMarkerColor(kRed+1);
+	    myGraph->SetMarkerStyle(21);
+	    myGraph->SetMarkerSize(1.2); 
+	    myGraph->SetPoint(0,xc,pull);
+	    myGraph->SetPointEXlow(0 ,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	    myGraph->SetPointEXhigh(0,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	    myGraph->SetPointEYlow(0 ,fabs(errorLo));
+	    myGraph->SetPointEYhigh(0,fabs(errorHi));
+	    vec_MyGraph.push_back(myGraph);	
+	  }
 	}
+
       }
 
       MapChannelNPs[(TString)tt->GetName()] = MyNPContainerVector;
@@ -1205,8 +1234,12 @@ namespace LimitCrossCheck{
       WritDownMuValue += Form("%2.2f",firstPOI->getVal());
       c1->cd(2); 
       text.DrawLatex( 0.87,0.81, WritDownMuValue );
-
       
+      c3->cd();
+      hNormFactor_axis->Draw("hist");
+      hNormFactor->Draw("P");
+      text.DrawLatex( 0.87,0.81, WritDownMuValue );
+
       // Plotting the likelihood projection in each NP direction
       TDirectory *NLLprojection = (TDirectory*) SubDirChannel->mkdir("AllNNLProjections");
       gROOT->cd();
@@ -1254,7 +1287,7 @@ namespace LimitCrossCheck{
       cout << "    Bin Width : " << binWidth->getVal() << endl;     
 
       // Plotting the distributions
-      cname = "can_DistriAfterFit_" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
+      TString cname = "can_DistriAfterFit_" + (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
       cname += mu;
       TCanvas* c2 = new TCanvas( cname );
       RooPlot* frame = obs->frame();
@@ -1421,8 +1454,10 @@ namespace LimitCrossCheck{
       SubDirChannel->cd();
       c1->Write();
       c2->Write();
+      c3->Write();
       c1->Close();
       c2->Close();
+      c3->Close();
       gROOT->cd();          
     }
 
@@ -1546,6 +1581,9 @@ namespace LimitCrossCheck{
     if (IsConditionnal) firstPOI->setConstant();
     ROOT::Math::MinimizerOptions::SetDefaultStrategy(2);
     RooFitResult    *fitresGlobal = FitPDF( mc, simPdf, data, "Minuit2", UseMinosError );
+    TString FitName = "GlobalFit_" + TS_IsConditionnal + "_mu";
+    FitName += mu;
+    AllFitResults_map[FitName] = fitresGlobal;
     const RooArgSet *ParaGlobalFit = mc->GetNuisanceParameters();
     w->saveSnapshot("snapshot_paramsVals_GlobalFit",*ParaGlobalFit);
     double muhat = firstPOI->getVal();
@@ -1569,24 +1607,48 @@ namespace LimitCrossCheck{
     h2Dcorrelation->SetName(hname);
     c1->cd(1); h2Dcorrelation->Draw("colz");
 
+    TString cname2 = "can_NormFactor_GlobalFit_" + TS_IsConditionnal + "_mu";
+    cname2 += mu;
+    TCanvas* c3 = new TCanvas( cname2, cname2, 650, 500);
+      
     // PLotting the nuisance paramaters correlations during the fit
     TString h1name = "h_NuisParaPull_GlobalFit_" + TS_IsConditionnal + "_mu";
     h1name += mu;
+    TString h2name = "h_NormFactor_GlobalFit_" + TS_IsConditionnal + "_mu";
+    h2name += mu;
     TIterator* it1 = mc->GetNuisanceParameters()->createIterator();
     RooRealVar* var = NULL;
     int Npar=0;
     int NparNotStat=0;
+    int NparNormFactor=0;
     while( (var = (RooRealVar*) it1->Next()) ) {
       Npar++;
       string varname = (string) var->GetName();      
-      if (varname.find("gamma_stat")==string::npos) NparNotStat++;
+      if (varname.find("gamma_stat")==string::npos && !IsAnormFactor(var)) NparNotStat++;
+      if (IsAnormFactor(var)) NparNormFactor++;
     }
 
     TH1F * h1Dpull_axis = new TH1F(h1name,h1name,NparNotStat,0,NparNotStat);
     TGraphAsymmErrors *h1Dpull = new TGraphAsymmErrors(NparNotStat);
+    h1Dpull->SetLineWidth(2);
+    h1Dpull->SetLineColor(1);
+    h1Dpull->SetMarkerColor(1);
+    h1Dpull->SetMarkerStyle(21);
+    h1Dpull->SetMarkerSize(1.2);      
     h1Dpull_axis->GetYaxis()->SetRangeUser(-5.5,5.5);
     h1Dpull_axis->GetXaxis()->SetTitle("#theta");
     h1Dpull_axis->GetYaxis()->SetTitle("(#theta_{fit} - #theta_{0}) / #Delta#theta");
+    
+    TH1F * hNormFactor_axis = new TH1F(h2name,h2name,NparNormFactor,0,NparNormFactor);
+    TGraphAsymmErrors *hNormFactor = new TGraphAsymmErrors(NparNormFactor);
+    hNormFactor->SetLineWidth(2);
+    hNormFactor->SetLineColor(1);
+    hNormFactor->SetMarkerColor(1);
+    hNormFactor->SetMarkerStyle(21);
+    hNormFactor->SetMarkerSize(1.2);      
+    hNormFactor_axis->GetYaxis()->SetRangeUser(0.8,1.2);
+    hNormFactor_axis->GetXaxis()->SetTitle("Normalization factor");
+    hNormFactor_axis->GetYaxis()->SetTitle("Post fit value");
     
     
     // Create a latex table of NPs after fit
@@ -1612,7 +1674,8 @@ namespace LimitCrossCheck{
     
     vector<TGraphAsymmErrors*> vec_MyGraph;
     vec_MyGraph.clear();
-    int ib=0;
+    int ibNPs=0;
+    int ibNormFactor=0;
     TIterator* it2 = mc->GetNuisanceParameters()->createIterator();
     while( (var = (RooRealVar*) it2->Next()) ){
       
@@ -1645,26 +1708,69 @@ namespace LimitCrossCheck{
       MyNPsTemp.NPerrorLo = errorLo;
       MyNPsTemp.WhichFit = TS_IsConditionnal+"_FitGlobal_Mu";
       MyNPsTemp.WhichFit += mu;
-      AllNPafterEachFit.push_back(MyNPsTemp);
+      if (!IsAnormFactor(var)) AllNPafterEachFit_vec.push_back(MyNPsTemp);
 
-      ib++;
-      double xc = h1Dpull_axis->GetBinCenter(ib);
       TString vname2=var->GetName();
       vname2.ReplaceAll("alpha_","");
       vname2.ReplaceAll("gamma_","");
       vname2.ReplaceAll("ATLAS_","");
-      h1Dpull_axis->GetXaxis()->SetBinLabel(ib,vname2);
-      h1Dpull->SetPoint(ib-1,xc,pull);
-      h1Dpull->SetPointEXlow(ib-1,h1Dpull_axis->GetBinWidth(ib)/3.0);
-      h1Dpull->SetPointEXhigh(ib-1,h1Dpull_axis->GetBinWidth(ib)/3.0);
-      h1Dpull->SetPointEYlow(ib-1,fabs(errorLo));
-      h1Dpull->SetPointEYhigh(ib-1,fabs(errorHi));
-            
-      // Put in red NP with pull>1.5 OR Err<0.2, in black otherwise
-      bool IsTooPulled = fabs(pull)>PullMaxAcceptable;
-      bool IsOverConst = (fabs(errorLo)+fabs(errorHi))/2.0<ErrorMinAcceptable;
-      bool IsOnesided  = UseMinosError && (errorHi==0 || errorLo==0);
-      if (IsTooPulled || IsOverConst || IsOnesided){
+      
+      
+      if (IsAnormFactor(var)){
+	ibNormFactor++;
+	double xcNF = hNormFactor_axis->GetBinCenter(ibNormFactor);
+	hNormFactor_axis->GetXaxis()->SetBinLabel(ibNormFactor,vname2);
+	hNormFactor->SetPoint(ibNormFactor-1,xcNF,pull);
+	hNormFactor->SetPointEXlow(ibNormFactor-1 ,hNormFactor_axis->GetBinWidth(ibNormFactor)/3.0);
+	hNormFactor->SetPointEXhigh(ibNormFactor-1,hNormFactor_axis->GetBinWidth(ibNormFactor)/3.0);
+	hNormFactor->SetPointEYlow(ibNormFactor-1 ,fabs(errorLo));
+	hNormFactor->SetPointEYhigh(ibNormFactor-1,fabs(errorHi));
+      } else {
+	ibNPs++;
+	double xc = h1Dpull_axis->GetBinCenter(ibNPs);
+	h1Dpull_axis->GetXaxis()->SetBinLabel(ibNPs,vname2);
+	h1Dpull->SetPoint(ibNPs-1,xc,pull);
+	h1Dpull->SetPointEXlow(ibNPs-1 ,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	h1Dpull->SetPointEXhigh(ibNPs-1,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	h1Dpull->SetPointEYlow(ibNPs-1 ,fabs(errorLo));
+	h1Dpull->SetPointEYhigh(ibNPs-1,fabs(errorHi));
+	
+	// Put in red NP with pull>1.5 OR Err<0.2, in black otherwise
+	bool IsTooPulled = fabs(pull)>PullMaxAcceptable;
+	bool IsOverConst = (fabs(errorLo)+fabs(errorHi))/2.0<ErrorMinAcceptable;
+	bool IsOnesided  = UseMinosError && (errorHi==0 || errorLo==0);
+	if (IsTooPulled || IsOverConst || IsOnesided){
+	  TGraphAsymmErrors *myGraph = new TGraphAsymmErrors(1);
+	  myGraph->SetLineWidth(2);
+	  myGraph->SetLineColor(kRed+1);
+	  myGraph->SetMarkerColor(kRed+1);
+	  myGraph->SetMarkerStyle(21);
+	  myGraph->SetMarkerSize(1.2); 
+	  myGraph->SetPoint(0,xc,pull);
+	  myGraph->SetPointEXlow(0 ,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	  myGraph->SetPointEXhigh(0,h1Dpull_axis->GetBinWidth(ibNPs)/3.0);
+	  myGraph->SetPointEYlow(0 ,fabs(errorLo));
+	  myGraph->SetPointEYhigh(0,fabs(errorHi));
+	  vec_MyGraph.push_back(myGraph);	
+	}
+      }
+      
+      
+      /*
+	ib++;
+	double xc = h1Dpull_axis->GetBinCenter(ib);
+	h1Dpull_axis->GetXaxis()->SetBinLabel(ib,vname2);
+	h1Dpull->SetPoint(ib-1,xc,pull);
+	h1Dpull->SetPointEXlow(ib-1,h1Dpull_axis->GetBinWidth(ib)/3.0);
+	h1Dpull->SetPointEXhigh(ib-1,h1Dpull_axis->GetBinWidth(ib)/3.0);
+	h1Dpull->SetPointEYlow(ib-1,fabs(errorLo));
+	h1Dpull->SetPointEYhigh(ib-1,fabs(errorHi));
+	
+	// Put in red NP with pull>1.5 OR Err<0.2, in black otherwise
+	bool IsTooPulled = fabs(pull)>PullMaxAcceptable;
+	bool IsOverConst = (fabs(errorLo)+fabs(errorHi))/2.0<ErrorMinAcceptable;
+	bool IsOnesided  = UseMinosError && (errorHi==0 || errorLo==0);
+	if (IsTooPulled || IsOverConst || IsOnesided){
 	TGraphAsymmErrors *myGraph = new TGraphAsymmErrors(1);
 	myGraph->SetName("TGraph_"+vname2);
 	myGraph->SetLineWidth(2);
@@ -1678,8 +1784,10 @@ namespace LimitCrossCheck{
 	myGraph->SetPointEYlow(0,fabs(errorLo));
 	myGraph->SetPointEYhigh(0,fabs(errorHi));
 	vec_MyGraph.push_back(myGraph);
-      }
+	}
+      */
     }
+    
     
     fnuisPar << "\\hline" << endl;
     fnuisPar << "\\end{tabular}" << endl;
@@ -1739,8 +1847,14 @@ namespace LimitCrossCheck{
     c1->cd(2); 
     text.DrawLatex( 0.87,0.81, WritDownMuValue );
 
+    c3->cd();
+    hNormFactor_axis->Draw("hist");
+    hNormFactor->Draw("P");
+    text.DrawLatex( 0.87,0.81, WritDownMuValue );
+    
     MainDir->cd();
     c1->Write();
+    c3->Write();
     gROOT->cd();
 
     if(draw1DResponse) {
@@ -2110,7 +2224,7 @@ namespace LimitCrossCheck{
         compName.ReplaceAll("__overallSyst_x_Exp","");
         cname.Append("_"+compName);
 
-        TCanvas* c3 = new TCanvas( cname );
+        TCanvas* c4 = new TCanvas( cname );
         RooPlot* compFrame = obs->frame();
         cout << "COMP FRAMCE " << compFrame->numItems() << endl;
         FrameName = "Plot_" + compName + "_Global_" + (TString) IsConditionnal;
@@ -2120,7 +2234,7 @@ namespace LimitCrossCheck{
         comp->plotOn(compFrame,FillColor(kOrange),LineWidth(2),LineColor(kBlue),VisualizeError(*fitresGlobal,1),
             Normalization(postFitIntegral),Name("AfterFit"));
         comp->plotOn(compFrame,LineWidth(2),Normalization(postFitIntegral));
-        c3->cd();
+        c4->cd();
         compFrame->Draw();
 
         // Putting nuisance parameter at the central value and draw the nominal distribution
@@ -2132,9 +2246,9 @@ namespace LimitCrossCheck{
         comp->plotOn(compFrame,LineWidth(2),Name("BeforeFit"),LineStyle(kDashed),Normalization(preFitIntegral));      
         //comp->plotOn(compFrame,LineWidth(2),Name("BeforeFit"),LineStyle(kDashed),Normalization(preFitIntegral,RooAbsReal::NumEvent));      
         cout << tt->GetName() << "\t" << compName << "\t" << preFitIntegral << " " << postFitIntegral <<  endl;
-        c3->cd();
+        c4->cd();
         compFrame->Draw();
-        c3->cd(); 
+        c4->cd(); 
         TString normChange = Form("Norm %5.2f -> %5.2f = %5.2f",preFitIntegral, postFitIntegral, postFitIntegral/preFitIntegral);
         text.DrawLatex( 0.84,0.83, normChange);
 
@@ -2157,12 +2271,12 @@ namespace LimitCrossCheck{
 
         // Save the plots
         MainDir->cd();
-        c3->Write();
+        c4->Write();
         if(drawPlots) { 
-          c3->Print(dirName+"/"+c3->GetName()+".eps");
-          c3->Print(dirName+"/"+c3->GetName()+".png");
+          c4->Print(dirName+"/"+c4->GetName()+".eps");
+          c4->Print(dirName+"/"+c4->GetName()+".png");
         }
-        c3->Close();
+        c4->Close();
         gROOT->cd();
         delete compFrame;
         compFrame = 0;
@@ -2702,6 +2816,40 @@ namespace LimitCrossCheck{
   }
 
 
+  void PrintSuspiciousFits(){
+
+    cout.precision(3);
+
+    cout << endl;
+    cout << endl;
+    cout << endl;
+    cout << "==================================================================" << endl;
+    cout << "           Suspicious fit results (ie with status!=1)             " << endl;
+    cout << "===================================================================" << endl;
+    cout << endl;
+    cout << endl;
+
+    typedef map<TString,RooFitResult*>::iterator it_type;
+    for(it_type iterator = AllFitResults_map.begin(); iterator != AllFitResults_map.end(); iterator++) {
+      TString fitname = iterator->first;
+      RooFitResult *fitres = iterator->second;
+      
+      int status = fitres->status();
+      if (status!=1) {
+	cout << fitname << "  :  minuit status = " << status << endl;
+      }
+      
+    }
+    
+
+    cout << endl;
+    cout << "==================================================================" << endl;
+    cout << endl;
+    cout << endl;
+    cout << endl;
+
+    return;
+  }
 
   void PrintSuspiciousNPs(){
 
@@ -2718,14 +2866,14 @@ namespace LimitCrossCheck{
     cout << " === Tension between the NP central value and CP measurement ===" << endl;
     cout << " ===============================================================" << endl;
     cout << endl;
-    for (unsigned i=0 ; i<AllNPafterEachFit.size() ; i++){
-      NPContainer MyNPsTemp = AllNPafterEachFit[i];
+    for (unsigned i=0 ; i<AllNPafterEachFit_vec.size() ; i++){
+      NPContainer MyNPsTemp = AllNPafterEachFit_vec[i];
       TString name = MyNPsTemp.NPname;
       double value = MyNPsTemp.NPvalue;
       double errHi = MyNPsTemp.NPerrorHi;
       double errLo = MyNPsTemp.NPerrorLo;
       TString Fit  = MyNPsTemp.WhichFit;
-      
+
       name.ReplaceAll("\\","");
 
       if (fabs(value)>PullMaxAcceptable){
@@ -2738,8 +2886,8 @@ namespace LimitCrossCheck{
     cout << " === Overconstraint of profiled NP wrt CP measurement ===" << endl;
     cout << " ========================================================" << endl;
     cout << endl;
-    for (unsigned i=0 ; i<AllNPafterEachFit.size() ; i++){
-      NPContainer MyNPsTemp = AllNPafterEachFit[i];
+    for (unsigned i=0 ; i<AllNPafterEachFit_vec.size() ; i++){
+      NPContainer MyNPsTemp = AllNPafterEachFit_vec[i];
       TString name = MyNPsTemp.NPname;
       double value = MyNPsTemp.NPvalue;
       double errHi = MyNPsTemp.NPerrorHi;
@@ -2758,8 +2906,8 @@ namespace LimitCrossCheck{
       cout << " === Nuisance parameters with one sided Minos error ===" << endl;
       cout << " ======================================================" << endl;
       cout << endl;
-      for (unsigned i=0 ; i<AllNPafterEachFit.size() ; i++){
-	NPContainer MyNPsTemp = AllNPafterEachFit[i];
+      for (unsigned i=0 ; i<AllNPafterEachFit_vec.size() ; i++){
+	NPContainer MyNPsTemp = AllNPafterEachFit_vec[i];
 	TString name = MyNPsTemp.NPname;
 	double value = MyNPsTemp.NPvalue;
 	double errHi = MyNPsTemp.NPerrorHi;
@@ -2867,20 +3015,14 @@ namespace LimitCrossCheck{
       if(strcmp(var->GetName(),"Lumi")==0){
         var->setVal(w->var("nominalLumi")->getVal()*(1+Nsigma*LumiRelError));
       }
-      else if(varname.find("ATLAS_norm")!=string::npos || 
-	      varname.find("ATLAS_Norm")!=string::npos ||
-	      varname.find("ATLAS_NORM")!=string::npos) {
-	continue;
-      }
-      else {
-        var->setVal(Nsigma);
-      }
+      else if (IsAnormFactor(var)) continue;
+      else  var->setVal(Nsigma);
     }
-
+    
     return;
   }
-
-
+  
+  
   void SetNuisanceParaToSigma(RooRealVar *var, double Nsigma){
     
     string varname = (string) var->GetName();
@@ -2888,14 +3030,22 @@ namespace LimitCrossCheck{
 
     if(strcmp(var->GetName(),"Lumi")==0){
       var->setVal(w->var("nominalLumi")->getVal()*(1+Nsigma*LumiRelError));
-    } else{
-      var->setVal(Nsigma);
-    }	
+    } 
+    else if (IsAnormFactor(var)) return;
+    else var->setVal(Nsigma);
     
     return;
   }
   
-  
+  bool IsAnormFactor(RooRealVar *var){
+    bool result=false;
+    string varname = (string) var->GetName();
+    const double val =  MapNuisanceParamNom[varname];
+    if (!((TString)varname).Contains("gamma_") && val==1.0) result=true;
+
+    return result;
+  }
+
   void SetPOI(double mu){
     RooRealVar * firstPOI = dynamic_cast<RooRealVar*>(mc->GetParametersOfInterest()->first());
     firstPOI->setVal(mu);
@@ -2971,7 +3121,7 @@ namespace LimitCrossCheck{
     cout << "----------------------------"  << endl;    
     while ((arg=(RooRealVar*)itr->Next())) {
       if (!arg) continue;
-      cout << arg->GetName()  << " : " << arg->getVal() << "+/-" << arg->getError() << endl;
+      cout << arg->GetName()  << " : " << arg->getVal() << "+/-" << arg->getError() << "     IsNormFactor="<< IsAnormFactor(arg) << endl;
     }
     return;
   }
@@ -3165,8 +3315,8 @@ namespace LimitCrossCheck{
     if ( !IsSimultaneousPdfOK() ) return;
     if (   !IsChannelNameOK()   ) return;
     GetNominalValueNuisancePara();
-    AllNPafterEachFit.clear();
-
+    AllNPafterEachFit_vec.clear();
+    AllFitResults_map.clear();
 
     // Print some information
     PrintModelObservables();
@@ -3186,8 +3336,8 @@ namespace LimitCrossCheck{
 
   void Finalize() {
     outputfile->Close();
-
     PrintSuspiciousNPs();
+    PrintSuspiciousFits();
   }
  
 
