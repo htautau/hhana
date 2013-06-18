@@ -210,16 +210,16 @@ namespace LimitCrossCheck{
     // 3 - Plot histograms after unconditional fit (theta and mu fitted at the same time)
     // ----------------------------------------------------------------------------------    
     bool IsConditional = false;
-    //PlotHistosAfterFitEachSubChannel(IsConditional,0.0);
-    //PlotHistosAfterFitGlobal(IsConditional,0.0);
+    PlotHistosAfterFitEachSubChannel(IsConditional,0.0);
+    PlotHistosAfterFitGlobal(IsConditional,0.0);
         
     
     // --------------------------------------------------------------------------------------------
     // 4 - Plot the unconditionnal fitted nuisance paramters value (theta fitted while mu is fixed)
     // -------------------------------------------------------------------------------------------
-    //IsConditional = true;
-    //PlotHistosAfterFitEachSubChannel(IsConditional, 0.0);
-    //PlotHistosAfterFitGlobal(IsConditional,0.0);
+    IsConditional = true;
+    PlotHistosAfterFitEachSubChannel(IsConditional, 0.0);
+    PlotHistosAfterFitGlobal(IsConditional,0.0);
 
 
     // -------------------------------------------
