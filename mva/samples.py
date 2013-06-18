@@ -234,7 +234,10 @@ class Sample(object):
                 histsys = histfactory.HistoSys(sys_component,
                                                low=hist_down,
                                                high=hist_up)
-                sample.AddHistoSys(histsys)
+
+                norm, shape = histfactory.split_norm_shape(histsys, hist)
+                sample.AddOverallSys(norm)
+                sample.AddHistoSys(shape)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
