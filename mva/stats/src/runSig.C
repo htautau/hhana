@@ -8,6 +8,8 @@ Compute statistical significance with profile likelihood test stat.
 Option for uncapped test stat is added (doUncap), as well as an option
 to choose which mu value to profile observed data at before generating expected
 
+
+Modified by Noel Dawe
 */
 
 #include <iostream>
@@ -36,32 +38,28 @@ using namespace RooFit;
 using namespace RooStats;
 
 
-RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w, RooNLLVar* conditioning_nll, double mu_val, string* mu_str, string* mu_prof_str, double mu_val_profile, bool doFit);
+RooDataSet* makeAsimovData(
+        ModelConfig* mc, bool doConditional,
+        RooWorkspace* w, RooNLLVar* conditioning_nll,
+        double mu_val, string* mu_str, string* mu_prof_str,
+        double mu_val_profile, bool doFit);
+
 int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
 //int minimize(RooNLLVar* nll);
 //int minimize(RooAbsReal* nll);
 
-void runSig(const char* inFileName,
-        const char* wsName = "combined",
-        const char* modelConfigName = "ModelConfig",
-        const char* dataName = "obsData",
-        const char* asimov1DataName = "asimovData_1",
-        const char* conditional1Snapshot = "conditionalGlobs_1",
-        const char* nominalSnapshot = "nominalGlobs",
-        string smass = "130",
-        string folder = "test")
+TH1D* runSig(RooWorkspace* ws,
+             const char* modelConfigName = "ModelConfig",
+             const char* dataName = "obsData",
+             const char* asimov1DataName = "asimovData_1",
+             const char* conditional1Snapshot = "conditionalGlobs_1",
+             const char* nominalSnapshot = "nominalGlobs")
 {
-    double mass;
-    stringstream massStr;
-    massStr << smass;
-    massStr >> mass;
-
     string defaultMinimizer    = "Minuit";     // or "Minuit"
     int defaultStrategy        = 2;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
 
     double mu_profile_value = 1; // mu value to profile the obs data at wbefore generating the expected
-    bool remakeData         = 0; // handle unphysical pdf cases in H->ZZ->4l
     bool doUncap            = 1; // uncap p0
     bool doInj              = 0; // setup the poi for injection study (zero is faster if you're not)
     bool doMedian           = 1; // compute median significance
@@ -72,11 +70,9 @@ void runSig(const char* inFileName,
     TStopwatch timer;
     timer.Start();
 
-    TFile f(inFileName);
-    RooWorkspace* ws = (RooWorkspace*)f.Get(wsName);
     if (!ws)
     {
-        cout << "ERROR::Workspace: " << wsName << " doesn't exist!" << endl;
+        cout << "ERROR::Workspace is NULL!" << endl;
         return;
     }
     ModelConfig* mc = (ModelConfig*)ws->obj(modelConfigName);
@@ -91,7 +87,6 @@ void runSig(const char* inFileName,
         cout << "ERROR::Dataset: " << dataName << " doesn't exist!" << endl;
         return;
     }
-
 
     mc->GetNuisanceParameters()->Print("v");
 
@@ -109,15 +104,6 @@ void runSig(const char* inFileName,
     RooRealVar* mu = (RooRealVar*)mc->GetParametersOfInterest()->first();
 
     RooAbsPdf* pdf_temp = mc->GetPdf();
-    //   if (string(pdf->ClassName()) == "RooSimultaneous" && remakeData)
-    //   {
-    //     RooSimultaneous* simPdf = (RooSimultaneous*)pdf;
-    //     double min_mu;
-    //     data = makeData(data, simPdf, mc->GetObservables(), mu, mass, min_mu);
-    //   }
-
-
-
 
     string condSnapshot(conditional1Snapshot);
     RooArgSet nuis_tmp2 = *mc->GetNuisanceParameters();
@@ -144,7 +130,6 @@ void runSig(const char* inFileName,
     if (!doUncap) mu->setRange(0, 40);
     else mu->setRange(-40, 40);
 
-
     RooAbsPdf* pdf = mc->GetPdf();
     RooArgSet nuis_tmp1 = *mc->GetNuisanceParameters();
     RooNLLVar* asimov_nll = (RooNLLVar*)pdf->createNLL(*asimovData1, Constrain(nuis_tmp1));
@@ -153,8 +138,6 @@ void runSig(const char* inFileName,
     mu->setVal(1);
     mu->setConstant(0);
     if (!doInj) mu->setConstant(1);
-
-
 
     int status,sign;
     double med_sig=0,obs_sig=0,asimov_q0=0,obs_q0=0;
@@ -205,14 +188,8 @@ void runSig(const char* inFileName,
     }
 
 
-
-
-
-
-
     if (doObs)
     {
-
         ws->loadSnapshot("conditionalNuis_0");
         mu->setVal(0);
         mu->setConstant(1);
@@ -225,8 +202,6 @@ void runSig(const char* inFileName,
             if (status >= 0) cout << "Success!" << endl;
         }
         double obs_nll_cond = obs_nll->getVal();
-
-
 
         //ws->loadSnapshot("ucmles");
         mu->setConstant(0);
@@ -241,8 +216,6 @@ void runSig(const char* inFileName,
 
         double obs_nll_min = obs_nll->getVal();
 
-
-
         obs_q0 = 2*(obs_nll_cond - obs_nll_min);
         if (doUncap && mu->getVal() < 0) obs_q0 = -obs_q0;
 
@@ -250,9 +223,6 @@ void runSig(const char* inFileName,
         if (!doUncap && (obs_q0 < 0 && obs_q0 > -0.1 || mu->getVal() < 0.001)) obs_sig = 0; 
         else obs_sig = sign*sqrt(fabs(obs_q0));
     }
-
-
-
 
     cout << "obs: " << obs_sig << endl;
 
@@ -263,45 +233,14 @@ void runSig(const char* inFileName,
         cout << "Median significance:   " << med_sig << endl;
     }
 
-
-    f.Close();
-
-    system(("mkdir -vp root-files/" + folder).c_str());
-
-    stringstream fileName;
-
-
-    TSystem system;
-    TString outFileName = system.BaseName(inFileName) ;
-
-    fileName << "root-files/" << folder << "/P0_" << outFileName << ".root";
-    TFile f2(fileName.str().c_str(),"recreate");
-
-    //  stringstream fileName;
-    //  fileName << "root-files/" << folder << "/" << mass << ".root";
-    // system(("mkdir -vp root-files/" + folder).c_str());
-    // TFile f2(fileName.str().c_str(),"recreate");
-
-
-
     TH1D* h_hypo = new TH1D("hypo","hypo",2,0,2);
     h_hypo->SetBinContent(1, obs_sig);
     h_hypo->SetBinContent(2, med_sig);
 
-
-    f2.Write();
-    f2.Close();
-
     timer.Stop();
     timer.Print();
-
-
-
-
-
+    return h_hypo;
 }
-
-
 
 
 int minimize(RooNLLVar* nll, RooWorkspace* combWS)
@@ -324,9 +263,6 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS)
         }
     }
 
-
-
-
     int printLevel = ROOT::Math::MinimizerOptions::DefaultPrintLevel();
     RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
     if (printLevel < 0) RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
@@ -336,9 +272,7 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS)
     minim.setStrategy(strat);
     minim.setPrintLevel(printLevel);
 
-
     int status = minim.minimize(ROOT::Math::MinimizerOptions::DefaultMinimizerType().c_str(), ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo().c_str());
-
 
     if (status != 0 && status != 1 && strat < 2)
     {
@@ -416,115 +350,6 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS)
 
 
     return status;
-}
-
-
-//put very small data entries in a binned dataset to avoid unphysical pdfs, specifically for H->ZZ->4l
-RooDataSet* makeData(RooDataSet* orig, RooSimultaneous* simPdf, const RooArgSet* observables, RooRealVar* firstPOI, double mass, double& mu_min)
-{
-
-    double max_soverb = 0;
-
-    mu_min = -10e9;
-
-
-    map<string, RooDataSet*> data_map;
-    firstPOI->setVal(0);
-    RooCategory* cat = (RooCategory*)&simPdf->indexCat();
-    TList* datalist = orig->split(*(RooAbsCategory*)cat, true);
-    TIterator* dataItr = datalist->MakeIterator();
-    RooAbsData* ds;
-    RooRealVar* weightVar = new RooRealVar("weightVar","weightVar",1);
-    while ((ds = (RooAbsData*)dataItr->Next()))
-    {
-        string typeName(ds->GetName());
-        cat->setLabel(typeName.c_str());
-        RooAbsPdf* pdf = simPdf->getPdf(typeName.c_str());
-        cout << "pdf: " << pdf << endl;
-        RooArgSet* obs = pdf->getObservables(observables);
-        cout << "obs: " << obs << endl;
-
-        RooArgSet obsAndWeight(*obs, *weightVar);
-        obsAndWeight.add(*cat);
-        stringstream datasetName;
-        datasetName << "newData_" << typeName;
-        RooDataSet* thisData = new RooDataSet(datasetName.str().c_str(),datasetName.str().c_str(), obsAndWeight, WeightVar(*weightVar));
-
-        RooRealVar* firstObs = (RooRealVar*)obs->first();
-        //int ibin = 0;
-        int nrEntries = ds->numEntries();
-        for (int ib=0;ib<nrEntries;ib++)
-        {
-            const RooArgSet* event = ds->get(ib);
-            const RooRealVar* thisObs = (RooRealVar*)event->find(firstObs->GetName());
-            firstObs->setVal(thisObs->getVal());
-
-            firstPOI->setVal(0);
-            double b = pdf->expectedEvents(*firstObs)*pdf->getVal(obs);
-            firstPOI->setVal(1);
-            double s = pdf->expectedEvents(*firstObs)*pdf->getVal(obs) - b;
-
-            if (s > 0)
-            {
-                mu_min = max(mu_min, -b/s);
-                double soverb = s/b;
-                if (soverb > max_soverb)
-                {
-                    max_soverb = soverb;
-                    cout << "Found new max s/b: " << soverb << " in pdf " << pdf->GetName() << " at m = " << thisObs->getVal() << endl;
-                }
-            }
-
-
-
-            //cout << "expected s = " << s << ", b = " << b << endl;
-            //cout << "nexp = " << nexp << endl;
-            //       if (s < 0) 
-            //       {
-            // 	cout << "expecting negative s at m=" << firstObs->getVal() << endl;
-            // 	continue;
-            //       }
-            if (b == 0 && s != 0)
-            {
-                cout << "Expecting non-zero signal and zero bg at m=" << firstObs->getVal() << " in pdf " << pdf->GetName() << endl;
-            }
-            if (s+b <= 0) 
-            {
-                cout << "expecting zero" << endl;
-                continue;
-            }
-
-
-            double weight = ds->weight();
-            if ((typeName.find("ATLAS_H_4mu") != string::npos || 
-                        typeName.find("ATLAS_H_4e") != string::npos ||
-                        typeName.find("ATLAS_H_2mu2e") != string::npos ||
-                        typeName.find("ATLAS_H_2e2mu") != string::npos) && fabs(firstObs->getVal() - mass) < 10 && weight == 0)
-            {
-                cout << "adding event: " << firstObs->getVal() << endl;
-                thisData->add(*event, pow(10., -9.));
-            }
-            else
-            {
-                //weight = max(pow(10.0, -9), weight);
-                thisData->add(*event, weight);
-            }
-        }
-
-
-
-        data_map[string(ds->GetName())] = (RooDataSet*)thisData;
-    }
-
-
-    RooDataSet* newData = new RooDataSet("newData","newData",RooArgSet(*observables, *weightVar), 
-            Index(*cat), Import(data_map), WeightVar(*weightVar));
-
-    orig->Print();
-    newData->Print();
-    //newData->tree()->Scan("*");
-    return newData;
-
 }
 
 void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, RooArgSet& nuis, int& counter)

@@ -106,8 +106,10 @@ class Analysis(object):
                     clf=None,
                     min_score=None,
                     max_score=None,
-                    systematics=True):
+                    systematics=True,
+                    unblind=False):
 
+        # TODO: implement blinding
         log.info("constructing channels")
         samples = [self.data] + self.backgrounds
         channel_name = category.name

@@ -326,7 +326,8 @@ if 'workspace' in args.actions:
                 systematics=args.systematics,
                 lumi_rel_error=lumi_rel_error,
                 #algo='EvenBinningByLimit')
-                algo='UnevenBinningBySignificance')
+                algo='UnevenBinningBySignificance',
+                unblind=args.unblind)
         else:
             # construct a "channel" for each mass point
             channels = hypotests.channels(
@@ -337,7 +338,8 @@ if 'workspace' in args.actions:
                 bins=category.limitbins,
                 binning=category.limitbinning,
                 mass_points=args.mass_points,
-                systematics=args.systematics)
+                systematics=args.systematics,
+                unblind=args.unblind)
 
         for mass, channel in channels.items():
             if mass not in all_channels:

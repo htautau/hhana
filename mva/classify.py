@@ -863,7 +863,7 @@ def histogram_scores(hist_template, scores,
         hist = hist_template.Clone(name=hist_template.name + "_scores")
     else:
         hist = hist_template
-        hist.Reset()
+    hist.Reset()
     if min_score is not None:
         log.info("cutting out scores below %f" % min_score)
     if max_score is not None:

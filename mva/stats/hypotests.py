@@ -11,7 +11,8 @@ from rootpy.fit import histfactory
 
 from .asymptotics import AsymptoticsCLs
 from ..samples import Higgs
-from ..plotting import significance
+from ..plotting import significance, efficiency_cut
+from ..classify import histogram_scores
 from .utils import get_safe_template
 from ..utils import hist_to_dict
 
@@ -334,9 +335,10 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
     return sig_hist, bkg_hist, current_template
 
 def channels(clf, category, region, backgrounds,
-            data=None, cuts=None, hist_template=None,
-            bins=10, binning='constant', mass_points=None,
-            systematics=True):
+             data=None, cuts=None, hist_template=None,
+             bins=10, binning='constant', mass_points=None,
+             systematics=True,
+             unblind=False):
     """
     Return a HistFactory Channel for each mass hypothesis
     """
@@ -362,6 +364,8 @@ def channels(clf, category, region, backgrounds,
             category=category,
             region=region,
             cuts=cuts)
+
+    max_score = None
 
     # signal scores
     for mass in Higgs.MASS_POINTS:
@@ -405,10 +409,15 @@ def channels(clf, category, region, backgrounds,
 
         data_sample = None
         if data is not None:
+            if not unblind:
+                sig_hist = sum([histogram_scores(hist_template, scores)
+                                for s, scores in sig_scores])
+                max_score = efficiency_cut(sig_hist, 0.3)
             data_sample = data.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
                 cuts=cuts, scores=data_scores,
+                max_score=max_score,
                 suffix='_%d' % mass)
 
         # create channel for this mass point
