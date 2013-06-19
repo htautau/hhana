@@ -73,19 +73,19 @@ TH1D* runSig(RooWorkspace* ws,
     if (!ws)
     {
         cout << "ERROR::Workspace is NULL!" << endl;
-        return;
+        return NULL;
     }
     ModelConfig* mc = (ModelConfig*)ws->obj(modelConfigName);
     if (!mc)
     {
         cout << "ERROR::ModelConfig: " << modelConfigName << " doesn't exist!" << endl;
-        return;
+        return NULL;
     }
     RooDataSet* data = (RooDataSet*)ws->data(dataName);
     if (!data)
     {
         cout << "ERROR::Dataset: " << dataName << " doesn't exist!" << endl;
-        return;
+        return NULL;
     }
 
     mc->GetNuisanceParameters()->Print("v");
@@ -110,14 +110,10 @@ TH1D* runSig(RooWorkspace* ws,
     RooNLLVar* obs_nll = doObs ? (RooNLLVar*)pdf_temp->createNLL(*data, Constrain(nuis_tmp2)) : NULL;
 
     RooDataSet* asimovData1 = (RooDataSet*)ws->data(asimov1DataName);
-    RooRealVar* emb = (RooRealVar*)mc->GetNuisanceParameters()->find("ATLAS_EMB");
-    if (!asimovData1 || (string(inFileName).find("ic10") != string::npos && emb))
+    if (!asimovData1)
     {
-        if (emb) emb->setVal(0.7);
         cout << "Asimov data doesn't exist! Please, allow me to build one for you..." << endl;
         string mu_str, mu_prof_str;
-
-        cout << __LINE__ << endl;
 
         asimovData1 = makeAsimovData(mc, doConditional, ws, obs_nll, 1, &mu_str, &mu_prof_str, mu_profile_value, true);
         condSnapshot="conditionalGlobs"+mu_prof_str;
@@ -187,7 +183,6 @@ TH1D* runSig(RooWorkspace* ws,
         ws->loadSnapshot(nominalSnapshot);
     }
 
-
     if (doObs)
     {
         ws->loadSnapshot("conditionalNuis_0");
@@ -220,13 +215,13 @@ TH1D* runSig(RooWorkspace* ws,
         if (doUncap && mu->getVal() < 0) obs_q0 = -obs_q0;
 
         sign = int(obs_q0 == 0 ? 0 : obs_q0 / fabs(obs_q0));
-        if (!doUncap && (obs_q0 < 0 && obs_q0 > -0.1 || mu->getVal() < 0.001)) obs_sig = 0; 
+        if (!doUncap && ((obs_q0 < 0 && obs_q0 > -0.1) || mu->getVal() < 0.001)) obs_sig = 0; 
         else obs_sig = sign*sqrt(fabs(obs_q0));
     }
 
     cout << "obs: " << obs_sig << endl;
-
     cout << "Observed significance: " << obs_sig << endl;
+
     if (med_sig)
     {
         cout << "Median test stat val: " << asimov_q0 << endl;
@@ -390,8 +385,6 @@ void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, Roo
 RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w, RooNLLVar* conditioning_nll, double mu_val, string* mu_str, string* mu_prof_str, double mu_val_profile, bool doFit)
 {
 
-    cout << __LINE__ << endl;
-
     if (mu_val_profile == -999) mu_val_profile = mu_val;
 
 
@@ -429,8 +422,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     RooArgSet mc_globs = *mc->GetGlobalObservables();
     RooArgSet mc_nuis = *mc->GetNuisanceParameters();
 
-    cout << __LINE__ << endl;
-
     //pair the nuisance parameter to the global observable
     RooArgSet mc_nuis_tmp = mc_nuis;
     RooArgList nui_list("ordered_nuis");
@@ -465,8 +456,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             }
         }
         delete nIter;
-
-        cout << __LINE__ << endl;
 
         //RooRealVar* thisNui = (RooRealVar*)pdf->getObservables();
 
@@ -508,8 +497,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             thisNui = (RooRealVar*)components->first();
         }
 
-        cout << __LINE__ << endl;
-
         TIterator* gIter = mc_globs.createIterator();
         RooRealVar* thisGlob = NULL;
         RooAbsArg* glob_arg;
@@ -530,9 +517,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             continue;
         }
 
-
-        cout << __LINE__ << endl;
-
         if (_printLevel >= 1) cout << "Pairing nui: " << thisNui->GetName() << ", with glob: " << thisGlob->GetName() << ", from constraint: " << pdf->GetName() << endl;
 
         nui_list.add(*thisNui);
@@ -546,12 +530,8 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     }
     delete cIter;
 
-
-    cout << __LINE__ << endl;
-
     //save the snapshots of nominal parameters, but only if they're not already saved
     w->saveSnapshot("tmpGlobs",*mc->GetGlobalObservables());
-    cout << __LINE__ << endl;
     w->saveSnapshot("tmpNuis",*mc->GetNuisanceParameters());
     if (!w->loadSnapshot("nominalGlobs"))
     {
@@ -566,22 +546,15 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     }
     else w->loadSnapshot("tmpNuis");
 
-    cout << __LINE__ << endl;
-
     RooArgSet nuiSet_tmp(nui_list);
-    cout << __LINE__ << endl;
-
+    
     mu->setVal(mu_val_profile);
     mu->setConstant(1);
     //int status = 0;
-    cout << __LINE__ << endl;
 
     if (doConditional && doFit)
     {
-        cout << __LINE__ << endl;
-
         minimize(conditioning_nll);
-        cout << __LINE__ << endl;
 
         // cout << "Using globs for minimization" << endl;
         // mc->GetGlobalObservables()->Print("v");
@@ -603,8 +576,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     mu->setConstant(0);
     mu->setVal(mu_val);
 
-    cout << __LINE__ << endl;
-
     //loop over the nui/glob list, grab the corresponding variable from the tmp ws, and set the glob to the value of the nui
     int nrNuis = nui_list.getSize();
     if (nrNuis != glob_list.getSize())
@@ -623,8 +594,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
 
         glob->setVal(nui->getVal());
     }
-
-    cout << __LINE__ << endl;
 
     //save the snapshots of conditional parameters
     cout << "Saving conditional snapshots" << endl;
@@ -663,9 +632,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     //cout << "defining set" << endl;
     w->defineSet("obsAndWeight",obsAndWeight);
 
-
-    cout << __LINE__ << endl;
-
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
     //////////////////////////////////////////////////////
@@ -694,11 +660,7 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             obstmp->Print();
         }
 
-        cout << __LINE__ << endl;
-
         asimovData = new RooDataSet(("asimovData"+muStr.str()).c_str(),("asimovData"+muStr.str()).c_str(),RooArgSet(obsAndWeight),WeightVar(*weightVar));
-
-        cout << __LINE__ << endl;
 
         RooRealVar* thisObs = ((RooRealVar*)obstmp->first());
         double expectedEvents = pdftmp->expectedEvents(*obstmp);
@@ -738,8 +700,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     else
     {
         map<string, RooDataSet*> asimovDataMap;
-
-        cout << __LINE__ << endl;
 
         //try fix for sim pdf
         RooCategory* channelCat = (RooCategory*)&simPdf->indexCat();//(RooCategory*)w->cat("master_channel");//(RooCategory*) (&simPdf->indexCat());
@@ -801,13 +761,9 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             }
         }
 
-        cout << __LINE__ << endl;
-
         asimovData = new RooDataSet(("asimovData"+muStr.str()).c_str(),("asimovData"+muStr.str()).c_str(),RooArgSet(obsAndWeight,*channelCat),Index(*channelCat),Import(asimovDataMap),WeightVar(*weightVar));
         w->import(*asimovData);
     }
-
-    cout << __LINE__ << endl;
 
     //bring us back to nominal for exporting
     //w->loadSnapshot("nominalNuis");

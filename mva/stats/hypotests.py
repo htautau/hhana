@@ -10,6 +10,7 @@ from rootpy.plotting import Hist
 from rootpy.fit import histfactory
 
 from .asymptotics import AsymptoticsCLs
+from .significance import runSig
 from ..samples import Higgs
 from ..plotting import significance, efficiency_cut
 from ..classify import histogram_scores
@@ -679,4 +680,10 @@ def get_limit_workspace(workspace, unblind=False, verbose=False):
     calculator = AsymptoticsCLs(workspace, verbose)
     hist = asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
     hist.SetName('%s_limit' % workspace.GetName())
+    return hist
+
+def get_significance_workspace(workspace, unblind=False, verbose=False):
+
+    hist = asrootpy(runSig(workspace))
+    hist.SetName('%s_significance' % workspace.GetName())
     return hist
