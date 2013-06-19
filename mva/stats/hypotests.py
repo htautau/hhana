@@ -665,9 +665,9 @@ def get_limit(channels,
     return get_limit_workspace(workspace, unblind=unblind)
 
 
-def get_limit_workspace(workspace, unblind=False):
+def get_limit_workspace(workspace, unblind=False, verbose=False):
 
-    calculator = AsymptoticsCLs(workspace)
+    calculator = AsymptoticsCLs(workspace, verbose)
     hist = asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
     hist.SetName('%s_limit' % workspace.GetName())
     return hist
