@@ -81,6 +81,11 @@ $(HHNTUP)/$(HHSTUDENT).h5: $(HHNTUP)/$(HHSTUDENT).root
 
 ntup: $(HHNTUP)/$(HHSTUDENT).h5
 
+.PHONY: ntup-update
+ntup-update:
+	./merge-ntup -s $(HHSTUDENT) -o $(HHNTUP)/$(HHSTUDENT).root $(HHNTUP_RUNNING)/$(HHSTUDENT).*.root
+	root2hdf5 --update --complib lzo --complevel 0 --quiet $(HHNTUP)/$(HHSTUDENT).root
+
 $(HHNTUP)/merged_grl.xml:
 	ls $(HHNTUP)/data/*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
 
