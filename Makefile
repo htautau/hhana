@@ -38,32 +38,47 @@ $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root:
 
 init-data-12: $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root
 
+$(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_EOP_UP.root:
+	test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
+	
+	for TES_TERM in TES_EOP TES_CTB TES_Bias TES_EM TES_LCW TES_PU TES_OTHERS; do \
+		if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_UP_1.root ]; then \
+			mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
+		fi; \
+		hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_UP.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_$${TES_TERM}_UP_*.root; \
+		hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_DOWN.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_$${TES_TERM}_DOWN_*.root; \
+	done
+
 $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root:
 	test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
-	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_UP_1.root ]; then \
-		test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes; \
-		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_*.root $(HHNTUP_RUNNING)/embed_tes; \
-	fi
-	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_UP.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_TES_UP_*.root
-	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_DOWN.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_TES_DOWN_*.root
+	
 	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_1.root ]; then \
 		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
 	fi
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-IM_*.root
+	
 	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_1.root ]; then \
 		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_*.root $(HHNTUP_RUNNING)/embed; \
 	fi
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-UP_*.root
+	
 	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_1.root ]; then \
 		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_*.root $(HHNTUP_RUNNING)/embed; \
 	fi
 	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-DN_*.root
+	
+.PHONY: embed-12-log
+embed-12-log:
 	test -d $(HHNTUP_RUNNING)/embed_log || mkdir $(HHNTUP_RUNNING)/embed_log
 	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.e[0-9]* $(HHNTUP_RUNNING)/embed_log/
 	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.o[0-9]* $(HHNTUP_RUNNING)/embed_log/
 	-mv $(HHNTUP_RUNNING)/supervisor-HHProcessor-HHProcessor.embed12-HH-*.log $(HHNTUP_RUNNING)/embed_log/
 
-init-embed-12: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root
+init-embed-12-sys: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_EOP_UP.root
+
+init-embed-12-nominal: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root
+
+init-embed-12: init-embed-12-nominal init-embed-12-sys embed-12-log
 
 init-mc-12:
 	test -d $(HHNTUP_RUNNING)/mc_log || mkdir $(HHNTUP_RUNNING)/mc_log

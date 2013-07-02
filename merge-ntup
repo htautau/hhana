@@ -35,9 +35,17 @@ with ropen(args.output, 'UPDATE') as outfile:
                 continue
             # replace . and - with _ for natural naming in PyTables
             name = match.group('name').replace('.', '_').replace('-', '_')
+            if name in outfile:
+                print "Skipping %s" % filename
+                continue
             print "Merging in %s ..." % filename
             with ropen(filename, 'READ') as infile:
                 intree = infile.higgstautauhh
+                
+                # temporary hack! 
+                intree.deactivate("mc_*")
+                intree.deactivate("*antikt4truth*")
+
                 outfile.cd()
                 outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
                 outtree.OptimizeBaskets()
