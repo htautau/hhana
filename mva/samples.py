@@ -219,17 +219,18 @@ class Sample(object):
 
             for sys_component in self.SYSTEMATICS_COMPONENTS:
 
+                log.info("adding histosys for %s" % sys_component)
+
                 terms = SYSTEMATICS[sys_component]
                 if len(terms) == 1:
                     up_term = terms[0]
-                    down_term = terms[0]
+                    hist_up = hist.systematics[up_term]
+                    # use nominal hist for "down" side
+                    hist_down = hist
                 else:
                     up_term, down_term = terms
-
-                log.info("adding histosys for %s" % sys_component)
-
-                hist_up = hist.systematics[up_term]
-                hist_down = hist.systematics[down_term]
+                    hist_up = hist.systematics[up_term]
+                    hist_down = hist.systematics[down_term]
 
                 histsys = histfactory.HistoSys(sys_component,
                                                low=hist_down,

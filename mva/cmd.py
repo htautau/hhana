@@ -47,6 +47,8 @@ def general_parser(parser=None):
             help='category definitions')
     parser.add_argument('--category-names', nargs="+", default=None,
             help='category names')
+    parser.add_argument('--controls', default='mva_workspace_controls',
+            help='control definitions')
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
     parser.add_argument('--no-embedding', action='store_false', default=True,

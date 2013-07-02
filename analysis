@@ -76,7 +76,9 @@ analysis = Analysis(
     year=year,
     systematics=args.systematics,
     use_embedding=args.embedding,
+    target_region=args.target_region,
     qcd_shape_region=args.qcd_shape_region,
+    fit_param=args.fit_param,
     root=args.root)
 
 output_suffix = analysis.get_suffix(args.fit_param, args.suffix)
@@ -92,40 +94,46 @@ if args.mass_points == 'all':
 else:
     args.mass_points = map(int, args.mass_points.split(','))
 
+
+if 'yields' in args.actions:
+    """
+    Create a table of sample yields in each category and control region
+    """
+    for category in analysis.iter_categories(args.categories, args.controls):
+        model_events = 0.
+        log.info("Backgrounds:")
+        bkg = []
+        for sample in analysis.backgrounds:
+            events = sample.events(category, target_region)
+            bkg.append((sample._label, events))
+            log.info("%s: %.4f (unweighted: %d)" % (
+                sample.name, events,
+                sample.events(category, target_region, raw=True)))
+            model_events += events
+        log.info("Signals:")
+        sig = []
+        for sample in analysis.signals:
+            events = sample.events(category, target_region)
+            sig.append((sample._label, events))
+            log.info("%s: %.4f (unweighted: %d)" % (sample.mode,
+                events,
+                sample.events(category, target_region, raw=True)))
+        if args.unblind:
+            data_events = analysis.data.events(category, target_region)
+            log.info("Data: %d" % data_events)
+            log.info("Data / Model: %f" % (data_events / model_events))
+        for name, events in bkg + sig:
+            print "{0} & {1:.1f}".format(name, events)
+
+
 for category in categories:
     
     if category_names is not None and category.name not in category_names:
         continue
-
-    log.info("")
-    log.info("=" * 40)
-    log.info("%s category" % category.name)
-    log.info("=" * 40)
-    log.info("Cuts: %s" % analysis.ztautau.cuts(category, target_region))
-    log.info("Weights: %s" % (', '.join(map(str, analysis.ztautau.get_weight_branches('NOMINAL')))))
-
+    
     # apply normalization
     analysis.normalize(category, fit_param=args.fit_param)
-
-    if 'yields' in args.actions:
-
-        log.info("Signals:")
-        for sample in analysis.signals:
-            log.info("%s: %.4f (unweighted: %d)" % (sample.mode,
-                sample.events(category, target_region),
-                sample.events(category, target_region, raw=True)))
-        model_events = 0.
-        log.info("Backgrounds:")
-        for sample in analysis.backgrounds:
-            curr_model_events = sample.events(category, target_region)
-            log.info("%s: %.4f (unweighted: %d)" % (
-                sample.name, curr_model_events,
-                sample.events(category, target_region, raw=True)))
-            model_events += curr_model_events
-        data_events = analysis.data.events(category, target_region)
-        log.info("Data: %d" % data_events)
-        log.info("Data / Model: %f" % (data_events / model_events))
-       
+           
     if 'plot' in args.actions:
 
         figures[category.name] = {}

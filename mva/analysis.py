@@ -2,6 +2,7 @@ from rootpy.fit import histfactory
 
 from . import samples, log; log = log[__name__]
 from .norm import cache as norm_cache
+from .categories import CATEGORIES
 
 
 class Analysis(object):
@@ -9,13 +10,17 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=False,
+                 target_region='OS_TRK',
                  qcd_shape_region='nOS',
+                 fit_param='TRACK',
                  root=False):
 
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
+        self.target_region = target_region
         self.qcd_shape_region = qcd_shape_region
+        self.fit_param = fit_param
         self.root = root
 
         if use_embedding:
@@ -77,13 +82,26 @@ class Analysis(object):
                 root=self.root))
         return signals
 
-    def normalize(self, category, fit_param='TRACK'):
+    def normalize(self, category, fit_param=None):
 
         norm_cache.qcd_ztautau_norm(
             ztautau=self.ztautau,
             qcd=self.qcd,
             category=category,
-            param=fit_param)
+            param=fit_param if fit_param is not None else self.fit_param)
+
+    def iter_categories(self, *definitions):
+
+        for definition in definitions:
+            for category in CATEGORIES[definition]:
+                log.info("")
+                log.info("=" * 40)
+                log.info("%s category" % category.name)
+                log.info("=" * 40)
+                log.info("Cuts: %s" % self.ztautau.cuts(category, self.target_region))
+                log.info("Weights: %s" % (', '.join(map(str, self.ztautau.get_weight_branches('NOMINAL')))))
+                self.normalize(category)
+                yield category
 
     def get_suffix(self, fit_param='TRACK', suffix=None):
 
