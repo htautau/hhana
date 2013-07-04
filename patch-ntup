@@ -41,7 +41,11 @@ for filename in args.filenames:
             treepath = os.path.join(dirpath, treename)
             intree = fin.Get(treepath)
             if intree.has_branch('resonance_pt'):
-                log.info("skipping %s ..." % treepath)
+                log.info("copying %s ..." % treepath)
+                fout.cd()
+                outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
+                outtree.Write()
+                intree.Delete()
                 continue
             log.info("patching %s ..." % treepath)
             intree.create_buffer()
