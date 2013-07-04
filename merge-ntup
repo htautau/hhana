@@ -44,6 +44,7 @@ with ropen(args.output, 'UPDATE') as outfile:
                 
                 # temporary hack! 
                 intree.deactivate("mc_*")
+                intree.activate("mc_weight")
                 intree.deactivate("*antikt4truth*")
 
                 outfile.cd()
