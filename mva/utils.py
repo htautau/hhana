@@ -83,6 +83,8 @@ def rec_to_ndarray(rec, fields=None):
 
     if fields is None:
         fields = rec.dtype.names
+    if len(fields) == 1:
+        return rec[fields[0]]
     # Creates a copy and recasts data to a consistent datatype
     return np.vstack([rec[field] for field in fields]).T
 

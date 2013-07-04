@@ -652,6 +652,7 @@ class MC(Sample):
     # TODO: remove 'JE[S|R]' here unless embedded classes should inherit from
     # elsewhere
     SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
+        #'JES',
         'JES_Modelling',
         'JES_Detector',
         'JES_EtaModelling',
@@ -661,7 +662,14 @@ class MC(Sample):
         'JES_FlavResp',
         'JVF',
         'JER',
-        'TES',
+        #'TES',
+        'TES_EOP',
+        'TES_CTB',
+        'TES_Bias',
+        'TES_EM',
+        'TES_LCW',
+        'TES_PU',
+        'TES_OTHERS',
         'TAUID',
         'TRIGGER',
         'FAKERATE',
@@ -929,7 +937,7 @@ class MC(Sample):
             weighted=weighted,
             field_scale=field_scale,
             weight_hist=weight_hist,
-            scores=scores['NOMINAL'],
+            scores=scores['NOMINAL'] if scores else None,
             min_score=min_score,
             max_score=max_score,
             systematic='NOMINAL')
@@ -1205,7 +1213,14 @@ class MC_Ztautau(Ztautau, MC):
 class Embedded_Ztautau(Ztautau, MC):
 
     SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
-        'TES',
+        #'TES',
+        'TES_EOP',
+        'TES_CTB',
+        'TES_Bias',
+        'TES_EM',
+        'TES_LCW',
+        'TES_PU',
+        'TES_OTHERS',
         'TAUID',
         'TRIGGER',
         'FAKERATE',

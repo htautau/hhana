@@ -1498,8 +1498,6 @@ def draw(name,
             plt.savefig(output_filename)
     if not root:
         plt.close(fig)
-    else:
-        fig.OwnMembers()
     return fig
 
 
