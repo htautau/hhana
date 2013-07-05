@@ -104,7 +104,7 @@ ntup-update:
 $(HHNTUP)/merged_grl.xml:
 	ls $(HHNTUP)/data/*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
 
-$(HHNTUP)/observed_grl.xml: $(HHNTUP)/merged_grl.xml ../higgstautau/grl/2012/current.xml 
+$(HHNTUP)/observed_grl.xml: $(HHNTUP)/merged_grl.xml ../higgstautau-dev/grl/2012/current.xml 
 	grl and $^ > $@
 
 ~/observed_grl.xml: $(HHNTUP)/observed_grl.xml
