@@ -1,7 +1,7 @@
 
-HHSTUDENT ?= HHProcessor
-HHNTUP ?= ntuples/prod/HHProcessor
-HHNTUP_RUNNING ?= ntuples/running/HHProcessor
+HHSTUDENT ?= hhskim
+HHNTUP ?= ntuples/prod/hhskim
+HHNTUP_RUNNING ?= ntuples/running/hhskim
 
 .PHONY: dump
 
@@ -27,64 +27,64 @@ browse:
 roosh:
 	roosh $(HHNTUP)/$(HHSTUDENT).root
 
-$(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root:
+$(HHNTUP_RUNNING)/$(HHSTUDENT).data12-JetTauEtmiss.root:
 	test -d $(HHNTUP_RUNNING)/data || mkdir $(HHNTUP_RUNNING)/data
-	-mv $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss_*.root $(HHNTUP_RUNNING)/data
-	hadd $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root $(HHNTUP_RUNNING)/data/HHProcessor.data12-JetTauEtmiss_*.root
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).data12-JetTauEtmiss_*.root $(HHNTUP_RUNNING)/data
+	hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).data12-JetTauEtmiss.root $(HHNTUP_RUNNING)/data/$(HHSTUDENT).data12-JetTauEtmiss_*.root
 	test -d $(HHNTUP_RUNNING)/data_log || mkdir $(HHNTUP_RUNNING)/data_log
-	-mv $(HHNTUP_RUNNING)/HHProcessor.data12_*.e[0-9]* $(HHNTUP_RUNNING)/data_log/
-	-mv $(HHNTUP_RUNNING)/HHProcessor.data12_*.o[0-9]* $(HHNTUP_RUNNING)/data_log/
-	-mv $(HHNTUP_RUNNING)/supervisor-HHProcessor-HHProcessor.data12-JetTauEtmiss_*.log $(HHNTUP_RUNNING)/data_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).data12_*.e[0-9]* $(HHNTUP_RUNNING)/data_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).data12_*.o[0-9]* $(HHNTUP_RUNNING)/data_log/
+	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).data12-JetTauEtmiss_*.log $(HHNTUP_RUNNING)/data_log/
 
-init-data-12: $(HHNTUP_RUNNING)/HHProcessor.data12-JetTauEtmiss.root
+init-data-12: $(HHNTUP_RUNNING)/$(HHSTUDENT).data12-JetTauEtmiss.root
 
-$(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_EOP_UP.root:
+$(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_EOP_UP.root:
 	test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
 	
 	for TES_TERM in TES_EOP TES_CTB TES_Bias TES_EM TES_LCW TES_PU TES_OTHERS; do \
-		if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_UP_1.root ]; then \
-			mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
+		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_UP_1.root ]; then \
+			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
 		fi; \
-		hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_UP.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_$${TES_TERM}_UP_*.root; \
-		hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_$${TES_TERM}_DOWN.root $(HHNTUP_RUNNING)/embed_tes/HHProcessor.embed12-HH-IM_$${TES_TERM}_DOWN_*.root; \
+		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_UP.root $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_UP_*.root; \
+		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_DOWN.root $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_DOWN_*.root; \
 	done
 
-$(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root:
+$(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root:
 	test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
 	
-	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_1.root ]; then \
-		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
+	if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_1.root ]; then \
+		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
 	fi
-	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-IM_*.root
+	hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-IM_*.root
 	
-	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_1.root ]; then \
-		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP_*.root $(HHNTUP_RUNNING)/embed; \
+	if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-UP_1.root ]; then \
+		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-UP_*.root $(HHNTUP_RUNNING)/embed; \
 	fi
-	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-UP.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-UP_*.root
+	hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-UP.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-UP_*.root
 	
-	if [ -f $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_1.root ]; then \
-		mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN_*.root $(HHNTUP_RUNNING)/embed; \
+	if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN_1.root ]; then \
+		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN_*.root $(HHNTUP_RUNNING)/embed; \
 	fi
-	hadd $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/HHProcessor.embed12-HH-DN_*.root
+	hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-DN_*.root
 	
 .PHONY: embed-12-log
 embed-12-log:
 	test -d $(HHNTUP_RUNNING)/embed_log || mkdir $(HHNTUP_RUNNING)/embed_log
-	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.e[0-9]* $(HHNTUP_RUNNING)/embed_log/
-	-mv $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-*.o[0-9]* $(HHNTUP_RUNNING)/embed_log/
-	-mv $(HHNTUP_RUNNING)/supervisor-HHProcessor-HHProcessor.embed12-HH-*.log $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-*.e[0-9]* $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-*.o[0-9]* $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).embed12-HH-*.log $(HHNTUP_RUNNING)/embed_log/
 
-init-embed-12-sys: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM_TES_EOP_UP.root
+init-embed-12-sys: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_EOP_UP.root
 
-init-embed-12-nominal: $(HHNTUP_RUNNING)/HHProcessor.embed12-HH-IM.root
+init-embed-12-nominal: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root
 
 init-embed-12: init-embed-12-nominal init-embed-12-sys embed-12-log
 
 init-mc-12:
 	test -d $(HHNTUP_RUNNING)/mc_log || mkdir $(HHNTUP_RUNNING)/mc_log
-	-mv $(HHNTUP_RUNNING)/HHProcessor.*mc12*.e[1-9]* $(HHNTUP_RUNNING)/mc_log/
-	-mv $(HHNTUP_RUNNING)/HHProcessor.*mc12*.o[1-9]* $(HHNTUP_RUNNING)/mc_log/
-	-mv $(HHNTUP_RUNNING)/supervisor-HHProcessor-HHProcessor.*mc12*.log $(HHNTUP_RUNNING)/mc_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).*mc12*.e[1-9]* $(HHNTUP_RUNNING)/mc_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).*mc12*.o[1-9]* $(HHNTUP_RUNNING)/mc_log/
+	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).*mc12*.log $(HHNTUP_RUNNING)/mc_log/
 
 init-ntup: init-data-12 init-embed-12 init-mc-12
 
@@ -131,6 +131,6 @@ test:
 	nosetests -s -v mva
 
 dump:
-	@./dump -t higgstautauhh -s "taus_pass && (RunNumber==207528)" --select-file etc/embed_select_ac.txt -o RunNumber,EventNumber $(HHNTUP)/HHProcessor.embed12-HH-IM.root
-	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
-	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/HHProcessor.AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
+	@./dump -t higgstautauhh -s "taus_pass && (RunNumber==207528)" --select-file etc/embed_select_ac.txt -o RunNumber,EventNumber $(HHNTUP)/$(HHSTUDENT).embed12-HH-IM.root
+	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
+	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
