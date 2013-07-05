@@ -40,13 +40,8 @@ with ropen(args.output, 'UPDATE') as outfile:
                 continue
             print "Merging in %s ..." % filename
             with ropen(filename, 'READ') as infile:
-                intree = infile.higgstautauhh
-                
-                # temporary hack! 
-                intree.deactivate("mc_*")
-                intree.activate("mc_weight")
-                intree.deactivate("*antikt4truth*")
-
+                intree = infile.tau
+                intree.deactivate("jet_*_original")
                 outfile.cd()
                 outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
                 outtree.OptimizeBaskets()
@@ -54,7 +49,7 @@ with ropen(args.output, 'UPDATE') as outfile:
                 outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
                 # will need to be upated for the next skim
                 outcutflow = infile.cutflow.Clone(name=name + '_cutflow')
-                outcutflow_event = infile.cutflow_event.Clone(name=name + '_cutflow_event')
+                #outcutflow_event = infile.cutflow_event.Clone(name=name + '_cutflow_event')
                 outfile.cd()
                 outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)
-                outcutflow_event.Write(outcutflow_event.GetName(), ROOT.TObject.kOverwrite)
+                #outcutflow_event.Write(outcutflow_event.GetName(), ROOT.TObject.kOverwrite)
