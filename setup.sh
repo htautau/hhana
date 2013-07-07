@@ -21,9 +21,9 @@ export HIGGSTAUTAU_PLOTS_DIR=${DIR_HIGGSTAUTAU_MVA_SETUP}/plots
 export HIGGSTAUTAU_MVA_DIR=$DIR_HIGGSTAUTAU_MVA_SETUP
 export PYTHONPATH=${DIR_HIGGSTAUTAU_MVA_SETUP}${PYTHONPATH:+:$PYTHONPATH}
 
-if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau/setup.sh ]
+if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau-dev/setup.sh ]
 then
-    source ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau/setup.sh
+    source ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau-dev/setup.sh
 fi
 if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../TrackFit/setup.sh ]
 then

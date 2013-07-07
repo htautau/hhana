@@ -12,7 +12,7 @@ import logging
 LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 
 NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
-DEFAULT_STUDENT = 'HHProcessor'
+DEFAULT_STUDENT = 'hhskim'
 
 ROOT.gROOT.SetBatch(True)
 rootpy.log.basic_config_colorized()

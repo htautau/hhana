@@ -32,7 +32,7 @@ CUTS_VBF = Cut('dEta_jets > 2.0')
 CUTS_BOOSTED = Cut('resonance_pt > 100000') # MeV
 
 BAD_MASS = 75
-MET = Cut('MET > 20000')
+MET = Cut('MET_et > 20000')
 
 COMMON_CUTS_CUTBASED = (
     LEAD_TAU_35 & SUBLEAD_TAU_25

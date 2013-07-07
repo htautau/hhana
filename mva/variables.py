@@ -75,7 +75,7 @@ VARIABLES = {
         'range': (-.5, 6.5),
         'integer': True,
     },
-    'MET': {
+    'MET_et': {
         'title': r'$E^{miss}_{T}$',
         'root': '#font[52]{E}^{miss}_{T}',
         'filename': 'MET',
@@ -84,7 +84,7 @@ VARIABLES = {
         'scale': 1./1000,
         'units': 'GeV',
     },
-    'MET_x': {
+    'MET_etx': {
         'title': r'$E^{miss}_{T_{x}}$',
         'root': '#font[52]{E}^{miss}_{T_{x}}',
         'filename': 'MET_x',
@@ -93,7 +93,7 @@ VARIABLES = {
         'scale': 1./1000,
         'units': 'GeV',
     },
-    'MET_y': {
+    'MET_ety': {
         'title': r'$E^{miss}_{T_{y}}$',
         'root': '#font[52]{E}^{miss}_{T_{y}}',
         'filename': 'MET_y',
@@ -116,22 +116,22 @@ VARIABLES = {
         'bins': 20,
         'range': (0, math.pi),
     },
-    'sphericity': {
-        'title': r'Sphericity',
-        'root': '#font[52]{Sphericity}',
-        'filename': 'sphericity',
-        'bins': 20,
-        'range': (0, 1),
-        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
-    },
-    'aplanarity': {
-        'title': r'Aplanarity',
-        'root': '#font[52]{Aplanarity}',
-        'filename': 'aplanarity',
-        'bins': 20,
-        'range': (0, .15),
-        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
-    },
+    #'sphericity': {
+    #    'title': r'Sphericity',
+    #    'root': '#font[52]{Sphericity}',
+    #    'filename': 'sphericity',
+    #    'bins': 20,
+    #    'range': (0, 1),
+    #    'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
+    #},
+    #'aplanarity': {
+    #    'title': r'Aplanarity',
+    #    'root': '#font[52]{Aplanarity}',
+    #    'filename': 'aplanarity',
+    #    'bins': 20,
+    #    'range': (0, .15),
+    #    'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
+    #},
     'MET_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
         'root': '#font[52]{E}^{miss}_{T} #font[52]{Centrality}',
@@ -245,28 +245,28 @@ VARIABLES = {
         'range': (-.5, 6.5),
         'integer': True,
     },
-    'tau_x_product': {
-        'title': r'Product of $\tau$ Visible Momentum Fractions',
-        'root': 'Product of #font[152]{#tau} #font[52]{Visible Momentum Fractions}',
-        'filename': 'tau_x_product',
-        'bins': 20,
-        'range': (-9, 16),
-    },
-    'tau_x_sum': {
-        'title': r'Sum of $\tau$ Visible Momentum Fractions',
-        'root': 'Sum of #font[152]{#tau} #font[52]{Visible Momentum Fractions}',
-        'filename': 'tau_x_sum',
-        'bins': 20,
-        'range': (-6, 8),
-    },
-    'tau1_x': {
+    #'tau_x_product': {
+    #    'title': r'Product of $\tau$ Visible Momentum Fractions',
+    #    'root': 'Product of #font[152]{#tau} #font[52]{Visible Momentum Fractions}',
+    #    'filename': 'tau_x_product',
+    #    'bins': 20,
+    #    'range': (-9, 16),
+    #},
+    #'tau_x_sum': {
+    #    'title': r'Sum of $\tau$ Visible Momentum Fractions',
+    #    'root': 'Sum of #font[152]{#tau} #font[52]{Visible Momentum Fractions}',
+    #    'filename': 'tau_x_sum',
+    #    'bins': 20,
+    #    'range': (-6, 8),
+    #},
+    'tau1_collinear_momentum_fraction': {
         'title': r'$\tau_{1}$ Visible Momentum Fraction',
         'root': '#font[152]{#tau}_{1} #font[52]{Visible Momentum Fraction}',
         'filename': 'tau1_x',
         'bins': 20,
         'range': (-3, 4),
     },
-    'tau2_x': {
+    'tau2_collinear_momentum_fraction': {
         'title': r'$\tau_{2}$ Visible Momentum Fraction',
         'root': '#font[152]{#tau}_{2} #font[52]{Visible Momentum Fraction}',
         'filename': 'tau2_x',
@@ -367,14 +367,14 @@ VARIABLES = {
         'bins': 20,
         'range': (0, 1),
     },
-    'tau_centrality_product': {
-        'title': r'$\tau$ Centrality Product',
-        'root': '#font[152]{#tau} #font[52]{Centrality Product}',
-        'filename': 'tau_centrality_product',
-        'bins': 20,
-        'range': (0, 1),
-        'cats': ['2J', 'VBF']
-    },
+    #'tau_centrality_product': {
+    #    'title': r'$\tau$ Centrality Product',
+    #    'root': '#font[152]{#tau} #font[52]{Centrality Product}',
+    #    'filename': 'tau_centrality_product',
+    #    'bins': 20,
+    #    'range': (0, 1),
+    #    'cats': ['2J', 'VBF']
+    #},
     'tau1_centrality': {
         'title': r'$\tau_1$ Centrality',
         'root': '#font[152]{#tau}_{1} #font[52]{Centrality}',
@@ -508,7 +508,7 @@ for mmc in range(2):
         'blind': (100, 140),
     }
 
-    VARIABLES['mmc%d_MET' % mmc] = {
+    VARIABLES['mmc%d_MET_et' % mmc] = {
         'title': r'$E^{miss}_{T}$ MMC',
         'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T}',
         'filename': 'mmc%d_MET' % mmc,
@@ -517,7 +517,7 @@ for mmc in range(2):
         'units': 'GeV',
     }
 
-    VARIABLES['mmc%d_MET_x' % mmc] = {
+    VARIABLES['mmc%d_MET_etx' % mmc] = {
         'title': r'MMC $E^{miss}_{T_{x}}$',
         'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{x}}',
         'filename': 'mmc%d_MET_x' % mmc,
@@ -526,7 +526,7 @@ for mmc in range(2):
         'units': 'GeV',
     }
 
-    VARIABLES['mmc%d_MET_y' % mmc] = {
+    VARIABLES['mmc%d_MET_ety' % mmc] = {
         'title': r'MMC $E^{miss}_{T_{y}}$',
         'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{y}}',
         'filename': 'mmc%d_MET_y' % mmc,

@@ -89,7 +89,7 @@ class Sample(object):
         'mc_weight',
         'pileup_weight',
         'ggf_weight',
-        'embedding_reco_unfold',
+        #'embedding_reco_unfold',
     ]
 
     SYSTEMATICS_COMPONENTS = []
@@ -1383,7 +1383,7 @@ class Higgs(MC, Signal):
     MODES = ['Z', 'W', 'gg', 'VBF']
 
     MODES_DICT = {
-        'gg': ('ggf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),
+        'gg': ('ggf', 'PowHegPythia_', 'PowHegPyth8_AU2CT10_'),
         'VBF': ('vbf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),
         'Z': ('zh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
         'W': ('wh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
