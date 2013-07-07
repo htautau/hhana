@@ -85,13 +85,6 @@ def cleanup():
 
 class Sample(object):
 
-    WEIGHT_BRANCHES = [
-        'mc_weight',
-        'pileup_weight',
-        'ggf_weight',
-        #'embedding_reco_unfold',
-    ]
-
     SYSTEMATICS_COMPONENTS = []
 
     def __init__(self, year, scale=1., cuts=None,
@@ -488,7 +481,13 @@ class Sample(object):
             return ["1.0"]
         systerm, variation = Sample.get_sys_term_variation(systematic)
         if not only_cuts:
-            weight_branches = Sample.WEIGHT_BRANCHES[:]
+            weight_branches = [
+                'mc_weight',
+                'pileup_weight',
+                'ggf_weight',
+            ]
+            if isinstance(self, Embedded_Ztautau):
+                weight_branches.append('embedding_reco_unfold')
             for term, variations in WEIGHT_SYSTEMATICS.items():
                 if term == systerm:
                     weight_branches += variations[variation]
@@ -504,6 +503,7 @@ class Sample(object):
                 else:
                     if variations['NOMINAL']:
                         weight_branches.append(variations['NOMINAL'])
+        #log.info("weight fields: {0}".format(', '.join(weight_branches)))
         return weight_branches
 
     def iter_weight_branches(self):
