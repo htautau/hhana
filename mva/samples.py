@@ -1396,7 +1396,8 @@ class Higgs(MC, Signal):
 
 class QCD(Sample, Background):
 
-    SYSTEMATICS_COMPONENTS = MC.SYSTEMATICS_COMPONENTS
+    # don't include MC systematics in workspace for QCD
+    SYSTEMATICS_COMPONENTS = [] #MC.SYSTEMATICS_COMPONENTS
     NORM_BY_THEORY = False
 
     def histfactory(self, sample, systematics=True):
