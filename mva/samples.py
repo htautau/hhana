@@ -1332,6 +1332,8 @@ class MC_Ztautau(Ztautau, MC):
 class Embedded_Ztautau(Ztautau, MC):
 
     SYSTEMATICS_COMPONENTS = Sample.SYSTEMATICS_COMPONENTS + [
+        'MFS',
+        'ISOL',
         #'TES',
         'TES_EOP',
         'TES_CTB',
