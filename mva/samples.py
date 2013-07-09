@@ -127,41 +127,36 @@ class Sample(object):
             return self._label_root
         return self._label
 
-    def get_histfactory_sample(self, hist_template,
-                               expr_or_clf,
-                               category, region,
-                               cuts=None,
-                               clf=None,
-                               scores=None,
-                               min_score=None,
-                               max_score=None,
-                               systematics=True,
-                               suffix=None,
-                               field_scale=None,
-                               weight_hist=None):
+    def get_hist(self,
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=None,
+            clf=None,
+            scores=None,
+            min_score=None,
+            max_score=None,
+            systematics=True,
+            suffix=None,
+            field_scale=None,
+            weight_hist=None):
 
-        log.info("creating histfactory sample for %s" % self.name)
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
+
+        ndim = hist_template.GetDimension()
 
         if min_score is None:
             min_score = getattr(category, 'workspace_min_clf', None)
         if max_score is None:
             max_score = getattr(category, 'workspace_max_clf', None)
 
-        histname = 'category_%s_%s' % (category.name, self.name)
+        histname = 'category_{0}_{1}'.format(category.name, self.name)
         if suffix is not None:
             histname += suffix
         hist = hist_template.Clone(name=histname)
         hist.Reset()
-
-        if isinstance(self, Data):
-            sample = histfactory.Data(self.name)
-        else:
-            sample = histfactory.Sample(self.name)
-
-        ndim = hist_template.GetDimension()
-        do_systematics = (not isinstance(self, Data)
-                          and self.systematics
-                          and systematics)
 
         if isinstance(expr_or_clf, (basestring, tuple, list)):
             expr = expr_or_clf
@@ -207,10 +202,50 @@ class Sample(object):
             hist = kylefix(hist, fix_systematics=False)
 
         print_hist(hist)
+        return hist
+
+    def get_histfactory_sample(self,
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=None,
+            clf=None,
+            scores=None,
+            min_score=None,
+            max_score=None,
+            systematics=True,
+            suffix=None,
+            field_scale=None,
+            weight_hist=None):
+
+        log.info("creating histfactory sample for {0}".format(self.name))
+
+        if isinstance(self, Data):
+            sample = histfactory.Data(self.name)
+        else:
+            sample = histfactory.Sample(self.name)
+
+        hist = self.get_hist(
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=cuts,
+            clf=clf,
+            scores=scores,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=systematics,
+            suffix=suffix,
+            field_scale=field_scale,
+            weight_hist=weight_hist)
+
         # set the nominal histogram
-        sample.SetHisto(hist)
-        sample.SetHistoName(hist.name)
-        keepalive(sample, hist)
+        sample.hist = hist
+        sample.histname = hist.name
+
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
 
         # add systematics samples
         if do_systematics:
@@ -232,9 +267,10 @@ class Sample(object):
                     hist_up = hist.systematics[up_term]
                     hist_down = hist.systematics[down_term]
 
-                histsys = histfactory.HistoSys(sys_component,
-                                               low=hist_down,
-                                               high=hist_up)
+                histsys = histfactory.HistoSys(
+                    sys_component,
+                    low=hist_down,
+                    high=hist_up)
 
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
 
@@ -257,6 +293,73 @@ class Sample(object):
                     continue
 
                 sample.AddHistoSys(shape)
+
+        if isinstance(self, QCD):
+            log.info("adding QCD shape systematic")
+            curr_model = self.shape_region
+            # add QCD shape systematic
+            if isinstance(expr_or_clf, tuple):
+                # OSFF x (SS / SSFF) model in the track-fit category
+                assert curr_model == 'SS'
+                models = []
+                for model in ('OSFF', 'SSFF'):
+                    log.info("getting QCD shape for {0}".format(model))
+                    self.shape_region = model
+                    models.append(self.get_hist(
+                        hist_template,
+                        expr_or_clf,
+                        category, region,
+                        cuts=cuts,
+                        clf=clf,
+                        scores=scores,
+                        min_score=min_score,
+                        max_score=max_score,
+                        systematics=systematics,
+                        suffix=(suffix or '') + '_%s' % model,
+                        field_scale=field_scale,
+                        weight_hist=weight_hist))
+                OSFF, SSFF = models
+                shape_sys = OSFF
+                shape_sys *= sample.hist / SSFF
+
+            else:
+                # SS_TRK model elsewhere
+                self.shape_region = 'SS_TRK'
+                log.info("getting QCD shape for SS_TRK")
+                shape_sys = self.get_hist(
+                    hist_template,
+                    expr_or_clf,
+                    category, region,
+                    cuts=cuts,
+                    clf=clf,
+                    scores=scores,
+                    min_score=min_score,
+                    max_score=max_score,
+                    systematics=systematics,
+                    suffix=(suffix or '') + '_SS_TRK',
+                    field_scale=field_scale,
+                    weight_hist=weight_hist)
+
+            # restore previous shape model
+            self.shape_region = curr_model
+
+            # normalize shape_sys to the same integral as the nominal shape
+            shape_sys *= sample.hist.Integral() / shape_sys.Integral()
+
+            # use interpolated shape as nominal and symmetrize
+            low = sample.hist
+            high = shape_sys
+            nom = (low + high) / 2.
+            nom.name = sample.hist.name + '_SHAPE_INTERP'
+            sample.hist = nom
+            sample.histname = nom.name
+
+            histsys = histfactory.HistoSys(
+                'ATLAS_HADHAD_QCD_SHAPE',
+                low=low,
+                high=high)
+
+            sample.AddHistoSys(histsys)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
@@ -281,7 +384,7 @@ class Sample(object):
         if hasattr(self, 'histfactory'):
             # perform sample-specific items
             log.info("calling %s histfactory method" % self.name)
-            self.histfactory(sample, systematics=do_systematics)
+            self.histfactory(sample, category, systematics=do_systematics)
 
         return sample
 
@@ -1206,7 +1309,7 @@ class Ztautau(Background):
 
     NORM_BY_THEORY = False
 
-    def histfactory(self, sample, systematics=True):
+    def histfactory(self, sample, category, systematics=True):
 
         sample.AddNormFactor('ATLAS_norm_Z_{0:d}'.format(self.year),
                              1., 0., 50., False)
@@ -1297,7 +1400,7 @@ class Higgs(MC, Signal):
 
     NORM_BY_THEORY = True
 
-    def histfactory(self, sample, systematics=True):
+    def histfactory(self, sample, category, systematics=True):
         if not systematics:
             return
         if len(self.modes) != 1:
@@ -1400,7 +1503,7 @@ class QCD(Sample, Background):
     SYSTEMATICS_COMPONENTS = [] #MC.SYSTEMATICS_COMPONENTS
     NORM_BY_THEORY = False
 
-    def histfactory(self, sample, systematics=True):
+    def histfactory(self, sample, category, systematics=True):
 
         sample.AddNormFactor('ATLAS_norm_QCD_{0:d}'.format(self.year),
                              1., 0., 50., False)
