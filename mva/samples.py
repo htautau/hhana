@@ -275,15 +275,11 @@ class Sample(object):
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
 
                 # drop norm on backgrounds if < 1% and signals if < .5%
-                if isinstance(self, Background) and norm.high < 1.01 and norm.low > 0.99:
-                    continue
-                if isinstance(self, Signal) and norm.high < 1.005 and norm.low > 0.995:
-                    continue
-
-                # if you fit the ratio of nominal to up / down to a "pol0" and
-                # get reasonably good chi2, then you may consider dropping the
-                # histosys part
-                sample.AddOverallSys(norm)
+                if (isinstance(self, Background) and (
+                  norm.high >= 1.01 or norm.low <= 0.99)) or (
+                    isinstance(self, Signal) and (
+                        norm.high >= 1.005 or norm.low <= 0.995)):
+                    sample.AddOverallSys(norm)
 
                 # drop all jet related shape terms from Others (JES, JVF, JER)
                 if isinstance(self, Others) and (
@@ -292,6 +288,9 @@ class Sample(object):
                         sys_component.startswith('JER')):
                     continue
 
+                # if you fit the ratio of nominal to up / down to a "pol0" and
+                # get reasonably good chi2, then you may consider dropping the
+                # histosys part
                 sample.AddHistoSys(shape)
 
         if isinstance(self, QCD):
