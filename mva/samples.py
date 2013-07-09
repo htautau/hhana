@@ -311,7 +311,7 @@ class Sample(object):
                         category, region,
                         cuts=cuts,
                         clf=clf,
-                        scores=scores,
+                        scores=None,
                         min_score=min_score,
                         max_score=max_score,
                         systematics=systematics,
@@ -324,6 +324,7 @@ class Sample(object):
 
             else:
                 # SS_TRK model elsewhere
+                assert curr_model == 'nOS'
                 self.shape_region = 'SS_TRK'
                 log.info("getting QCD shape for SS_TRK")
                 shape_sys = self.get_hist(
@@ -332,7 +333,7 @@ class Sample(object):
                     category, region,
                     cuts=cuts,
                     clf=clf,
-                    scores=scores,
+                    scores=None,
                     min_score=min_score,
                     max_score=max_score,
                     systematics=systematics,
@@ -1691,16 +1692,16 @@ class QCD(Sample, Background):
                cuts=None, systematics=True,
                **kwargs):
 
-        # SS data
+        # data
         data_scores, data_weights = self.data.scores(
-                clf,
-                category,
-                region=self.shape_region,
-                cuts=cuts,
-                **kwargs)
+            clf,
+            category,
+            region=self.shape_region,
+            cuts=cuts,
+            **kwargs)
 
         scores_dict = {}
-        # subtract SS MC
+        # subtract MC
         for mc_scale, mc in zip(self.mc_scales, self.mc):
             mc.scores(
                 clf,
