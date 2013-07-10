@@ -292,15 +292,19 @@ if 'workspace' in args.actions:
 
     for category in CATEGORIES['mva_workspace_controls']:
         parent_category = category.get_parent()
+
         # apply normalization
         control_analysis.normalize(parent_category, fit_param=args.fit_param)
+
         clf = ClassificationProblem(
             fields=parent_category.features,
             category=parent_category,
             region='OS',
             clf_output_suffix=clf_output_suffix,
             output_suffix=output_suffix)
-        clf.load()
+        if not clf.load():
+            sys.exit("train BDTs before requesting workspaces")
+
         contr = control_analysis.get_channel(hist_template, expr,
             category=category,
             region='OS',
@@ -314,6 +318,9 @@ if 'workspace' in args.actions:
 
     for category in categories:
         
+        # apply normalization
+        analysis.normalize(category, fit_param=args.fit_param)
+
         clf = ClassificationProblem(
             fields=category.features,
             category=category,

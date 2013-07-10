@@ -49,6 +49,7 @@ SYSTEMATICS_2012 = {
     'JES_FlavResp': (('JES_FlavResp_UP',), ('JES_FlavResp_DOWN',)),
     'JVF': (('JVF_UP',), ('JVF_DOWN',)),
     'JER': (('JER_UP',),),
+
     #'TES': (('TES_UP',), ('TES_DOWN',)),
     'TES_EOP': (('TES_EOP_UP',), ('TES_EOP_DOWN',)),
     'TES_CTB': (('TES_CTB_UP',), ('TES_CTB_DOWN',)),
@@ -57,11 +58,14 @@ SYSTEMATICS_2012 = {
     'TES_LCW': (('TES_LCW_UP',), ('TES_LCW_DOWN',)),
     'TES_PU': (('TES_PU_UP',), ('TES_PU_DOWN',)),
     'TES_OTHERS': (('TES_OTHERS_UP',), ('TES_OTHERS_DOWN',)),
+
     'MFS': (('MFS_UP',), ('MFS_DOWN',)),
     'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
+
     'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
     'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
     'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
+
     'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
     'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
 }

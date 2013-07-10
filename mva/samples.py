@@ -170,7 +170,7 @@ class Sample(object):
                 clf=clf,
                 min_score=min_score,
                 max_score=max_score,
-                systematics=systematics)
+                systematics=do_systematics)
 
             if ndim == 2:
                 # convert to 1D hist
@@ -185,7 +185,8 @@ class Sample(object):
         else:
             # histogram classifier output
             if scores is None:
-                scores = self.scores(expr_or_clf, category, region, cuts)
+                scores = self.scores(expr_or_clf, category, region, cuts,
+                                     systematics=do_systematics)
             histogram_scores(hist, scores,
                              min_score=min_score,
                              max_score=max_score,
@@ -199,7 +200,11 @@ class Sample(object):
             not getattr(self, 'NO_KYLEFIX', False)):
             log.info("applying kylefix()")
             # TODO also apply kylefix on systematics?
-            hist = kylefix(hist, fix_systematics=False)
+            # IMPORTANT: if kylefix is not applied on systematics, normalization
+            # can be inconsistent between nominal and systematics creating a
+            # bias in the OverallSys when separating the variation into
+            # normalization and shape components!
+            hist = kylefix(hist, fix_systematics=True)
 
         print_hist(hist)
         return hist
@@ -313,7 +318,7 @@ class Sample(object):
                         scores=None,
                         min_score=min_score,
                         max_score=max_score,
-                        systematics=systematics,
+                        systematics=False,
                         suffix=(suffix or '') + '_%s' % model,
                         field_scale=field_scale,
                         weight_hist=weight_hist))
@@ -335,7 +340,7 @@ class Sample(object):
                     scores=None,
                     min_score=min_score,
                     max_score=max_score,
-                    systematics=systematics,
+                    systematics=False,
                     suffix=(suffix or '') + '_SS_TRK',
                     field_scale=field_scale,
                     weight_hist=weight_hist)
