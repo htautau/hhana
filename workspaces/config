@@ -32,6 +32,7 @@ for xmlfilename in xmlfiles:
                             '<Combination OutputFilePrefix="%s/hist2workspace" >' %
                             resultsdir)
         line = re.sub('\w+=""', '', line)
+        line = re.sub('\s+</', '</', line)
         line = line.replace('<Input>./workspaces/', '<Input>./')
         # HistFactory bug:
         line = line.replace('<ParamSetting Const="True"></ParamSetting>', '')
