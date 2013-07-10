@@ -3,4 +3,5 @@
 import sys
 from mva.stats.npcheck import plot
 
+# file, output dir, workspace name
 plot(*sys.argv[1:])
