@@ -1043,8 +1043,6 @@ def draw(name,
             model_stack.yaxis.SetLimits(ymin, ymax)
             model_stack.yaxis.SetRangeUser(ymin, ymax)
         else:
-            print "model"
-            print hist_ax.get_ylim()
             model_bars = rplt.bar(
                     model + scaled_signal if (
                         signal is not None and signal_on_top)
@@ -1054,7 +1052,6 @@ def draw(name,
                     yerr='quadratic' if not systematics else False,
                     axes=hist_ax,
                     ypadding=ypadding)
-            print hist_ax.get_ylim()
 
             if signal is not None and signal_on_top:
                 signal_bars = model_bars[len(model):]
@@ -1082,8 +1079,6 @@ def draw(name,
             signal_stack.yaxis.SetRangeUser(ymin, ymax)
 
         else:
-            print "signal"
-            print hist_ax.get_ylim()
             if fill_signal:
                 signal_bars = rplt.bar(
                         scaled_signal,
@@ -1099,7 +1094,6 @@ def draw(name,
                         axes=hist_ax,
                         ypadding=ypadding,
                         zorder=1000)
-            print hist_ax.get_ylim()
             if plot_signal_significance:
                 plot_significance(signal, model, ax=hist_ax)
 
@@ -1217,15 +1211,12 @@ def draw(name,
             data.yaxis.SetRangeUser(ymin, ymax)
 
         else:
-            print data
-            print hist_ax.get_ylim()
             data_bars = rplt.errorbar(data,
                     fmt='o', axes=hist_ax,
                     ypadding=ypadding,
                     emptybins=False,
                     barsabove=True,
                     zorder=5000)
-            print hist_ax.get_ylim()
 
         # draw ratio plot
         if model is not None and show_ratio:

@@ -106,8 +106,8 @@ features_boosted = [
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
     #'tau2_BDTJetScore',
-    'tau1_x', #  <= ADD BACK IN
-    'tau2_x', #  <= ADD BACK IN
+    'tau1_collinear_momentum_fraction', #  <= ADD BACK IN
+    'tau2_collinear_momentum_fraction', #  <= ADD BACK IN
     'MET_centrality',
     #'resonance_pt',
     'sum_pt_full',
@@ -124,8 +124,8 @@ features_1j = [
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
     #'tau2_BDTJetScore',
-    'tau1_x',
-    'tau2_x',
+    'tau1_collinear_momentum_fraction',
+    'tau2_collinear_momentum_fraction',
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',
@@ -138,8 +138,8 @@ features_0j = [
     'dR_tau1_tau2',
     #'tau1_BDTJetScore',
     #'tau2_BDTJetScore',
-    'tau1_x',
-    'tau2_x',
+    'tau1_collinear_momentum_fraction',
+    'tau2_collinear_momentum_fraction',
     'MET_centrality',
     'sum_pt_full',
     'tau_pt_ratio',

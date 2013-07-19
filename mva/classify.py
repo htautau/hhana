@@ -113,7 +113,8 @@ class ClassificationProblem(object):
                  spectators=None,
                  standardize=False,
                  output_suffix="",
-                 clf_output_suffix=""):
+                 clf_output_suffix="",
+                 partition_key=None):
 
         self.fields = fields
         self.category = category
@@ -122,6 +123,7 @@ class ClassificationProblem(object):
         self.standardize = standardize
         self.output_suffix = output_suffix
         self.clf_output_suffix = clf_output_suffix
+        self.partition_key = partition_key
         self.background_label = 0
         self.signal_label = 1
 
@@ -212,7 +214,8 @@ class ClassificationProblem(object):
                 category=self.category,
                 region=self.region,
                 fields=self.all_fields,
-                cuts=cuts)
+                cuts=cuts,
+                key=self.partition_key)
             signal_weight_arrs.append(
                (left['weight'], right['weight']))
             signal_arrs.append(
@@ -229,7 +232,8 @@ class ClassificationProblem(object):
                 category=self.category,
                 region=self.region,
                 fields=self.all_fields,
-                cuts=cuts)
+                cuts=cuts,
+                key=self.partition_key)
             background_weight_arrs.append(
                (left['weight'], right['weight']))
             background_arrs.append(
@@ -495,7 +499,8 @@ class ClassificationProblem(object):
                 cuts=cuts,
                 systematic=systematic,
                 num_partitions=2,
-                return_idx=True)
+                return_idx=True,
+                key=self.partition_key)
 
         score_idx = [[], []]
         for i, partition in enumerate(partitions):

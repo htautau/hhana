@@ -393,6 +393,7 @@ class Sample(object):
               cuts=None,
               include_weight=True,
               systematic='NOMINAL',
+              key=None,
               num_partitions=2,
               return_idx=False):
         """
@@ -401,16 +402,35 @@ class Sample(object):
         """
         partitions = []
         for start in range(num_partitions):
-            recs = self.records(
-                category,
-                region,
-                fields=fields,
-                include_weight=include_weight,
-                cuts=cuts,
-                systematic=systematic,
-                return_idx=return_idx,
-                start=start,
-                step=num_partitions)
+            if key is None:
+                # split by index
+                log.info("splitting records by index parity")
+                recs = self.records(
+                    category,
+                    region,
+                    fields=fields,
+                    include_weight=include_weight,
+                    cuts=cuts,
+                    systematic=systematic,
+                    return_idx=return_idx,
+                    start=start,
+                    step=num_partitions)
+            else:
+                # split by field values modulo the number of partitions
+                partition_cut = Cut('((({0})%{1})>={2})&&((({0})%{1})<{3})'.format(
+                    key, num_partitions, start, start + 1))
+                log.info(
+                    "splitting records by key parity: {0}".format(
+                        partition_cut))
+                recs = self.records(
+                    category,
+                    region,
+                    fields=fields,
+                    include_weight=include_weight,
+                    cuts=partition_cut & cuts,
+                    systematic=systematic,
+                    return_idx=return_idx)
+
             if return_idx:
                 partitions.append(recs)
             else:

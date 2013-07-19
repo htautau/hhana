@@ -31,8 +31,8 @@ def dup_idx(l):
     """
     _, b = np.unique(l, return_inverse=True)
     return np.nonzero(np.logical_or.reduce(
-                b[:, np.newaxis] == np.nonzero(np.bincount(b) > 1),
-                axis=1))[0]
+        b[:, np.newaxis] == np.nonzero(np.bincount(b) > 1),
+        axis=1))[0]
 
 
 def check_nan_inf(rec):
@@ -50,7 +50,11 @@ for i, filename in enumerate(args.files):
         # Walk through all trees in each ROOT file
         for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
             for treename in treenames:
+                print treename
                 tree = rfile.Get(os.path.join(dirpath, treename))
+                if not len(tree):
+                    continue
+                """
                 # Use RunNumber and EventNumber to uniquely define each event
                 keys = tree.to_array(['RunNumber', 'EventNumber'])
                 if keys.shape != np.unique(keys).shape:
@@ -61,6 +65,12 @@ for i, filename in enumerate(args.files):
                     print "GOOD %s" % treename
                 # Check the tree for invalid values
                 check_nan_inf(tree.to_array())
+                """
+                # Check fraction of even and odd EventNumbers
+                even = tree.GetEntries('(MET_et_original%10)%2')
+                odd = tree.GetEntries('!((MET_et_original%10)%2)')
+                print "even: %f" % (even / float(even + odd))
+                print "odd:  %f" % (odd / float(even + odd))
 
     if i < len(args.files) - 1:
         # not the last file, print a blank line

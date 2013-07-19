@@ -90,10 +90,13 @@ class Analysis(object):
             category=category,
             param=fit_param if fit_param is not None else self.fit_param)
 
-    def iter_categories(self, *definitions):
+    def iter_categories(self, *definitions, **kwargs):
 
+        names = kwargs.pop('names', None)
         for definition in definitions:
             for category in CATEGORIES[definition]:
+                if names is not None and category.name not in names:
+                    continue
                 log.info("")
                 log.info("=" * 40)
                 log.info("%s category" % category.name)

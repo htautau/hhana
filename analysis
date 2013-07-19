@@ -52,6 +52,9 @@ CONST_PARAMS = [
     'mu_BR_tautau',
 ]
 
+partition_key = 'MET_phi_original * 10'
+#partition_key = None
+
 SYSTEMATICS = get_systematics(year)
 lumi_rel_error = get_lumi_uncert(year)
 figures = {}
@@ -99,7 +102,8 @@ if 'yields' in args.actions:
     """
     Create a table of sample yields in each category and control region
     """
-    for category in analysis.iter_categories(args.categories, args.controls):
+    for category in analysis.iter_categories(
+            args.categories, args.controls, names=args.category_names):
         model_events = 0.
         log.info("Backgrounds:")
         bkg = []
@@ -126,16 +130,12 @@ if 'yields' in args.actions:
             print "{0} & {1:.1f}".format(name, events)
 
 
-for category in categories:
-    
-    if category_names is not None and category.name not in category_names:
-        continue
-    
-    # apply normalization
-    analysis.normalize(category, fit_param=args.fit_param)
-           
-    if 'plot' in args.actions:
+for category in analysis.iter_categories(
+    args.categories, args.controls, names=args.category_names):
 
+    is_control = category in CATEGORIES[args.controls]
+
+    if 'plot' in args.actions:
         figures[category.name] = {}
         cuts = Cut(args.plot_cut)
 
@@ -165,7 +165,7 @@ for category in categories:
             weighted=not args.no_weight,
             plots=args.plots,
             output_suffix=output_suffix,
-            unblind=args.unblind,
+            unblind=args.unblind or is_control,
             cuts=cuts)
         figures[category.name] = figs
     
@@ -190,7 +190,7 @@ for category in categories:
             stacked_model=False,
             cuts=cuts)
 
-    if 'train' in args.actions:
+    if 'train' in args.actions and not is_control:
         # all modes, all masses
         signals_train = [
             Higgs(
@@ -205,7 +205,8 @@ for category in categories:
             category=category,
             region=target_region,
             clf_output_suffix=clf_output_suffix,
-            output_suffix=output_suffix)
+            output_suffix=output_suffix,
+            partition_key=partition_key)
         
         clf.train(
             signals=signals_train,
@@ -216,7 +217,7 @@ for category in categories:
             cv_nfold=args.nfold,
             use_cache=args.use_clf_cache)
 
-    if '2d' in args.actions:
+    if '2d' in args.actions and not is_control:
         log.info("plotting 2d mass vs classifier output")
         draw_2d_hist(
             clf,
@@ -235,7 +236,7 @@ for category in categories:
         # create correlation matrices for signal, background
         # and background and data in a control region
 
-    if 'scatter' in args.actions:
+    if 'scatter' in args.actions and not is_control:
         # show 2D plots of all input variables and with BDT output
         log.info("drawing scatter plots of input variables")
         draw_scatter(
@@ -250,7 +251,7 @@ for category in categories:
             classifier=clf if 'train' in args.actions else None,
             unblind=args.unblind)
 
-    if 'evaluate' in args.actions:
+    if 'evaluate' in args.actions and not is_control:
         # create BDT validation plots
         clf.evaluate(
             analysis,
@@ -301,7 +302,9 @@ if 'workspace' in args.actions:
             category=parent_category,
             region='OS',
             clf_output_suffix=clf_output_suffix,
-            output_suffix=output_suffix)
+            output_suffix=output_suffix,
+            partition_key=partition_key)
+
         if not clf.load():
             sys.exit("train BDTs before requesting workspaces")
 
@@ -326,7 +329,8 @@ if 'workspace' in args.actions:
             category=category,
             region=target_region,
             clf_output_suffix=clf_output_suffix,
-            output_suffix=output_suffix)
+            output_suffix=output_suffix,
+            partition_key=partition_key)
         if not clf.load():
             sys.exit("train BDTs before requesting workspaces")
 
