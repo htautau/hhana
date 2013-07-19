@@ -1257,7 +1257,11 @@ class MC(Sample):
                 xs * kfact * effic / events)
 
             # read the table with a selection
-            rec = table.read_where(table_selection, **kwargs)
+            try:
+                rec = table.read_where(table_selection, **kwargs)
+            except:
+                print table
+                raise
 
             if return_idx:
                 idx = table.get_where_list(table_selection, **kwargs)
