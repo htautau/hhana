@@ -535,7 +535,6 @@ def draw_2d_hist(classifier,
             hist.Write()
 
 
-
 def uncertainty_band(model, systematics):
 
     # TODO determine systematics from model itself
@@ -555,21 +554,35 @@ def uncertainty_band(model, systematics):
         else:
             print variations
             raise ValueError(
-                    "only one or two variations per term are allowed")
+                "only one or two variations per term are allowed")
         total_high = model[0].Clone()
         total_high.Reset()
         total_low = total_high.Clone()
         total_max = total_high.Clone()
         total_min = total_high.Clone()
         for m in model:
+            print m.title, high, list(m.systematics[high])
             total_high += m.systematics[high]
             if low == 'NOMINAL':
                 total_low += m.Clone()
             else:
+                print m.title, low, list(m.systematics[low])
                 total_low += m.systematics[low]
+
+        if total_low.Integral() <= 0:
+            log.warning("{0}_DOWN is non-positive".format(term))
+        if total_high.Integral() <= 0:
+            log.warning("{0}_UP is non-positive".format(term))
+
         for i in xrange(len(total_high)):
             total_max[i] = max(total_high[i], total_low[i], total_model[i])
             total_min[i] = min(total_high[i], total_low[i], total_model[i])
+
+        if total_min.Integral() <= 0:
+            log.warning("{0}: lower bound is non-positive".format(term))
+        if total_max.Integral() <= 0:
+            log.warning("{0}: upper bound is non-positive".format(term))
+
         var_high.append(total_max)
         var_low.append(total_min)
 
@@ -1044,14 +1057,14 @@ def draw(name,
             model_stack.yaxis.SetRangeUser(ymin, ymax)
         else:
             model_bars = rplt.bar(
-                    model + scaled_signal if (
-                        signal is not None and signal_on_top)
-                    else model,
-                    linewidth=0,
-                    stacked=True,
-                    yerr='quadratic' if not systematics else False,
-                    axes=hist_ax,
-                    ypadding=ypadding)
+                model + scaled_signal if (
+                    signal is not None and signal_on_top)
+                else model,
+                linewidth=0,
+                stacked=True,
+                yerr='quadratic' if not systematics else False,
+                axes=hist_ax,
+                ypadding=ypadding)
 
             if signal is not None and signal_on_top:
                 signal_bars = model_bars[len(model):]
@@ -1081,19 +1094,19 @@ def draw(name,
         else:
             if fill_signal:
                 signal_bars = rplt.bar(
-                        scaled_signal,
-                        stacked=True, #yerr='quadratic',
-                        axes=hist_ax,
-                        alpha=alpha,
-                        ypadding=ypadding)
+                    scaled_signal,
+                    stacked=True, #yerr='quadratic',
+                    axes=hist_ax,
+                    alpha=alpha,
+                    ypadding=ypadding)
             else:
                 signal_bars = rplt.hist(
-                        scaled_signal,
-                        stacked=True,
-                        alpha=alpha,
-                        axes=hist_ax,
-                        ypadding=ypadding,
-                        zorder=1000)
+                    scaled_signal,
+                    stacked=True,
+                    alpha=alpha,
+                    axes=hist_ax,
+                    ypadding=ypadding,
+                    zorder=1000)
             if plot_signal_significance:
                 plot_significance(signal, model, ax=hist_ax)
 
@@ -1105,13 +1118,13 @@ def draw(name,
         y_up = y + np.array(list(gg_graph.yerrh()))
         y_low = y - np.array(list(gg_graph.yerrl()))
         f = qq_ax.fill_between(
-                list(gg_graph.x()),
-                y_low,
-                y_up,
-                interpolate=True,
-                facecolor='green',
-                linewidth=0,
-                label='68% CL band')
+            list(gg_graph.x()),
+            y_low,
+            y_up,
+            interpolate=True,
+            facecolor='green',
+            linewidth=0,
+            label='68% CL band')
         #l = qq_ax.plot(xrange(-10, 10), xrange(-10, 10), 'b--')[0]
         diag = [max(gg_graph.xedgesl(0), min(y)),
                 max(gg_graph.xedgesh(-1), max(y))]
@@ -1138,9 +1151,10 @@ def draw(name,
             low = total_model - low_band_model
             if root:
                 hist_pad.cd()
-                error_band_model = get_band(total_model,
-                                      low,
-                                      high)
+                error_band_model = get_band(
+                    total_model,
+                    low,
+                    high)
                 error_band_model.fillstyle = '/'
                 error_band_model.fillcolor = 'black'
                 error_band_model.Draw('same e2')
@@ -1148,18 +1162,19 @@ def draw(name,
             else:
                 # draw band as hatched histogram with base of model - low_band
                 # and height of high_band + low_band
-                rplt.fill_between(high,
-                            low,
-                            edgecolor='0.75',
-                            linewidth=0,
-                            facecolor=(0,0,0,0),
-                            hatch='////',
-                            axes=hist_ax,
-                            zorder=3000)
+                rplt.fill_between(
+                    high,
+                    low,
+                    edgecolor='0.75',
+                    linewidth=0,
+                    facecolor=(0,0,0,0),
+                    hatch='////',
+                    axes=hist_ax,
+                    zorder=3000)
 
         if signal is not None:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
-                    signal, systematics)
+                signal, systematics)
             high = (total_signal + high_band_signal) * signal_scale
             low = (total_signal - low_band_signal) * signal_scale
             if signal_on_top:
@@ -1167,23 +1182,24 @@ def draw(name,
                 low += total_model
             if root:
                 hist_pad.cd()
-                error_band_signal = get_band(total_signal * signal_scale,
-                                      low,
-                                      high)
+                error_band_signal = get_band(
+                    total_signal * signal_scale,
+                    low,
+                    high)
                 error_band_signal.fillstyle = '\\'
                 error_band_signal.fillcolor = 'black'
                 error_band_signal.Draw('same e2')
                 signal_stack.Draw('SAME')
             else:
                 rplt.fill_between(
-                        high,
-                        low,
-                        edgecolor='0.75',
-                        linewidth=0,
-                        facecolor=(0,0,0,0),
-                        hatch=r'\\\\',
-                        axes=hist_ax,
-                        zorder=4000)
+                    high,
+                    low,
+                    edgecolor='0.75',
+                    linewidth=0,
+                    facecolor=(0,0,0,0),
+                    hatch=r'\\\\',
+                    axes=hist_ax,
+                    zorder=4000)
 
     if data is not None and blind is not True:
         if isinstance(blind, tuple):
@@ -1212,11 +1228,11 @@ def draw(name,
 
         else:
             data_bars = rplt.errorbar(data,
-                    fmt='o', axes=hist_ax,
-                    ypadding=ypadding,
-                    emptybins=False,
-                    barsabove=True,
-                    zorder=5000)
+                fmt='o', axes=hist_ax,
+                ypadding=ypadding,
+                emptybins=False,
+                barsabove=True,
+                zorder=5000)
 
         # draw ratio plot
         if model is not None and show_ratio:

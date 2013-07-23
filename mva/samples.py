@@ -49,7 +49,6 @@ import yellowhiggs
 VERBOSE = False
 
 DB_HH = datasets.Database(name='datasets_hh', verbose=VERBOSE)
-DB_TAUID = datasets.Database(name='datasets_tauid', verbose=VERBOSE)
 FILES = {}
 
 
@@ -660,7 +659,11 @@ class Sample(object):
                 raise TypeError(
                     'histogram dimensionality does not match '
                     'number of fields: %s' % (', '.join(fields)))
+            #print self.name, systematic, fields, sum(weights)
+            #print list(hist)
             hist.fill_array(arr, weights=weights)
+            #print list(hist)
+            #print "=" * 80
 
 
 class Data(Sample):
@@ -1118,6 +1121,11 @@ class MC(Sample):
                 max_score=max_score,
                 systematic=systematic)
 
+        print self.name
+        for term, sys_hist in field_hist['tau1_pt'].systematics.items():
+            print term, list(sys_hist)
+        print "=" * 80
+
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=True,
@@ -1278,8 +1286,13 @@ class MC(Sample):
                 # merge the weight fields
                 rec['weight'] *= reduce(np.multiply,
                         [rec[br] for br in weight_branches])
+                if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
+                    log.warning("{0}: weights sum to zero!".format(table.name))
+                    for br in weight_branches:
+                        log.warning("{0}: {1}".format(br, repr(rec[br])))
                 # drop other weight fields
                 rec = recfunctions.rec_drop_fields(rec, weight_branches)
+
             if fields is not None:
                 try:
                     rec = rec[fields]
