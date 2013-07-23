@@ -167,6 +167,7 @@ class Category(object):
     __metaclass__ = CategoryMeta
 
     # common attrs for all categories. Override in subclasses
+    analysis_control = False
     is_control = False
     # category used for normalization
     norm_category = None
@@ -356,6 +357,7 @@ class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
 
 class Category_Nonboosted_0J(Category_Preselection):
 
+    analysis_control = True
     name = '0j_nonboosted'
     label = r'$\tau_{h}\tau_{h}$: 0-Jet Category'
     root_label = '#tau_{h}#tau_{h}: 0-Jet Category'

@@ -265,7 +265,7 @@ class Sample(object):
                     hist_down = hist.systematics[down_term]
 
                 histsys = histfactory.HistoSys(
-                    sys_component,
+                    'ATLAS_{0}_{1:d}'.format(sys_component, self.year),
                     low=hist_down,
                     high=hist_up)
 
@@ -347,12 +347,15 @@ class Sample(object):
             low = sample.hist
             high = shape_sys
             nom = (low + high) / 2.
-            nom.name = sample.hist.name + '_SHAPE_INTERP'
+            nom.name = sample.hist.name + '_SHAPE_INTERP{0}_{1:d}'.format(
+                '_CONTROL' if category.analysis_control else '', self.year)
             sample.hist = nom
             sample.histname = nom.name
 
             histsys = histfactory.HistoSys(
-                'ATLAS_HADHAD_QCD_SHAPE',
+                'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
+                    '_CONTROL' if category.analysis_control else '',
+                    self.year),
                 low=low,
                 high=high)
 

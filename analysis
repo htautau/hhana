@@ -133,7 +133,7 @@ if 'yields' in args.actions:
 for category in analysis.iter_categories(
     args.categories, args.controls, names=args.category_names):
 
-    is_control = category in CATEGORIES[args.controls]
+    is_control = category.analysis_control
 
     if 'plot' in args.actions:
         figures[category.name] = {}
