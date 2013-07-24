@@ -561,12 +561,12 @@ def uncertainty_band(model, systematics):
         total_max = total_high.Clone()
         total_min = total_high.Clone()
         for m in model:
-            print m.title, high, list(m.systematics[high])
+            #print m.title, high, list(m.systematics[high])
             total_high += m.systematics[high]
             if low == 'NOMINAL':
                 total_low += m.Clone()
             else:
-                print m.title, low, list(m.systematics[low])
+                #print m.title, low, list(m.systematics[low])
                 total_low += m.systematics[low]
 
         if total_low.Integral() <= 0:
