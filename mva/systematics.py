@@ -40,17 +40,20 @@ SYSTEMATICS_2011 = {
 
 SYSTEMATICS_2012 = {
     #'JES': (('JES_UP',), ('JES_DOWN',)),
-    #'JES_Modelling': (('JES_Modelling_UP',), ('JES_Modelling_DOWN',)),
-    #'JES_Detector': (('JES_Detector_UP',), ('JES_Detector_DOWN',)),
-    #'JES_EtaModelling': (('JES_EtaModelling_UP',), ('JES_EtaModelling_DOWN',)),
-    #'JES_EtaMethod': (('JES_EtaMethod_UP',), ('JES_EtaMethod_DOWN',)),
-    #'JES_PURho': (('JES_PURho_UP',), ('JES_PURho_DOWN',)),
-    #'JES_FlavComp': (('JES_FlavComp_UP',), ('JES_FlavComp_DOWN',)),
-    #'JES_FlavResp': (('JES_FlavResp_UP',), ('JES_FlavResp_DOWN',)),
-    #'JVF': (('JVF_UP',), ('JVF_DOWN',)),
-    #'JER': (('JER_UP',),),
+    'JES_Modelling': (('JES_Modelling_UP',), ('JES_Modelling_DOWN',)),
+    'JES_Detector': (('JES_Detector_UP',), ('JES_Detector_DOWN',)),
+    'JES_EtaModelling': (('JES_EtaModelling_UP',), ('JES_EtaModelling_DOWN',)),
+    'JES_EtaMethod': (('JES_EtaMethod_UP',), ('JES_EtaMethod_DOWN',)),
+    'JES_PURho': (('JES_PURho_UP',), ('JES_PURho_DOWN',)),
+    'JES_FlavComp': (('JES_FlavComp_UP',), ('JES_FlavComp_DOWN',)),
+    'JES_FlavResp': (('JES_FlavResp_UP',), ('JES_FlavResp_DOWN',)),
 
-    'TES': (('TES_UP',), ('TES_DOWN',)),
+    'JVF': (('JVF_UP',), ('JVF_DOWN',)),
+    'JER': (('JER_UP',),),
+
+    #'TES': (('TES_UP',), ('TES_DOWN',)),
+    'TES_TRUE': (('TES_TRUE_UP',), ('TES_TRUE_DOWN',)),
+    'TES_FAKE': (('TES_FAKE_UP',), ('TES_FAKE_DOWN',)),
     #'TES_EOP': (('TES_EOP_UP',), ('TES_EOP_DOWN',)),
     #'TES_CTB': (('TES_CTB_UP',), ('TES_CTB_DOWN',)),
     #'TES_Bias': (('TES_Bias_UP',), ('TES_Bias_DOWN',)),
@@ -59,15 +62,15 @@ SYSTEMATICS_2012 = {
     #'TES_PU': (('TES_PU_UP',), ('TES_PU_DOWN',)),
     #'TES_OTHERS': (('TES_OTHERS_UP',), ('TES_OTHERS_DOWN',)),
 
-    #'MFS': (('MFS_UP',), ('MFS_DOWN',)),
-    #'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
+    'MFS': (('MFS_UP',), ('MFS_DOWN',)),
+    'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
 
-    #'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
-    #'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
-    #'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
+    'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
+    'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
+    'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
 
-    #'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
-    #'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
+    'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
+    'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
 }
 
 SYSTEMATICS_BY_WEIGHT = [
