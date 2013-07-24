@@ -296,7 +296,8 @@ if 'workspace' in args.actions:
 
         # apply normalization
         control_analysis.normalize(parent_category, fit_param=args.fit_param)
-
+        
+        """
         clf = ClassificationProblem(
             fields=parent_category.features,
             category=parent_category,
@@ -307,11 +308,12 @@ if 'workspace' in args.actions:
 
         if not clf.load():
             sys.exit("train BDTs before requesting workspaces")
+        """
 
         contr = control_analysis.get_channel(hist_template, expr,
             category=category,
             region='OS',
-            clf=clf,
+            #clf=clf,
             include_signal=False)
         controls.append(contr)
         # TODO check that number of SS events is consistent with nOS
