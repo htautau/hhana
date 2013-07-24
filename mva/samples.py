@@ -38,7 +38,7 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.utils import kylefix, statsfix
+from .stats.utils import kylefix, statsfix, zero_negs
 from .cachedtable import CachedTable
 from .regions import REGIONS
 from .lumi import get_lumi_uncert
@@ -345,6 +345,8 @@ class Sample(object):
 
             # reflect shape about the nominal to get high and low variations
             shape_sys_reflect = sample.hist + (sample.hist - shape_sys)
+            shape_sys_reflect.name = shape_sys.name + '_reflected'
+            shape_sys_reflect = zero_negs(shape_sys_reflect)
 
             histsys = histfactory.HistoSys(
                 'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
@@ -413,7 +415,7 @@ class Sample(object):
                     step=num_partitions)
             else:
                 # split by field values modulo the number of partitions
-                partition_cut = Cut('((({0})%{1})>={2})&&((({0})%{1})<{3})'.format(
+                partition_cut = Cut('((abs({0})%{1})>={2})&&((abs({0})%{1})<{3})'.format(
                     key, num_partitions, start, start + 1))
                 log.info(
                     "splitting records by key parity: {0}".format(
