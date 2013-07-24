@@ -273,7 +273,7 @@ class Sample(object):
 
                 # drop norm on backgrounds if < 1% and signals if < .5%
                 if (isinstance(self, Background) and (
-                  norm.high >= 1.01 or norm.low <= 0.99)) or (
+                        norm.high >= 1.01 or norm.low <= 0.99)) or (
                     isinstance(self, Signal) and (
                         norm.high >= 1.005 or norm.low <= 0.995)):
                     sample.AddOverallSys(norm)
@@ -343,21 +343,15 @@ class Sample(object):
             # normalize shape_sys to the same integral as the nominal shape
             shape_sys *= sample.hist.Integral() / shape_sys.Integral()
 
-            # use interpolated shape as nominal and symmetrize
-            low = sample.hist
-            high = shape_sys
-            nom = (low + high) / 2.
-            nom.name = sample.hist.name + '_SHAPE_INTERP{0}_{1:d}'.format(
-                '_CONTROL' if category.analysis_control else '', self.year)
-            sample.hist = nom
-            sample.histname = nom.name
+            # reflect shape about the nominal to get high and low variations
+            shape_sys_reflect = sample.hist + (sample.hist - shape_sys)
 
             histsys = histfactory.HistoSys(
                 'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
                     '_CONTROL' if category.analysis_control else '',
                     self.year),
-                low=low,
-                high=high)
+                low=shape_sys,
+                high=shape_sys_reflect)
 
             sample.AddHistoSys(histsys)
 
