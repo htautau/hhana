@@ -124,12 +124,17 @@ EMBEDDING_SYSTEMATICS = {
 }
 
 
-def iter_systematics(include_nominal=False, year=2012):
+def iter_systematics(include_nominal=False, year=2012, components=None):
 
     syst = get_systematics(year)
     if include_nominal:
         yield 'NOMINAL'
-    for term, variations in syst.items():
+    terms = components if components is not None else syst.keys()
+    for term in terms:
+        try:
+            variations = syst[term]
+        except KeyError:
+            raise ValueError("systematic term {0} is not defined".format(term))
         for var in variations:
             yield var
 
