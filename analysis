@@ -89,7 +89,7 @@ clf_output_suffix = output_suffix
 if not args.systematics:
     output_suffix += '_statsonly'
 
-if args.transform_scores:
+if not args.raw_scores:
     ClassificationProblem.TRANSFORM = True
 
 if args.mass_points == 'all':

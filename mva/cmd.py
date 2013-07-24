@@ -151,9 +151,10 @@ def training_parser(parser=None):
             help='draw correlation plots')
     parser.add_argument('--ranking', action='store_true', default=False,
             help='only show the variable rankings')
-    parser.add_argument('--transform-scores', action='store_true',
+    parser.add_argument('--raw-scores', action='store_true',
             default=False,
-            help='apply a logistic transformation to classifier scores')
+            help='use raw classifier scores instead of applying '
+                 'a logistic transformation')
     return parser
 
 

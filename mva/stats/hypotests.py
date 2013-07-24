@@ -355,7 +355,9 @@ def channels(clf, category, region, backgrounds,
             clf,
             category=category,
             region=region,
-            cuts=cuts)
+            cuts=cuts,
+            systematics=systematics,
+            systematics_components=bkg.WORKSPACE_SYSTEMATICS)
         bkg_scores.append((bkg, scores_dict))
 
     # data scores
@@ -392,7 +394,9 @@ def channels(clf, category, region, backgrounds,
                 clf,
                 category=category,
                 region=region,
-                cuts=cuts)
+                cuts=cuts,
+                systematics=systematics,
+                systematics_components=sig.WORKSPACE_SYSTEMATICS)
             sig_scores.append((sig, scores_dict))
 
         # get templates that are safe for hypo tests
@@ -452,7 +456,9 @@ def optimized_channels(clf, category, region, backgrounds,
             clf,
             category=category,
             region=region,
-            cuts=cuts)
+            cuts=cuts,
+            systematics=systematics,
+            systematics_components=bkg.WORKSPACE_SYSTEMATICS)
         bkg_scores.append((bkg, scores_dict))
 
     # 125 GeV signal scores
@@ -464,7 +470,9 @@ def optimized_channels(clf, category, region, backgrounds,
             clf,
             category=category,
             region=region,
-            cuts=cuts)
+            cuts=cuts,
+            systematics=systematics,
+            systematics_components=sig.WORKSPACE_SYSTEMATICS)
         sig_scores.append((sig, scores_dict))
 
     # data scores
@@ -632,7 +640,9 @@ def optimized_channels(clf, category, region, backgrounds,
                 clf,
                 category=category,
                 region=region,
-                cuts=cuts)
+                cuts=cuts,
+                systematics=systematics,
+                systematics_components=sig.WORKSPACE_SYSTEMATICS)
             sig_scores.append((sig, scores_dict))
 
         # create HistFactory samples

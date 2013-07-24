@@ -52,7 +52,8 @@ for i, filename in enumerate(args.files):
             for treename in treenames:
                 print treename
                 tree = rfile.Get(os.path.join(dirpath, treename))
-                if not len(tree):
+                events = len(tree)
+                if not events:
                     continue
                 """
                 # Use RunNumber and EventNumber to uniquely define each event
@@ -67,10 +68,11 @@ for i, filename in enumerate(args.files):
                 check_nan_inf(tree.to_array())
                 """
                 # Check fraction of even and odd EventNumbers
-                even = tree.GetEntries('(MET_et_original%10)%2')
-                odd = tree.GetEntries('!((MET_et_original%10)%2)')
-                print "even: %f" % (even / float(even + odd))
-                print "odd:  %f" % (odd / float(even + odd))
+                even = tree.GetEntries('((abs(MET_phi_original*100)%2)>=1)&&((abs(MET_phi_original*100)%2)<2)')
+                odd =  tree.GetEntries('((abs(MET_phi_original*100)%2)>=0)&&((abs(MET_phi_original*100)%2)<1)')
+                assert even + odd == events
+                print "even: %f" % (even / float(events))
+                print "odd:  %f" % (odd / float(events))
 
     if i < len(args.files) - 1:
         # not the last file, print a blank line
