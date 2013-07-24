@@ -1120,10 +1120,12 @@ class MC(Sample):
                 max_score=max_score,
                 systematic=systematic)
 
+        """
         print self.name
         for term, sys_hist in field_hist['tau1_pt'].systematics.items():
             print term, list(sys_hist)
         print "=" * 80
+        """
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
@@ -1266,9 +1268,11 @@ class MC(Sample):
             # read the table with a selection
             try:
                 rec = table.read_where(table_selection, **kwargs)
-            except:
+            except Exception as e:
                 print table
-                raise
+                print e
+                continue
+                #raise
 
             if return_idx:
                 idx = table.get_where_list(table_selection, **kwargs)
@@ -1295,11 +1299,13 @@ class MC(Sample):
             if fields is not None:
                 try:
                     rec = rec[fields]
-                except:
+                except Exception as e:
                     print table
                     print rec.shape
                     print rec.dtype
-                    raise
+                    print e
+                    continue
+                    #raise
             recs.append(rec)
 
         if return_idx:

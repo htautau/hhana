@@ -52,7 +52,7 @@ CONST_PARAMS = [
     'mu_BR_tautau',
 ]
 
-partition_key = 'MET_phi_original * 10'
+partition_key = 'MET_phi_original * 100'
 #partition_key = None
 
 SYSTEMATICS = get_systematics(year)
