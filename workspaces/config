@@ -36,6 +36,9 @@ for xmlfilename in xmlfiles:
         line = line.replace('<Input>./workspaces/', '<Input>./')
         # HistFactory bug:
         line = line.replace('<ParamSetting Const="True"></ParamSetting>', '')
+        # found floats
+        line = re.sub(r'\d*\.\d{4,}',
+                      lambda x: str(round(float(x.group()), 3)), line)
         fout.write(line)
     fin.close()
     fout.close()
