@@ -340,7 +340,8 @@ def channels(clf, category, region, backgrounds,
              bins=10, binning='constant',
              mass_points=None, mu=1.,
              systematics=True,
-             unblind=False):
+             unblind=False,
+             hybrid_data=False):
     """
     Return a HistFactory Channel for each mass hypothesis
     """
@@ -425,6 +426,15 @@ def channels(clf, category, region, backgrounds,
                 cuts=cuts, scores=data_scores,
                 max_score=max_score,
                 suffix='_%d' % mass)
+            if not unblind and hybrid_data:
+                # blinded bins filled with S+B, for limit/p0 plots
+                # Swagato:
+                # We have to make 2 kinds of expected sensitivity plots:
+                # blinded sensitivity and unblinded sensitivity.
+                # For the first one pure AsimovData is used, for second one I
+                # suggest to use Hybrid, because the profiled NP's are not
+                # always at 0 pull.
+                pass
 
         # create channel for this mass point
         channel = histfactory.make_channel(
@@ -567,7 +577,7 @@ def optimized_channels(clf, category, region, backgrounds,
         plt.savefig('category_%s_limit_vs_nbins.png' % category.name)
 
     elif algo == 'UnevenBinningBySignificance':
-#         hist_template = Hist(200, min_score, max_score)
+        #hist_template = Hist(200, min_score, max_score)
         hist_template = Hist(200, -1.0, 1.0)
 
         sig_hist = hist_template.Clone(title='Signal')
@@ -605,12 +615,12 @@ def optimized_channels(clf, category, region, backgrounds,
         print "SIG entries:", sig_hist.GetEntries()
         print "BKG entries:", bkg_hist.GetEntries()
         sig_hist, bkg_hist, best_hist_template = optimize_binning(sig_hist, bkg_hist,
-#                 starting_point='fine'
+                #starting_point='fine'
                 starting_point='merged'
             )
         if best_hist_template is None:
             best_hist_template = hist_template
-#         raw_input("Hit enter to continue...")
+        #raw_input("Hit enter to continue...")
     else:
         print "ERROR: binning optimisation algo %s not in list!" % algo
         exit(1)
