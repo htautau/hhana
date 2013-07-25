@@ -337,7 +337,8 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
 
 def channels(clf, category, region, backgrounds,
              data=None, cuts=None, hist_template=None,
-             bins=10, binning='constant', mass_points=None,
+             bins=10, binning='constant',
+             mass_points=None, mu=1.,
              systematics=True,
              unblind=False):
     """
@@ -387,8 +388,8 @@ def channels(clf, category, region, backgrounds,
         sig_scores = []
         # signal scores
         for mode in Higgs.MODES:
-            sig = Higgs(year=year, mode=mode, mass=mass,
-                    systematics=systematics)
+            sig = Higgs(year=year, mode=mode, mass=mass, scale=mu,
+                        systematics=systematics)
 
             scores_dict = sig.scores(
                 clf,
@@ -434,8 +435,9 @@ def channels(clf, category, region, backgrounds,
 
 
 def optimized_channels(clf, category, region, backgrounds,
-            data=None, cuts=None, mass_points=None,
-            systematics=True, lumi_rel_error=0., algo='EvenBinningByLimit'):
+                       data=None, cuts=None, mass_points=None, mu=1.,
+                       systematics=True, lumi_rel_error=0.,
+                       algo='EvenBinningByLimit'):
     """
     Return optimally binned HistFactory Channels for each mass hypothesis
 
@@ -464,7 +466,7 @@ def optimized_channels(clf, category, region, backgrounds,
     # 125 GeV signal scores
     sig_scores = []
     for mode in Higgs.MODES:
-        sig = Higgs(year=year, mode=mode, mass=125,
+        sig = Higgs(year=year, mode=mode, mass=125, scale=mu,
                     systematics=systematics)
         scores_dict = sig.scores(
             clf,
@@ -634,7 +636,7 @@ def optimized_channels(clf, category, region, backgrounds,
         sig_scores = []
         # signal scores
         for mode in Higgs.MODES:
-            sig = Higgs(year=year, mode=mode, mass=mass,
+            sig = Higgs(year=year, mode=mode, mass=mass, scale=mu,
                         systematics=systematics)
             scores_dict = sig.scores(
                 clf,

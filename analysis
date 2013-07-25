@@ -82,6 +82,7 @@ analysis = Analysis(
     target_region=args.target_region,
     qcd_shape_region=args.qcd_shape_region,
     fit_param=args.fit_param,
+    random_mu=args.random_mu,
     root=args.root)
 
 output_suffix = analysis.get_suffix(args.fit_param, args.suffix)
@@ -344,6 +345,7 @@ if 'workspace' in args.actions:
                 data=analysis.data, 
                 cuts=signal_region,
                 mass_points=args.mass_points,
+                mu=analysis.mu,
                 systematics=args.systematics,
                 lumi_rel_error=lumi_rel_error,
                 #algo='EvenBinningByLimit')
@@ -359,6 +361,7 @@ if 'workspace' in args.actions:
                 bins=category.limitbins,
                 binning=category.limitbinning,
                 mass_points=args.mass_points,
+                mu=analysis.mu,
                 systematics=args.systematics,
                 unblind=args.unblind)
 

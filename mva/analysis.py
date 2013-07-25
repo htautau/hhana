@@ -1,3 +1,5 @@
+import random
+
 from rootpy.fit import histfactory
 
 from . import samples, log; log = log[__name__]
@@ -13,6 +15,7 @@ class Analysis(object):
                  target_region='OS_TRK',
                  qcd_shape_region='nOS',
                  fit_param='TRACK',
+                 random_mu=False,
                  root=False):
 
         self.year = year
@@ -41,6 +44,12 @@ class Analysis(object):
             systematics=systematics,
             root=root)
 
+        if random_mu:
+            self.mu = random.uniform(10, 1000)
+            log.info("using a random mu (signal strength)")
+        else:
+            self.mu = 1.
+
         self.data = samples.Data(year=year, root=root)
 
         self.higgs_125 = samples.Higgs(
@@ -50,7 +59,8 @@ class Analysis(object):
             linecolor='red',
             linewidth=2,
             linestyle='dashed',
-            root=root)
+            root=root,
+            scale=self.mu)
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
@@ -79,7 +89,8 @@ class Analysis(object):
                 mode=mode,
                 mass=mass,
                 systematics=self.systematics,
-                root=self.root))
+                root=self.root,
+                scale=self.mu))
         return signals
 
     def normalize(self, category, fit_param=None):

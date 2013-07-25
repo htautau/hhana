@@ -51,6 +51,8 @@ def general_parser(parser=None):
             help='control definitions')
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
+    parser.add_argument('--random-mu', action='store_true', default=False,
+            help='set mu (signal strength) to a random number')
     parser.add_argument('--no-embedding', action='store_false', default=True,
             dest='embedding',
             help='use ALPGEN Z->tau+tau instead of embedding')
