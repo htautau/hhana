@@ -268,6 +268,22 @@ class Sample(object):
                     hist_up = hist.systematics[up_term]
                     hist_down = hist.systematics[down_term]
 
+                if sys_component == 'JES_FlavComp':
+                    if ((isinstance(self, Signal) and self.mode == 'gg') or
+                         isinstance(self, Others)):
+                        sys_component += '_G'
+                    else:
+                        sys_component += '_Q'
+
+                elif sys_component == 'JES_PURho':
+                    if isinstance(self, Others):
+                        sys_component += '_QG'
+                    elif isinstance(self, Signal):
+                        if self.mode == 'gg':
+                            sys_component += '_GG'
+                        else:
+                            sys_component += '_QQ'
+
                 histsys = histfactory.HistoSys(
                     'ATLAS_{0}_{1:d}'.format(sys_component, self.year),
                     low=hist_down,
@@ -1556,15 +1572,16 @@ class Higgs(MC, Signal):
                 self.masses.append(mass)
                 self.modes.append(mode)
 
+        if len(self.modes) == 1:
+            self.mode = self.modes[0]
+        else:
+            self.mode = None
+        if len(self.masses) == 1:
+            self.mass = self.masses[0]
+        else:
+            self.mass = None
+
         super(Higgs, self).__init__(year=year, **kwargs)
-
-    @property
-    def mode(self):
-
-        if len(self.modes) != 1:
-            raise RuntimeError(
-                "Attempting to access mode for composite Higgs sample")
-        return self.modes[0]
 
 
 class QCD(Sample, Background):
