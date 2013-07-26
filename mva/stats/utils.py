@@ -1,7 +1,7 @@
 from . import log; log = log[__name__]
 
 import numpy as np
-from rootpy.plotting import Hist
+from rootpy.plotting import Hist, Hist2D, Hist3D
 from math import sqrt
 from .smooth import smooth, smooth_alt
 
@@ -203,17 +203,33 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
 def uniform_binning(hist, fix_systematics=True):
     """
     For some obscure technical reason, HistFactory can't handle histograms with
-    variable width bins. This function takes any 1D histogram and outputs a new
-    histogram with constant width bins by using the bin indices of the input
-    histogram as the x-axis of the new histogram.
+    variable width bins. This function takes any histogram and outputs a new
+    histogram with constant width bins along all axes by using the bin indices
+    of the input histogram as the x-axis of the new histogram.
     """
     llog = log['uniform_binning']
-    new_hist = Hist(len(hist), 0, len(hist),
-                    name=hist.name + '_uniform_binning')
+
+    if hist.GetDimension() == 1:
+        new_hist = Hist(hist.GetNbinsX(), 0, hist.GetNbinsX(),
+                        name=hist.name + '_uniform_binning', type=hist.TYPE)
+    elif hist.GetDimension() == 2:
+        new_hist = Hist2D(hist.GetNbinsX(), 0, hist.GetNbinsX(),
+                          hist.GetNbinsY(), 0, hist.GetNbinsY(),
+                          name=hist.name + '_uniform_binning', type=hist.TYPE)
+    elif hist.GetDimension() == 3:
+        new_hist = Hist3D(hist.GetNbinsX(), 0, hist.GetNbinsX(),
+                          hist.GetNbinsY(), 0, hist.GetNbinsY(),
+                          hist.GetNbinsZ(), 0, hist.GetNbinsZ(),
+                          name=hist.name + '_uniform_binning', type=hist.TYPE)
+    else:
+        raise TypeError(
+            "unable to apply uniform binning on object "
+            "of type {0}".format(type(hist)))
+
     # assume yerrh == yerrl (as usual for ROOT histograms)
-    for i, (value, error) in enumerate(zip(hist, hist.yerrh())):
-        new_hist.SetBinContent(i + 1, value)
-        new_hist.SetBinError(i + 1, error)
+    for outbin, inbin in zip(new_hist.bins(), hist.bins()):
+        outbin.value = inbin.value
+        outbin.error = inbin.error
 
     # also fix systematics hists
     if hasattr(hist, 'systematics'):
@@ -237,11 +253,11 @@ def zero_negs(hist, fix_systematics=True):
     """
     llog = log['zero_negs']
     new_hist = hist.Clone(name=hist.name + '_nonegs')
-    for i, value in enumerate(new_hist):
-        if value < 0:
+    for bin in new_hist.bins():
+        if bin.value < 0:
             llog.warning("zeroing negative bin %d in %s" %
-                         (i, hist.name))
-            new_hist[i] = 0.
+                         (bin.idx, hist.name))
+            bin.value = 0.
 
     # also fix systematics hists
     if hasattr(hist, 'systematics'):
@@ -332,7 +348,7 @@ def kylefix(hist, fix_systematics=False):
     llog = log['kylefix']
     fixed_hist = hist.Clone(name=hist.name + '_kylefix')
 
-    sumW2TotBin = sum([yerr**2 for yerr in hist.yerrh()])
+    sumW2TotBin = sum([bin.error**2 for bin in hist.bins()])
     avWeightBin = hist.GetSumOfWeights() / hist.GetEntries()
     avW2Bin = sumW2TotBin / hist.GetEntries()
 
@@ -340,12 +356,12 @@ def kylefix(hist, fix_systematics=False):
     # binContent = avWeight     [or avWeightbin]
     # binError = sqrt(avW2)     [or sqrt(avW2Bin)]
 
-    for i in xrange(len(fixed_hist)):
-        if fixed_hist[i] < 1E-6:
+    for bin in fixed_hist.bins():
+        if bin.value < 1E-6:
             llog.warning("filling empty or negative bin %d in %s" %
-                         (i, hist.name))
-            fixed_hist[i] = avWeightBin
-            fixed_hist.SetBinError(i + 1, sqrt(avW2Bin))
+                         (bin.idx, hist.name))
+            bin.value = avWeightBin
+            bin.error = sqrt(avW2Bin)
 
     # also fix systematics hists
     if hasattr(hist, 'systematics'):

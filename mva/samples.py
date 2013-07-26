@@ -33,7 +33,7 @@ from rootpy.fit import histfactory
 from . import log; log = log[__name__]
 from . import variables
 from . import NTUPLE_PATH, DEFAULT_STUDENT
-from .utils import print_hist, rec_to_ndarray
+from .utils import print_hist, rec_to_ndarray, ravel
 from .lumi import LUMI
 from .systematics import *
 from .constants import *
@@ -132,14 +132,11 @@ class Sample(object):
             systematics_components=None,
             suffix=None,
             field_scale=None,
-            weight_hist=None,
-            stats_fix=False):
+            weight_hist=None):
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
                           and systematics)
-
-        ndim = hist_template.GetDimension()
 
         if min_score is None:
             min_score = getattr(category, 'workspace_min_clf', None)
@@ -167,16 +164,6 @@ class Sample(object):
                 systematics=do_systematics,
                 systematics_components=systematics_components)
 
-            if ndim == 2:
-                # convert to 1D hist
-                rhist = hist.ravel(name = hist.name + '_ravel')
-                if do_systematics:
-                    rsyst = {}
-                    for term, syshist in hist.systematics.items():
-                        rsyst[term] = syshist.ravel(name=syshist.name + '_ravel')
-                    rhist.systematics = rsyst
-                hist = rhist
-
         else:
             # histogram classifier output
             if scores is None:
@@ -189,23 +176,6 @@ class Sample(object):
                 min_score=min_score,
                 max_score=max_score,
                 inplace=True)
-
-        if stats_fix:
-            # convert to uniform binning and zero out negative bins
-            hist = statsfix(hist, fix_systematics=True)
-
-            # always apply kylefix on backgrounds
-            if (isinstance(self, Background) and
-                not getattr(self, 'NO_KYLEFIX', False)):
-                log.info("applying kylefix()")
-                # TODO also apply kylefix on systematics?
-                # IMPORTANT: if kylefix is not applied on systematics, normalization
-                # can be inconsistent between nominal and systematics creating a
-                # bias in the OverallSys when separating the variation into
-                # normalization and shape components!
-                hist = kylefix(hist, fix_systematics=True)
-
-            print_hist(hist)
 
         return hist
 
@@ -243,8 +213,29 @@ class Sample(object):
             systematics_components=self.WORKSPACE_SYSTEMATICS,
             suffix=suffix,
             field_scale=field_scale,
-            weight_hist=weight_hist,
-            stats_fix=True)
+            weight_hist=weight_hist)
+
+        # convert to uniform binning and zero out negative bins
+        hist = statsfix(hist, fix_systematics=True)
+
+        # always apply kylefix on backgrounds
+        if (isinstance(self, Background) and
+            not getattr(self, 'NO_KYLEFIX', False)):
+            log.info("applying kylefix()")
+            # TODO also apply kylefix on systematics?
+            # IMPORTANT: if kylefix is not applied on systematics, normalization
+            # can be inconsistent between nominal and systematics creating a
+            # bias in the OverallSys when separating the variation into
+            # normalization and shape components!
+            hist = kylefix(hist, fix_systematics=True)
+
+        print_hist(hist)
+
+        # copy of unaltered nominal hist required by QCD shape
+        nominal_hist = hist.Clone()
+
+        # convert to 1D if 2D (also handles systematics if present)
+        hist = ravel(hist)
 
         # set the nominal histogram
         sample.hist = hist
@@ -324,7 +315,7 @@ class Sample(object):
 
         if isinstance(self, QCD):
             low, high = self.get_shape_systematic(
-                 sample.hist,
+                 nominal_hist,
                  expr_or_clf,
                  category, region,
                  cuts=cuts,
@@ -333,8 +324,26 @@ class Sample(object):
                  max_score=max_score,
                  suffix=suffix,
                  field_scale=field_scale,
-                 weight_hist=weight_hist,
-                 stats_fix=True)
+                 weight_hist=weight_hist)
+
+            low = ravel(low)
+            high = ravel(high)
+
+            # convert to uniform binning and zero out negative bins
+            low = statsfix(low, fix_systematics=True)
+            high = statsfix(high, fix_systematics=True)
+
+            # always apply kylefix on backgrounds
+            if (isinstance(self, Background) and
+                not getattr(self, 'NO_KYLEFIX', False)):
+                log.info("applying kylefix()")
+                # TODO also apply kylefix on systematics?
+                # IMPORTANT: if kylefix is not applied on systematics, normalization
+                # can be inconsistent between nominal and systematics creating a
+                # bias in the OverallSys when separating the variation into
+                # normalization and shape components!
+                low = kylefix(low, fix_systematics=True)
+                high = kylefix(high, fix_systematics=True)
 
             histsys = histfactory.HistoSys(
                 'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
@@ -1741,8 +1750,7 @@ class QCD(Sample, Background):
                     min_score=min_score,
                     max_score=max_score,
                     field_scale=field_scale,
-                    weight_hist=weight_hist,
-                    stats_fix=False)
+                    weight_hist=weight_hist)
                 h.systematics[('QCDSHAPE_DOWN',)] = low
                 h.systematics[('QCDSHAPE_UP',)] = high
 
@@ -1907,8 +1915,7 @@ class QCD(Sample, Background):
                              max_score=None,
                              suffix=None,
                              field_scale=None,
-                             weight_hist=None,
-                             stats_fix=False):
+                             weight_hist=None):
 
         hist_template = nominal_hist.Clone()
         hist_template.Reset()
@@ -1934,8 +1941,8 @@ class QCD(Sample, Background):
                     systematics=False,
                     suffix=(suffix or '') + '_%s' % model,
                     field_scale=field_scale,
-                    weight_hist=weight_hist,
-                    stats_fix=stats_fix))
+                    weight_hist=weight_hist))
+
             OSFF, SSFF = models
             shape_sys = OSFF
             shape_sys *= nominal_hist / SSFF
@@ -1956,8 +1963,7 @@ class QCD(Sample, Background):
                 systematics=False,
                 suffix=(suffix or '') + '_SS_TRK',
                 field_scale=field_scale,
-                weight_hist=weight_hist,
-                stats_fix=stats_fix)
+                weight_hist=weight_hist)
 
         else:
             raise ValueError(
@@ -1970,9 +1976,8 @@ class QCD(Sample, Background):
         # normalize shape_sys to the same integral as the nominal shape
         shape_sys *= nominal_hist.Integral() / shape_sys.Integral()
 
-        if stats_fix:
-            # smooth the shape systematic
-            shape_sys = smooth(nominal_hist, shape_sys)
+        # smooth the shape systematic
+        shape_sys = smooth(nominal_hist, shape_sys)
 
         # reflect shape about the nominal to get high and low variations
         shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)

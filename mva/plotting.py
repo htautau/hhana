@@ -1304,11 +1304,11 @@ def draw(name,
             else:
                 ratio_ax = plt.axes(rect_ratio)
                 ratio_ax.axhline(y=1, color='black', linestyle=':',
-                        linewidth=1.5)
+                                 linewidth=1.5)
                 ratio_ax.axhline(y=1.5, color='black', linestyle=':',
-                        linewidth=1.5)
+                                 linewidth=1.5)
                 ratio_ax.axhline(y=0.5, color='black', linestyle=':',
-                        linewidth=1.5)
+                                 linewidth=1.5)
                 rplt.step(error_hist, axes=ratio_ax)
                 ratio_ax.set_ylim(ratio_range)
                 ratio_ax.set_xlim(hist_ax.get_xlim())
@@ -1327,11 +1327,11 @@ def draw(name,
                         low_band_full[i] = 0.
                     else:
                         high_band_full[i] = abs(error_hist[i]) * math.sqrt(
-                                (data.yerrh(i) / data[i])**2 +
-                                (high_band_model[i] / total_model[i])**2)
+                            (data.yerrh(i) / data[i])**2 +
+                            (high_band_model[i] / total_model[i])**2)
                         low_band_full[i] = abs(error_hist[i]) * math.sqrt(
-                                (data.yerrl(i) / data[i])**2 +
-                                (low_band_model[i] / total_model[i])**2)
+                            (data.yerrl(i) / data[i])**2 +
+                            (low_band_model[i] / total_model[i])**2)
                 if root:
                     ratio_pad.cd()
                     error_band = get_band(error_hist,

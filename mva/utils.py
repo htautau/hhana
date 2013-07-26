@@ -14,8 +14,8 @@ def print_hist(hist):
     print
     if hist.title:
         print hist.title
-    for ibin in xrange(len(hist)):
-        print "%.5f +/- %.5f" % (hist[ibin], hist.yerrh(ibin))
+    for bin in hist.bins():
+        print "%.5f +/- %.5f" % (bin.value, bin.error)
     print
 
 
@@ -105,3 +105,18 @@ def braindump(outdir, indir=None, func=None):
                 thing.GetName(),
                 outdir.GetName()))
             thing.Write()
+
+
+def ravel(hist):
+
+    if hist.GetDimension() != 2:
+        return hist
+    # convert to 1D hist
+    rhist = hist.ravel(name = hist.name + '_ravel')
+    if hasattr(hist, 'systematics'):
+        # ravel the systematics
+        rsyst = {}
+        for term, syshist in hist.systematics.items():
+            rsyst[term] = syshist.ravel(name=syshist.name + '_ravel')
+        rhist.systematics = rsyst
+    return rhist
