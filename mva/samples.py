@@ -129,9 +129,11 @@ class Sample(object):
             min_score=None,
             max_score=None,
             systematics=True,
+            systematics_components=None,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            stats_fix=False):
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
@@ -163,7 +165,7 @@ class Sample(object):
                 min_score=min_score,
                 max_score=max_score,
                 systematics=do_systematics,
-                systematics_components=self.WORKSPACE_SYSTEMATICS)
+                systematics_components=systematics_components)
 
             if ndim == 2:
                 # convert to 1D hist
@@ -181,28 +183,30 @@ class Sample(object):
                 scores = self.scores(
                     expr_or_clf, category, region, cuts,
                     systematics=do_systematics,
-                    systematics_components=self.WORKSPACE_SYSTEMATICS)
+                    systematics_components=systematics_components)
             histogram_scores(
                 hist, scores,
                 min_score=min_score,
                 max_score=max_score,
                 inplace=True)
 
-        # convert to uniform binning and zero out negative bins
-        hist = statsfix(hist, fix_systematics=True)
+        if stats_fix:
+            # convert to uniform binning and zero out negative bins
+            hist = statsfix(hist, fix_systematics=True)
 
-        # always apply kylefix on backgrounds
-        if (isinstance(self, Background) and
-            not getattr(self, 'NO_KYLEFIX', False)):
-            log.info("applying kylefix()")
-            # TODO also apply kylefix on systematics?
-            # IMPORTANT: if kylefix is not applied on systematics, normalization
-            # can be inconsistent between nominal and systematics creating a
-            # bias in the OverallSys when separating the variation into
-            # normalization and shape components!
-            hist = kylefix(hist, fix_systematics=True)
+            # always apply kylefix on backgrounds
+            if (isinstance(self, Background) and
+                not getattr(self, 'NO_KYLEFIX', False)):
+                log.info("applying kylefix()")
+                # TODO also apply kylefix on systematics?
+                # IMPORTANT: if kylefix is not applied on systematics, normalization
+                # can be inconsistent between nominal and systematics creating a
+                # bias in the OverallSys when separating the variation into
+                # normalization and shape components!
+                hist = kylefix(hist, fix_systematics=True)
 
-        print_hist(hist)
+            print_hist(hist)
+
         return hist
 
     def get_histfactory_sample(self,
@@ -236,9 +240,11 @@ class Sample(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
+            systematics_components=self.WORKSPACE_SYSTEMATICS,
             suffix=suffix,
             field_scale=field_scale,
-            weight_hist=weight_hist)
+            weight_hist=weight_hist,
+            stats_fix=True)
 
         # set the nominal histogram
         sample.hist = hist
@@ -317,72 +323,24 @@ class Sample(object):
                 sample.AddHistoSys(shape)
 
         if isinstance(self, QCD):
-            log.info("adding QCD shape systematic")
-            curr_model = self.shape_region
-            # add QCD shape systematic
-            if isinstance(expr_or_clf, tuple):
-                # OSFF x (SS / SSFF) model in the track-fit category
-                assert curr_model == 'SS'
-                models = []
-                for model in ('OSFF', 'SSFF'):
-                    log.info("getting QCD shape for {0}".format(model))
-                    self.shape_region = model
-                    models.append(self.get_hist(
-                        hist_template,
-                        expr_or_clf,
-                        category, region,
-                        cuts=cuts,
-                        clf=clf,
-                        scores=None,
-                        min_score=min_score,
-                        max_score=max_score,
-                        systematics=False,
-                        suffix=(suffix or '') + '_%s' % model,
-                        field_scale=field_scale,
-                        weight_hist=weight_hist))
-                OSFF, SSFF = models
-                shape_sys = OSFF
-                shape_sys *= sample.hist / SSFF
-
-            else:
-                # SS_TRK model elsewhere
-                assert curr_model == 'nOS'
-                self.shape_region = 'SS_TRK'
-                log.info("getting QCD shape for SS_TRK")
-                shape_sys = self.get_hist(
-                    hist_template,
-                    expr_or_clf,
-                    category, region,
-                    cuts=cuts,
-                    clf=clf,
-                    scores=None,
-                    min_score=min_score,
-                    max_score=max_score,
-                    systematics=False,
-                    suffix=(suffix or '') + '_SS_TRK',
-                    field_scale=field_scale,
-                    weight_hist=weight_hist)
-
-            # restore previous shape model
-            self.shape_region = curr_model
-
-            # normalize shape_sys to the same integral as the nominal shape
-            shape_sys *= sample.hist.Integral() / shape_sys.Integral()
-
-            # smooth the shape systematic
-            shape_sys = smooth(sample.hist, shape_sys)
-
-            # reflect shape about the nominal to get high and low variations
-            shape_sys_reflect = sample.hist + (sample.hist - shape_sys)
-            shape_sys_reflect.name = shape_sys.name + '_reflected'
-            shape_sys_reflect = zero_negs(shape_sys_reflect)
+            low, high = self.get_shape_systematic(
+                 sample.hist,
+                 expr_or_clf,
+                 category, region,
+                 cuts=cuts,
+                 clf=clf,
+                 min_score=min_score,
+                 max_score=max_score,
+                 suffix=suffix,
+                 field_scale=field_scale,
+                 weight_hist=weight_hist,
+                 stats_fix=True)
 
             histsys = histfactory.HistoSys(
                 'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
                     '_CONTROL' if category.analysis_control else '',
                     self.year),
-                low=shape_sys,
-                high=shape_sys_reflect)
+                low=low, high=high)
 
             sample.AddHistoSys(histsys)
 
@@ -1920,3 +1878,85 @@ class QCD(Sample, Background):
                     partition['weight'] *= scale
 
         return arrays
+
+    def get_shape_systematic(self, nominal_hist,
+                             expr_or_clf,
+                             category, region,
+                             cuts=None,
+                             clf=None,
+                             min_score=None,
+                             max_score=None,
+                             suffix=None,
+                             field_scale=None,
+                             weight_hist=None,
+                             stats_fix=False):
+
+        hist_template = nominal_hist.Clone()
+        hist_template.Reset()
+
+        log.info("creating QCD shape systematic")
+        curr_model = self.shape_region
+        # add QCD shape systematic
+        if curr_model == 'SS':
+            # OSFF x (SS / SSFF) model in the track-fit category
+            models = []
+            for model in ('OSFF', 'SSFF'):
+                log.info("getting QCD shape for {0}".format(model))
+                self.shape_region = model
+                models.append(self.get_hist(
+                    hist_template,
+                    expr_or_clf,
+                    category, region,
+                    cuts=cuts,
+                    clf=clf,
+                    scores=None,
+                    min_score=min_score,
+                    max_score=max_score,
+                    systematics=False,
+                    suffix=(suffix or '') + '_%s' % model,
+                    field_scale=field_scale,
+                    weight_hist=weight_hist,
+                    stats_fix=stats_fix))
+            OSFF, SSFF = models
+            shape_sys = OSFF
+            shape_sys *= nominal_hist / SSFF
+
+        elif curr_model == 'nOS':
+            # SS_TRK model elsewhere
+            self.shape_region = 'SS_TRK'
+            log.info("getting QCD shape for SS_TRK")
+            shape_sys = self.get_hist(
+                hist_template,
+                expr_or_clf,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                scores=None,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=False,
+                suffix=(suffix or '') + '_SS_TRK',
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                stats_fix=stats_fix)
+
+        else:
+            raise ValueError(
+                "no QCD shape systematic defined for nominal {0}".format(
+                    curr_model))
+
+        # restore previous shape model
+        self.shape_region = curr_model
+
+        # normalize shape_sys to the same integral as the nominal shape
+        shape_sys *= nominal_hist.Integral() / shape_sys.Integral()
+
+        # smooth the shape systematic
+        shape_sys = smooth(nominal_hist, shape_sys)
+
+        # reflect shape about the nominal to get high and low variations
+        shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
+        shape_sys_reflect.name = shape_sys.name + '_reflected'
+        shape_sys_reflect = zero_negs(shape_sys_reflect)
+
+        return shape_sys, shape_sys_reflect
