@@ -6,8 +6,8 @@ import re
 from glob import glob
 import shutil
 
-inputfile = sys.argv[1]
-xmldir = sys.argv[2]
+inputfile = os.path.normpath(sys.argv[1])
+xmldir = os.path.normpath(sys.argv[2])
 xmloutdir = xmldir + '_render'
 xmlfiles = glob('%s/*.xml' % xmldir)
 resultsdir = '%s_results' % xmldir
