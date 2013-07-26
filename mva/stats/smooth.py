@@ -1,3 +1,4 @@
+from rootpy import asrootpy
 import os
 import ROOT
 
@@ -10,5 +11,8 @@ ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'smooth.C'),
 
 from ROOT import Smooth
 
-EqualArea = Smooth.EqualArea
-EqualAreaGabriel = Smooth.EqualAreaGabriel
+def smooth(*args, **kwargs):
+    return asrootpy(Smooth.EqualArea(*args), **kwargs)
+
+def smooth_alt(*args, **kwargs):
+    return asrootpy(Smooth.EqualAreaGabriel(*args), **kwargs)

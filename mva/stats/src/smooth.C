@@ -75,9 +75,10 @@ TH1* EqualArea(TH1* n, TH1* s, float frac) {
         }
     } // outer loop over bins
 
-    TString newName("new_");
-    newName.Append(s->GetName());
-    TH1F* newSyst = new TH1F(newName, newName, s->GetNbinsX(), s->GetBinLowEdge(1), s->GetBinLowEdge( s->GetNbinsX()+1 ));
+    TString newname(s->GetName());
+    newname.Append("_smooth");
+    TH1F* newSyst = (TH1F*) s->Clone(newname);
+    newSyst->Reset();
     newSyst->Sumw2();
 
     for(unsigned int i=0; i<bins.size(); i++) {
@@ -159,10 +160,12 @@ TH1* EqualAreaGabriel(TH1* n, TH1* s) {
             maxBin += 23;
         }
     } // outer loop over bins
-
-    TString newName("new_");
-    newName.Append(s->GetName());
-    TH1F* newSyst = new TH1F(newName, newName, s->GetNbinsX(), s->GetBinLowEdge(1), s->GetBinLowEdge( s->GetNbinsX()+1 ));
+   
+    TString newname(s->GetName());
+    newname.Append("_smooth");
+    TH1F* newSyst = (TH1F*) s->Clone(newname);
+    newSyst->Reset();
+    //TH1F* newSyst = new TH1F(newName, newName, s->GetNbinsX(), s->GetBinLowEdge(1), s->GetBinLowEdge( s->GetNbinsX()+1 ));
     newSyst->Sumw2();
 
     for(unsigned int i=0; i<bins.size(); i++) {
