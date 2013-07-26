@@ -83,6 +83,7 @@ analysis = Analysis(
     qcd_shape_region=args.qcd_shape_region,
     fit_param=args.fit_param,
     random_mu=args.random_mu,
+    mu=args.mu,
     root=args.root)
 
 output_suffix = analysis.get_suffix(args.fit_param, args.suffix)

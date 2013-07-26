@@ -16,6 +16,7 @@ class Analysis(object):
                  qcd_shape_region='nOS',
                  fit_param='TRACK',
                  random_mu=False,
+                 mu=1.,
                  root=False):
 
         self.year = year
@@ -45,10 +46,11 @@ class Analysis(object):
             root=root)
 
         if random_mu:
-            self.mu = random.uniform(10, 1000)
             log.info("using a random mu (signal strength)")
+            self.mu = random.uniform(10, 1000)
         else:
-            self.mu = 1.
+            log.info("using a mu (signal strength) of {0:.1f}".format(mu))
+            self.mu = mu
 
         self.data = samples.Data(year=year, root=root)
 
