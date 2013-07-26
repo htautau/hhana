@@ -272,7 +272,7 @@ class Sample(object):
                     hist_down = hist.systematics[down_term]
                     # smooth the shape systematics
                     hist_up = smooth(hist, hist_up)
-                    hist_down  smooth(hist, hist_down)
+                    hist_down = smooth(hist, hist_down)
 
                 if sys_component == 'JES_FlavComp':
                     if ((isinstance(self, Signal) and self.mode == 'gg') or
