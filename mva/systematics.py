@@ -71,6 +71,8 @@ SYSTEMATICS_2012 = {
 
     'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
     'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
+
+    'QCD_SHAPE': (('QCDSHAPE_UP',), ('QCDSHAPE_DOWN',)),
 }
 
 SYSTEMATICS_BY_WEIGHT = [

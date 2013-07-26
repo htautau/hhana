@@ -1638,6 +1638,8 @@ class QCD(Sample, Background):
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True):
 
+        # TODO: handle QCD shape systematic
+
         MC_bkg = hist.Clone()
         MC_bkg.Reset()
         for mc_scale, mc in zip(self.mc_scales, self.mc):
@@ -1724,23 +1726,40 @@ class QCD(Sample, Background):
             d_h = field_hist_data[expr]
             h += (d_h * self.data_scale - mc_h) * self.scale
             h.SetTitle(self.label)
-            if not do_systematics:
+            if not do_systematics or not hasattr(mc_h, 'systematics'):
                 continue
-            if hasattr(mc_h, 'systematics'):
-                if not hasattr(h, 'systematics'):
-                    h.systematics = {}
-                for sys_term, sys_hist in mc_h.systematics.items():
-                    scale = self.scale
-                    if sys_term == ('QCDFIT_UP',):
-                        scale = self.scale + self.scale_error
-                    elif sys_term == ('QCDFIT_DOWN',):
-                        scale = self.scale - self.scale_error
-                    qcd_hist = (d_h * self.data_scale - sys_hist) * scale
-                    qcd_hist.name = h.name + '_' + systematic_name(sys_term)
-                    if sys_term not in h.systematics:
-                        h.systematics[sys_term] = qcd_hist
-                    else:
-                        h.systematics[sys_term] += qcd_hist
+            if not hasattr(h, 'systematics'):
+                h.systematics = {}
+
+            # add shape systematics
+            if systematics_components is None:
+                low, high = self.get_shape_systematic(
+                    h, expr,
+                    category, region,
+                    cuts=cuts,
+                    clf=clf,
+                    min_score=min_score,
+                    max_score=max_score,
+                    field_scale=field_scale,
+                    weight_hist=weight_hist,
+                    stats_fix=False)
+                h.systematics[('QCDSHAPE_DOWN',)] = low
+                h.systematics[('QCDSHAPE_UP',)] = high
+
+            for sys_term, sys_hist in mc_h.systematics.items():
+                if sys_term in (('QCDSHAPE_UP',), ('QCDSHAPE_DOWN',)):
+                    continue
+                scale = self.scale
+                if sys_term == ('QCDFIT_UP',):
+                    scale = self.scale + self.scale_error
+                elif sys_term == ('QCDFIT_DOWN',):
+                    scale = self.scale - self.scale_error
+                qcd_hist = (d_h * self.data_scale - sys_hist) * scale
+                qcd_hist.name = h.name + '_' + systematic_name(sys_term)
+                if sys_term not in h.systematics:
+                    h.systematics[sys_term] = qcd_hist
+                else:
+                    h.systematics[sys_term] += qcd_hist
 
     def scores(self, clf, category, region,
                cuts=None,
@@ -1951,8 +1970,9 @@ class QCD(Sample, Background):
         # normalize shape_sys to the same integral as the nominal shape
         shape_sys *= nominal_hist.Integral() / shape_sys.Integral()
 
-        # smooth the shape systematic
-        shape_sys = smooth(nominal_hist, shape_sys)
+        if stats_fix:
+            # smooth the shape systematic
+            shape_sys = smooth(nominal_hist, shape_sys)
 
         # reflect shape about the nominal to get high and low variations
         shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
