@@ -6,9 +6,10 @@ from math import sqrt
 from .smooth import smooth, smooth_alt
 
 
-def get_safe_template(binning, bins, bkg_scores, sig_scores):
+def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
 
     # TODO: use full score range, not just min and max signal score
+    # TODO: account for range of data scores
 
     llog = log['get_safe_template']
     # determine min and max scores

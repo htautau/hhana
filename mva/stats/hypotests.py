@@ -17,6 +17,7 @@ from ..classify import histogram_scores
 from .utils import get_safe_template
 from ..utils import hist_to_dict
 
+
 def get_stat_w2(hist, x, y=0, z=0):
     """
     Obtain the true number of entries in the bin weighted by w^2
@@ -33,6 +34,7 @@ def get_stat_w2(hist, x, y=0, z=0):
     if hist.DIM < 2:
         y = 0
     return hist.GetSumw2().At(xl*yl*z + xl*y + x)
+
 
 def set_stat_w2(hist, n, x, y=0, z=0):
     """
@@ -51,6 +53,7 @@ def set_stat_w2(hist, n, x, y=0, z=0):
         y = 0
     hist.GetSumw2().SetAt(n, xl*yl*z + xl*y + x)
 
+
 def add_stat_w2(hist1, bins1, hist2, bins2):
     """
     Returns the added (w^2 * N) from specified hists and bins
@@ -62,6 +65,7 @@ def add_stat_w2(hist1, bins1, hist2, bins2):
     stat1 = get_stat_w2(hist1, *bins1)
     stat2 = get_stat_w2(hist2, *bins2)
     return stat1 + stat2
+
 
 def rebin_hist(hist, new_binning, axis='x'):
     """
@@ -192,6 +196,7 @@ def significance(sig_hist, bkg_hist, xbinrange=None, ybinrange=None, zbinrange=N
                 if sig > 0 and bkg > 0:
                     s += sig**2. / (bkg + syst)
     return math.sqrt(s)
+
 
 def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
     """
@@ -335,6 +340,7 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
         print "Binning already optimized --- nothing is changed"
     return sig_hist, bkg_hist, current_template
 
+
 def channels(clf, category, region, backgrounds,
              data=None, cuts=None, hist_template=None,
              bins=10, binning='constant',
@@ -350,6 +356,9 @@ def channels(clf, category, region, backgrounds,
     # TODO check for sample compatibility
     year = backgrounds[0].year
 
+    # WARNING: this template is only valid for transformed scores
+    hist_template = Hist(bins, -1.0001, 1.0001)
+
     # background model scores
     bkg_scores = []
     for bkg in backgrounds:
@@ -363,14 +372,13 @@ def channels(clf, category, region, backgrounds,
         bkg_scores.append((bkg, scores_dict))
 
     # data scores
+    data_scores = None
     if data is not None:
         data_scores, _ = data.scores(
             clf,
             category=category,
             region=region,
             cuts=cuts)
-
-    max_score = None
 
     # signal scores
     for mass in Higgs.MASS_POINTS:
@@ -402,20 +410,31 @@ def channels(clf, category, region, backgrounds,
             sig_scores.append((sig, scores_dict))
 
         # get templates that are safe for hypo tests
-        hist_template = get_safe_template(binning, bins, bkg_scores, sig_scores)
+        #hist_template = get_safe_template(
+        #    binning, bins, bkg_scores, sig_scores, data_scores)
 
         # create HistFactory samples
-        samples = []
-        for s, scores in bkg_scores + sig_scores:
+        sig_samples = []
+        for s, scores in sig_scores:
             sample = s.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
                 cuts=cuts, scores=scores,
                 suffix='_%d' % mass)
-            samples.append(sample)
+            sig_samples.append(sample)
+
+        bkg_samples = []
+        for s, scores in bkg_scores:
+            sample = s.get_histfactory_sample(
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=scores,
+                suffix='_%d' % mass)
+            bkg_samples.append(sample)
 
         data_sample = None
         if data is not None:
+            max_score = None
             if not unblind:
                 sig_hist = sum([histogram_scores(hist_template, scores)
                                 for s, scores in sig_scores])
@@ -439,7 +458,8 @@ def channels(clf, category, region, backgrounds,
         # create channel for this mass point
         channel = histfactory.make_channel(
             "%s_%d" % (category.name, mass),
-            samples, data=data_sample)
+            bkg_samples + sig_samples,
+            data=data_sample)
         channels[mass] = channel
     return channels
 
@@ -703,6 +723,7 @@ def get_limit_workspace(workspace, unblind=False, verbose=False):
     hist = asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
     hist.SetName('%s_limit' % workspace.GetName())
     return hist
+
 
 def get_significance_workspace(workspace, unblind=False, verbose=False):
 

@@ -179,7 +179,6 @@ class Category(object):
     train_signal_modes = samples.Higgs.MODES[:]
     clf_bins = 10
     # only unblind up to this number of bins in half-blind mode
-    halfblind_bins = 0
     # flat, onebkg or constant (see mva/stats/utils.py)
     limitbinning = 'constant'
 
@@ -256,10 +255,10 @@ class Category_VBF(Category_Preselection):
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
     limitbins = 98
+    #limitbins = 50
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
-    halfblind_bins = 50
     norm_category = Category_Preselection
 
 
@@ -289,10 +288,10 @@ class Category_Boosted(Category_Preselection):
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
     limitbins = 86
+    #limitbins = 50
     # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes
-    halfblind_bins = 50
     norm_category = Category_Preselection
 
 
@@ -326,7 +325,6 @@ class Category_Nonboosted_1J(Category_Preselection):
     limitbins = 10
     features = features_1j
     # train with all modes
-    halfblind_bins = 5
     norm_category = Category_Preselection
     #workspace_min_clf = 0.
 
@@ -367,7 +365,6 @@ class Category_Nonboosted_0J(Category_Preselection):
     limitbins = 7
     features = features_0j
     # train with all modes
-    halfblind_bins = 4
     norm_category = Category_Preselection
     #workspace_min_clf = 0.
 
