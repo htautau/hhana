@@ -38,7 +38,7 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.utils import kylefix, statsfix, zero_negs
+from .stats.utils import kylefix, statsfix, zero_negs, smooth
 from .cachedtable import CachedTable
 from .regions import REGIONS
 from .lumi import get_lumi_uncert
@@ -263,10 +263,16 @@ class Sample(object):
                     hist_up = hist.systematics[up_term]
                     # use nominal hist for "down" side
                     hist_down = hist
+                    # smooth the shape systematics
+                    hist_up = smooth(hist, hist_up)
+
                 else:
                     up_term, down_term = terms
                     hist_up = hist.systematics[up_term]
                     hist_down = hist.systematics[down_term]
+                    # smooth the shape systematics
+                    hist_up = smooth(hist, hist_up)
+                    hist_down  smooth(hist, hist_down)
 
                 if sys_component == 'JES_FlavComp':
                     if ((isinstance(self, Signal) and self.mode == 'gg') or
@@ -362,6 +368,9 @@ class Sample(object):
 
             # normalize shape_sys to the same integral as the nominal shape
             shape_sys *= sample.hist.Integral() / shape_sys.Integral()
+
+            # smooth the shape systematic
+            shape_sys = smooth(sample.hist, shape_sys)
 
             # reflect shape about the nominal to get high and low variations
             shape_sys_reflect = sample.hist + (sample.hist - shape_sys)

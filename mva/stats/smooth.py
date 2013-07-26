@@ -1,3 +1,4 @@
+from . import log; log = log[__name__]
 from rootpy import asrootpy
 import os
 import ROOT
@@ -11,8 +12,15 @@ ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'smooth.C'),
 
 from ROOT import Smooth
 
-def smooth(*args, **kwargs):
-    return asrootpy(Smooth.EqualArea(*args), **kwargs)
+__all__ = [
+    'smooth',
+    'smooth_alt',
+]
 
-def smooth_alt(*args, **kwargs):
-    return asrootpy(Smooth.EqualAreaGabriel(*args), **kwargs)
+def smooth(nom, sys, **kwargs):
+    log.info('smoothing {0}'.format(sys.name))
+    return asrootpy(Smooth.EqualArea(nom, sys), **kwargs)
+
+def smooth_alt(nom, sys, **kwargs):
+    log.info('smoothing {0}'.format(sys.name))
+    return asrootpy(Smooth.EqualAreaGabriel(nom, sys), **kwargs)

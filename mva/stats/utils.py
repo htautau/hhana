@@ -3,6 +3,7 @@ from . import log; log = log[__name__]
 import numpy as np
 from rootpy.plotting import Hist
 from math import sqrt
+from .smooth import smooth, smooth_alt
 
 
 def get_safe_template(binning, bins, bkg_scores, sig_scores):
