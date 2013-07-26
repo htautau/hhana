@@ -14,7 +14,7 @@ nom.Smooth(10)
 for i, bin in enumerate(sys.bins()):
     bin.value += i / 10.
 
-smooth_sys = smooth(nom, sys, 1.5,
+smooth_sys = smooth(nom, sys, 10,
         linecolor='red',
         linewidth=2,
         linestyle='dashed')

@@ -17,9 +17,9 @@ __all__ = [
     'smooth_alt',
 ]
 
-def smooth(nom, sys, **kwargs):
+def smooth(nom, sys, frac=0.5, **kwargs):
     log.info('smoothing {0}'.format(sys.name))
-    return asrootpy(Smooth.EqualArea(nom, sys), **kwargs)
+    return asrootpy(Smooth.EqualArea(nom, sys, frac), **kwargs)
 
 def smooth_alt(nom, sys, **kwargs):
     log.info('smoothing {0}'.format(sys.name))
