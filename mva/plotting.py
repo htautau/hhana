@@ -535,7 +535,7 @@ def draw_2d_hist(classifier,
             hist.Write()
 
 
-def uncertainty_band(model, systematics):
+def uncertainty_band(model, systematics, systematics_components):
 
     # TODO determine systematics from model itself
     if not isinstance(model, (list, tuple)):
@@ -555,14 +555,32 @@ def uncertainty_band(model, systematics):
             print variations
             raise ValueError(
                 "only one or two variations per term are allowed")
+
+        if systematics_components is not None:
+            if high not in systematics_components:
+                log.debug("filtering out {0}".format(high))
+                high = 'NOMINAL'
+            if low not in systematics_components:
+                log.debug("filtering out {0}".format(low))
+                low = 'NOMINAL'
+
+        if high == 'NOMINAL' and low == 'NOMINAL':
+            continue
+
+        log.debug("band includes {0}".format(term))
+
         total_high = model[0].Clone()
         total_high.Reset()
         total_low = total_high.Clone()
         total_max = total_high.Clone()
         total_min = total_high.Clone()
         for m in model:
-            #print m.title, high, list(m.systematics[high])
-            total_high += m.systematics[high]
+            if high == 'NOMINAL':
+                total_high += m.Clone()
+            else:
+                #print m.title, high, list(m.systematics[high])
+                total_high += m.systematics[high]
+
             if low == 'NOMINAL':
                 total_low += m.Clone()
             else:
@@ -586,14 +604,15 @@ def uncertainty_band(model, systematics):
         var_high.append(total_max)
         var_low.append(total_min)
 
-    # include stat error variation
-    total_model_stat_high = total_model.Clone()
-    total_model_stat_low = total_model.Clone()
-    for i in xrange(len(total_model)):
-        total_model_stat_high[i] += total_model.yerrh(i)
-        total_model_stat_low[i] -= total_model.yerrl(i)
-    var_high.append(total_model_stat_high)
-    var_low.append(total_model_stat_low)
+    if systematics_components is None:
+        # include stat error variation
+        total_model_stat_high = total_model.Clone()
+        total_model_stat_low = total_model.Clone()
+        for i in xrange(len(total_model)):
+            total_model_stat_high[i] += total_model.yerrh(i)
+            total_model_stat_low[i] -= total_model.yerrl(i)
+        var_high.append(total_model_stat_high)
+        var_low.append(total_model_stat_low)
 
     # sum variations in quadrature bin-by-bin
     high_band = total_model.Clone()
@@ -865,6 +884,7 @@ def draw(name,
          show_qq=False,
          output_formats=None,
          systematics=None,
+         systematics_components=None,
          root=False,
          width=8.,
          integer=False,
@@ -1146,7 +1166,7 @@ def draw(name,
         if model is not None:
             # draw systematics band
             total_model, high_band_model, low_band_model = uncertainty_band(
-                    model, systematics)
+                    model, systematics, systematics_components)
             high = total_model + high_band_model
             low = total_model - low_band_model
             if root:
@@ -1174,7 +1194,7 @@ def draw(name,
 
         if signal is not None:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
-                signal, systematics)
+                signal, systematics, systematics_components)
             high = (total_signal + high_band_signal) * signal_scale
             low = (total_signal - low_band_signal) * signal_scale
             if signal_on_top:

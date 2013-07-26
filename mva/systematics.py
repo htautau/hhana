@@ -156,3 +156,10 @@ def systematic_name(systematic):
     if isinstance(systematic, basestring):
         return systematic
     return '_'.join(systematic)
+
+
+def parse_systematics(string):
+
+    if not string:
+        return None
+    return [tuple(token.split('+')) for token in string.split(',')]

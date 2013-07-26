@@ -72,7 +72,9 @@ def general_parser(parser=None):
             help='suffix to add to any output files or plots')
     parser.add_argument('--workspace-suffix', default=None, nargs='?',
             help='suffix to add to workspace output files')
-
+    parser.add_argument('--systematics-components', default=None,
+            help='only include the following systematics in plots Example: '
+                 'TES_TRUE_UP,QCD_SHAPE_UP')
     return parser
 
 
