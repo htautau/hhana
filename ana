@@ -183,6 +183,58 @@ if 'ntup' in args.actions:
                     tree.Write()
 
 
+if 'ntuptruth' in args.actions:
+    # create an ntuple containing trees for each sample with classifier scores
+    # and event weights
+    
+    from root_numpy import array2tree
+
+    with root_open('hhntup_truth.root', 'recreate') as out:
+
+        signals = [Higgs(year, mass=125, mode=mode) for mode in ['VBF', 'gg']]
+
+        for category in analysis.iter_categories(
+                args.categories, args.controls, names=args.category_names):
+
+            if category.analysis_control:
+                continue
+            
+            clf = ClassificationProblem(
+                fields=category.features,
+                category=category,
+                region=target_region,
+                clf_output_suffix=clf_output_suffix,
+                output_suffix=output_suffix,
+                partition_key=partition_key)
+            if not clf.load():
+                sys.exit("train BDTs before requesting scores")
+            
+            for sample in signals:
+                tree = sample.trees(
+                    category, target_region)[0]
+                scores_dict = sample.scores(
+                    clf, category, target_region,
+                    systematics=False)
+
+                scores, weights = scores_dict['NOMINAL']
+                
+                new_fields = np.c_[scores, weights]
+                rec = np.core.records.fromarrays(
+                    new_fields.transpose(),
+                    names='score, weight',
+                    formats='f4, f4')
+                    
+                output_name = '{0}_category_{1}'.format(
+                    sample.name,
+                    category.name)
+                
+                out.cd()
+                outtree = tree.CloneTree(-1, 'fast')
+                # add branches to existing tree
+                array2tree(rec, tree=outtree)
+                outtree.Write(output_name)
+
+
 for category in analysis.iter_categories(
     args.categories, args.controls, names=args.category_names):
 
