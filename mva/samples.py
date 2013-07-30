@@ -215,6 +215,9 @@ class Sample(object):
             field_scale=field_scale,
             weight_hist=weight_hist)
 
+        # copy of unaltered nominal hist required by QCD shape
+        nominal_hist = hist.Clone()
+
         # convert to uniform binning and zero out negative bins
         hist = statsfix(hist, fix_systematics=True)
 
@@ -230,9 +233,6 @@ class Sample(object):
             hist = kylefix(hist, fix_systematics=True)
 
         print_hist(hist)
-
-        # copy of unaltered nominal hist required by QCD shape
-        nominal_hist = hist.Clone()
 
         # convert to 1D if 2D (also handles systematics if present)
         hist = ravel(hist)
