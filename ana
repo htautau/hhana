@@ -189,7 +189,7 @@ if 'ntuptruth' in args.actions:
     
     from root_numpy import array2tree
 
-    with root_open('hhntup_truth.root', 'recreate') as out:
+    with root_open('hhntup_theory_uncert.root', 'recreate') as out:
 
         signals = [Higgs(year, mass=125, mode=mode) for mode in ['VBF', 'gg']]
 
