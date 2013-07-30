@@ -1950,7 +1950,18 @@ class QCD(Sample, Background):
 
             OSFF, SSFF = models
             shape_sys = OSFF
+            print "OSFF"
+            print_hist(shape_sys)
+            print "nominal_hist"
+            print_hist(nominal_hist)
+            print "SSFF"
+            print_hist(SSFF)
+            print "nominal_hist / SSFF"
+            print_hist(nominal_hist / SSFF)
+
             shape_sys *= nominal_hist / SSFF
+            print "shape_sys"
+            print_hist(shape_sys)
 
         elif curr_model == 'nOS':
             # SS_TRK model elsewhere
