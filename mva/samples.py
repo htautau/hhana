@@ -1950,18 +1950,7 @@ class QCD(Sample, Background):
 
             OSFF, SSFF = models
             shape_sys = OSFF
-            print "OSFF"
-            print_hist(shape_sys)
-            print "nominal_hist"
-            print_hist(nominal_hist)
-            print "SSFF"
-            print_hist(SSFF)
-            print "nominal_hist / SSFF"
-            print_hist(nominal_hist / SSFF)
-
             shape_sys *= nominal_hist / SSFF
-            print "shape_sys"
-            print_hist(shape_sys)
 
         elif curr_model == 'nOS':
             # SS_TRK model elsewhere
@@ -1993,7 +1982,8 @@ class QCD(Sample, Background):
         shape_sys *= nominal_hist.Integral() / shape_sys.Integral()
 
         # smooth the shape systematic
-        shape_sys = smooth(nominal_hist, shape_sys)
+        # this produces an empty histogram for #track?
+        #shape_sys = smooth(nominal_hist, shape_sys)
 
         # reflect shape about the nominal to get high and low variations
         shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
