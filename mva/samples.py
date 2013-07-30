@@ -330,8 +330,8 @@ class Sample(object):
             high = ravel(high)
 
             # convert to uniform binning and zero out negative bins
-            low = statsfix(low, fix_systematics=True)
-            high = statsfix(high, fix_systematics=True)
+            low = statsfix(low)
+            high = statsfix(high)
 
             # always apply kylefix on backgrounds
             if (isinstance(self, Background) and
@@ -342,8 +342,13 @@ class Sample(object):
                 # can be inconsistent between nominal and systematics creating a
                 # bias in the OverallSys when separating the variation into
                 # normalization and shape components!
-                low = kylefix(low, fix_systematics=True)
-                high = kylefix(high, fix_systematics=True)
+                low = kylefix(low)
+                high = kylefix(high)
+
+            log.info("QCD low shape")
+            print_hist(low)
+            log.info("QCD high shape")
+            print_hist(high)
 
             histsys = histfactory.HistoSys(
                 'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
