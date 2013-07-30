@@ -313,50 +313,50 @@ class Sample(object):
                 # histosys part
                 sample.AddHistoSys(shape)
 
-        if isinstance(self, QCD):
-            low, high = self.get_shape_systematic(
-                 nominal_hist,
-                 expr_or_clf,
-                 category, region,
-                 cuts=cuts,
-                 clf=clf,
-                 min_score=min_score,
-                 max_score=max_score,
-                 suffix=suffix,
-                 field_scale=field_scale,
-                 weight_hist=weight_hist)
+            if isinstance(self, QCD):
+                low, high = self.get_shape_systematic(
+                     nominal_hist,
+                     expr_or_clf,
+                     category, region,
+                     cuts=cuts,
+                     clf=clf,
+                     min_score=min_score,
+                     max_score=max_score,
+                     suffix=suffix,
+                     field_scale=field_scale,
+                     weight_hist=weight_hist)
 
-            low = ravel(low)
-            high = ravel(high)
+                low = ravel(low)
+                high = ravel(high)
 
-            # convert to uniform binning and zero out negative bins
-            low = statsfix(low)
-            high = statsfix(high)
+                # convert to uniform binning and zero out negative bins
+                low = statsfix(low)
+                high = statsfix(high)
 
-            # always apply kylefix on backgrounds
-            if (isinstance(self, Background) and
-                not getattr(self, 'NO_KYLEFIX', False)):
-                log.info("applying kylefix()")
-                # TODO also apply kylefix on systematics?
-                # IMPORTANT: if kylefix is not applied on systematics, normalization
-                # can be inconsistent between nominal and systematics creating a
-                # bias in the OverallSys when separating the variation into
-                # normalization and shape components!
-                low = kylefix(low)
-                high = kylefix(high)
+                # always apply kylefix on backgrounds
+                if (isinstance(self, Background) and
+                    not getattr(self, 'NO_KYLEFIX', False)):
+                    log.info("applying kylefix()")
+                    # TODO also apply kylefix on systematics?
+                    # IMPORTANT: if kylefix is not applied on systematics, normalization
+                    # can be inconsistent between nominal and systematics creating a
+                    # bias in the OverallSys when separating the variation into
+                    # normalization and shape components!
+                    low = kylefix(low)
+                    high = kylefix(high)
 
-            log.info("QCD low shape")
-            print_hist(low)
-            log.info("QCD high shape")
-            print_hist(high)
+                log.info("QCD low shape")
+                print_hist(low)
+                log.info("QCD high shape")
+                print_hist(high)
 
-            histsys = histfactory.HistoSys(
-                'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
-                    '_CONTROL' if category.analysis_control else '',
-                    self.year),
-                low=low, high=high)
+                histsys = histfactory.HistoSys(
+                    'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
+                        '_CONTROL' if category.analysis_control else '',
+                        self.year),
+                    low=low, high=high)
 
-            sample.AddHistoSys(histsys)
+                sample.AddHistoSys(histsys)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)

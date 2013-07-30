@@ -351,8 +351,8 @@ if 'workspace' in args.actions:
                 mu=analysis.mu,
                 systematics=args.systematics,
                 lumi_rel_error=lumi_rel_error,
-                #algo='EvenBinningByLimit')
-                algo='UnevenBinningBySignificance',
+                algo='EvenBinningByLimit',
+                #algo='UnevenBinningBySignificance',
                 unblind=args.unblind)
         else:
             # construct a "channel" for each mass point
