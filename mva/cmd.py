@@ -24,7 +24,7 @@ def general_parser(parser=None):
     """
     General Options
     """
-    parser.add_argument('--actions', nargs='*',
+    parser.add_argument('actions', nargs='*',
             choices=[
                 'yields',
                 'validate',
