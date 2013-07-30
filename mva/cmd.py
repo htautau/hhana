@@ -35,7 +35,8 @@ def general_parser(parser=None):
                 'scatter',
                 'evaluate',
                 'workspace',
-                'limits'],
+                'limits',
+                'ntup'],
             default=[],
             help='only perform these actions')
     parser.add_argument('--no-systematics', action='store_false',

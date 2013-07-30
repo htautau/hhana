@@ -1,6 +1,7 @@
 import sys
 import os
 import errno
+import operator
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 import numpy as np
@@ -87,6 +88,14 @@ def rec_to_ndarray(rec, fields=None):
         return rec[fields[0]]
     # Creates a copy and recasts data to a consistent datatype
     return np.vstack([rec[field] for field in fields]).T
+
+
+def rec_stack(recs, fields=None):
+
+    if fields is None:
+        fields = list(reduce(operator.and_,
+            [set(rec.dtype.names) for rec in recs]))
+    return np.hstack([rec[fields] for rec in recs])
 
 
 def braindump(outdir, indir=None, func=None):

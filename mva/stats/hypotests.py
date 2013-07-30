@@ -470,6 +470,38 @@ def channels(clf, category, region, backgrounds,
 
     hist_template = Hist(bins, min_score, max_score)
 
+    bkg_samples = []
+    for s, scores in bkg_scores:
+        sample = s.get_histfactory_sample(
+            hist_template, clf,
+            category, region,
+            cuts=cuts, scores=scores)
+        bkg_samples.append(sample)
+
+    data_sample = None
+    if data_scores is not None:
+        max_unblind_score = None
+        if not unblind:
+            max_unblind_score = min([
+                efficiency_cut(
+                    sum([histogram_scores(hist_template, scores)
+                         for s, scores in all_sig_scores[mass]]), 0.3)
+                    for mass in mass_points])
+        data_sample = data.get_histfactory_sample(
+            hist_template, clf,
+            category, region,
+            cuts=cuts, scores=data_scores,
+            max_score=max_unblind_score)
+        if not unblind and hybrid_data:
+            # blinded bins filled with S+B, for limit/p0 plots
+            # Swagato:
+            # We have to make 2 kinds of expected sensitivity plots:
+            # blinded sensitivity and unblinded sensitivity.
+            # For the first one pure AsimovData is used, for second one I
+            # suggest to use Hybrid, because the profiled NP's are not
+            # always at 0 pull.
+            pass
+
     # signal scores
     for mass in Higgs.MASS_POINTS:
         if mass_points is not None and mass not in mass_points:
@@ -483,41 +515,8 @@ def channels(clf, category, region, backgrounds,
             sample = s.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
-                cuts=cuts, scores=scores,
-                suffix='_%d' % mass)
+                cuts=cuts, scores=scores)
             sig_samples.append(sample)
-
-        bkg_samples = []
-        for s, scores in bkg_scores:
-            sample = s.get_histfactory_sample(
-                hist_template, clf,
-                category, region,
-                cuts=cuts, scores=scores,
-                suffix='_%d' % mass)
-            bkg_samples.append(sample)
-
-        data_sample = None
-        if data_scores is not None:
-            max_score = None
-            if not unblind:
-                sig_hist = sum([histogram_scores(hist_template, scores)
-                                for s, scores in sig_scores])
-                max_score = efficiency_cut(sig_hist, 0.3)
-            data_sample = data.get_histfactory_sample(
-                hist_template, clf,
-                category, region,
-                cuts=cuts, scores=data_scores,
-                max_score=max_score,
-                suffix='_%d' % mass)
-            if not unblind and hybrid_data:
-                # blinded bins filled with S+B, for limit/p0 plots
-                # Swagato:
-                # We have to make 2 kinds of expected sensitivity plots:
-                # blinded sensitivity and unblinded sensitivity.
-                # For the first one pure AsimovData is used, for second one I
-                # suggest to use Hybrid, because the profiled NP's are not
-                # always at 0 pull.
-                pass
 
         # create channel for this mass point
         channel = histfactory.make_channel(
@@ -599,6 +598,7 @@ def optimized_channels(clf, category, region, backgrounds,
             if hist_dict['Expected'] < best_limit:
                 best_limit = hist_dict['Expected']
                 best_nbins = nbins
+                best_hist_template = hist_template
 
         # plot limit vs nbins
         fig = plt.figure()
@@ -676,6 +676,22 @@ def optimized_channels(clf, category, region, backgrounds,
     hist_template = best_hist_template
     channels = dict()
 
+    # create HistFactory samples
+    bkg_samples = []
+    for s, scores in bkg_scores:
+        sample = s.get_histfactory_sample(
+            hist_template, clf,
+            category, region,
+            cuts=cuts, scores=scores)
+        bkg_samples.append(sample)
+
+    data_sample = None
+    if data_scores is not None:
+        data_sample = data.get_histfactory_sample(
+            hist_template, clf,
+            category, region,
+            cuts=cuts, scores=data_scores)
+
     # now use the optimal binning and construct channels for all requested mass
     # hypotheses
     for mass in Higgs.MASS_POINTS:
@@ -684,36 +700,23 @@ def optimized_channels(clf, category, region, backgrounds,
         log.info('=' * 20)
         log.info("%d GeV mass hypothesis" % mass)
 
-        sig_scores = all_sig_scores[mass]
-
         # create HistFactory samples
-        samples = []
-        for s, scores in bkg_scores + sig_scores:
+        sig_samples = []
+        for s, scores in all_sig_scores[mass]:
             sample = s.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
-                cuts=cuts, scores=scores,
-                suffix='_%d' % mass)
-            samples.append(sample)
-
-        data_sample = None
-        if data_scores is not None:
-            data_sample = data.get_histfactory_sample(
-                hist_template, clf,
-                category, region,
-                cuts=cuts, scores=data_scores,
-                suffix='_%d' % mass)
+                cuts=cuts, scores=scores)
+            sig_samples.append(sample)
 
         # create channel for this mass point
         channel = histfactory.make_channel(
             "%s_%d" % (category.name, mass),
-            samples, data=data_sample)
+            bkg_samples + sig_samples,
+            data=data_sample)
 
         channels[mass] = channel
     return channels
-
-
-from rootpy.utils.silence import silence_sout_serr
 
 
 def get_limit(channels,
@@ -722,12 +725,12 @@ def get_limit(channels,
           lumi_rel_error=0.,
           POI='SigXsecOverSM'):
 
-    with silence_sout_serr():
-        workspace, _ = histfactory.make_workspace('higgs', channels,
-            lumi=lumi,
-            lumi_rel_error=lumi_rel_error,
-            POI=POI,
-            silence=True)
+    workspace, _ = histfactory.make_workspace('higgs', channels,
+        lumi=lumi,
+        lumi_rel_error=lumi_rel_error,
+        POI=POI,
+        #silence=True
+        )
     return get_limit_workspace(workspace, unblind=unblind)
 
 

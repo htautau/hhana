@@ -15,7 +15,7 @@ import shutil
 
 # rootpy imports
 from rootpy.tree import Cut
-from rootpy.io import root_open as ropen
+from rootpy.io import root_open
 from rootpy.fit import histfactory
 from rootpy.plotting import Hist2D
 
@@ -31,7 +31,8 @@ from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf, braindump
 from mva.classify import ClassificationProblem
-from mva.systematics import get_systematics, iter_systematics, parse_systematics
+from mva.systematics import (get_systematics, iter_systematics,
+    parse_systematics, systematic_name)
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
@@ -131,6 +132,55 @@ if 'yields' in args.actions:
             log.info("Data / Model: %f" % (data_events / model_events))
         for name, events in bkg + sig:
             print "{0} & {1:.1f}".format(name, events)
+
+
+if 'ntup' in args.actions:
+    # create an ntuple containing trees for each sample with classifier scores
+    # and event weights
+    
+    from root_numpy import array2tree
+    from numpy.lib import recfunctions
+
+    with root_open('hhntup.root', 'recreate') as out:
+        samples = analysis.backgrounds[:]
+        for mass in Higgs.MASS_POINTS:
+            signals = analysis.get_signals(mass)
+            samples.extend(signals)
+
+        for category in analysis.iter_categories(
+                args.categories, args.controls, names=args.category_names):
+
+            if category.analysis_control:
+                continue
+            
+            clf = ClassificationProblem(
+                fields=category.features,
+                category=category,
+                region=target_region,
+                clf_output_suffix=clf_output_suffix,
+                output_suffix=output_suffix,
+                partition_key=partition_key)
+            if not clf.load():
+                sys.exit("train BDTs before requesting scores")
+            
+            for sample in samples:
+                scores_dict = sample.scores(
+                    clf, category, target_region,
+                    systematics=args.systematics,
+                    systematics_components=sample.WORKSPACE_SYSTEMATICS)
+                for systematic, (scores, weights) in scores_dict.items():
+                    rec = sample.merged_records(
+                        category, target_region, systematic=systematic)
+                    output_name = '{0}_category_{1}_systematic_{2}'.format(
+                        sample.name,
+                        category.name,
+                        systematic_name(systematic))
+                    rec = recfunctions.rec_append_fields(rec,
+                        names='score',
+                        data=scores,
+                        dtypes='f4')
+                    tree = array2tree(rec, name=output_name)
+                    tree.Write()
 
 
 for category in analysis.iter_categories(
@@ -386,7 +436,7 @@ if 'workspace' in args.actions:
     
     dump_dir = ROOT.gDirectory.func()
 
-    with ropen('workspaces/limits%s.root' % workspace_suffix, 'recreate') as limits_file:
+    with root_open('workspaces/limits%s.root' % workspace_suffix, 'recreate') as limits_file:
         braindump(limits_file, indir=dump_dir,
             func=lambda h: h.ClassName().startswith('TH') and
                            h.GetName().startswith('category'))
@@ -406,7 +456,9 @@ if 'workspace' in args.actions:
                     POI='SigXsecOverSM',
                     lumi=1.0,
                     lumi_rel_error=lumi_rel_error,
-                    const_params=CONST_PARAMS)
+                    const_params=CONST_PARAMS,
+                    #silence=True
+                    )
                 # mu=1 for Asimov data
                 #measurement.SetParamValue('SigXsecOverSM', 1)
                 workspace.Write()
@@ -424,7 +476,9 @@ if 'workspace' in args.actions:
                 POI='SigXsecOverSM',
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
-                const_params=CONST_PARAMS)
+                const_params=CONST_PARAMS,
+                #silence=True
+                )
             # mu=1 for Asimov data
             #measurement.SetParamValue('SigXsecOverSM', 1)
             workspace.Write()

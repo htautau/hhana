@@ -33,7 +33,7 @@ from rootpy.fit import histfactory
 from . import log; log = log[__name__]
 from . import variables
 from . import NTUPLE_PATH, DEFAULT_STUDENT
-from .utils import print_hist, rec_to_ndarray, ravel
+from .utils import print_hist, rec_to_ndarray, rec_stack, ravel
 from .lumi import LUMI
 from .systematics import *
 from .constants import *
@@ -453,7 +453,7 @@ class Sample(object):
             cuts=cuts,
             systematic=systematic)
 
-        return np.hstack(recs)
+        return rec_stack(recs)
 
     def array(self,
               category,
@@ -1517,21 +1517,22 @@ class Higgs(MC, Signal):
                 assert mode in Higgs.MODES
             assert len(set(modes)) == len(modes)
 
-        str_mass = ''
-        if len(masses) == 1:
-            str_mass = '(%d)' % masses[0]
+        self.name = 'Signal'
 
         str_mode = ''
         if len(modes) == 1:
             str_mode = modes[0]
-            self.name = 'Signal_%s' % modes[0]
-        else:
-            self.name = 'Signal'
+            self.name += '_%s' % str_mode
+
+        str_mass = ''
+        if len(masses) == 1:
+            str_mass = '%d' % masses[0]
+            self.name += '_%s' % str_mass
 
         #self._label = r'%s$H%s\rightarrow\tau_{\mathrm{had}}\tau_{\mathrm{had}}$' % (
         #        str_mode, str_mass)
-        self._label = r'%sH%s$\rightarrow\tau_{h}\tau_{h}$' % (str_mode, str_mass)
-        self._label_root = '%sH%s#rightarrow#tau_{h}#tau_{h}' % (str_mode, str_mass)
+        self._label = r'%sH(%s)$\rightarrow\tau_{h}\tau_{h}$' % (str_mode, str_mass)
+        self._label_root = '%sH(%s)#rightarrow#tau_{h}#tau_{h}' % (str_mode, str_mass)
 
         if year == 2011:
             suffix = 'mc11c'
