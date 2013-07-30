@@ -353,7 +353,8 @@ if 'workspace' in args.actions:
                 lumi_rel_error=lumi_rel_error,
                 algo='EvenBinningByLimit',
                 #algo='UnevenBinningBySignificance',
-                unblind=args.unblind)
+                #unblind=args.unblind
+                )
         else:
             # construct a "channel" for each mass point
             channels = hypotests.channels(

@@ -379,6 +379,11 @@ def channels(clf, category, region, backgrounds,
             category=category,
             region=region,
             cuts=cuts)
+    #    min_score = data_scores.min()
+    #    max_score = data_scores.max()
+    #else:
+    #    min_score = float('inf')
+    #    max_score = float('-inf')
 
     # signal scores
     for mass in Higgs.MASS_POINTS:
@@ -536,9 +541,12 @@ def optimized_channels(clf, category, region, backgrounds,
         limit_hists = []
         best_limit = float('inf')
         best_nbins = 0
-        nbins_range = xrange(1, 101)
+        nbins_range = xrange(2, 101)
+
         for nbins in nbins_range:
-            hist_template = Hist(nbins, min_score, max_score)
+            # WARNING: this template is only valid for transformed scores
+            hist_template = Hist(nbins, -1.0001, 1.0001)
+
             # create HistFactory samples
             samples = []
             for s, scores in bkg_scores + sig_scores:
