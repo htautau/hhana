@@ -1,6 +1,7 @@
 from . import log; log = log[__name__]
 
 import math, array
+from collections import namedtuple
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -341,23 +342,40 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
     return sig_hist, bkg_hist, current_template
 
 
-def channels(clf, category, region, backgrounds,
-             data=None, cuts=None, hist_template=None,
-             bins=10, binning='constant',
-             mass_points=None, mu=1.,
-             systematics=True,
-             unblind=False,
-             hybrid_data=False):
-    """
-    Return a HistFactory Channel for each mass hypothesis
-    """
-    log.info("constructing channels")
-    channels = dict()
-    # TODO check for sample compatibility
+Scores = namedtuple('Scores', [
+    'data',
+    'data_scores',
+    'bkg_scores',
+    'all_sig_scores',
+    'min_score',
+    'max_score',])
+
+
+def get_scores(clf, category, region, backgrounds,
+               data=None, cuts=None,
+               mass_points=None, mu=1.,
+               systematics=True):
+
+    log.info("getting scores")
     year = backgrounds[0].year
 
-    # WARNING: this template is only valid for transformed scores
-    hist_template = Hist(bins, -1.0001, 1.0001)
+    min_score = float('inf')
+    max_score = float('-inf')
+
+    # data scores
+    data_scores = None
+    if data is not None:
+        data_scores, _ = data.scores(
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
+        _min = data_scores.min()
+        _max = data_scores.max()
+        if _min < min_score:
+            min_score = _min
+        if _max > max_score:
+            max_score = _max
 
     # background model scores
     bkg_scores = []
@@ -369,36 +387,24 @@ def channels(clf, category, region, backgrounds,
             cuts=cuts,
             systematics=systematics,
             systematics_components=bkg.WORKSPACE_SYSTEMATICS)
+
+        for sys_term, (scores, weights) in scores_dict.items():
+            if len(scores) == 0:
+                continue
+            _min = np.min(scores)
+            _max = np.max(scores)
+            if _min < min_score:
+                min_score = _min
+            if _max > max_score:
+                max_score = _max
+
         bkg_scores.append((bkg, scores_dict))
 
-    # data scores
-    data_scores = None
-    if data is not None:
-        data_scores, _ = data.scores(
-            clf,
-            category=category,
-            region=region,
-            cuts=cuts)
-    #    min_score = data_scores.min()
-    #    max_score = data_scores.max()
-    #else:
-    #    min_score = float('inf')
-    #    max_score = float('-inf')
-
     # signal scores
+    all_sig_scores = {}
     for mass in Higgs.MASS_POINTS:
         if mass_points is not None and mass not in mass_points:
             continue
-        log.info('=' * 20)
-        log.info("%d GeV mass hypothesis" % mass)
-        # create separate signal. background and data histograms for each
-        # mass hypothesis since the binning is optimized for each mass
-        # individually.
-        # The binning is determined by first locating the BDT cut value at
-        # which the signal significance is maximized (S / sqrt(B)).
-        # Everything above that cut is put in one bin. Everything below that
-        # cut is put into N variable width bins such that the background is
-        # flat.
         sig_scores = []
         # signal scores
         for mode in Higgs.MODES:
@@ -412,15 +418,68 @@ def channels(clf, category, region, backgrounds,
                 cuts=cuts,
                 systematics=systematics,
                 systematics_components=sig.WORKSPACE_SYSTEMATICS)
-            sig_scores.append((sig, scores_dict))
 
-        # get templates that are safe for hypo tests
-        #hist_template = get_safe_template(
-        #    binning, bins, bkg_scores, sig_scores, data_scores)
+            for sys_term, (scores, weights) in scores_dict.items():
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
+
+            sig_scores.append((sig, scores_dict))
+        all_sig_scores[mass] = sig_scores
+
+    min_score -= 1e-5
+    max_score += 1e-5
+
+    log.info("min score: {0} max score: {1}".format(min_score, max_score))
+    return Scores(
+        data=data,
+        data_scores=data_scores,
+        bkg_scores=bkg_scores,
+        all_sig_scores=all_sig_scores,
+        min_score=min_score,
+        max_score=max_score)
+
+
+def channels(clf, category, region, backgrounds,
+             data=None, cuts=None, hist_template=None,
+             bins=10, binning='constant',
+             mass_points=None, mu=1.,
+             systematics=True,
+             unblind=False,
+             hybrid_data=False):
+    """
+    Return a HistFactory Channel for each mass hypothesis
+    """
+    log.info("constructing channels")
+    channels = dict()
+
+    scores_obj = get_scores(clf, category, region, backgrounds,
+                            data=data, cuts=cuts, mass_points=mass_points,
+                            mu=mu, systematics=systematics)
+
+    data_scores = scores_obj.data_scores
+    bkg_scores = scores_obj.bkg_scores
+    all_sig_scores = scores_obj.all_sig_scores
+    min_score = scores_obj.min_score
+    max_score = scores_obj.max_score
+
+    hist_template = Hist(bins, min_score, max_score)
+
+    # signal scores
+    for mass in Higgs.MASS_POINTS:
+        if mass_points is not None and mass not in mass_points:
+            continue
+        log.info('=' * 20)
+        log.info("%d GeV mass hypothesis" % mass)
 
         # create HistFactory samples
         sig_samples = []
-        for s, scores in sig_scores:
+        for s, scores in all_sig_scores[mass]:
             sample = s.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
@@ -438,7 +497,7 @@ def channels(clf, category, region, backgrounds,
             bkg_samples.append(sample)
 
         data_sample = None
-        if data is not None:
+        if data_scores is not None:
             max_score = None
             if not unblind:
                 sig_hist = sum([histogram_scores(hist_template, scores)
@@ -466,6 +525,7 @@ def channels(clf, category, region, backgrounds,
             bkg_samples + sig_samples,
             data=data_sample)
         channels[mass] = channel
+
     return channels
 
 
@@ -483,69 +543,29 @@ def optimized_channels(clf, category, region, backgrounds,
     algos: EvenBinningByLimit, UnevenBinningBySignificance
     """
     log.info("constructing optimized channels")
-    # TODO check for sample compatibility
-    year = backgrounds[0].year
 
-    # background model scores
-    bkg_scores = []
-    for bkg in backgrounds:
-        scores_dict = bkg.scores(
-            clf,
-            category=category,
-            region=region,
-            cuts=cuts,
-            systematics=systematics,
-            systematics_components=bkg.WORKSPACE_SYSTEMATICS)
-        bkg_scores.append((bkg, scores_dict))
+    scores_obj = get_scores(clf, category, region, backgrounds,
+                            data=data, cuts=cuts, mass_points=mass_points,
+                            mu=mu, systematics=systematics)
 
-    # 125 GeV signal scores
-    sig_scores = []
-    for mode in Higgs.MODES:
-        sig = Higgs(year=year, mode=mode, mass=125, scale=mu,
-                    systematics=systematics)
-        scores_dict = sig.scores(
-            clf,
-            category=category,
-            region=region,
-            cuts=cuts,
-            systematics=systematics,
-            systematics_components=sig.WORKSPACE_SYSTEMATICS)
-        sig_scores.append((sig, scores_dict))
+    data_scores = scores_obj.data_scores
+    bkg_scores = scores_obj.bkg_scores
+    all_sig_scores = scores_obj.all_sig_scores
+    min_score = scores_obj.min_score
+    max_score = scores_obj.max_score
 
-    # data scores
-    if data is not None:
-        data_scores, _ = data.scores(
-            clf,
-            category=category,
-            region=region,
-            cuts=cuts)
-        min_score = data_scores.min()
-        max_score = data_scores.max()
-    else:
-        min_score = float('inf')
-        max_score = float('-inf')
-
-    for s, scores_dict in bkg_scores + sig_scores:
-        for sys_term, (scores, weights) in scores_dict.items():
-            if len(scores) == 0:
-                continue
-            _min = np.min(scores)
-            _max = np.max(scores)
-            if _min < min_score:
-                min_score = _min
-            if _max > max_score:
-                max_score = _max
+    sig_scores = all_sig_scores[125]
 
     best_hist_template = None
     if algo == 'EvenBinningByLimit':
         limit_hists = []
         best_limit = float('inf')
         best_nbins = 0
-        nbins_range = xrange(2, 101)
+        nbins_range = xrange(2, 50)
 
         for nbins in nbins_range:
-            # WARNING: this template is only valid for transformed scores
-            hist_template = Hist(nbins, -1.0001, 1.0001)
+
+            hist_template = Hist(nbins, min_score, max_score)
 
             # create HistFactory samples
             samples = []
@@ -663,27 +683,8 @@ def optimized_channels(clf, category, region, backgrounds,
             continue
         log.info('=' * 20)
         log.info("%d GeV mass hypothesis" % mass)
-        # create separate signal. background and data histograms for each
-        # mass hypothesis since the binning is optimized for each mass
-        # individually.
-        # The binning is determined by first locating the BDT cut value at
-        # which the signal significance is maximized (S / sqrt(B)).
-        # Everything above that cut is put in one bin. Everything below that
-        # cut is put into N variable width bins such that the background is
-        # flat.
-        sig_scores = []
-        # signal scores
-        for mode in Higgs.MODES:
-            sig = Higgs(year=year, mode=mode, mass=mass, scale=mu,
-                        systematics=systematics)
-            scores_dict = sig.scores(
-                clf,
-                category=category,
-                region=region,
-                cuts=cuts,
-                systematics=systematics,
-                systematics_components=sig.WORKSPACE_SYSTEMATICS)
-            sig_scores.append((sig, scores_dict))
+
+        sig_scores = all_sig_scores[mass]
 
         # create HistFactory samples
         samples = []
@@ -696,7 +697,7 @@ def optimized_channels(clf, category, region, backgrounds,
             samples.append(sample)
 
         data_sample = None
-        if data is not None:
+        if data_scores is not None:
             data_sample = data.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
@@ -712,16 +713,21 @@ def optimized_channels(clf, category, region, backgrounds,
     return channels
 
 
+from rootpy.utils.silence import silence_sout_serr
+
+
 def get_limit(channels,
           unblind=False,
           lumi=1.,
           lumi_rel_error=0.,
           POI='SigXsecOverSM'):
 
-    workspace, _ = histfactory.make_workspace('higgs', channels,
-        lumi=lumi,
-        lumi_rel_error=lumi_rel_error,
-        POI=POI)
+    with silence_sout_serr():
+        workspace, _ = histfactory.make_workspace('higgs', channels,
+            lumi=lumi,
+            lumi_rel_error=lumi_rel_error,
+            POI=POI,
+            silence=True)
     return get_limit_workspace(workspace, unblind=unblind)
 
 

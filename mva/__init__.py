@@ -72,4 +72,7 @@ set_style(style)
 
 #ROOT.TGaxis.SetMaxDigits(3)
 
-from rootpy.fit import mute_roostats; mute_roostats()
+from rootpy.utils.silence import silence_sout_serr
+
+with silence_sout_serr():
+    from rootpy.fit import mute_roostats; mute_roostats()
