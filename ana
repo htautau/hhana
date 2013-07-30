@@ -228,10 +228,11 @@ if 'ntuptruth' in args.actions:
                     sample.name,
                     category.name)
                 
+                # add branches to existing tree
+                array2tree(rec, tree=tree)
+
                 out.cd()
                 outtree = tree.CloneTree(-1, 'fast')
-                # add branches to existing tree
-                array2tree(rec, tree=outtree)
                 outtree.Write(output_name)
 
 
