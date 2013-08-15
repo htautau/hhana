@@ -15,11 +15,6 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     import tables
 
-# higgstautau imports
-from higgstautau import datasets
-from higgstautau.decorators import cached_property, memoize_method
-from higgstautau import samples as samples_db
-
 # rootpy imports
 import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
@@ -28,6 +23,11 @@ from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
 from rootpy.memory.keepalive import keepalive
 from rootpy.fit import histfactory
+
+# higgstautau imports
+from higgstautau import datasets
+from higgstautau.decorators import cached_property, memoize_method
+from higgstautau import samples as samples_db
 
 # local imports
 from . import log; log = log[__name__]
@@ -43,7 +43,7 @@ from .cachedtable import CachedTable
 from .regions import REGIONS
 from .lumi import get_lumi_uncert
 
-# Higgs cross sections
+# Higgs cross sections and branching ratios
 import yellowhiggs
 
 VERBOSE = False
@@ -1435,6 +1435,17 @@ class Others(MC, Background):
     NO_KYLEFIX = True
     NORM_BY_THEORY = True
 
+    def histfactory(self, sample, category, systematics=True):
+        if not systematics:
+            return
+        # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
+
+        # pdf uncertainty
+        sample.AddOverallSys('pdf_qq', 0.96, 1.04)
+
+        # QCD scale uncertainty
+        sample.AddOverallSys('QCDscale_V', 0.99, 1.01)
+
 
 class Higgs(MC, Signal):
 
@@ -1449,21 +1460,29 @@ class Higgs(MC, Signal):
         'W': ('wh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
     }
 
-    # constant uncert term, high, low
-    UNCERT_GGF = {
-        'pdf_gg': (1.079, 0.923),
-        'QCDscale_ggH1in': (1.133, 0.914),
+    MODES_WORKSPACE = {
+        'gg': 'ggH',
+        'VBF': 'VBF',
+        'Z', 'ZH',
+        'W', 'WH',
     }
 
-    UNCERT_VBF = {
-        'pdf_qqbar': (1.027, 0.979),
-        'QCDscale_qqH': (1.004, 0.996),
-    }
-
-    UNCERT_WZH = {
-        'pdf_qqbar': (1.039, 0.961),
-        'QCDscale_VH': (1.007, 0.992),
-    }
+    # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
+    QCD_SCALE = map(lambda token: token.strip().split(), '''\
+    QCDscale_qqH     VBF     0jet             1.020/0.980
+    QCDscale_qqH     VBF     1jet             1.020/0.980
+    QCDscale_qqH     VBF     boosted          1.014/0.986
+    QCDscale_qqH     VBF     VBF              1.020/0.980
+    QCDscale_VH      VH      0j_nonboosted    1.01/0.99
+    QCDscale_VH      VH      1j_nonboosted    1.022/0.978
+    QCDscale_VH      VH      boosted          1.041/0.960
+    QCDscale_VH      VH      VBF              1.01/0.99
+    QCDscale_ggH     ggH     0j_nonboosted    1.23/0.81
+    QCDscale_ggH1in  ggH     0j_nonboosted    1.09/0.92
+    QCDscale_ggH1in  ggH     1j_nonboosted    1.24/0.81
+    QCDscale_ggH1in  ggH     boosted          1.32/0.76
+    QCDscale_ggH2in  ggH     boosted          1.11/0.90
+    QCDscale_ggH2in  ggH     VBF              1.24/0.81'''.split('\n'))
 
     NORM_BY_THEORY = True
 
@@ -1477,17 +1496,58 @@ class Higgs(MC, Signal):
             raise TypeError(
                     'histfactory sample only valid for single mass point')
         mode = self.modes[0]
-        if mode == 'gg':
-            overall_dict = self.UNCERT_GGF
-        elif mode == 'VBF':
-            overall_dict = self.UNCERT_VBF
-        elif mode in ('Z', 'W'):
-            overall_dict = self.UNCERT_WZH
+
+        if mode in ('Z', 'W'):
+            _qcd_scale_mode = 'VH'
         else:
-            raise ValueError('mode %s is not valid' % mode)
-        for term, (high, low) in overall_dict.items():
-            log.info("defining overall sys %s" % term)
-            sample.AddOverallSys(term, low, high)
+            _qcd_scale_mode = self.MODES_WORKSPACE[mode]
+
+        for qcd_scale_term, qcd_scale_mode, qcd_scale_category, values in self.QCD_SCALE:
+            if qcd_scale_mode == _qcd_scale_mode and category.name.lower() == qcd_scale_category.lower():
+                high, low = map(float, values.split('/'))
+                sample.AddOverallSys(qcd_scale_term, low, high)
+
+        # BR_tautau
+        _, (br_up, br_down) = yellowhiggs.br(
+            self.mass, 'tautau', error_type='factor')
+        sample.AddOverallSys('mu_BR_tautau', br_down, br_up)
+
+        # mu_XS[energy]_[mode]
+        if self.year == 2011:
+            energy = 7
+        elif self.year == 2012:
+            energy = 8
+        else:
+            raise ValueError(
+                "collision energy is unknown for year {0:d}".format(self.year))
+        _, (xs_up, xs_down) = yellowhiggs.xs(
+            energy, self.mass, self.MODES_DICT[self.mode][0],
+            error_type='factor')
+        sample.AddOverallSys(
+            'mu_XS{0:d}_{1}'.format(energy, self.MODES_WORKSPACE[self.mode]),
+            xs_down, xs_up)
+
+        # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
+        # underlying event uncertainty in the VBF category
+        if category.name == 'vbf':
+            if mode == 'gg'
+                sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
+            elif mode == 'VBF':
+                sample.AddOverallSys('ATLAS_UE_qq', 0.94, 1.06)
+
+        # pdf uncertainty
+        if mode == 'gg':
+            if energy = 8:
+                sample.AddOverallSys('pdf_Higgs_gg', 0.93, 1.08)
+            else: # 7 TeV
+                sample.AddOverallSys('pdf_Higgs_gg', 0.92, 1.08)
+        else:
+            if energy = 8:
+                sample.AddOverallSys('pdf_Higgs_qq', 0.97, 1.03)
+            else: # 7 TeV
+                sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
+
+        # TODO: QCDscale_ggH3in
 
     def __init__(self, year,
             mode=None, modes=None,
