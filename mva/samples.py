@@ -351,12 +351,15 @@ class Sample(object):
                 print_hist(high)
 
                 histsys = histfactory.HistoSys(
-                    'ATLAS_HADHAD_QCD_SHAPE{0}_{1:d}'.format(
+                    'ATLAS_HADHAD_QCD_MODEL{0}_{1:d}'.format(
                         '_CONTROL' if category.analysis_control else '',
                         self.year),
                     low=low, high=high)
 
-                sample.AddHistoSys(histsys)
+                norm, shape = histfactory.split_norm_shape(histsys, hist)
+
+                sample.AddOverallSys(norm)
+                sample.AddHistoSys(shape)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)
@@ -1463,8 +1466,8 @@ class Higgs(MC, Signal):
     MODES_WORKSPACE = {
         'gg': 'ggH',
         'VBF': 'VBF',
-        'Z', 'ZH',
-        'W', 'WH',
+        'Z': 'ZH',
+        'W': 'WH',
     }
 
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
@@ -1530,19 +1533,19 @@ class Higgs(MC, Signal):
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
         # underlying event uncertainty in the VBF category
         if category.name == 'vbf':
-            if mode == 'gg'
+            if mode == 'gg':
                 sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
             elif mode == 'VBF':
                 sample.AddOverallSys('ATLAS_UE_qq', 0.94, 1.06)
 
         # pdf uncertainty
         if mode == 'gg':
-            if energy = 8:
+            if energy == 8:
                 sample.AddOverallSys('pdf_Higgs_gg', 0.93, 1.08)
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_gg', 0.92, 1.08)
         else:
-            if energy = 8:
+            if energy == 8:
                 sample.AddOverallSys('pdf_Higgs_qq', 0.97, 1.03)
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
@@ -1986,12 +1989,20 @@ class QCD(Sample, Background):
         hist_template = nominal_hist.Clone()
         hist_template.Reset()
 
+        # HACK
+        # use preselection as reference in which all models should have the same
+        # expected number of QCD events
+        # get number of events at preselection for nominal model
+        from .categories import Category_Preselection
+        nominal_events = self.events(Category_Preselection, None)
+
         log.info("creating QCD shape systematic")
         curr_model = self.shape_region
         # add QCD shape systematic
         if curr_model == 'SS':
             # OSFF x (SS / SSFF) model in the track-fit category
             models = []
+            events = []
             for model in ('OSFF', 'SSFF'):
                 log.info("getting QCD shape for {0}".format(model))
                 self.shape_region = model
@@ -2008,10 +2019,17 @@ class QCD(Sample, Background):
                     suffix=(suffix or '') + '_%s' % model,
                     field_scale=field_scale,
                     weight_hist=weight_hist))
+                events.append(self.events(Category_Preselection, None))
 
             OSFF, SSFF = models
+            OSFF_events, SSFF_events = events
             shape_sys = OSFF
-            shape_sys *= nominal_hist / SSFF
+            shape_sys *= (nominal_hist.normalize(copy=True) /
+                SSFF.normalize(copy=True))
+            # this is approximate
+            # normalize shape_sys such that it would have the same number of
+            # events as the nominal at preselection
+            shape_sys *= nominal_events / float(OSFF_events)
 
         elif curr_model == 'nOS':
             # SS_TRK model elsewhere
@@ -2030,6 +2048,10 @@ class QCD(Sample, Background):
                 suffix=(suffix or '') + '_SS_TRK',
                 field_scale=field_scale,
                 weight_hist=weight_hist)
+            SS_TRK_events = self.events(Category_Preselection, None)
+            # normalize shape_sys such that it would have the same number of
+            # events as the nominal at preselection
+            shape_sys *= nominal_events / float(SS_TRK_events)
 
         else:
             raise ValueError(
@@ -2038,9 +2060,6 @@ class QCD(Sample, Background):
 
         # restore previous shape model
         self.shape_region = curr_model
-
-        # normalize shape_sys to the same integral as the nominal shape
-        shape_sys *= nominal_hist.Integral() / shape_sys.Integral()
 
         # smooth the shape systematic
         # this produces an empty histogram for #track?
