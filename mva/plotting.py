@@ -1390,25 +1390,25 @@ def draw(name,
             model_legend.Draw()
         else:
             model_legend = hist_ax.legend(
-                    reversed(model_bars), [h.title for h in reversed(model)],
-                    prop=prop,
-                    title=(category.label + '\n' + plot_label
-                        if plot_label else category.label),
-                    loc='upper left')
+                reversed(model_bars), [h.title for h in reversed(model)],
+                prop=prop,
+                title=(category.label + '\n' + plot_label
+                    if plot_label else category.label),
+                loc='upper left')
             format_legend(model_legend)
 
     data_lumi = None
     if root:
         hist_pad.cd()
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
-                pad=hist_pad,
-                leftmargin=0.4,
-                rightmargin=0.12,
-                margin=0.3,
-                textsize=20,
-                entrysep=0.02,
-                entryheight=0.06,
-                topmargin=0.09)
+            pad=hist_pad,
+            leftmargin=0.4,
+            rightmargin=0.12,
+            margin=0.3,
+            textsize=20,
+            entrysep=0.02,
+            entryheight=0.06,
+            topmargin=0.09)
         if '\n' in data.title:
             dtitle = data.title.split('\n')
             data.title = dtitle[0]
@@ -1432,10 +1432,10 @@ def draw(name,
 
         if right_legend_bars:
             right_legend = hist_ax.legend(
-                    right_legend_bars[::-1],
-                    right_legend_titles[::-1],
-                    prop=prop,
-                    loc='upper right')
+                right_legend_bars[::-1],
+                right_legend_titles[::-1],
+                prop=prop,
+                loc='upper right')
             format_legend(right_legend)
             if model is not None:
                 # re-add model legend
@@ -1468,12 +1468,13 @@ def draw(name,
         if show_ratio:
             # hide x labels on top hist
             model_stack.xaxis.SetLabelOffset(100)
-            base_hist = error_hist
-            base_hist.xaxis.SetTitleOffset(base_hist.xaxis.GetTitleOffset() *
-                    2.5)
-            base_hist.xaxis.SetLabelOffset(base_hist.xaxis.GetLabelOffset() *
-                    4)
+            base_hist = error_hist_tmp
+            base_hist.xaxis.SetTitleOffset(
+                base_hist.xaxis.GetTitleOffset() * 2.5)
+            base_hist.xaxis.SetLabelOffset(
+                base_hist.xaxis.GetLabelOffset() * 4)
         base_hist.xaxis.SetTitle(label)
+
     else:
         hist_ax.set_ylabel(ylabel, position=(0., 1.), va='center', ha='right')
         base_ax = hist_ax
