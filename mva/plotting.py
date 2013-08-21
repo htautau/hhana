@@ -1242,6 +1242,7 @@ def draw(name,
                 ymax = _ymax
             data.SetMinimum(ymin)
             data.SetMaximum(ymax)
+            data.linewidth = 2
             data.Draw('same E1')
             data.yaxis.SetLimits(ymin, ymax)
             data.yaxis.SetRangeUser(ymin, ymax)
@@ -1276,7 +1277,7 @@ def draw(name,
                 ratio_pad.SetTopMargin(0.04)
                 ratio_pad.Draw()
                 ratio_pad.cd()
-                error_hist.Draw('hist')
+                error_hist.Draw('E1')
                 error_hist.yaxis.SetLimits(*ratio_range)
                 error_hist.yaxis.SetRangeUser(*ratio_range)
                 error_hist.yaxis.SetTitle('Data / Model')
@@ -1501,20 +1502,16 @@ def draw(name,
         label.SetTextFont(43)
         label.SetTextSize(20)
         label.DrawLatex(rect_hist[0] + 0.02, 0.9, category.root_label)
+        ATLAS_label(0.55, 0.9, sep=0.09, pad=hist_pad, sqrts=None, text="Internal")
         if data_lumi is not None:
             label_lumi = ROOT.TLatex()
             label_lumi.SetNDC()
             label_lumi.SetTextFont(43)
             label_lumi.SetTextSize(20)
-            label_lumi.DrawLatex(0.77, 0.9, data_lumi)
+            label_lumi.DrawLatex(0.75, 0.9, data_lumi)
         hist_pad.Update()
         hist_pad.Modified()
         hist_pad.RedrawAxis()
-        """
-        ATLAS_label(.6, .7, text="Work in Progress", sqrts=None,
-            pad=hist_pad,
-                sep=0.1)
-        """
 
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)

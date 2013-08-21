@@ -509,7 +509,11 @@ class Sample(object):
                 'ggf_weight',
             ]
             if isinstance(self, Embedded_Ztautau):
-                weight_branches.append('embedding_reco_unfold')
+                weight_branches += [
+                    'embedding_reco_unfold',
+                    'embedding_trigger_weight',
+                    'embedding_spin_weight',
+                ]
             for term, variations in WEIGHT_SYSTEMATICS.items():
                 if term == systerm:
                     weight_branches += variations[variation]
