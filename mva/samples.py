@@ -119,6 +119,52 @@ class Sample(object):
             return self._label_root
         return self._label
 
+    def get_hist_array(self,
+            field_hist_template,
+            category, region,
+            cuts=None,
+            clf=None,
+            scores=None,
+            min_score=None,
+            max_score=None,
+            systematics=True,
+            systematics_components=None,
+            suffix=None,
+            field_scale=None,
+            weight_hist=None):
+
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
+
+        if min_score is None:
+            min_score = getattr(category, 'workspace_min_clf', None)
+        if max_score is None:
+            max_score = getattr(category, 'workspace_max_clf', None)
+
+        histname = 'category_{0}_{1}'.format(category.name, self.name)
+        if suffix is not None:
+            histname += suffix
+
+        field_hist = {}
+        for field, hist in field_hist_template.items():
+            new_hist = hist.Clone(name=histname + '_{0}'.format(field))
+            new_hist.Reset()
+            field_hist[field] = new_hist
+
+        self.draw_array(field_hist, category, region,
+            cuts=cuts,
+            weighted=True,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            clf=clf,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=do_systematics,
+            systematics_components=systematics_components)
+
+        return field_hist
+
     def get_hist(self,
             hist_template,
             expr_or_clf,
@@ -314,7 +360,7 @@ class Sample(object):
                 sample.AddHistoSys(shape)
 
             if isinstance(self, QCD):
-                low, high = self.get_shape_systematic(
+                high, low = self.get_shape_systematic(
                      nominal_hist,
                      expr_or_clf,
                      category, region,
@@ -1808,22 +1854,34 @@ class QCD(Sample, Background):
             d_h = field_hist_data[expr]
             h += (d_h * self.data_scale - mc_h) * self.scale
             h.SetTitle(self.label)
+
+        if do_systematics and systematics_components is None:
+            # get shape systematic
+            field_shape_sys = self.get_shape_systematic_array(
+                # use the nominal hist here
+                field_hist,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score,
+                field_scale=field_scale,
+                weight_hist=weight_hist)
+        else:
+            field_shape_sys = None
+
+        for expr, h in field_hist.items():
+            mc_h = field_hist_MC_bkg[expr]
+            d_h = field_hist_data[expr]
+
             if not do_systematics or not hasattr(mc_h, 'systematics'):
                 continue
             if not hasattr(h, 'systematics'):
                 h.systematics = {}
 
-            # add shape systematics
-            if systematics_components is None:
-                low, high = self.get_shape_systematic(
-                    h, expr,
-                    category, region,
-                    cuts=cuts,
-                    clf=clf,
-                    min_score=min_score,
-                    max_score=max_score,
-                    field_scale=field_scale,
-                    weight_hist=weight_hist)
+            if field_shape_sys is not None:
+                # add shape systematics
+                high, low = field_shape_sys[expr]
                 h.systematics[('QCDSHAPE_DOWN',)] = low
                 h.systematics[('QCDSHAPE_UP',)] = high
 
@@ -1990,8 +2048,7 @@ class QCD(Sample, Background):
                              field_scale=None,
                              weight_hist=None):
 
-        hist_template = nominal_hist.Clone()
-        hist_template.Reset()
+        log.info("creating QCD shape systematic")
 
         # HACK
         # use preselection as reference in which all models should have the same
@@ -2000,7 +2057,9 @@ class QCD(Sample, Background):
         from .categories import Category_Preselection
         nominal_events = self.events(Category_Preselection, None)
 
-        log.info("creating QCD shape systematic")
+        hist_template = nominal_hist.Clone()
+        hist_template.Reset()
+
         curr_model = self.shape_region
         # add QCD shape systematic
         if curr_model == 'SS':
@@ -2075,3 +2134,108 @@ class QCD(Sample, Background):
         shape_sys_reflect = zero_negs(shape_sys_reflect)
 
         return shape_sys, shape_sys_reflect
+
+    def get_shape_systematic_array(
+            self, field_nominal_hist,
+            category, region,
+            cuts=None,
+            clf=None,
+            min_score=None,
+            max_score=None,
+            suffix=None,
+            field_scale=None,
+            weight_hist=None):
+
+        log.info("creating QCD shape systematic")
+
+        # HACK
+        # use preselection as reference in which all models should have the same
+        # expected number of QCD events
+        # get number of events at preselection for nominal model
+        from .categories import Category_Preselection
+        nominal_events = self.events(Category_Preselection, None)
+
+        field_hist_template = {}
+        for field, hist in field_nominal_hist.items():
+            new_hist = hist.Clone()
+            new_hist.Reset()
+            field_hist_template[field] = new_hist
+
+        curr_model = self.shape_region
+        # add QCD shape systematic
+        if curr_model == 'SS':
+            # OSFF x (SS / SSFF) model in the track-fit category
+            models = []
+            for model in ('OSFF', 'SSFF'):
+                log.info("getting QCD shape for {0}".format(model))
+                self.shape_region = model
+                models.append(self.get_hist_array(
+                    field_hist_template,
+                    category, region,
+                    cuts=cuts,
+                    clf=clf,
+                    scores=None,
+                    min_score=min_score,
+                    max_score=max_score,
+                    systematics=False,
+                    suffix=(suffix or '') + '_%s' % model,
+                    field_scale=field_scale,
+                    weight_hist=weight_hist))
+                if model == 'OSFF':
+                    norm_events = self.events(Category_Preselection, None)
+
+            OSFF, SSFF = models
+            field_shape_sys = {}
+            for field, nominal_hist in field_nominal_hist.items():
+                shape_sys = OSFF[field]
+                shape_sys *= (nominal_hist.normalize(copy=True) /
+                    SSFF[field].normalize(copy=True))
+                field_shape_sys[field] = shape_sys
+
+        elif curr_model == 'nOS':
+            # SS_TRK model elsewhere
+            self.shape_region = 'SS_TRK'
+            log.info("getting QCD shape for SS_TRK")
+            field_shape_sys = self.get_hist_array(
+                field_hist_template,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                scores=None,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=False,
+                suffix=(suffix or '') + '_SS_TRK',
+                field_scale=field_scale,
+                weight_hist=weight_hist)
+            norm_events = self.events(Category_Preselection, None)
+
+        else:
+            raise ValueError(
+                "no QCD shape systematic defined for nominal {0}".format(
+                    curr_model))
+
+        # restore previous shape model
+        self.shape_region = curr_model
+
+        field_shape_sys_reflect = {}
+
+        for field, shape_sys in field_shape_sys.items():
+            nominal_hist = field_nominal_hist[field]
+
+            # this may be approximate
+            # normalize shape_sys such that it would have the same number of
+            # events as the nominal at preselection
+            shape_sys *= nominal_events / float(norm_events)
+
+            # smooth the shape systematic
+            # this produces an empty histogram for #track?
+            #shape_sys = smooth(nominal_hist, shape_sys)
+
+            # reflect shape about the nominal to get high and low variations
+            shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
+            shape_sys_reflect.name = shape_sys.name + '_reflected'
+            shape_sys_reflect = zero_negs(shape_sys_reflect)
+            field_shape_sys_reflect[field] = (shape_sys, shape_sys_reflect)
+
+        return field_shape_sys_reflect

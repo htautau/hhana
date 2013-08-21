@@ -790,13 +790,13 @@ def draw_samples_array(
     for sample in model:
         field_hist = get_field_hist(sample, vars)
         sample.draw_array(field_hist,
-                category, region, cuts,
-                weighted=weighted,
-                field_scale=field_scale,
-                weight_hist=weight_hist,
-                clf=clf,
-                min_score=min_score,
-                max_score=max_score,)
+            category, region, cuts,
+            weighted=weighted,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            clf=clf,
+            min_score=min_score,
+            max_score=max_score,)
         model_hists.append(field_hist)
 
     if signal is not None:
@@ -804,13 +804,13 @@ def draw_samples_array(
         for sample in signal:
             field_hist = get_field_hist(sample, vars)
             sample.draw_array(field_hist,
-                    category, region, cuts,
-                    weighted=weighted,
-                    field_scale=field_scale,
-                    weight_hist=weight_hist,
-                    clf=clf,
-                    min_score=min_score,
-                    max_score=max_score)
+                category, region, cuts,
+                weighted=weighted,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score)
             signal_hists.append(field_hist)
     else:
         signal_hists = None
@@ -818,12 +818,12 @@ def draw_samples_array(
     if data is not None:
         data_field_hist = get_field_hist(data, vars)
         data.draw_array(data_field_hist, category, region, cuts,
-                weighted=weighted,
-                field_scale=field_scale,
-                weight_hist=weight_hist,
-                clf=clf,
-                min_score=min_score,
-                max_score=max_score)
+            weighted=weighted,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            clf=clf,
+            min_score=min_score,
+            max_score=max_score)
         """
         log.info("Data events: %d" % sum(data_hist))
         log.info("Model events: %f" % sum(sum(model_hists)))
@@ -1176,7 +1176,7 @@ def draw(name,
                     low,
                     high)
                 error_band_model.fillstyle = '/'
-                error_band_model.fillcolor = 'black'
+                error_band_model.fillcolor = '#cccccc'
                 error_band_model.Draw('same e2')
 
             else:
@@ -1207,7 +1207,7 @@ def draw(name,
                     low,
                     high)
                 error_band_signal.fillstyle = '\\'
-                error_band_signal.fillcolor = 'black'
+                error_band_signal.fillcolor = '#cccccc'
                 error_band_signal.Draw('same e2')
                 signal_stack.Draw('SAME')
             else:
@@ -1259,13 +1259,15 @@ def draw(name,
         if model is not None and show_ratio:
             total_model = sum(model)
             error_hist = Hist.divide(data, total_model, option='B')
-            # zero out bins where data is zero
+            # remove bins where data is zero
             for i, value in enumerate(data):
                 if value == 0:
-                    error_hist[i] = 1
+                    error_hist[i] = -1
+                    error_hist.SetBinError(i + 1, 0.)
             error_hist.linecolor = 'black'
             error_hist.linewidth = 2
             error_hist.fillstyle = 'hollow'
+
             if root:
                 fig.cd()
                 ratio_pad = Pad(
@@ -1277,29 +1279,40 @@ def draw(name,
                 ratio_pad.SetTopMargin(0.04)
                 ratio_pad.Draw()
                 ratio_pad.cd()
-                error_hist.Draw('E1')
-                error_hist.yaxis.SetLimits(*ratio_range)
-                error_hist.yaxis.SetRangeUser(*ratio_range)
-                error_hist.yaxis.SetTitle('Data / Model')
-                error_hist.yaxis.SetNdivisions(4)
+
+                # draw empty copy of error_hist first so lines will show
+                error_hist_tmp = error_hist.Clone()
+                error_hist_tmp.Reset()
+                error_hist_tmp.Draw()
+
+                error_hist_tmp.yaxis.SetLimits(*ratio_range)
+                error_hist_tmp.yaxis.SetRangeUser(*ratio_range)
+                error_hist_tmp.yaxis.SetTitle('Data / Model')
+                error_hist_tmp.yaxis.SetNdivisions(4)
                 xmin = model_stack.xaxis.GetXmin()
                 xmax = model_stack.xaxis.GetXmax()
-                error_hist.xaxis.SetLimits(xmin, xmax)
-                error_hist.xaxis.SetRangeUser(xmin, xmax)
-                error_hist.xaxis.SetTickLength(
-                    error_hist.xaxis.GetTickLength() * 2)
+                error_hist_tmp.xaxis.SetLimits(xmin, xmax)
+                error_hist_tmp.xaxis.SetRangeUser(xmin, xmax)
+                error_hist_tmp.xaxis.SetTickLength(
+                    error_hist_tmp.xaxis.GetTickLength() * 2)
+
                 # draw horizontal lines
                 line = Line(error_hist.xedges(0), 1,
                             error_hist.xedges(-1), 1)
                 line.linestyle = 'dashed'
+                line.linewidth = 2
                 line.Draw()
+
                 line_up = Line(error_hist.xedges(0), 1.50,
                                error_hist.xedges(-1), 1.50)
                 line_up.linestyle = 'dashed'
+                line_up.linewidth = 2
                 line_up.Draw()
+
                 line_dn = Line(error_hist.xedges(0), 0.50,
                                error_hist.xedges(-1), 0.50)
                 line_dn.linestyle = 'dashed'
+                line_dn.linewidth = 2
                 line_dn.Draw()
 
             else:
@@ -1310,13 +1323,13 @@ def draw(name,
                                  linewidth=1.5)
                 ratio_ax.axhline(y=0.5, color='black', linestyle=':',
                                  linewidth=1.5)
-                rplt.step(error_hist, axes=ratio_ax)
                 ratio_ax.set_ylim(ratio_range)
                 ratio_ax.set_xlim(hist_ax.get_xlim())
                 #ratio_ax.yaxis.tick_right()
                 ratio_ax.set_ylabel(r'Data / Model',
                         position=(0., 1.), va='center', ha='right')
 
+            # draw band below points
             if systematics:
                 # plot band on ratio plot
                 high_band_full = high_band_model.Clone()
@@ -1339,18 +1352,26 @@ def draw(name,
                                           error_hist + high_band_full,
                                           error_hist - low_band_full)
                     error_band.fillstyle = '\\'
-                    error_band.fillcolor = 'black'
-                    error_band.Draw('same e2')
+                    error_band.fillcolor = '#cccccc'
+                    error_band.Draw('same E2')
 
                 else:
                     rplt.fill_between(
                         error_hist + high_band_full,
                         error_hist - low_band_full,
-                        edgecolor='black',
+                        edgecolor='0.75',
                         linewidth=0,
                         facecolor=(0,0,0,0),
                         hatch='\\\\\\\\',
                         axes=ratio_ax)
+
+            # draw points above band
+            if root:
+                ratio_pad.cd()
+                error_hist.Draw('same E1')
+
+            else:
+                rplt.step(error_hist, axes=ratio_ax)
 
     if model is not None:
         if root:
