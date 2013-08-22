@@ -277,6 +277,7 @@ class Category_VBF_DEta_Control(Category_VBF):
     label = r'$\tau_{h}\tau_{h}$: VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     root_label = '#tau_{h}#tau_{h}: VBF Category QCD Control Region'
     norm_category = Category_Preselection_DEta_Control
+    #norm_category = Category_Preselection
 
 
 class Category_Boosted(Category_Preselection):
@@ -311,7 +312,8 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     name = 'boosted_deta_control'
     label = r'$\tau_{h}\tau_{h}$: Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     root_label = '#tau_{h}#tau_{h}: Boosted Category QCD Control Region'
-    norm_category = Category_Preselection_DEta_Control
+    #norm_category = Category_Preselection_DEta_Control
+    norm_category = Category_Preselection
 
 
 class Category_Nonboosted_1J(Category_Preselection):
@@ -351,6 +353,7 @@ class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
     label = r'$\tau_{h}\tau_{h}$: 1-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     root_label = '#tau_{h}#tau_{h}: 1-Jet Category QCD Control Region'
     norm_category = Category_Preselection_DEta_Control
+    #norm_category = Category_Preselection
 
 
 class Category_Nonboosted_0J(Category_Preselection):
@@ -391,6 +394,7 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
     label = r'$\tau_{h}\tau_{h}$: 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     root_label = '#tau_{h}#tau_{h}: 0-Jet Category QCD Control Region'
     norm_category = Category_Preselection_DEta_Control
+    #norm_category = Category_Preselection
 
 
 CATEGORIES = {
@@ -421,13 +425,13 @@ CATEGORIES = {
         Category_VBF_ID_Control,
         Category_Boosted_ID_Control,
         Category_Nonboosted_1J_ID_Control,
-        Category_Nonboosted_0J_ID_Control,
+        #Category_Nonboosted_0J_ID_Control,
     ],
     'mva_deta_controls': [
         Category_VBF_DEta_Control,
         Category_Boosted_DEta_Control,
         Category_Nonboosted_1J_DEta_Control,
-        Category_Nonboosted_0J_DEta_Control,
+        #Category_Nonboosted_0J_DEta_Control,
     ],
     'mva_workspace_controls': [
         #Category_Nonboosted_1J_Control,

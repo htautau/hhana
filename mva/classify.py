@@ -487,11 +487,6 @@ class ClassificationProblem(object):
         if self.clfs == None:
             raise RuntimeError("you must train the classifiers first")
 
-        if category.get_parent() != self.category:
-            raise RuntimeError(
-                "a classifier must be applied on the same "
-                "category it was trained in")
-
         partitions = sample.partitioned_records(
                 category=category,
                 region=region,
@@ -644,6 +639,7 @@ class ClassificationProblem(object):
             signal_scale=signal_scale if not unblind else 1.,
             data_scores=(data, data_scores),
             draw_data=True,
+            data_info=str(data.info),
             name='signal_region' + self.output_suffix,
             bins=category.clf_bins + 2,
             min_score=min_score,
@@ -665,6 +661,7 @@ class ClassificationProblem(object):
             signal_scale=signal_scale if not unblind else 1.,
             data_scores=(data, data_scores),
             draw_data=True,
+            data_info=str(data.info),
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
             systematics=systematics,
@@ -790,6 +787,7 @@ class ClassificationProblem(object):
             signal_scores=None,
             data_scores=(data, data_scores),
             draw_data=True,
+            data_info=str(data.info),
             name='control' + self.output_suffix,
             bins=category.clf_bins + 2,
             min_score=min_score,

@@ -717,6 +717,46 @@ class Sample(object):
             hist.fill_array(arr, weights=weights)
             #print list(hist)
             #print "=" * 80
+            if isinstance(self, Data):
+                if hasattr(hist, 'datainfo'):
+                    hist.datainfo += self.info
+                else:
+                    hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
+
+
+class DataInfo():
+    """
+    Class to hold lumi and collision energy info for plot labels
+    """
+    def __init__(self, lumi, energies):
+        self.lumi = lumi
+        if not isinstance(energies, (tuple, list)):
+            self.energies = [energies]
+        else:
+            # defensive copy
+            self.energies = energies[:]
+        self.mode = 'root'
+
+    def __add__(self, other):
+        return DataInfo(self.lumi + other.lumi,
+                        self.energies + other.energies)
+
+    def __iadd__(self, other):
+        self.lumi += other.lumi
+        self.energies.extend(other.energies)
+
+    def __str__(self):
+        if self.mode == 'root':
+            label = '#scale[0.7]{#int}dt L = %.1f fb^{-1} ' % self.lumi
+            label += '#sqrt{#font[52]{s}} = '
+            label += '+'.join(map(lambda e: '%d TeV' % e,
+                                  sorted(set(self.energies))))
+        else:
+            label = '$\int dt L = %.1f$ fb$^{-1}$ ' % self.lumi
+            label += '$\sqrt{s} =$ '
+            label += '$+$'.join(map(lambda e: '%d TeV' % e,
+                                    sorted(set(self.energies))))
+        return label
 
 
 class Data(Sample):
@@ -732,12 +772,10 @@ class Data(Sample):
         self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
 
-        self._label = ('%s Data $\sqrt{s} = %d$ TeV\n'
-                       '$\int dt L = %.1f$ fb$^{-1}$' % (
-                       self.year, self.energy, LUMI[self.year] / 1e3))
-        self._label_root = ('%s Data #sqrt{s} = %d TeV\n'
-                            '#scale[0.7]{#int}dt L = %.1f fb^{-1}' % (
-                            self.year, self.energy, LUMI[self.year] / 1e3))
+        self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
+
+        self._label = '%s Data' % self.year
+        self._label_root = '%s Data' % self.year
 
         self.name = 'Data'
 
@@ -752,6 +790,10 @@ class Data(Sample):
                   cuts=None, weighted=True, systematics=True):
 
         self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
+        if not hasattr(hist, datainfo):
+            hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
+        else:
+            hist.datainfo += self.info
 
     def draw_array(self, field_hist, category, region,
                    cuts=None,
@@ -1505,6 +1547,7 @@ class Higgs(MC, Signal):
     MASS_POINTS = range(100, 155, 5)
 
     MODES = ['Z', 'W', 'gg', 'VBF']
+    MODES_COMBINED = [['Z', 'W'], ['gg'], ['VBF']]
 
     MODES_DICT = {
         'gg': ('ggf', 'PowHegPythia_', 'PowHegPyth8_AU2CT10_'),
@@ -1635,6 +1678,9 @@ class Higgs(MC, Signal):
         str_mode = ''
         if len(modes) == 1:
             str_mode = modes[0]
+            self.name += '_%s' % str_mode
+        elif len(modes) == 2 and set(modes) == set(['W', 'Z']):
+            str_mode = 'V'
             self.name += '_%s' % str_mode
 
         str_mass = ''

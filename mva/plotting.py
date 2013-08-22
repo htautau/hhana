@@ -24,6 +24,7 @@ from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import get_limits, get_band
 from rootpy.plotting.style.atlas.labels import ATLAS_label
+from rootpy.memory.keepalive import keepalive
 
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
@@ -849,6 +850,7 @@ def draw_samples_array(
             output_name += '_' + cuts.safe()
         fig = draw(model=[m[field] for m in model_hists],
              data=data_field_hist[field] if data_field_hist else None,
+             data_info=str(data_field_hist[field].datainfo) if data_field_hist else None,
              signal=[s[field] for s in signal_hists] if signal_hists else None,
              category=category,
              name=var_info['root'] if root else var_info['title'],
@@ -867,6 +869,7 @@ def draw(name,
          output_name,
          category,
          data=None,
+         data_info=None,
          model=None,
          signal=None,
          signal_scale=1.,
@@ -999,7 +1002,7 @@ def draw(name,
         fig.SetBottomMargin(0)
         fig.SetRightMargin(0)
         fig.SetTopMargin(0)
-        hist_pad = Pad(0., rect_hist[1], 1., 1., name='top', title='top')
+        hist_pad = Pad(0., rect_hist[1] * 0.9, 1., 1., name='top', title='top')
         hist_pad.SetBottomMargin(0.03)
         hist_pad.SetLeftMargin(rect_hist[0])
         hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
@@ -1271,9 +1274,9 @@ def draw(name,
             if root:
                 fig.cd()
                 ratio_pad = Pad(
-                    0, 0, 1, rect_ratio[1] + rect_ratio[3],
+                    0, 0, 1, (rect_ratio[1] + rect_ratio[3]) * 0.9,
                     name='ratio', title='ratio')
-                ratio_pad.SetBottomMargin(rect_ratio[1] * 2.5)
+                ratio_pad.SetBottomMargin(rect_ratio[1] * 3)
                 ratio_pad.SetLeftMargin(rect_ratio[0])
                 ratio_pad.SetRightMargin(1. - rect_ratio[2] - rect_ratio[0])
                 ratio_pad.SetTopMargin(0.04)
@@ -1289,10 +1292,12 @@ def draw(name,
                 error_hist_tmp.yaxis.SetRangeUser(*ratio_range)
                 error_hist_tmp.yaxis.SetTitle('Data / Model')
                 error_hist_tmp.yaxis.SetNdivisions(4)
-                xmin = model_stack.xaxis.GetXmin()
-                xmax = model_stack.xaxis.GetXmax()
-                error_hist_tmp.xaxis.SetLimits(xmin, xmax)
-                error_hist_tmp.xaxis.SetRangeUser(xmin, xmax)
+                error_hist_tmp.xaxis.SetLimits(
+                    error_hist.xedges(0),
+                    error_hist.xedges(-1))
+                error_hist_tmp.xaxis.SetRangeUser(
+                    error_hist.xedges(0),
+                    error_hist.xedges(-1))
                 error_hist_tmp.xaxis.SetTickLength(
                     error_hist_tmp.xaxis.GetTickLength() * 2)
 
@@ -1377,14 +1382,14 @@ def draw(name,
         if root:
             hist_pad.cd()
             model_legend = Legend(len(model),
-                    pad=hist_pad,
-                    leftmargin=0.02,
-                    rightmargin=0.5,
-                    margin=0.3,
-                    textsize=20,
-                    entrysep=0.02,
-                    entryheight=0.06,
-                    topmargin=0.1)
+                pad=hist_pad,
+                leftmargin=0.02,
+                rightmargin=0.5,
+                margin=0.3,
+                textsize=20,
+                entrysep=0.02,
+                entryheight=0.06,
+                topmargin=0.18 if data_info else 0.1)
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
             model_legend.Draw()
@@ -1408,7 +1413,7 @@ def draw(name,
             textsize=20,
             entrysep=0.02,
             entryheight=0.06,
-            topmargin=0.09)
+            topmargin=0.1)
         if '\n' in data.title:
             dtitle = data.title.split('\n')
             data.title = dtitle[0]
@@ -1470,7 +1475,7 @@ def draw(name,
             model_stack.xaxis.SetLabelOffset(100)
             base_hist = error_hist_tmp
             base_hist.xaxis.SetTitleOffset(
-                base_hist.xaxis.GetTitleOffset() * 2.5)
+                base_hist.xaxis.GetTitleOffset() * 3)
             base_hist.xaxis.SetLabelOffset(
                 base_hist.xaxis.GetLabelOffset() * 4)
         base_hist.xaxis.SetTitle(label)
@@ -1511,26 +1516,33 @@ def draw(name,
                 ratio_ax.set_xlim(range)
 
     filename = os.path.join(PLOTS_DIR,
-            'var_%s_%s' %
-            (category.name,
-             output_name.lower().replace(' ', '_')))
+        'var_%s_%s' %
+        (category.name,
+         output_name.lower().replace(' ', '_')))
+
     if logy:
         filename += '_logy'
+
     if root:
         filename += '_root'
         hist_pad.cd()
-        label = ROOT.TLatex()
+        label = ROOT.TLatex(rect_hist[0] + 0.02, 0.9, category.root_label)
         label.SetNDC()
         label.SetTextFont(43)
         label.SetTextSize(20)
-        label.DrawLatex(rect_hist[0] + 0.02, 0.9, category.root_label)
-        ATLAS_label(0.55, 0.9, sep=0.09, pad=hist_pad, sqrts=None, text="Internal")
-        if data_lumi is not None:
-            label_lumi = ROOT.TLatex()
-            label_lumi.SetNDC()
-            label_lumi.SetTextFont(43)
-            label_lumi.SetTextSize(20)
-            label_lumi.DrawLatex(0.75, 0.9, data_lumi)
+        label.Draw()
+        keepalive(hist_pad, label)
+
+        if data_info is not None:
+            plabel = ROOT.TLatex(rect_hist[0] + 0.02, 0.83, data_info)
+            plabel.SetNDC()
+            plabel.SetTextFont(43)
+            plabel.SetTextSize(20)
+            plabel.Draw()
+            keepalive(hist_pad, plabel)
+
+        ATLAS_label(0.75, 0.9, sep=0.09, pad=hist_pad, sqrts=None, text="Internal")
+
         hist_pad.Update()
         hist_pad.Modified()
         hist_pad.RedrawAxis()
@@ -1542,6 +1554,7 @@ def draw(name,
         else:
             log.info("writing %s" % output_filename)
             plt.savefig(output_filename)
+
     if not root:
         plt.close(fig)
     return fig

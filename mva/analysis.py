@@ -85,10 +85,10 @@ class Analysis(object):
     def get_signals(self, mass):
 
         signals = []
-        for mode in samples.Higgs.MODES:
+        for modes in samples.Higgs.MODES_COMBINED:
             signals.append(samples.Higgs(
                 year=self.year,
-                mode=mode,
+                modes=modes,
                 mass=mass,
                 systematics=self.systematics,
                 root=self.root,
