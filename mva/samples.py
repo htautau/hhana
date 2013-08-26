@@ -333,8 +333,22 @@ class Sample(object):
                         else:
                             sys_component += '_TAU_QQ'
 
+                npname = 'ATLAS_{0}_{1:d}'.format(sys_component, self.year)
+
+                # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
+                npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
+                npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
+                npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
+                npname = npname.replace('JES_FlavComp_TAU_G_2012', 'JES_FlavComp_TAU_G')
+                npname = npname.replace('JES_FlavComp_TAU_Q_2012', 'JES_FlavComp_TAU_Q')
+                npname = npname.replace('JES_FlavResp_2012', 'JES_FlavResp')
+                npname = npname.replace('JES_Modelling_2012', 'JES_2012_Modelling1')
+                npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
+                npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
+                npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
+
                 histsys = histfactory.HistoSys(
-                    'ATLAS_{0}_{1:d}'.format(sys_component, self.year),
+                    npname,
                     low=hist_down,
                     high=hist_up)
 
