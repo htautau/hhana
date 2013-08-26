@@ -559,7 +559,7 @@ class ClassificationProblem(object):
                  unblind=False,
                  limitbins=10,
                  limitbinning='flat',
-                 root=False,
+                 mpl=False,
                  output_formats=None,
                  quick=False):
 
@@ -660,7 +660,7 @@ class ClassificationProblem(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
-            root=root,
+            mpl=mpl,
             output_formats=output_formats,
             unblind=unblind or 0.3)
 
@@ -680,7 +680,7 @@ class ClassificationProblem(object):
             name='signal_region_%s%s' % (limitbinning, self.output_suffix),
             hist_template=limit_binning_hist_template,
             systematics=systematics,
-            root=root,
+            mpl=mpl,
             output_formats=output_formats,
             unblind=unblind or 0.3)
 
@@ -707,7 +707,7 @@ class ClassificationProblem(object):
             clf=self,
             output_suffix="_reweighted" + self.output_suffix,
             cuts=signal_region,
-            root=root,
+            mpl=mpl,
             output_formats=output_formats,
             unblind=True)
 
@@ -737,7 +737,7 @@ class ClassificationProblem(object):
             max_score=max_score,
             output_suffix="_lowbdt" + self.output_suffix,
             cuts=signal_region,
-            root=root,
+            mpl=mpl,
             output_formats=output_formats,
             unblind=True)
 
@@ -808,7 +808,7 @@ class ClassificationProblem(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
-            root=root,
+            mpl=mpl,
             output_formats=output_formats,
             unblind=True)
 

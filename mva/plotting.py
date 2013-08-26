@@ -1263,15 +1263,15 @@ def draw(name,
         # draw ratio plot
         if model is not None and show_ratio:
             total_model = sum(model)
-            error_hist = Hist.divide(data, total_model, option='B')
+            ratio_hist = Hist.divide(data, total_model, option='B')
             # remove bins where data is zero
             for i, value in enumerate(data):
                 if value == 0:
-                    error_hist[i] = -1
-                    error_hist.SetBinError(i + 1, 0.)
-            error_hist.linecolor = 'black'
-            error_hist.linewidth = 2
-            error_hist.fillstyle = 'hollow'
+                    ratio_hist[i] = -1
+                    ratio_hist.SetBinError(i + 1, 0.)
+            ratio_hist.linecolor = 'black'
+            ratio_hist.linewidth = 2
+            ratio_hist.fillstyle = 'hollow'
 
             if root:
                 fig.cd()
@@ -1285,39 +1285,39 @@ def draw(name,
                 ratio_pad.Draw()
                 ratio_pad.cd()
 
-                # draw empty copy of error_hist first so lines will show
-                error_hist_tmp = error_hist.Clone()
-                error_hist_tmp.Reset()
-                error_hist_tmp.Draw()
+                # draw empty copy of ratio_hist first so lines will show
+                ratio_hist_tmp = ratio_hist.Clone()
+                ratio_hist_tmp.Reset()
+                ratio_hist_tmp.Draw()
 
-                error_hist_tmp.yaxis.SetLimits(*ratio_range)
-                error_hist_tmp.yaxis.SetRangeUser(*ratio_range)
-                error_hist_tmp.yaxis.SetTitle('Data / Model')
-                error_hist_tmp.yaxis.SetNdivisions(4)
-                error_hist_tmp.xaxis.SetLimits(
-                    error_hist.xedges(0),
-                    error_hist.xedges(-1))
-                error_hist_tmp.xaxis.SetRangeUser(
-                    error_hist.xedges(0),
-                    error_hist.xedges(-1))
-                error_hist_tmp.xaxis.SetTickLength(
-                    error_hist_tmp.xaxis.GetTickLength() * 2)
+                ratio_hist_tmp.yaxis.SetLimits(*ratio_range)
+                ratio_hist_tmp.yaxis.SetRangeUser(*ratio_range)
+                ratio_hist_tmp.yaxis.SetTitle('Data / Model')
+                ratio_hist_tmp.yaxis.SetNdivisions(4)
+                ratio_hist_tmp.xaxis.SetLimits(
+                    ratio_hist.xedges(0),
+                    ratio_hist.xedges(-1))
+                ratio_hist_tmp.xaxis.SetRangeUser(
+                    ratio_hist.xedges(0),
+                    ratio_hist.xedges(-1))
+                ratio_hist_tmp.xaxis.SetTickLength(
+                    ratio_hist_tmp.xaxis.GetTickLength() * 2)
 
                 # draw horizontal lines
-                line = Line(error_hist.xedges(0), 1,
-                            error_hist.xedges(-1), 1)
+                line = Line(ratio_hist.xedges(0), 1,
+                            ratio_hist.xedges(-1), 1)
                 line.linestyle = 'dashed'
                 line.linewidth = 2
                 line.Draw()
 
-                line_up = Line(error_hist.xedges(0), 1.50,
-                               error_hist.xedges(-1), 1.50)
+                line_up = Line(ratio_hist.xedges(0), 1.50,
+                               ratio_hist.xedges(-1), 1.50)
                 line_up.linestyle = 'dashed'
                 line_up.linewidth = 2
                 line_up.Draw()
 
-                line_dn = Line(error_hist.xedges(0), 0.50,
-                               error_hist.xedges(-1), 0.50)
+                line_dn = Line(ratio_hist.xedges(0), 0.50,
+                               ratio_hist.xedges(-1), 0.50)
                 line_dn.linestyle = 'dashed'
                 line_dn.linewidth = 2
                 line_dn.Draw()
@@ -1339,33 +1339,24 @@ def draw(name,
             # draw band below points
             if systematics:
                 # plot band on ratio plot
-                high_band_full = high_band_model.Clone()
-                low_band_full = low_band_model.Clone()
-                # quadrature sum of numerator and denominator
-                for i in xrange(len(high_band_full)):
-                    if data[i] == 0 or total_model[i] == 0:
-                        high_band_full[i] = 0.
-                        low_band_full[i] = 0.
-                    else:
-                        high_band_full[i] = abs(error_hist[i]) * math.sqrt(
-                            (data.yerrh(i) / data[i])**2 +
-                            (high_band_model[i] / total_model[i])**2)
-                        low_band_full[i] = abs(error_hist[i]) * math.sqrt(
-                            (data.yerrl(i) / data[i])**2 +
-                            (low_band_model[i] / total_model[i])**2)
+                ratio_hist_high = Hist.divide(
+                    total_model + high_band_model, total_model, option='B')
+                ratio_hist_low = Hist.divide(
+                    total_model - low_band_model, total_model, option='B')
+
                 if root:
                     ratio_pad.cd()
-                    error_band = get_band(error_hist,
-                                          error_hist + high_band_full,
-                                          error_hist - low_band_full)
+                    error_band = get_band(ratio_hist,
+                                          ratio_hist_high,
+                                          ratio_hist_low)
                     error_band.fillstyle = '\\'
                     error_band.fillcolor = '#cccccc'
                     error_band.Draw('same E2')
 
                 else:
                     rplt.fill_between(
-                        error_hist + high_band_full,
-                        error_hist - low_band_full,
+                        ratio_hist_high,
+                        ratio_hist_low,
                         edgecolor='0.75',
                         linewidth=0,
                         facecolor=(0,0,0,0),
@@ -1375,10 +1366,10 @@ def draw(name,
             # draw points above band
             if root:
                 ratio_pad.cd()
-                error_hist.Draw('same E1')
+                ratio_hist.Draw('same E1')
 
             else:
-                rplt.step(error_hist, axes=ratio_ax)
+                rplt.step(ratio_hist, axes=ratio_ax)
 
     if model is not None:
         if root:
@@ -1470,7 +1461,7 @@ def draw(name,
         if show_ratio:
             # hide x labels on top hist
             model_stack.xaxis.SetLabelOffset(100)
-            base_hist = error_hist_tmp
+            base_hist = ratio_hist_tmp
             base_hist.xaxis.SetTitleOffset(
                 base_hist.xaxis.GetTitleOffset() * 3)
             base_hist.xaxis.SetLabelOffset(
