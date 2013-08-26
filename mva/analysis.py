@@ -17,7 +17,7 @@ class Analysis(object):
                  fit_param='TRACK',
                  random_mu=False,
                  mu=1.,
-                 root=False):
+                 mpl=False):
 
         self.year = year
         self.systematics = systematics
@@ -25,25 +25,25 @@ class Analysis(object):
         self.target_region = target_region
         self.qcd_shape_region = qcd_shape_region
         self.fit_param = fit_param
-        self.root = root
+        self.mpl = mpl
 
         if use_embedding:
             log.info("Using embedded Ztautau")
             self.ztautau = samples.Embedded_Ztautau(
                 year=year,
                 systematics=systematics,
-                root=root)
+                mpl=mpl)
         else:
             log.info("Using ALPGEN Ztautau")
             self.ztautau = samples.MC_Ztautau(
                 year=year,
                 systematics=systematics,
-                root=root)
+                mpl=mpl)
 
         self.others = samples.Others(
             year=year,
             systematics=systematics,
-            root=root)
+            mpl=mpl)
 
         if random_mu:
             log.info("using a random mu (signal strength)")
@@ -52,7 +52,7 @@ class Analysis(object):
             log.info("using a mu (signal strength) of {0:.1f}".format(mu))
             self.mu = mu
 
-        self.data = samples.Data(year=year, root=root)
+        self.data = samples.Data(year=year, mpl=mpl)
 
         self.higgs_125 = samples.Higgs(
             year=year,
@@ -61,7 +61,7 @@ class Analysis(object):
             linecolor='red',
             linewidth=2,
             linestyle='dashed',
-            root=root,
+            mpl=mpl,
             scale=self.mu)
 
         # QCD shape region SS or !OS
@@ -69,7 +69,7 @@ class Analysis(object):
             data=self.data,
             mc=[self.ztautau, self.others],
             shape_region=qcd_shape_region,
-            root=root)
+            mpl=mpl)
 
         self.qcd.scale = 1.
         self.ztautau.scale = 1.
@@ -91,7 +91,7 @@ class Analysis(object):
                 modes=modes,
                 mass=mass,
                 systematics=self.systematics,
-                root=self.root,
+                mpl=self.mpl,
                 scale=self.mu))
         return signals
 

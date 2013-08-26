@@ -88,7 +88,7 @@ class Sample(object):
 
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
-                 root=False,
+                 mpl=False,
                  **hist_decor):
 
         self.year = year
@@ -103,7 +103,7 @@ class Sample(object):
         else:
             self._cuts = cuts
 
-        self.root = root
+        self.mpl = mpl
         self.student = student
         self.hist_decor = hist_decor
         #if isinstance(self, Higgs):
@@ -115,9 +115,9 @@ class Sample(object):
     @property
     def label(self):
 
-        if self.root:
-            return self._label_root
-        return self._label
+        if self.mpl:
+            return self._label
+        return self._label_root
 
     def get_hist_array(self,
             field_hist_template,
@@ -1759,14 +1759,14 @@ class QCD(Sample, Background):
                  shape_region='SS',
                  cuts=None,
                  color='#59d454',
-                 root=False):
+                 mpl=False):
 
         QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(
             year=data.year,
             scale=scale,
             color=color,
-            root=root)
+            mpl=mpl)
         self.data = data
         self.mc = mc
         self.name = 'QCD'

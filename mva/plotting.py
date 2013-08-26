@@ -750,7 +750,7 @@ def draw_samples_array(
         min_score=None,
         max_score=None,
         plots=None,
-        root=False,
+        mpl=False,
         output_suffix='',
         unblind=False,
         **kwargs):
@@ -853,11 +853,11 @@ def draw_samples_array(
              data_info=str(data_field_hist[field].datainfo) if data_field_hist else None,
              signal=[s[field] for s in signal_hists] if signal_hists else None,
              category=category,
-             name=var_info['root'] if root else var_info['title'],
+             name=var_info['title'] if mpl else var_info['root'],
              units=var_info.get('units', None),
              range=var_info['range'],
              output_name=output_name,
-             root=root,
+             mpl=mpl,
              blind=blind,
              integer=var_info.get('integer', False),
              **kwargs)
@@ -888,7 +888,7 @@ def draw(name,
          output_formats=None,
          systematics=None,
          systematics_components=None,
-         root=False,
+         mpl=False,
          width=8.,
          integer=False,
          logy=False,
@@ -899,6 +899,8 @@ def draw(name,
     if model is None and data is None and signal is None:
         raise ValueError(
             'at least one of model, data, or signal must be specified')
+
+    root = not mpl
 
     if root:
         # not supported for now
@@ -1523,8 +1525,12 @@ def draw(name,
     if logy:
         filename += '_logy'
 
-    if root:
+    if mpl:
+        filename += '_mpl'
+    else:
         filename += '_root'
+
+    if root:
         hist_pad.cd()
         label = ROOT.TLatex(rect_hist[0] + 0.02, 0.9, category.root_label)
         label.SetNDC()
@@ -1555,7 +1561,7 @@ def draw(name,
             log.info("writing %s" % output_filename)
             plt.savefig(output_filename)
 
-    if not root:
+    if mpl:
         plt.close(fig)
     return fig
 
