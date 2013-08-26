@@ -2151,8 +2151,9 @@ class QCD(Sample, Background):
             OSFF, SSFF = models
             OSFF_events, SSFF_events = events
             shape_sys = OSFF
-            shape_sys *= (nominal_hist.normalize(copy=True) /
-                SSFF.normalize(copy=True))
+            nominal_hist_norm = nominal_hist / nominal_hist.Integral()
+            SSFF_norm = SSFF / SSFF.Integral()
+            shape_sys *= nominal_hist_norm / SSFF_norm
             # this is approximate
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
