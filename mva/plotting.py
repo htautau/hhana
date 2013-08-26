@@ -939,7 +939,7 @@ def draw(name,
     if logy:
         ypadding = (.35, 0.)
     else:
-        ypadding = (.4, .05)
+        ypadding = (.45, .05)
 
     width = 1. - right_margin - left_margin
     height = 1. - top_margin - bottom_margin
@@ -1390,7 +1390,7 @@ def draw(name,
                 margin=0.3,
                 textsize=20,
                 entrysep=0.02,
-                entryheight=0.06,
+                entryheight=0.05,
                 topmargin=0.18 if data_info else 0.1)
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
@@ -1404,7 +1404,6 @@ def draw(name,
                 loc='upper left')
             format_legend(model_legend)
 
-    data_lumi = None
     if root:
         hist_pad.cd()
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
@@ -1414,12 +1413,8 @@ def draw(name,
             margin=0.3,
             textsize=20,
             entrysep=0.02,
-            entryheight=0.06,
+            entryheight=0.05,
             topmargin=0.1)
-        if '\n' in data.title:
-            dtitle = data.title.split('\n')
-            data.title = dtitle[0]
-            data_lumi = dtitle[1]
         right_legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -1532,7 +1527,7 @@ def draw(name,
 
     if root:
         hist_pad.cd()
-        label = ROOT.TLatex(rect_hist[0] + 0.02, 0.9, category.root_label)
+        label = ROOT.TLatex(rect_hist[0] + 0.03, 0.9, category.root_label)
         label.SetNDC()
         label.SetTextFont(43)
         label.SetTextSize(20)
@@ -1540,7 +1535,7 @@ def draw(name,
         keepalive(hist_pad, label)
 
         if data_info is not None:
-            plabel = ROOT.TLatex(rect_hist[0] + 0.02, 0.83, data_info)
+            plabel = ROOT.TLatex(rect_hist[0] + 0.03, 0.83, data_info)
             plabel.SetNDC()
             plabel.SetTextFont(43)
             plabel.SetTextSize(20)
