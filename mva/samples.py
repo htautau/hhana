@@ -142,7 +142,7 @@ class Sample(object):
         if max_score is None:
             max_score = getattr(category, 'workspace_max_clf', None)
 
-        histname = 'category_{0}_{1}'.format(category.name, self.name)
+        histname = 'hh_category_{0}_{1}'.format(category.name, self.name)
         if suffix is not None:
             histname += suffix
 
@@ -189,7 +189,7 @@ class Sample(object):
         if max_score is None:
             max_score = getattr(category, 'workspace_max_clf', None)
 
-        histname = 'category_{0}_{1}'.format(category.name, self.name)
+        histname = 'hh_category_{0}_{1}'.format(category.name, self.name)
         if suffix is not None:
             histname += suffix
         hist = hist_template.Clone(name=histname)
