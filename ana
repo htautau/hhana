@@ -50,7 +50,6 @@ CONST_PARAMS = [
     'mu_XS7_WH',
     'mu_XS8_ZH',
     'mu_XS7_ZH',
-    'mu_BR_tautau',
 ]
 
 partition_key = 'EventNumber'
@@ -481,12 +480,12 @@ if 'workspace' in args.actions:
 
     dump_dir = ROOT.gDirectory.func()
 
-    with root_open('workspaces/ws_hh_%s.root' % workspace_suffix, 'recreate') as limits_file:
+    with root_open('workspaces/ws_hh%s.root' % workspace_suffix, 'recreate') as limits_file:
         braindump(limits_file, indir=dump_dir,
             func=lambda h: h.ClassName().startswith('TH') and
-                           h.GetName().startswith('category'))
+                           h.GetName().startswith('hh_'))
 
-        xml_output_dir = 'workspaces/xml_hh_%s' % workspace_suffix
+        xml_output_dir = 'workspaces/xml_hh%s' % workspace_suffix
         if os.path.exists(xml_output_dir):
             shutil.rmtree(xml_output_dir)
         os.mkdir(xml_output_dir)

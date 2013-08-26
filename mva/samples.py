@@ -320,18 +320,18 @@ class Sample(object):
                 if sys_component == 'JES_FlavComp':
                     if ((isinstance(self, Signal) and self.mode == 'gg') or
                          isinstance(self, Others)):
-                        sys_component += '_G'
+                        sys_component += '_TAU_G'
                     else:
-                        sys_component += '_Q'
+                        sys_component += '_TAU_Q'
 
                 elif sys_component == 'JES_PURho':
                     if isinstance(self, Others):
-                        sys_component += '_QG'
+                        sys_component += '_TAU_QG'
                     elif isinstance(self, Signal):
                         if self.mode == 'gg':
-                            sys_component += '_GG'
+                            sys_component += '_TAU_GG'
                         else:
-                            sys_component += '_QQ'
+                            sys_component += '_TAU_QQ'
 
                 histsys = histfactory.HistoSys(
                     'ATLAS_{0}_{1:d}'.format(sys_component, self.year),
@@ -1606,9 +1606,8 @@ class Higgs(MC, Signal):
         # BR_tautau
         _, (br_up, br_down) = yellowhiggs.br(
             self.mass, 'tautau', error_type='factor')
-        sample.AddOverallSys('mu_BR_tautau', br_down, br_up)
+        sample.AddOverallSys('ATLAS_BR_tautau', br_down, br_up)
 
-        # mu_XS[energy]_[mode]
         if self.year == 2011:
             energy = 7
         elif self.year == 2012:
@@ -1616,12 +1615,17 @@ class Higgs(MC, Signal):
         else:
             raise ValueError(
                 "collision energy is unknown for year {0:d}".format(self.year))
-        _, (xs_up, xs_down) = yellowhiggs.xs(
-            energy, self.mass, self.MODES_DICT[self.mode][0],
-            error_type='factor')
-        sample.AddOverallSys(
+
+        #mu_XS[energy]_[mode]
+        #_, (xs_up, xs_down) = yellowhiggs.xs(
+        #    energy, self.mass, self.MODES_DICT[self.mode][0],
+        #    error_type='factor')
+        #sample.AddOverallSys(
+        #    'mu_XS{0:d}_{1}'.format(energy, self.MODES_WORKSPACE[self.mode]),
+        #    xs_down, xs_up)
+        sample.AddNormFactor(
             'mu_XS{0:d}_{1}'.format(energy, self.MODES_WORKSPACE[self.mode]),
-            xs_down, xs_up)
+            1., 0., 200., True)
 
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
         # underlying event uncertainty in the VBF category
