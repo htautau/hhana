@@ -53,7 +53,8 @@ CONST_PARAMS = [
     'mu_BR_tautau',
 ]
 
-partition_key = 'MET_phi_original * 100'
+partition_key = 'EventNumber'
+#partition_key = 'MET_phi_original * 100'
 #partition_key = None
 
 SYSTEMATICS = get_systematics(year)
@@ -323,7 +324,6 @@ for category in analysis.iter_categories(
             backgrounds=analysis.backgrounds,
             cuts=train_region,
             grid_search=args.grid_search,
-            quick=args.quick_train,
             cv_nfold=args.nfold,
             use_cache=args.use_clf_cache)
 

@@ -1,20 +1,19 @@
 import pickle
 from operator import itemgetter
 import types
+import shutil
 
 import numpy as np
-
 from matplotlib import pyplot as plt
 
 # scikit-learn imports
 import sklearn
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
-from sklearn.ensemble.grid_search import BoostGridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import precision_score
 from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 from rootpy.plotting import Hist
 from rootpy.io import root_open as ropen
@@ -33,6 +32,7 @@ from . import LIMITS_DIR, PLOTS_DIR
 from .stats.utils import get_safe_template
 from .utils import rec_to_ndarray, std
 from .systematics import systematic_name
+from .grid_search import BoostGridSearchCV
 
 
 def print_feature_ranking(clf, fields):
@@ -190,10 +190,9 @@ class ClassificationProblem(object):
               max_sig=None,
               max_bkg=None,
               norm_sig_to_bkg=True,
-              same_size_sig_bkg=False, # NOTE: if True this crops signal a lot!!
+              same_size_sig_bkg=True, # NOTE: if True this crops signal a lot!!
               remove_negative_weights=False,
               grid_search=True,
-              quick=False,
               cv_nfold=5,
               use_cache=True,
               **clf_params):
@@ -244,6 +243,10 @@ class ClassificationProblem(object):
         self.clfs = [None, None]
 
         for partition_idx in range(2):
+
+            clf_filename = os.path.join(CACHE_DIR, 'classify',
+                'clf_%s%s_%d' % (
+                self.category.name, self.clf_output_suffix, partition_idx))
 
             # train a classifier
             # merge arrays and create training samples
@@ -318,107 +321,110 @@ class ClassificationProblem(object):
 
             log.info("training a new classifier...")
 
-            """
-            log.info("plotting input variables as they are given to the BDT")
-            # draw plots of the input variables
-            for i, branch in enumerate(self.fields):
-                log.info("plotting %s ..." % branch)
-                branch_data = sample_train[:,i]
-                if 'scale' in variables.VARIABLES[branch]:
-                    branch_data *= variables.VARIABLES[branch]['scale']
-                _min, _max = branch_data.min(), branch_data.max()
-                plt.figure()
-                plt.hist(branch_data[labels_train==0],
-                        bins=20, range=(_min, _max),
-                        weights=sample_weight_train[labels_train==0],
-                        label='Background', histtype='stepfilled',
-                        alpha=.5)
-                plt.hist(branch_data[labels_train==1],
-                        bins=20, range=(_min, _max),
-                        weights=sample_weight_train[labels_train==1],
-                        label='Signal', histtype='stepfilled', alpha=.5)
-                label = variables.VARIABLES[branch]['title']
-                if 'units' in variables.VARIABLES[branch]:
-                    label += ' [%s]' % variables.VARIABLES[branch]['units']
-                plt.xlabel(label)
-                plt.legend()
-                plt.savefig(os.path.join(PLOTS_DIR, 'train_var_%s_%s%s.png' % (
-                    self.category.name, branch, self.output_suffix)))
+            #log.info("plotting input variables as they are given to the BDT")
+            ## draw plots of the input variables
+            #for i, branch in enumerate(self.fields):
+            #    log.info("plotting %s ..." % branch)
+            #    branch_data = sample_train[:,i]
+            #    if 'scale' in variables.VARIABLES[branch]:
+            #        branch_data *= variables.VARIABLES[branch]['scale']
+            #    _min, _max = branch_data.min(), branch_data.max()
+            #    plt.figure()
+            #    plt.hist(branch_data[labels_train==0],
+            #            bins=20, range=(_min, _max),
+            #            weights=sample_weight_train[labels_train==0],
+            #            label='Background', histtype='stepfilled',
+            #            alpha=.5)
+            #    plt.hist(branch_data[labels_train==1],
+            #            bins=20, range=(_min, _max),
+            #            weights=sample_weight_train[labels_train==1],
+            #            label='Signal', histtype='stepfilled', alpha=.5)
+            #    label = variables.VARIABLES[branch]['title']
+            #    if 'units' in variables.VARIABLES[branch]:
+            #        label += ' [%s]' % variables.VARIABLES[branch]['units']
+            #    plt.xlabel(label)
+            #    plt.legend()
+            #    plt.savefig(os.path.join(PLOTS_DIR, 'train_var_%s_%s%s.png' % (
+            #        self.category.name, branch, self.output_suffix)))
 
-            log.info("plotting sample weights ...")
-            _min, _max = sample_weight_train.min(), sample_weight_train.max()
-            plt.figure()
-            plt.hist(sample_weight_train[labels_train==0],
-                    bins=20, range=(_min, _max),
-                    label='Background', histtype='stepfilled',
-                    alpha=.5)
-            plt.hist(sample_weight_train[labels_train==1],
-                    bins=20, range=(_min, _max),
-                    label='Signal', histtype='stepfilled', alpha=.5)
-            plt.xlabel('sample weight')
-            plt.legend()
-            plt.savefig(os.path.join(PLOTS_DIR, 'train_sample_weight_%s%s.png' % (
-                self.category.name, self.output_suffix)))
-            """
+            #log.info("plotting sample weights ...")
+            #_min, _max = sample_weight_train.min(), sample_weight_train.max()
+            #plt.figure()
+            #plt.hist(sample_weight_train[labels_train==0],
+            #        bins=20, range=(_min, _max),
+            #        label='Background', histtype='stepfilled',
+            #        alpha=.5)
+            #plt.hist(sample_weight_train[labels_train==1],
+            #        bins=20, range=(_min, _max),
+            #        label='Signal', histtype='stepfilled', alpha=.5)
+            #plt.xlabel('sample weight')
+            #plt.legend()
+            #plt.savefig(os.path.join(PLOTS_DIR, 'train_sample_weight_%s%s.png' % (
+            #    self.category.name, self.output_suffix)))
 
             if partition_idx == 0:
 
                 # grid search params
-                min_leaf_high = int((sample_train.shape[0] / 2.) *
-                        (cv_nfold - 1.) / cv_nfold)
+                min_leaf_high = int((sample_train.shape[0] / 8) *
+                    (cv_nfold - 1.) / cv_nfold)
                 min_leaf_low = max(10, int(min_leaf_high / 100.))
 
-                if quick:
-                    # quick search for testing
-                    min_leaf_low = max(10, int(min_leaf_high / 30.))
-                    min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
-                    MAX_N_ESTIMATORS = 300
-                    MIN_N_ESTIMATORS = 10
+                min_leaf_step = max((min_leaf_high - min_leaf_low) / 50, 1)
+                max_n_estimators = 200
+                min_n_estimators = 1
+                n_estimators_step = 50
 
-                else:
-                    # larger search
-                    min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
-                    MAX_N_ESTIMATORS = 1000
-                    MIN_N_ESTIMATORS = 10
+                min_samples_leaf = range(
+                    min_leaf_low, min_leaf_high, min_leaf_step)
 
-                MIN_SAMPLES_LEAF = range(
-                        min_leaf_low, min_leaf_high, min_leaf_step)
+                #n_estimators = range(
+                #    min_n_estimators, max_n_estimators, n_estimators_step)
+
+                n_estimators = np.power(2, np.arange(0, 8))
 
                 grid_params = {
-                    'base_estimator__min_samples_leaf': MIN_SAMPLES_LEAF,
+                    'base_estimator__min_samples_leaf': min_samples_leaf,
+                    #'n_estimators': n_estimators
                 }
 
                 #AdaBoostClassifier.staged_score = staged_score
 
                 clf = AdaBoostClassifier(
-                        DecisionTreeClassifier(),
-                        learning_rate=.5,
-                        algorithm='SAMME.R')
+                    DecisionTreeClassifier(),
+                    learning_rate=.1,
+                    algorithm='SAMME.R',
+                    random_state=0)
 
                 grid_clf = BoostGridSearchCV(
-                        clf, grid_params,
-                        max_n_estimators=MAX_N_ESTIMATORS,
-                        min_n_estimators=MIN_N_ESTIMATORS,
-                        #n_estimators_step=1,
-                        # can use default ClassifierMixin score
-                        #score_func=precision_score,
-                        cv = StratifiedKFold(labels_train, cv_nfold),
-                        n_jobs=20)
+                    clf, grid_params,
+                    max_n_estimators=max_n_estimators,
+                    min_n_estimators=min_n_estimators,
+                    #n_estimators_step=1,
+                    # can use default ClassifierMixin score
+                    #score_func=precision_score,
+                    cv = StratifiedKFold(labels_train, cv_nfold),
+                    n_jobs=20)
+
+                #grid_clf = GridSearchCV(
+                #    clf, grid_params,
+                #    # can use default ClassifierMixin score
+                #    #score_func=precision_score,
+                #    cv = StratifiedKFold(labels_train, cv_nfold),
+                #    n_jobs=20)
 
                 log.info("")
                 log.info("using a %d-fold cross validation" % cv_nfold)
                 log.info("performing a grid search over these parameter values:")
                 for param, values in grid_params.items():
                     log.info('{0} {1}'.format(param.split('__')[-1], values))
-                    log.info('--')
-                log.info("Minimum number of classifiers: %d" % MIN_N_ESTIMATORS)
-                log.info("Maximum number of classifiers: %d" % MAX_N_ESTIMATORS)
+                log.info("Minimum number of classifiers: %d" % min_n_estimators)
+                log.info("Maximum number of classifiers: %d" % max_n_estimators)
                 log.info("")
                 log.info("training new classifiers ...")
 
                 grid_clf.fit(
-                        sample_train, labels_train,
-                        sample_weight=sample_weight_train)
+                    sample_train, labels_train,
+                    sample_weight=sample_weight_train)
 
                 clf = grid_clf.best_estimator_
                 grid_scores = grid_clf.grid_scores_
@@ -470,11 +476,20 @@ class ClassificationProblem(object):
                 clf.fit(sample_train, labels_train,
                         sample_weight=sample_weight_train)
 
-            clf_filename = os.path.join(CACHE_DIR, 'classify',
-                    'clf_%s%s_%d.pickle' % (
-                    self.category.name, self.clf_output_suffix, partition_idx))
+            if isinstance(clf, AdaBoostClassifier):
+                # export to graphviz dot format
+                if os.path.isdir(clf_filename):
+                    shutil.rmtree(clf_filename)
+                os.mkdir(clf_filename)
 
-            with open(clf_filename, 'w') as f:
+                for itree, tree in enumerate(clf):
+                    export_graphviz(tree,
+                        out_file=os.path.join(
+                            clf_filename,
+                            'tree_{0:d}.dot'.format(itree)),
+                        feature_names=self.all_fields)
+
+            with open('{0}.pickle'.format(clf_filename), 'w') as f:
                 pickle.dump(clf, f)
 
             print_feature_ranking(clf, self.fields)
@@ -530,8 +545,8 @@ class ClassificationProblem(object):
                 scores = ClassificationProblem.TRANSFORM(scores)
             else:
                 # default logistic transformation
-                scores = 2.0 / (1.0 +
-                    np.exp((-self.clfs[0].n_estimators / 2.) * scores)) - 1.0
+                scores = -1 + 2.0 / (1.0 +
+                    np.exp(-np.log(self.clfs[0].n_estimators) * scores))
 
         return scores, weight
 

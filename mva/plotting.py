@@ -1603,7 +1603,8 @@ def significance(signal, background, min_bkg=0):
     B = bkg_counts[::-1].cumsum()[::-1]
     exclude = B < min_bkg
     # S / sqrt(S + B)
-    sig = np.ma.fix_invalid(np.divide(S, np.sqrt(S + B)), fill_value=0.)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        sig = np.ma.fix_invalid(np.divide(S, np.sqrt(S + B)), fill_value=0.)
     bins = list(background.xedges())[:-1]
     max_bin = np.argmax(np.ma.masked_array(sig, mask=exclude))
     max_sig = sig[max_bin]
@@ -1798,7 +1799,7 @@ def plot_clf(background_scores,
         output_name = 'event_bdt_score'
         if name is not None:
             output_name += '_' + name
-        for logy in (True, False):
+        for logy in (False, True):
             draw(data=data_hist,
                  model=bkg_hists,
                  signal=sig_hists,
