@@ -1349,7 +1349,7 @@ def draw(name,
                     error_band = get_band(ratio_hist,
                                           ratio_hist_high,
                                           ratio_hist_low)
-                    error_band.fillstyle = '\\'
+                    error_band.fillstyle = '/'
                     error_band.fillcolor = '#cccccc'
                     error_band.Draw('same E2')
 
@@ -1360,7 +1360,7 @@ def draw(name,
                         edgecolor='0.75',
                         linewidth=0,
                         facecolor=(0,0,0,0),
-                        hatch='\\\\\\\\',
+                        hatch='////',
                         axes=ratio_ax)
 
             # draw points above band
