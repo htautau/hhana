@@ -144,3 +144,14 @@ dump:
 	@./dump -t higgstautauhh -s "taus_pass && (RunNumber==207528)" --select-file etc/embed_select_ac.txt -o RunNumber,EventNumber $(HHNTUP)/$(HHSTUDENT).embed12-HH-IM.root
 	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
 	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
+
+.PHONY: plots
+plots:
+	nohup ./ana plot --output-formats eps png > var_plots.log &
+	nohup ./ana train evaluate --output-formats eps png > bdt_plots.log & 
+	nohup ./ana train evaluate --output-formats eps png --categories mva_deta_controls --unblind > deta_control_plots.log & 
+
+.PHONY: workspace
+workspace:
+	nohup ./ana workspace > workspace.log &
+	nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu > workspace_unblind_random.log &
