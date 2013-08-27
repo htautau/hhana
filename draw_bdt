@@ -1,0 +1,10 @@
+#!/bin/bash
+
+pdffiles="";
+for file in $@; do
+    dot -Teps -o ${file}.eps $file;
+    epstopdf -o ${file}.pdf ${file}.eps;
+    pdffiles=${pdffiles}" "${file}.pdf;
+done
+rm -f tree.pdf
+gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=tree.pdf ${pdffiles}
