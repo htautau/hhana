@@ -874,6 +874,7 @@ def draw(name,
          signal=None,
          signal_scale=1.,
          signal_on_top=False,
+         show_signal_error=False,
          stacked_model=True,
          plot_signal_significance=True,
          units=None,
@@ -933,13 +934,13 @@ def draw(name,
     if signal is not None and plot_signal_significance:
         right_margin = 0.10
     else:
-        right_margin = 0.05
+        right_margin = 0.04
     ratio_sep_margin = 0.030
 
     if logy:
-        ypadding = (.35, 0.)
+        ypadding = (.25, 0.)
     else:
-        ypadding = (.45, .05)
+        ypadding = (.5, .05)
 
     width = 1. - right_margin - left_margin
     height = 1. - top_margin - bottom_margin
@@ -1177,9 +1178,9 @@ def draw(name,
             if root:
                 hist_pad.cd()
                 error_band_model = get_band(
-                    total_model,
                     low,
-                    high)
+                    high,
+                    middle_hist=total_model)
                 error_band_model.fillstyle = '/'
                 error_band_model.fillcolor = '#cccccc'
                 error_band_model.Draw('same e2')
@@ -1197,7 +1198,7 @@ def draw(name,
                     axes=hist_ax,
                     zorder=3000)
 
-        if signal is not None:
+        if signal is not None and show_signal_error:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
                 signal, systematics, systematics_components)
             high = (total_signal + high_band_signal) * signal_scale
@@ -1208,9 +1209,9 @@ def draw(name,
             if root:
                 hist_pad.cd()
                 error_band_signal = get_band(
-                    total_signal * signal_scale,
                     low,
-                    high)
+                    high,
+                    middle_hist=total_signal * signal_scale)
                 error_band_signal.fillstyle = '\\'
                 error_band_signal.fillcolor = '#cccccc'
                 error_band_signal.Draw('same e2')
@@ -1346,11 +1347,10 @@ def draw(name,
 
                 if root:
                     ratio_pad.cd()
-                    error_band = get_band(ratio_hist,
-                                          ratio_hist_high,
+                    error_band = get_band(ratio_hist_high,
                                           ratio_hist_low)
                     error_band.fillstyle = '/'
-                    error_band.fillcolor = '#cccccc'
+                    error_band.fillcolor = '#7a7a7a'
                     error_band.Draw('same E2')
 
                 else:
@@ -1374,17 +1374,27 @@ def draw(name,
     if model is not None:
         if root:
             hist_pad.cd()
-            model_legend = Legend(len(model),
+            n_entries = len(model)
+            if systematics:
+                n_entries += 1
+            model_legend = Legend(n_entries,
                 pad=hist_pad,
                 leftmargin=0.02,
                 rightmargin=0.5,
                 margin=0.3,
                 textsize=20,
                 entrysep=0.02,
-                entryheight=0.05,
+                entryheight=0.045,
                 topmargin=0.18 if data_info else 0.1)
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
+            if systematics:
+                model_err_band = error_band_model.Clone()
+                model_err_band.linewidth = 2
+                model_err_band.linecolor = 'black'
+                model_err_band.fillcolor = 'black'
+                model_err_band.title = 'stat #oplus sys'
+                model_legend.AddEntry(model_err_band, style='F')
             model_legend.Draw()
         else:
             model_legend = hist_ax.legend(
@@ -1404,7 +1414,7 @@ def draw(name,
             margin=0.3,
             textsize=20,
             entrysep=0.02,
-            entryheight=0.05,
+            entryheight=0.045,
             topmargin=0.1)
         right_legend.AddEntry(data, style='lep')
         if signal is not None:

@@ -68,7 +68,7 @@ style.SetTickLength(0.04, 'X')
 style.SetTickLength(0.02, 'Y')
 style.SetHistTopMargin(0.)
 style.SetHatchesLineWidth(2)
-style.SetHatchesSpacing(1.5)
+style.SetHatchesSpacing(1.1)
 set_style(style)
 
 #ROOT.TGaxis.SetMaxDigits(3)

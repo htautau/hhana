@@ -490,8 +490,8 @@ def channels(clf, category, region, backgrounds,
                     for mass in mass_points])
             """
             max_unblind_score = efficiency_cut(
-                    sum([histogram_scores(hist_template, scores)
-                         for s, scores in all_sig_scores[125]]), 0.3)
+                sum([histogram_scores(hist_template, scores)
+                     for s, scores in all_sig_scores[125]]), 0.3)
         data_sample = data.get_histfactory_sample(
             hist_template, clf,
             category, region,
