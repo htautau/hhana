@@ -38,7 +38,7 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.utils import kylefix, statsfix, zero_negs, smooth
+from .stats.utils import kylefix, statsfix, zero_negs
 from .cachedtable import CachedTable
 from .regions import REGIONS
 from .lumi import get_lumi_uncert
@@ -306,16 +306,11 @@ class Sample(object):
                     hist_up = hist.systematics[up_term]
                     # use nominal hist for "down" side
                     hist_down = hist
-                    # smooth the shape systematics
-                    hist_up = smooth(hist, hist_up)
 
                 else:
                     up_term, down_term = terms
                     hist_up = hist.systematics[up_term]
                     hist_down = hist.systematics[down_term]
-                    # smooth the shape systematics
-                    hist_up = smooth(hist, hist_up)
-                    hist_down = smooth(hist, hist_down)
 
                 if sys_component == 'JES_FlavComp':
                     if ((isinstance(self, Signal) and self.mode == 'gg') or
@@ -2206,10 +2201,6 @@ class QCD(Sample, Background):
         # restore previous shape model
         self.shape_region = curr_model
 
-        # smooth the shape systematic
-        # this produces an empty histogram for #track?
-        #shape_sys = smooth(nominal_hist, shape_sys)
-
         # reflect shape about the nominal to get high and low variations
         shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
         shape_sys_reflect.name = shape_sys.name + '_reflected'
@@ -2309,10 +2300,6 @@ class QCD(Sample, Background):
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
             shape_sys *= nominal_events / float(norm_events)
-
-            # smooth the shape systematic
-            # this produces an empty histogram for #track?
-            #shape_sys = smooth(nominal_hist, shape_sys)
 
             # reflect shape about the nominal to get high and low variations
             shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
