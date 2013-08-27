@@ -411,7 +411,7 @@ class Sample(object):
 
                 histsys = histfactory.HistoSys(
                     'ATLAS_ANA_HH_{1:d}_QCD_{0}'.format(
-                        '_0J' if category.analysis_control else '_1JBV',
+                        '0J' if category.analysis_control else '1JBV',
                         self.year),
                     low=low, high=high)
 
