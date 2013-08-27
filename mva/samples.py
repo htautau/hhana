@@ -346,6 +346,10 @@ class Sample(object):
                 npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
                 npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
                 npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
+                npname = npname.replace('FAKERATE_2012', 'TAU_JFAKE_2012')
+                npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
+                npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
+                npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
 
                 histsys = histfactory.HistoSys(
                     npname,
@@ -411,8 +415,8 @@ class Sample(object):
                 print_hist(high)
 
                 histsys = histfactory.HistoSys(
-                    'ATLAS_HADHAD_QCD_MODEL{0}_{1:d}'.format(
-                        '_CONTROL' if category.analysis_control else '',
+                    'ATLAS_ANA_HH_{1:d}_QCD_{0}'.format(
+                        '_0J' if category.analysis_control else '_1JBV',
                         self.year),
                     low=low, high=high)
 
@@ -1483,7 +1487,7 @@ class Ztautau(Background):
 
     def histfactory(self, sample, category, systematics=True):
 
-        sample.AddNormFactor('ATLAS_norm_Z_{0:d}'.format(self.year),
+        sample.AddNormFactor('ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
                              1., 0., 50., False)
 
     def __init__(self, *args, **kwargs):
@@ -1579,20 +1583,26 @@ class Higgs(MC, Signal):
 
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
     QCD_SCALE = map(lambda token: token.strip().split(), '''\
-    QCDscale_qqH     VBF     0jet             1.020/0.980
-    QCDscale_qqH     VBF     1jet             1.020/0.980
-    QCDscale_qqH     VBF     boosted          1.014/0.986
-    QCDscale_qqH     VBF     VBF              1.020/0.980
-    QCDscale_VH      VH      0j_nonboosted    1.01/0.99
-    QCDscale_VH      VH      1j_nonboosted    1.022/0.978
-    QCDscale_VH      VH      boosted          1.041/0.960
-    QCDscale_VH      VH      VBF              1.01/0.99
-    QCDscale_ggH     ggH     0j_nonboosted    1.23/0.81
-    QCDscale_ggH1in  ggH     0j_nonboosted    1.09/0.92
-    QCDscale_ggH1in  ggH     1j_nonboosted    1.24/0.81
-    QCDscale_ggH1in  ggH     boosted          1.32/0.76
-    QCDscale_ggH2in  ggH     boosted          1.11/0.90
-    QCDscale_ggH2in  ggH     VBF              1.24/0.81'''.split('\n'))
+    QCDscale_qqH     VBF    0j_nonboosted    1.020/0.980
+    QCDscale_qqH     VBF    1j_nonboosted    1.020/0.980
+    QCDscale_qqH     VBF    boosted          1.014/0.986
+    QCDscale_qqH     VBF    VBF              1.020/0.980
+    QCDscale_VH      VH     0j_nonboosted    1.01/0.99
+    QCDscale_VH      VH     1j_nonboosted    1.022/0.978
+    QCDscale_VH      VH     boosted          1.041/0.960
+    QCDscale_VH      VH     VBF              1.01/0.99
+    QCDscale_ggH     ggH    0j_nonboosted    1.23/0.81
+    QCDscale_ggH1in  ggH    0j_nonboosted    0.92/1.09
+    QCDscale_ggH1in  ggH    1j_nonboosted    1.24/0.81
+    QCDscale_ggH1in  ggH    boosted          1.32/0.76
+    QCDscale_ggH2in  ggH    boosted          0.90/1.11
+    QCDscale_ggH2in  ggH    VBF              1.24/0.81'''.split('\n'))
+
+    GEN_QMASS = map(lambda token: token.strip().split(), '''\
+    Gen_Qmass_ggH    ggH    VBF              1.18/0.82
+    Gen_Qmass_ggH    ggH    boosted          1.29/0.71
+    Gen_Qmass_ggH    ggH    1j_nonboosted    1.09/0.91
+    Gen_Qmass_ggH    ggH    0j_nonboosted    0.89/1.11'''.split('\n'))
 
     NORM_BY_THEORY = True
 
@@ -1612,10 +1622,17 @@ class Higgs(MC, Signal):
         else:
             _qcd_scale_mode = self.MODES_WORKSPACE[mode]
 
+        # QCD_SCALE
         for qcd_scale_term, qcd_scale_mode, qcd_scale_category, values in self.QCD_SCALE:
             if qcd_scale_mode == _qcd_scale_mode and category.name.lower() == qcd_scale_category.lower():
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(qcd_scale_term, low, high)
+
+        # GEN_QMASS
+        for qmass_term, qmass_mode, qmass_category, values in self.GEN_QMASS:
+            if qmass_mode == _qcd_scale_mode and category.name.lower() == qmass_category.lower():
+                high, low = map(float, values.split('/'))
+                sample.AddOverallSys(qmass_term, low, high)
 
         # BR_tautau
         _, (br_up, br_down) = yellowhiggs.br(
@@ -1751,7 +1768,7 @@ class QCD(Sample, Background):
 
     def histfactory(self, sample, category, systematics=True):
 
-        sample.AddNormFactor('ATLAS_norm_QCD_{0:d}'.format(self.year),
+        sample.AddNormFactor('ATLAS_norm_HH_{0:d}_QCD'.format(self.year),
                              1., 0., 50., False)
 
     @staticmethod
