@@ -3,7 +3,6 @@ from . import log; log = log[__name__]
 import numpy as np
 from rootpy.plotting import Hist, Hist2D, Hist3D
 from math import sqrt
-from .smooth import smooth, smooth_alt
 
 
 def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
@@ -281,6 +280,39 @@ def statsfix(hist, fix_systematics=True):
     return zero_negs(
         uniform_binning(hist, fix_systematics=fix_systematics),
         fix_systematics=fix_systematics)
+
+
+def shape_is_significant(total, high, low, thresh=0.1):
+    """
+    For a given shape systematic for background-X, calculate
+    s_i=|up_i-down_i|/stat_totBckg_i, where up_i is up variation in bin-i,
+    down_i is down variation in bin-I, stat_totBckg_i is statistical
+    uncertainty for total background prediction in bin-i. If max(s_i)<0.1,
+    then drop this shape systematic for background-X
+    """
+    for bin_total, bin_high, bin_low in zip(
+            total.bins(), high.bins(), low.bins()):
+        diff = abs(bin_high.value - bin_low.value)
+        if bin_total.error == 0:
+            if diff != 0:
+                return True
+            continue
+        sig = abs(bin_high.value - bin_low.value) / bin_total.error
+        if sig > thresh:
+            return True
+    return False
+
+
+def smooth_shape(nominal, high, low, iterations=1):
+    """
+    Smooth shape systematics with respect to the nominal histogram by applying
+    TH1::Smooth() on the ratio of systematic / nominal.
+    """
+    ratio_high = high / nominal
+    ratio_low = low / nominal
+    ratio_high.Smooth(iterations)
+    ratio_low.Smooth(iterations)
+    return ratio_high * nominal, ratio_low * nominal
 
 
 def kylefix(hist, fix_systematics=False):
