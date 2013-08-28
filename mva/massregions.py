@@ -4,7 +4,7 @@ from . import log; log = log[__name__]
 
 
 DEFAULT_LOW_MASS = 100
-DEFAULT_HIGH_MASS = 140
+DEFAULT_HIGH_MASS = 150
 
 
 class MassRegions(object):
