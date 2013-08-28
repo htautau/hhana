@@ -148,6 +148,9 @@ dump:
 .PHONY: plots
 plots:
 	nohup ./ana plot --output-formats eps png > var_plots.log &
+
+.PHONY: bdt-plots
+bdt-plots:
 	nohup ./ana train evaluate --output-formats eps png > bdt_plots.log & 
 	nohup ./ana train evaluate --output-formats eps png --categories mva_deta_controls --unblind > deta_control_plots.log & 
 
