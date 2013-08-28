@@ -29,6 +29,7 @@ from rootpy.memory.keepalive import keepalive
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
 from .systematics import iter_systematics, systematic_name
+from .stats.utils import efficiency_cut, significance
 from . import log; log = log[__name__]
 
 
@@ -53,17 +54,6 @@ LATEX_PREAMBLE = '''
 #rc('font', family='sans-serif')
 rc('text.latex', preamble=LATEX_PREAMBLE)
 #plt.rcParams['pdf.fonttype'] = 42
-
-
-def efficiency_cut(hist, effic):
-
-    integral = hist.Integral()
-    cumsum = 0.
-    for ibin, value in enumerate(hist):
-        cumsum += value
-        if cumsum / integral > effic:
-            return hist.xedges(ibin)
-    return hist.xedges(-1)
 
 
 def set_colours(hists, colour_map=cm.jet):
@@ -1366,7 +1356,7 @@ def draw(name,
             # draw points above band
             if root:
                 ratio_pad.cd()
-                ratio_hist.Draw('same E1')
+                ratio_hist.Draw('same E0')
 
             else:
                 rplt.step(ratio_hist, axes=ratio_ax)
@@ -1590,28 +1580,6 @@ def plot_significance(signal, background, ax):
                  arrowprops=dict(color='black', shrink=0.15),
                  ha='left', va='center', color='black')
     """
-
-
-def significance(signal, background, min_bkg=0):
-
-    if isinstance(signal, (list, tuple)):
-        signal = sum(signal)
-    if isinstance(background, (list, tuple)):
-        background = sum(background)
-    sig_counts = np.array(signal)
-    bkg_counts = np.array(background)
-    # reverse cumsum
-    S = sig_counts[::-1].cumsum()[::-1]
-    B = bkg_counts[::-1].cumsum()[::-1]
-    exclude = B < min_bkg
-    # S / sqrt(S + B)
-    with np.errstate(divide='ignore', invalid='ignore'):
-        sig = np.ma.fix_invalid(np.divide(S, np.sqrt(S + B)), fill_value=0.)
-    bins = list(background.xedges())[:-1]
-    max_bin = np.argmax(np.ma.masked_array(sig, mask=exclude))
-    max_sig = sig[max_bin]
-    max_cut = bins[max_bin]
-    return sig, max_sig, max_cut
 
 
 def plot_grid_scores(grid_scores, best_point, params, name,

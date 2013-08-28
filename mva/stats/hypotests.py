@@ -13,9 +13,8 @@ from rootpy.fit import histfactory
 from .asymptotics import AsymptoticsCLs
 from .significance import runSig
 from ..samples import Higgs
-from ..plotting import significance, efficiency_cut
 from ..classify import histogram_scores
-from .utils import get_safe_template
+from .utils import efficiency_cut, get_safe_template
 from ..utils import hist_to_dict
 
 

@@ -5,6 +5,44 @@ from rootpy.plotting import Hist, Hist2D, Hist3D
 from math import sqrt
 
 
+def efficiency_cut(hist, effic):
+
+    integral = hist.Integral()
+    cumsum = 0.
+    for ibin, value in enumerate(hist):
+        cumsum += value
+        if cumsum / integral > effic:
+            return hist.xedges(ibin)
+    return hist.xedges(-1)
+
+
+def significance(signal, background, min_bkg=0, highstat=False):
+
+    if isinstance(signal, (list, tuple)):
+        signal = sum(signal)
+    if isinstance(background, (list, tuple)):
+        background = sum(background)
+    sig_counts = np.array(signal)
+    bkg_counts = np.array(background)
+    # reverse cumsum
+    S = sig_counts[::-1].cumsum()[::-1]
+    B = bkg_counts[::-1].cumsum()[::-1]
+    exclude = B < min_bkg
+    with np.errstate(divide='ignore', invalid='ignore'):
+        if highstat:
+            # S / sqrt(S + B)
+            sig = np.ma.fix_invalid(np.divide(S, np.sqrt(S + B)),
+                fill_value=0.)
+        else:
+            # sqrt(2 * (s + B) * ln(1 + s / B) - s)
+            sig = 1.
+    bins = list(background.xedges())[:-1]
+    max_bin = np.argmax(np.ma.masked_array(sig, mask=exclude))
+    max_sig = sig[max_bin]
+    max_cut = bins[max_bin]
+    return sig, max_sig, max_cut
+
+
 def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
 
     # TODO: use full score range, not just min and max signal score
