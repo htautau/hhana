@@ -261,11 +261,17 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
             current_binning_axis = best_binning_axis
             if current_binning_axis:
                 if current_binning_axis == 'x':
-                    current_binning = [ sig_hist.GetBinLowEdge(i) for i in range(1, sig_hist.GetNbinsX() + 2) if not i-1==best_binning_index ]
+                    current_binning = [ sig_hist.GetBinLowEdge(i)
+                        for i in range(1, sig_hist.GetNbinsX() + 2)
+                            if not i-1==best_binning_index ]
                 elif current_binning_axis == 'y':
-                    current_binning = [ sig_hist.GetBinLowEdge(i) for i in range(1, sig_hist.GetNbinsY() + 2) if not i-1==best_binning_index ]
+                    current_binning = [ sig_hist.GetBinLowEdge(i)
+                        for i in range(1, sig_hist.GetNbinsY() + 2)
+                            if not i-1==best_binning_index ]
                 elif current_binning_axis == 'z':
-                    current_binning = [ sig_hist.GetBinLowEdge(i) for i in range(1, sig_hist.GetNbinsZ() + 2) if not i-1==best_binning_index ]
+                    current_binning = [ sig_hist.GetBinLowEdge(i)
+                        for i in range(1, sig_hist.GetNbinsZ() + 2)
+                            if not i-1==best_binning_index ]
 
                 sig_hist, current_template = rebin_hist(sig_hist, current_binning, current_binning_axis)
                 bkg_hist, _ = rebin_hist(bkg_hist, current_binning, current_binning_axis)
