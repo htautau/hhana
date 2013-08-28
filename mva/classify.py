@@ -546,7 +546,7 @@ class ClassificationProblem(object):
             else:
                 # default logistic transformation
                 scores = -1 + 2.0 / (1.0 +
-                    np.exp(-self.clfs[0].n_estimators * scores / 8))
+                    np.exp(-self.clfs[0].n_estimators * scores / 10))
 
         return scores, weight
 
@@ -570,6 +570,77 @@ class ClassificationProblem(object):
         year = backgrounds[0].year
         category = self.category
         region = self.region
+
+        ############################################################
+        # show the background model and data in the control region
+        log.info("plotting classifier output in control region ...")
+        log.info(control_region)
+        # data scores
+        data_scores, _ = data.scores(self,
+            category=category,
+            region=region,
+            cuts=control_region)
+
+        # determine min and max scores
+        min_score = 1e10
+        max_score = -1e10
+        _min = data_scores.min()
+        _max = data_scores.max()
+        if _min < min_score:
+            min_score = _min
+        if _max > max_score:
+            max_score = _max
+
+        # background model scores
+        bkg_scores = []
+        for bkg in backgrounds:
+            scores_dict = bkg.scores(self,
+                category=category,
+                region=region,
+                cuts=control_region)
+
+            for sys_term, (scores, weights) in scores_dict.items():
+                assert len(scores) == len(weights)
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
+
+            bkg_scores.append((bkg, scores_dict))
+
+        log.info("minimum score: %f" % min_score)
+        log.info("maximum score: %f" % max_score)
+
+        # prevent bin threshold effects
+        min_score -= 0.00001
+        max_score += 0.00001
+
+        # add a bin above max score and below min score for extra beauty
+        score_width = max_score - min_score
+        bin_width = score_width / category.clf_bins
+        min_score -= bin_width
+        max_score += bin_width
+
+        plot_clf(
+            background_scores=bkg_scores,
+            category=category,
+            plot_label='Mass Control Region',
+            signal_scores=None,
+            data_scores=(data, data_scores),
+            draw_data=True,
+            data_info=str(data.info),
+            name='control' + self.output_suffix,
+            bins=category.clf_bins + 2,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=systematics,
+            mpl=mpl,
+            output_formats=output_formats,
+            unblind=True)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -737,77 +808,6 @@ class ClassificationProblem(object):
             max_score=max_score,
             output_suffix="_lowbdt" + self.output_suffix,
             cuts=signal_region,
-            mpl=mpl,
-            output_formats=output_formats,
-            unblind=True)
-
-        ############################################################
-        # show the background model and data in the control region
-        log.info("plotting classifier output in control region ...")
-        log.info(control_region)
-        # data scores
-        data_scores, _ = data.scores(self,
-            category=category,
-            region=region,
-            cuts=control_region)
-
-        # determine min and max scores
-        min_score = 1e10
-        max_score = -1e10
-        _min = data_scores.min()
-        _max = data_scores.max()
-        if _min < min_score:
-            min_score = _min
-        if _max > max_score:
-            max_score = _max
-
-        # background model scores
-        bkg_scores = []
-        for bkg in backgrounds:
-            scores_dict = bkg.scores(self,
-                category=category,
-                region=region,
-                cuts=control_region)
-
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
-
-            bkg_scores.append((bkg, scores_dict))
-
-        log.info("minimum score: %f" % min_score)
-        log.info("maximum score: %f" % max_score)
-
-        # prevent bin threshold effects
-        min_score -= 0.00001
-        max_score += 0.00001
-
-        # add a bin above max score and below min score for extra beauty
-        score_width = max_score - min_score
-        bin_width = score_width / category.clf_bins
-        min_score -= bin_width
-        max_score += bin_width
-
-        plot_clf(
-            background_scores=bkg_scores,
-            category=category,
-            plot_label='Mass Control Region',
-            signal_scores=None,
-            data_scores=(data, data_scores),
-            draw_data=True,
-            data_info=str(data.info),
-            name='control' + self.output_suffix,
-            bins=category.clf_bins + 2,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=systematics,
             mpl=mpl,
             output_formats=output_formats,
             unblind=True)
