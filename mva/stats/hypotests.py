@@ -103,9 +103,11 @@ def rebin_hist(hist, new_binning, axis='x'):
     entries = hist.GetEntries()
 
     new_hist = new_hist_template.Clone()
-    new_hist.systematics = {}
-    for sys_term in hist.systematics:
-        new_hist.systematics[sys_term] = new_hist_template.Clone()
+
+    if hasattr(hist, 'systematics'):
+        new_hist.systematics = {}
+        for sys_term in hist.systematics:
+            new_hist.systematics[sys_term] = new_hist_template.Clone()
 
     # Use TH1.FindBin to find out where the bins should be merged into
     for x in range(1, hist.GetNbinsX()+1):
@@ -120,6 +122,8 @@ def rebin_hist(hist, new_binning, axis='x'):
                 comb_w2N = add_stat_w2( hist, (x, y, z), new_hist, (new_x, new_y, new_z) )
                 set_stat_w2(new_hist, comb_w2N, new_x, new_y, new_z)
 
+                if not hasattr(hist, 'systematics'):
+                    continue
                 # Rebin the systematics histograms, too
                 for sys_term in hist.systematics:
                     v = hist.systematics[sys_term].GetBinContent(x, y, z)
@@ -147,10 +151,7 @@ def significance(sig_hist, bkg_hist, xbinrange=None, ybinrange=None, zbinrange=N
     IMPORTANT: the binranges are bin indices, not bin edges. This is potentially
     confusing, as in the function "rebin_hist()", the input is the latter. Will probably
     need to decide eventually which system to stick to.
-
-    Note that bkg_hist.systematics must be set to at least {}!
     """
-    assert hasattr(bkg_hist, 'systematics') and type(bkg_hist.systematics) is dict
     if xbinrange:
         assert type(xbinrange) is list
         x_axis = xbinrange
@@ -191,8 +192,9 @@ def significance(sig_hist, bkg_hist, xbinrange=None, ybinrange=None, zbinrange=N
                             if sig > 0 and bkg > 0:
                                 syst += get_stat_w2(sig_hist, x, y, z)
                                 syst += get_stat_w2(bkg_hist, x, y, z)
-                                for sys_term in bkg_hist.systematics:
-                                    syst += (this_bkg - bkg_hist.systematics[sys_term].GetBinContent(x, y, z)) ** 2.
+                                if hasattr(bkg_hist, 'systematics'):
+                                    for sys_term in bkg_hist.systematics:
+                                        syst += (this_bkg - bkg_hist.systematics[sys_term].GetBinContent(x, y, z)) ** 2.
 
                 if sig > 0 and bkg > 0:
                     s += sig**2. / (bkg + syst)
@@ -215,12 +217,8 @@ def optimize_binning(sig_hist, bkg_hist, starting_point='fine'):
         3. Do the split if improvement in significance is observed
         4. Repeat from step (2) for the two newly split partitions
 
-    Note that bkg_hist.systematics must be set to at least {}!
-
     Returns the optimized sig_hist, bkg_hist and hist_template. hist_template is None if nothing is changed.
     """
-    assert hasattr(bkg_hist, 'systematics') and type(bkg_hist.systematics) is dict
-
     original_s = significance(sig_hist, bkg_hist)
     current_template = None
     count = 0
