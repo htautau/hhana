@@ -546,7 +546,7 @@ class ClassificationProblem(object):
             else:
                 # default logistic transformation
                 scores = -1 + 2.0 / (1.0 +
-                    np.exp(-self.clfs[0].n_estimators * scores / 10))
+                    np.exp(-self.clfs[0].n_estimators * scores / 8))
 
         return scores, weight
 
