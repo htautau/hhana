@@ -16,7 +16,7 @@ import shutil
 # rootpy imports
 from rootpy.tree import Cut
 from rootpy.io import root_open
-from rootpy.fit import histfactory
+from rootpy.stats import histfactory
 from rootpy.plotting import Hist2D
 
 # root imports

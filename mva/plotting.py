@@ -18,8 +18,8 @@ from matplotlib.patches import Patch
 import ROOT
 from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
 import rootpy.plotting.root2matplotlib as rplt
-from rootpy.math.stats.qqplot import qqplot
-from rootpy.math.stats.correlation import correlation_plot
+from rootpy.stats.utils.quantiles import qqgraph
+from rootpy.stats.utils.plot_correlation import plot_correlation
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import get_limits, get_band
@@ -130,11 +130,11 @@ def correlations(signal, signal_weight,
 
     # draw correlation plots
     names = [VARIABLES[field]['title'] for field in fields]
-    correlation_plot(signal, signal_weight, names,
+    plot_correlation(signal, signal_weight, names,
                      os.path.join(PLOTS_DIR, "correlation_signal_%s%s" % (
                          category.name, output_suffix)),
                      title='%s signal' % category.label)
-    correlation_plot(background, background_weight, names,
+    plot_correlation(background, background_weight, names,
                      os.path.join(PLOTS_DIR, "correlation_background_%s%s" % (
                          category.name, output_suffix)),
                      title='%s background' % category.label)
@@ -1128,7 +1128,7 @@ def draw(name,
 
     if model is not None and show_qq:
         qq_ax = plt.axes(rect_qq)
-        gg_graph = qqplot(data, sum(model))
+        gg_graph = qqgraph(data, sum(model))
         gg_graph.SetTitle('QQ plot')
         y = np.array(list(gg_graph.y()))
         y_up = y + np.array(list(gg_graph.yerrh()))
