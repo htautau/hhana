@@ -5,6 +5,7 @@ import operator
 from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 import numpy as np
+from cStringIO import StringIO
 from rootpy.context import preserve_current_directory
 import ROOT
 from . import log; log = log[__name__]
@@ -12,12 +13,14 @@ from . import log; log = log[__name__]
 
 def print_hist(hist):
 
-    print
+    out = StringIO()
+    print >> out
+    print >> out
     if hist.title:
-        print hist.title
+        print >> out, hist.title
     for bin in hist.bins():
-        print "%.5f +/- %.5f" % (bin.value, bin.error)
-    print
+        print >> out, "%.5f +/- %.5f" % (bin.value, bin.error)
+    log.info(out.getvalue())
 
 
 def hist_to_dict(hist):

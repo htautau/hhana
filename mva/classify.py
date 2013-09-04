@@ -19,6 +19,8 @@ from rootpy.plotting import Hist
 from rootpy.io import root_open as ropen
 from rootpy.extern.tabulartext import PrettyTable
 
+from cStringIO import StringIO
+
 from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
@@ -41,22 +43,24 @@ def print_feature_ranking(clf, fields):
         importances = clf.feature_importances_
         indices = np.argsort(importances)[::-1]
         log.info("Feature ranking:")
-        print
-        print r"\begin{tabular}{c|c|c}"
+        out = StringIO()
+        print >> out
+        print >> out
+        print >> out, r"\begin{tabular}{c|c|c}"
         table = PrettyTable(["Rank", "Variable", "Importance"])
-        print r"\hline\hline"
-        print r"Rank & Variable & Importance\\"
+        print >> out, r"\hline\hline"
+        print >> out, r"Rank & Variable & Importance\\"
         for f, idx in enumerate(indices):
             table.add_row([f + 1,
                 fields[idx],
                 '%.3f' % importances[idx]])
-            print r"%d & %s & %.3f\\" % (f + 1,
+            print >> out, r"%d & %s & %.3f\\" % (f + 1,
                 variables.VARIABLES[fields[idx]]['title'],
                 importances[idx])
-        print r"\end{tabular}"
-        print
-        print table.get_string(hrules=1)
-        print
+        print >> out, r"\end{tabular}"
+        print >> out
+        print >> out, table.get_string(hrules=1)
+        log.info(out.getvalue())
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
@@ -161,9 +165,11 @@ class ClassificationProblem(object):
                 log.info("found existing classifier in %s" % clf_filename)
                 with open(clf_filename, 'r') as f:
                     clf = pickle.load(f)
-                print
-                print clf
-                print
+                out = StringIO()
+                print >> out
+                print >> out
+                print >> out, clf
+                log.info(out.getvalue())
                 print_feature_ranking(clf, self.fields)
                 # check that testing on training sample gives better
                 # performance by swapping the following lines
@@ -458,20 +464,24 @@ class ClassificationProblem(object):
 
                 clf.fit(sample_train, labels_train,
                         sample_weight=sample_weight_train)
-                print
-                print "After scaling up min_leaf"
-                print
-                print clf
-                print
+
+                log.info("After scaling up min_leaf")
+                out = StringIO()
+                print >> out
+                print >> out
+                print >> out, clf
+                log.info(out.getvalue())
 
             else: # training on the other partition
                 log.info("training a new classifier ...")
 
                 # use same params as in first partition
                 clf = sklearn.clone(clf)
-                print
-                print clf
-                print
+                out = StringIO()
+                print >> out
+                print >> out
+                print >> out, clf
+                log.info(out.getvalue())
 
                 clf.fit(sample_train, labels_train,
                         sample_weight=sample_weight_train)

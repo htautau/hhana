@@ -131,7 +131,7 @@ if 'yields' in args.actions:
             log.info("Data: %d" % data_events)
             log.info("Data / Model: %f" % (data_events / model_events))
         for name, events in bkg + sig:
-            print "{0} & {1:.1f}".format(name, events)
+            log.info("{0} & {1:.1f}".format(name, events))
 
 
 if 'ntup' in args.actions:
@@ -503,8 +503,7 @@ if 'workspace' in args.actions:
                     lumi=1.0,
                     lumi_rel_error=lumi_rel_error,
                     const_params=CONST_PARAMS,
-                    #silence=True
-                    )
+                    silence=True)
                 # mu=1 for Asimov data
                 #measurement.SetParamValue('SigXsecOverSM', 1)
                 workspace.Write()
@@ -523,8 +522,7 @@ if 'workspace' in args.actions:
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
                 const_params=CONST_PARAMS,
-                #silence=True
-                )
+                silence=True)
             # mu=1 for Asimov data
             #measurement.SetParamValue('SigXsecOverSM', 1)
             workspace.Write()
