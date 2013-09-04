@@ -18,6 +18,7 @@ from rootpy.tree import Cut
 from rootpy.io import root_open
 from rootpy.stats import histfactory
 from rootpy.plotting import Hist2D
+from rootpy.utils.silence import silence_sout_serr
 
 # root imports
 import ROOT
@@ -508,7 +509,8 @@ if 'workspace' in args.actions:
                 #measurement.SetParamValue('SigXsecOverSM', 1)
                 workspace.Write()
                 measurement.Write()
-                measurement.PrintXML(xml_output_dir)
+                with silence_sout_serr():
+                    measurement.PrintXML(xml_output_dir)
                 if 'limits' in args.actions:
                     # get limit
                     limit_hist = hypotests.get_limit_workspace(workspace)
@@ -527,7 +529,8 @@ if 'workspace' in args.actions:
             #measurement.SetParamValue('SigXsecOverSM', 1)
             workspace.Write()
             measurement.Write()
-            measurement.PrintXML(xml_output_dir)
+            with silence_sout_serr():
+                measurement.PrintXML(xml_output_dir)
             if 'limits' in args.actions:
                 # determine limit with combined model
                 limit_hist = hypotests.get_limit_workspace(workspace)
