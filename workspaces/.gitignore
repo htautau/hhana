@@ -1,3 +1,4 @@
 *.txt
 *.tex
 FitCrossChecks*
+tmp*

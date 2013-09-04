@@ -22,7 +22,7 @@ from rootpy.io import root_open as ropen, TemporaryFile
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
 from rootpy.memory.keepalive import keepalive
-from rootpy.fit import histfactory
+from rootpy.stats import histfactory
 
 # higgstautau imports
 from higgstautau import datasets
@@ -38,7 +38,7 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.utils import kylefix, statsfix, zero_negs
+from .stats.utils import kylefix, statsfix, zero_negs, merge_bins
 from .cachedtable import CachedTable
 from .regions import REGIONS
 from .lumi import get_lumi_uncert
@@ -237,7 +237,8 @@ class Sample(object):
             systematics=True,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            merged_bin_ranges=None):
 
         log.info("creating histfactory sample for {0}".format(self.name))
 
@@ -264,6 +265,12 @@ class Sample(object):
         # copy of unaltered nominal hist required by QCD shape
         nominal_hist = hist.Clone()
 
+        # convert to 1D if 2D (also handles systematics if present)
+        hist = ravel(hist)
+
+        if merged_bin_ranges is not None:
+            hist = merge_bins(hist, merged_bin_ranges)
+
         # convert to uniform binning and zero out negative bins
         hist = statsfix(hist, fix_systematics=True)
 
@@ -279,9 +286,6 @@ class Sample(object):
             hist = kylefix(hist, fix_systematics=True)
 
         print_hist(hist)
-
-        # convert to 1D if 2D (also handles systematics if present)
-        hist = ravel(hist)
 
         # set the nominal histogram
         sample.hist = hist
@@ -387,6 +391,10 @@ class Sample(object):
 
                 low = ravel(low)
                 high = ravel(high)
+
+                if merged_bin_ranges is not None:
+                    low = merge_bins(low, merged_bin_ranges)
+                    high = merge_bins(high, merged_bin_ranges)
 
                 # convert to uniform binning and zero out negative bins
                 low = statsfix(low)

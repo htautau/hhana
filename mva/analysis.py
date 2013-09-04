@@ -1,6 +1,6 @@
 import random
 
-from rootpy.fit import histfactory
+from rootpy.stats import histfactory
 
 from . import samples, log; log = log[__name__]
 from .norm import cache as norm_cache

@@ -320,6 +320,21 @@ def statsfix(hist, fix_systematics=True):
         fix_systematics=fix_systematics)
 
 
+def merge_bins(hist, bin_ranges, axis=0):
+
+    new_hist = hist.merge_bins(bin_ranges, axis=axis)
+    new_hist.name = hist.name + '_merged'
+
+    if hasattr(hist, 'systematics'):
+        new_systematics = {}
+        for term, sys_hist in hist.systematics.items():
+            new_sys_hist = sys_hist.merge_bins(bin_ranges, axis=axis)
+            new_sys_hist.name = sys_hist.name + '_merged'
+            new_systematics[term] = new_sys_hist
+        new_hist.systematics = new_systematics
+    return new_hist
+
+
 def shape_is_significant(total, high, low, thresh=0.1):
     """
     For a given shape systematic for background-X, calculate

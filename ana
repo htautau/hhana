@@ -471,7 +471,9 @@ if 'workspace' in args.actions:
                 mass_points=args.mass_points,
                 mu=analysis.mu,
                 systematics=args.systematics,
-                unblind=args.unblind)
+                unblind=args.unblind,
+                #merged_bin_ranges=[(1, -22)]
+                )
 
         for mass, channel in channels.items():
             if mass not in all_channels:
