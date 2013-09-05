@@ -289,7 +289,6 @@ class Sample(object):
 
         # set the nominal histogram
         sample.hist = hist
-        sample.histname = hist.name
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics

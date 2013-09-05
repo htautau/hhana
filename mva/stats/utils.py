@@ -370,65 +370,8 @@ def smooth_shape(nominal, high, low, iterations=1):
 
 def kylefix(hist, fix_systematics=False):
     """
-
     Return a clone of the input histogram where the empty bins have been filled
     with the average weight and the errors of these bins set to sqrt(<w^2>)
-
-
-                                            ..
-                                  ..'..,c::;;,.. . .,... .
-                               .....'....,;''.,'.... .... ;.
-                            .... ..,,.'.,:,..;,,,'. .. ...  ,,
-                          .;.    .,..';;,'..........,.    ..  ::
-                      .','..'.....'.'..';:,,'.''.,','..        .d.
-                     ,'. ...'ccodd:''....','.... .''.'..        .:
-                   '......,o:;,',lc::;:......       .;;..
-                  .; ....lc    . ...,;:clc:;::;'.....
-                 .,. .  cc      .    .',,;,,;;lcc,.......
-                 ,..   ;:    .          ..   ..'..    .....         .
-                 ' .  .:.    .                           ....       .
-                 ...  ,;     .                            ...      .
-                  .  .c.                                   ..      ,
-                  .. .d   ......                           .       o
-                  '. ;o'loolcloldoc..          ...''...    ..     '.
-                  ';.:0l,;c:','.';lo;.    .'::;;;,;;clll,   .     .
-                  dk:kOdlcloo:,.....''...''..   .........:. .    .c
-                 ;klxxxclxkkcllxlloc:,..,;clllccloo:::cccc: ,  .',l
-                 xd:x o .;llo:;'.''o.:lc';' . .;,'.,'.. .l....;:...:.
-                .lc0O:c   ... .....xx'..k:...'..,';;..   l..; c.   ;;
-                ..lx.:cllocc:cc;;:0d     oo;.....    .';oO. '.:    ,,
-                ; lo       ........       ;,codooodddoc;,.  ..,    .:
-                c xo .          .          ..               . ;..  ,
-                l dd           .            '               . 'c..'
-                  :k           .c,... ....                 .. ;: .
-                   '      .     .;'..  ..   .   .          .'';.'.
-                    .    ... ......'........'.....,        ..:..
-                    .   ...'......'';'''..... .....'       .''
-                    ..    .cOxc,'.'..........'....,.      ..c
-                     '....'. .:cockdclllcc;....... . .     :.
-                     .:'..... .  ....... ..     .    ..   .o
-                      .;....'... ..','''.       .   ...   .'
-                       .,.',,'.. ..         ..... ...   .  ;.
-                         :;c;;;;,',,''..............       ; ..
-                         ,:o::;::;'''''''.'...             .. .,.
-                         .,'l:;,'.......... .              .'...'.
-                          , ;c;'...... ..  .              .'.....;.
-                          '...c,..                       ,'...'..';.
-                          :c .;:;..            .       ;''..''..;,...
-                         :.', .;;'..                 .:';'';,.,;',:;'.
-                       .l,,.;. .''..   .           .''';',;,,c,,c;,::l,.
-                      'dd,'. l  ...               .c,,;',:;'c;;:;':':llo:'.
-                    ':ol;:;. o.                 ',l;;:;,::,cc;c;:c;::;cc:;cl,.
-                 .'::lx:l,,. ':               'cccc;;:'c:,l:;l;;l.;x,:;:::;cdol
-            ...'.;;;oo:c,;;, '.'            .colcc:;l'cc,l:;o:;o,:l;::l:;:;;cld
-         .'';::;,cx:.o;,c;,'...;  .       .:l:occ;,l,cc,o;,o,;o.l:;:lccd:c:c;;:
-       .':;:::c:;c:  cl:..;,.:.:........,olxdlcl,:l,c:,o;:l,:c.x';oocoo:occxccc
-      .;;;.:ccccl:   .,lcc,';l,.;';:;,.ol. .,co;cl,cc,o,:c'l;,d.'lclo:colo:x:cl
-    ..;;:,.lldd;;.    ..,:.lxxo,;;:ollkl      .cc,cc,o,cc,l,:l'.l:ollclo'loclcc
-    ;,,;,''ooc;..,,,;oc:,...:dol;:lcdd.         .lc;l,c:,o,cc..,:dl:lo'clco:ll:
-    l::':.:co;; ;dxdodllc;,.,.ccc.;d'             .c;c:'o,cl'..:lcll.ldcloclll:
-    :;,:,';o:c;';oxxdcoclc:,,;';xlo.        ....... .,;c'::,l.'coc.oodooolllo:l
-    ::::..o;:c;:cdxdoooolc;c;',cloO.    . ...;,.'''.  .,o':o ';;:o;ooclololc:k,
     """
     llog = log['kylefix']
     fixed_hist = hist.Clone(name=hist.name + '_kylefix')

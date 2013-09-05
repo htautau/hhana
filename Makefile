@@ -111,15 +111,19 @@ ntup-update:
 	./merge-ntup -s $(HHSTUDENT) -o $(HHNTUP)/$(HHSTUDENT).root $(HHNTUP_RUNNING)/$(HHSTUDENT).*.root
 	root2hdf5 --update --complib lzo --complevel 0 --quiet $(HHNTUP)/$(HHSTUDENT).root
 
+.PHONY: $(HHNTUP)/merged_grl.xml
 $(HHNTUP)/merged_grl.xml:
 	ls $(HHNTUP)/data/*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
 
+.PHONY: $(HHNTUP)/observed_grl.xml
 $(HHNTUP)/observed_grl.xml: $(HHNTUP)/merged_grl.xml ../higgstautau-dev/grl/2012/current.xml 
 	grl and $^ > $@
 
+.PHONY: ~/observed_grl.xml
 ~/observed_grl.xml: $(HHNTUP)/observed_grl.xml
 	cp $^ $@
 
+.PHONY: grl
 grl: ~/observed_grl.xml
 
 clean-grl:
