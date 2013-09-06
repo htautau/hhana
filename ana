@@ -400,7 +400,7 @@ if 'workspace' in args.actions:
     bins = int(max_edge - min_edge)
     # define the histogram template
     hist_template = Hist2D(bins, min_edge, max_edge,
-                           bins, min_edge, max_edge, type='D')
+                           bins, min_edge, max_edge)
 
     for category in CATEGORIES['mva_workspace_controls']:
         parent_category = category.get_parent()
