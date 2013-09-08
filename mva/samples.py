@@ -38,7 +38,6 @@ from .lumi import LUMI
 from .systematics import *
 from .constants import *
 from .classify import histogram_scores
-from .stats.utils import kylefix, statsfix, zero_negs, merge_bins
 from .cachedtable import CachedTable
 from .regions import REGIONS
 from .lumi import get_lumi_uncert
@@ -237,8 +236,7 @@ class Sample(object):
             systematics=True,
             suffix=None,
             field_scale=None,
-            weight_hist=None,
-            merged_bin_ranges=None):
+            weight_hist=None):
 
         log.info("creating histfactory sample for {0}".format(self.name))
 
@@ -267,23 +265,6 @@ class Sample(object):
 
         # convert to 1D if 2D (also handles systematics if present)
         hist = ravel(hist)
-
-        if merged_bin_ranges is not None:
-            hist = merge_bins(hist, merged_bin_ranges)
-
-        # convert to uniform binning and zero out negative bins
-        hist = statsfix(hist, fix_systematics=True)
-
-        # always apply kylefix on backgrounds
-        if (isinstance(self, Background) and
-            not getattr(self, 'NO_KYLEFIX', False)):
-            log.info("applying kylefix()")
-            # TODO also apply kylefix on systematics?
-            # IMPORTANT: if kylefix is not applied on systematics, normalization
-            # can be inconsistent between nominal and systematics creating a
-            # bias in the OverallSys when separating the variation into
-            # normalization and shape components!
-            hist = kylefix(hist, fix_systematics=True)
 
         print_hist(hist)
 
@@ -390,26 +371,6 @@ class Sample(object):
 
                 low = ravel(low)
                 high = ravel(high)
-
-                if merged_bin_ranges is not None:
-                    low = merge_bins(low, merged_bin_ranges)
-                    high = merge_bins(high, merged_bin_ranges)
-
-                # convert to uniform binning and zero out negative bins
-                low = statsfix(low)
-                high = statsfix(high)
-
-                # always apply kylefix on backgrounds
-                if (isinstance(self, Background) and
-                    not getattr(self, 'NO_KYLEFIX', False)):
-                    log.info("applying kylefix()")
-                    # TODO also apply kylefix on systematics?
-                    # IMPORTANT: if kylefix is not applied on systematics, normalization
-                    # can be inconsistent between nominal and systematics creating a
-                    # bias in the OverallSys when separating the variation into
-                    # normalization and shape components!
-                    low = kylefix(low)
-                    high = kylefix(high)
 
                 log.info("QCD low shape")
                 print_hist(low)
@@ -2211,7 +2172,6 @@ class QCD(Sample, Background):
         # reflect shape about the nominal to get high and low variations
         shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
         shape_sys_reflect.name = shape_sys.name + '_reflected'
-        shape_sys_reflect = zero_negs(shape_sys_reflect)
 
         return shape_sys, shape_sys_reflect
 
@@ -2311,7 +2271,6 @@ class QCD(Sample, Background):
             # reflect shape about the nominal to get high and low variations
             shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
             shape_sys_reflect.name = shape_sys.name + '_reflected'
-            shape_sys_reflect = zero_negs(shape_sys_reflect)
             field_shape_sys_reflect[field] = (shape_sys, shape_sys_reflect)
 
         return field_shape_sys_reflect
