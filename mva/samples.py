@@ -337,13 +337,6 @@ class Sample(object):
 
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
 
-                # drop norm on backgrounds if < 1% and signals if < .5%
-                if (isinstance(self, Background) and (
-                        norm.high >= 1.01 or norm.low <= 0.99)) or (
-                    isinstance(self, Signal) and (
-                        norm.high >= 1.005 or norm.low <= 0.995)):
-                    sample.AddOverallSys(norm)
-
                 # drop all jet related shape terms from Others (JES, JVF, JER)
                 if isinstance(self, Others) and (
                         sys_component.startswith('JES') or
