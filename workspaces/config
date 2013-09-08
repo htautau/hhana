@@ -16,9 +16,6 @@ if os.path.exists(xmloutdir):
     shutil.rmtree(xmloutdir)
 os.mkdir(xmloutdir)
 
-if not os.path.exists(resultsdir):
-    os.mkdir(resultsdir)
-
 for xmlfilename in xmlfiles:
     fin = open(xmlfilename, 'r')
     fout = open(os.path.join(xmloutdir, os.path.basename(xmlfilename)), 'w')
@@ -32,7 +29,8 @@ for xmlfilename in xmlfiles:
                             '<Combination OutputFilePrefix="%s/hist2workspace" >' %
                             resultsdir)
         line = re.sub('\w+=""', '', line)
-        line = re.sub('\s+</', '</', line)
+        line = re.sub('\s+/>', ' />', line)
+        line = re.sub('"\s\s+(\S)', r'" \1', line)
         line = line.replace('<Input>./workspaces/', '<Input>./')
         # HistFactory bug:
         line = line.replace('<ParamSetting Const="True"></ParamSetting>', '')
