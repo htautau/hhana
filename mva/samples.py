@@ -337,6 +337,8 @@ class Sample(object):
 
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
 
+                sample.AddOverallSys(norm)
+
                 # drop all jet related shape terms from Others (JES, JVF, JER)
                 if isinstance(self, Others) and (
                         sys_component.startswith('JES') or
