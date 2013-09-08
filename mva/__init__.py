@@ -9,6 +9,9 @@ import ROOT
 import rootpy
 import logging
 
+# Speed things up a bit
+ROOT.SetSignalPolicy(ROOT.kSignalFast)
+
 LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
 
 NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')

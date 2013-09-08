@@ -810,7 +810,7 @@ class Data(Sample):
                   cuts=None, weighted=True, systematics=True):
 
         self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
-        if not hasattr(hist, datainfo):
+        if not hasattr(hist, 'datainfo'):
             hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
         else:
             hist.datainfo += self.info

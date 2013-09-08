@@ -20,7 +20,7 @@ import sys
 from rootpy.io import root_open
 from rootpy.plotting import Hist2D, Hist
 from rootpy.tree import Cut
-from rootpy.fit import histfactory, fit
+from rootpy.stats import histfactory, fit
 
 from mva import samples
 from mva.massregions import MassRegions
