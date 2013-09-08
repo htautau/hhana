@@ -454,8 +454,7 @@ def channels(clf, category, region, backgrounds,
              mass_points=None, mu=1.,
              systematics=True,
              unblind=False,
-             hybrid_data=False,
-             merged_bin_ranges=None):
+             hybrid_data=False):
     """
     Return a HistFactory Channel for each mass hypothesis
     """
@@ -479,8 +478,7 @@ def channels(clf, category, region, backgrounds,
         sample = s.get_histfactory_sample(
             hist_template, clf,
             category, region,
-            cuts=cuts, scores=scores,
-            merged_bin_ranges=merged_bin_ranges)
+            cuts=cuts, scores=scores)
         bkg_samples.append(sample)
 
     data_sample = None
@@ -501,8 +499,7 @@ def channels(clf, category, region, backgrounds,
             hist_template, clf,
             category, region,
             cuts=cuts, scores=data_scores,
-            max_score=max_unblind_score,
-            merged_bin_ranges=merged_bin_ranges)
+            max_score=max_unblind_score)
         if not unblind and hybrid_data:
             # blinded bins filled with S+B, for limit/p0 plots
             # Swagato:
@@ -526,8 +523,7 @@ def channels(clf, category, region, backgrounds,
             sample = s.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
-                cuts=cuts, scores=scores,
-                merged_bin_ranges=merged_bin_ranges)
+                cuts=cuts, scores=scores)
             sig_samples.append(sample)
 
         # create channel for this mass point
