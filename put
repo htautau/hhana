@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+import os
+from subprocess import call
+from rootpy.extern import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--site', default='NIKHEF-ELPROD_PHYS-HIGGS')
+parser.add_argument('file')
+args = parser.parse_args()
+
+dsname = 'group.phys-higgs.' + (os.path.splitext(args.file)[0])
+
+call('dq2-register-dataset {0}'.format(dsname),
+    shell=True)
+call('dq2-register-location {0} {1}'.format(dsname, args.site),
+    shell=True)
+call('rucio-put -a -d -L {2} -f {0} {1}'.format(
+    args.file,
+    dsname,
+    args.site), shell=True)
