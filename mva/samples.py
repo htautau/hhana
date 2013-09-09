@@ -1640,7 +1640,9 @@ class Higgs(MC, Signal):
 
     def __init__(self, year,
             mode=None, modes=None,
-            mass=None, masses=None, **kwargs):
+            mass=None, masses=None,
+            sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
+            **kwargs):
 
         if masses is None:
             if mass is not None:
@@ -1698,13 +1700,21 @@ class Higgs(MC, Signal):
         self.samples = []
         self.masses = []
         self.modes = []
-        for mode in modes:
-            generator = Higgs.MODES_DICT[mode][generator_index]
+
+        if sample_pattern is not None:
+            assert len(modes) == 1
             for mass in masses:
-                self.samples.append('%s%sH%d_tautauhh.%s' % (
-                    generator, mode, mass, suffix))
                 self.masses.append(mass)
-                self.modes.append(mode)
+                self.modes.append(modes[0])
+                self.samples.append(sample_pattern.format(mass) + '.' + suffix)
+        else:
+            for mode in modes:
+                generator = Higgs.MODES_DICT[mode][generator_index]
+                for mass in masses:
+                    self.samples.append('%s%sH%d_tautauhh.%s' % (
+                        generator, mode, mass, suffix))
+                    self.masses.append(mass)
+                    self.modes.append(mode)
 
         if len(self.modes) == 1:
             self.mode = self.modes[0]
