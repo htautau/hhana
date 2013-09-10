@@ -125,7 +125,7 @@ namespace LimitCrossCheck{
   bool plotRelative(false);                 // plot % shift of systematic
   bool draw1DResponse(false);		    // draw 1D response for each NP 
   bool UseMinosError(false);                // compute minos error (if false : use minuit error)
-  int isBlind(1);                           // 0: Use observed Data 1: use Asimov data 2: use toydata
+  int isBlind(0);                           // 0: Use observed Data 1: use Asimov data 2: use toydata
   double mu_asimov(0.0);                    // mu value used to generate Asimov dataset (not used if isBlind==0)
   double PullMaxAcceptable(1.5);            // Threshold to consider a NP[central value] as suspicious
   double ErrorMinAcceptable(0.2);           // Threshold to consider a NP[error] as suspicious
