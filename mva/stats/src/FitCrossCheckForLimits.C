@@ -123,10 +123,10 @@ namespace LimitCrossCheck{
   // User configuration one
   bool drawPlots(false);                    // create eps & png files and creat a webpage
   bool plotRelative(false);                 // plot % shift of systematic
-  bool draw1DResponse(true);		    // draw 1D response for each NP 
+  bool draw1DResponse(false);		    // draw 1D response for each NP 
   bool UseMinosError(false);                // compute minos error (if false : use minuit error)
   int isBlind(1);                           // 0: Use observed Data 1: use Asimov data 2: use toydata
-  double mu_asimov(1.0);                    // mu value used to generate Asimov dataset (not used if isBlind==0)
+  double mu_asimov(0.0);                    // mu value used to generate Asimov dataset (not used if isBlind==0)
   double PullMaxAcceptable(1.5);            // Threshold to consider a NP[central value] as suspicious
   double ErrorMinAcceptable(0.2);           // Threshold to consider a NP[error] as suspicious
   TString xAxisLabel("Final Distribution"); // set what the x-axis of the distribution is
@@ -145,11 +145,14 @@ namespace LimitCrossCheck{
   TDirectory   *MainDirStatTest;
   map <string,double> MapNuisanceParamNom;
   map <TString,RooFitResult*> AllFitResults_map;
+  map <TString,int> AllFitStatus_map;
   vector<NPContainer> AllNPafterEachFit_vec;
   TString OutputDir;
   
   //Global functions
-  RooFitResult* FitPDF( ModelConfig* model, RooAbsPdf* fitpdf, RooAbsData* fitdata, TString minimType = "Minuit2", bool useMinos = false );
+  RooFitResult* FitPDF( ModelConfig* model, RooAbsPdf* fitpdf, RooAbsData* fitdata, 
+			int &MinuitStatus, int &HessStatus, double &Edm,
+			TString minimType = "Minuit2", bool useMinos = false );
   void     PlotHistosBeforeFit(double nSigmaToVary, double mu);
   void     PlotMorphingControlPlots();
   void     PlotHistosAfterFitEachSubChannel(bool IsConditionnal , double mu);
@@ -165,6 +168,7 @@ namespace LimitCrossCheck{
   void     PrintNumberOfEvents(RooAbsPdf *pdf);
   void     PrintSubChannels();
   void     PrintSuspiciousNPs();
+  void     PrintFits();
   bool     IsSimultaneousPdfOK();
   bool     IsChannelNameOK();
   void     SetAllNuisanceParaToSigma(double Nsigma);
@@ -213,7 +217,7 @@ namespace LimitCrossCheck{
     // 3 - Plot histograms after unconditional fit (theta and mu fitted at the same time)
     // ----------------------------------------------------------------------------------    
     bool IsConditional = false;
-    PlotHistosAfterFitEachSubChannel(IsConditional,0.0);
+    //PlotHistosAfterFitEachSubChannel(IsConditional,0.0);
     PlotHistosAfterFitGlobal(IsConditional,0.0);
         
     
@@ -251,13 +255,17 @@ namespace LimitCrossCheck{
   // ============ Definition of all the functions ===============
   // ============================================================
 
+
+
+
   // ============================================================
   // ============ Definition of Fitting Function ================
   // ============================================================
   
-
-  RooFitResult* FitPDF( ModelConfig* model, RooAbsPdf* fitpdf, RooAbsData* fitdata, TString minimType, bool useMinos ) {
-
+  RooFitResult* FitPDF( ModelConfig* model, RooAbsPdf* fitpdf, RooAbsData* fitdata, 
+			int &MinuitStatus, int &HessStatus, double &Edm,
+			TString minimType, bool useMinos ) {
+    
     model->Print();
 
     RooArgSet* constrainedParams = fitpdf->getParameters(*data);
@@ -278,57 +286,143 @@ namespace LimitCrossCheck{
 
     std::cout << "INITIAL NLL = " << nllval << std::endl;
 
-    int printLevel = 0;
-    int minimPrintLevel = printLevel; // ROOT::Math::MinimizerOptions::DefaultPrintLevel();
-       
+    static int nrItr = 0;
+    int maxRetries = 3;
+    ROOT::Math::MinimizerOptions::SetDefaultMinimizer(minimType);
+    int strat = ROOT::Math::MinimizerOptions::DefaultStrategy();
+    int save_strat = strat;
     RooMinimizer minim(*nll);
-    //minim.setStrategy(ROOT::Math::MinimizerOptions::DefaultStrategy());
-    //minim.setStrategy(0);
-    
-    minim.setErrorLevel(0.5);
-    //double tol =  ROOT::Math::MinimizerOptions::DefaultTolerance();
-    //minim.setEps( tol );
-    
-    minim.setPrintLevel(minimPrintLevel);
+    minim.setStrategy(strat);
+    minim.setPrintLevel(1);
     minim.setEps(1);
-
-    int status = -1;
-
-    int optConstFlag = 2;
-    minim.optimizeConst(optConstFlag);
 
     TStopwatch sw; sw.Start(); 
 
+    int status=-99;
+    HessStatus=-99;
+    Edm = -99;
+    RooFitResult * r;
+    while (nrItr<maxRetries && status!=0 && status!=1){
 
-    TString minimizer = ROOT::Math::MinimizerOptions::DefaultMinimizerType(); 
-    TString algorithm = ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo(); 
-    if (minimType !=0) minimizer = minimType;
+      cout << endl;
+      cout << endl;
+      cout << endl;
+      cout << "Fit try n°" << nrItr+1 << endl;
+      cout << "======================" << endl;
+      cout << endl;
+      
+          
+      ROOT::Math::MinimizerOptions::SetDefaultStrategy(save_strat);
+      status = minim.minimize(ROOT::Math::MinimizerOptions::DefaultMinimizerType().c_str(),ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo().c_str());
+      HessStatus= minim.hesse();
+      r = minim.save();
+      Edm = r->edm();
 
-    cout << "minimizer " << minimizer << endl;
-    cout << "algorithm " << algorithm << endl;
+      //up the strategy
+      bool FitIsNotGood = ((status!=0 && status!=1) || (HessStatus!=0 && HessStatus!=1) || Edm>1.0);
+      if (FitIsNotGood && strat<2){
+	cout << endl;
+	cout << "   *******************************" << endl;
+	cout << "   * Increasing Minuit strategy (was " << strat << ")" << endl;
+	strat++;
+	cout << "   * Fit failed with : " << endl;
+	cout << "      - minuit status " << status << endl;
+	cout << "      - hess status " << HessStatus << endl;
+	cout << "      - Edm = " << Edm << endl;
+	cout << "   * Retrying with strategy " << strat << endl;
+	cout << "   ********************************" << endl;
+	cout << endl;
+	minim.setStrategy(strat);
+	status = minim.minimize(ROOT::Math::MinimizerOptions::DefaultMinimizerType().c_str(), ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo().c_str());
+	HessStatus= minim.hesse();
+	r = minim.save();
+	Edm = r->edm();
+      }
+      
+      FitIsNotGood = ((status!=0 && status!=1) || (HessStatus!=0 && HessStatus!=1) || Edm>1.0);
+      if (FitIsNotGood && strat < 2){
+	cout << endl;
+	cout << "   ********************************" << endl;
+	cout << "   * Increasing Minuit strategy (was " << strat << ")" << endl;
+	strat++;
+	cout << "   * Fit failed with : " << endl;
+	cout << "      - minuit status " << status << endl;
+	cout << "      - hess status " << HessStatus << endl;
+	cout << "      - Edm = " << Edm << endl;
+	cout << "   * Retrying with strategy " << strat << endl;
+	cout << "   ********************************" << endl;
+	cout << endl;
+	minim.setStrategy(strat);
+	status = minim.minimize(ROOT::Math::MinimizerOptions::DefaultMinimizerType().c_str(), ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo().c_str());
+	r = minim.save();
+	Edm = r->edm();
+      }
+      
+      FitIsNotGood = ((status!=0 && status!=1) || (HessStatus!=0 && HessStatus!=1) || Edm>1.0);
+      if (FitIsNotGood && strat < 2){
+	cout << endl;
+	cout << "   *******************************" << endl;
+	cout << "   * Increasing Minuit strategy (was " << strat << ")" << endl;
+	strat++;
+	cout << "   * Fit failed with : " << endl;
+	cout << "      - minuit status " << status << endl;
+	cout << "      - hess status " << HessStatus << endl;
+	cout << "      - Edm = " << Edm << endl;
+	cout << "   * Retrying with strategy " << strat << endl;
+	cout << "   ********************************" << endl;
+	cout << endl;
+	minim.setStrategy(strat);
+	status = minim.minimize(ROOT::Math::MinimizerOptions::DefaultMinimizerType().c_str(), ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo().c_str());
+	HessStatus= minim.hesse();
+	r = minim.save();
+	Edm = r->edm();
+      }
+      
+      if(useMinos) { minim.minos(); }
 
 
-    status = minim.minimize(minimizer, algorithm);       
+      FitIsNotGood = ((status!=0 && status!=1) || (HessStatus!=0 && HessStatus!=1) || Edm>1.0);
+      if ( FitIsNotGood) nrItr++;
+      if (nrItr == maxRetries) {
+	cout << endl;
+	cout << endl;
+	cout << endl;
+	cout << "***********************************************************" << endl;
+	cout << "WARNING::Fit failure unresolved with status " << status << endl;
+	cout << "   Please investigate your workspace" << endl;
+	cout << "   Find a wall : you will need it to crash your head on it" << endl;
+	cout << "***********************************************************" << endl;
+	cout << endl;
+	cout << endl;
+	cout << endl;
+	MinuitStatus = status;
+	return r;
+      }
+      
+    }  
+    
+    r = minim.save();
+    cout << endl;
+    cout << endl;
+    cout << endl;
+    cout << "***********************************************************" << endl;
+    cout << "         FIT FINALIZED SUCCESSFULLY : " << endl;
+    cout << "            - minuit status " << status << endl;
+    cout << "            - hess status " << HessStatus << endl;
+    cout << "            - Edm = " << Edm << endl;
+    cout << " -- " ; sw.Print();
+    cout << "***********************************************************" << endl;
+    cout << endl;
+    cout << endl;
+    cout << endl;
 
-    status = minim.hesse();
-    if(useMinos) { minim.minos(); }
-
+    MinuitStatus = status;
     sw.Print();
-    std::cout << "final poi parameters" << std::endl;
-
-    model->GetParametersOfInterest()->Print("v");
-
-    sw.Start();
-
-    RooFitResult * r = minim.save();
-    cout << "PRINTING FIT RESULT " << poi->isConstant() << "\t" << poi->getVal() << endl;
-    r->Print();
-
-    sw.Print();
-
+    
     return r;
   } // FitPDF
-
+  
+    
   void PlotHistosBeforeFit(double nSigmaToVary, double mu){
     cout << endl << "Plotting Histos Before Fit " << endl;
     cout << "\t Plotting relative " << plotRelative << endl;
@@ -993,12 +1087,16 @@ namespace LimitCrossCheck{
       
       // Fit 
       if (IsConditionnal) firstPOI->setConstant();
-      ROOT::Math::MinimizerOptions::SetDefaultStrategy(2);
+      ROOT::Math::MinimizerOptions::SetDefaultStrategy(0);
 
-      RooFitResult *fitres = FitPDF( mc, pdftmp, datatmp, "Minuit2", UseMinosError );
+      int status = -99;
+      int HessStatus = -99;
+      double Edm=-99;
+      RooFitResult *fitres = FitPDF( mc, pdftmp, datatmp, status,HessStatus,Edm, "Minuit2", UseMinosError );
       TString FitName = (TString)tt->GetName() + "_" + TS_IsConditionnal + "_mu";
       FitName += mu;
       AllFitResults_map[FitName] = fitres;
+      AllFitStatus_map[FitName] = status;
       cout << endl;
       cout << endl;
       if (IsConditionnal) cout << "Conditionnal fit : mu is fixed at " << mu << endl;
@@ -1234,7 +1332,20 @@ namespace LimitCrossCheck{
       WritDownMuValue += Form("%2.2f",firstPOI->getVal());
       c1->cd(2); 
       text.DrawLatex( 0.87,0.81, WritDownMuValue );
-      
+      TString statusText="Minuit status:" ;
+      statusText+=status;
+      text.DrawLatex( 0.45,0.85, statusText);  
+      statusText="Hess status:" ;
+      statusText+=HessStatus;
+      text.DrawLatex( 0.45,0.78, statusText);
+      statusText="Edm=" ;
+      statusText+=Form("%1.4f",Edm);;
+      text.DrawLatex( 0.45,0.71, statusText);
+      if(status!=0 && status!=1) {
+	statusText="#color[2]{Unconverged Fit}" ;
+	text.DrawLatex( 0.87,0.71, statusText);
+      }
+
       c3->cd();
       hNormFactor_axis->Draw("hist");
       hNormFactor->Draw("P");
@@ -1579,11 +1690,27 @@ namespace LimitCrossCheck{
 
     // Fit 
     if (IsConditionnal) firstPOI->setConstant();
-    ROOT::Math::MinimizerOptions::SetDefaultStrategy(2);
-    RooFitResult    *fitresGlobal = FitPDF( mc, simPdf, data, "Minuit2", UseMinosError );
+
+
+    /*********** HACK TO MODIFY THE RANGE OF GAMMA_ABCD NPs ***********/
+    /*TIterator* it0 = mc->GetNuisanceParameters()->createIterator();
+    RooRealVar* var0 = NULL;
+    while( (var0 = (RooRealVar*) it0->Next()) ) {
+    TString varname = var0->GetName();      
+    if ( varname.Contains("gamma_ATLAS_shape_LH_ABCD_tau") ) var0->setRange(0.0,10.0) ;
+    }*/
+
+
+
+    ROOT::Math::MinimizerOptions::SetDefaultStrategy(0);
+    int status = -99;
+    int HessStatus = -99;
+    double Edm=-99;
+    RooFitResult  *fitresGlobal = FitPDF( mc, simPdf, data, status, HessStatus, Edm, "Minuit2", UseMinosError );
     TString FitName = "GlobalFit_" + TS_IsConditionnal + "_mu";
     FitName += mu;
     AllFitResults_map[FitName] = fitresGlobal;
+    AllFitStatus_map[FitName] = status;
     const RooArgSet *ParaGlobalFit = mc->GetNuisanceParameters();
     w->saveSnapshot("snapshot_paramsVals_GlobalFit",*ParaGlobalFit);
     double muhat = firstPOI->getVal();
@@ -1846,7 +1973,20 @@ namespace LimitCrossCheck{
     WritDownMuValue += Form("%2.2f",firstPOI->getVal());
     c1->cd(2); 
     text.DrawLatex( 0.87,0.81, WritDownMuValue );
-
+    TString statusText="Minuit status:" ;
+    statusText+=status;
+    text.DrawLatex( 0.45,0.85, statusText);  
+    statusText="Hess status:" ;
+    statusText+=HessStatus;
+    text.DrawLatex( 0.45,0.78, statusText);
+    statusText="Edm=" ;
+    statusText+=Form("%1.4f",Edm);;
+    text.DrawLatex( 0.45,0.71, statusText);
+    if(status!=0 && status!=1) {
+      statusText="#color[2]{Unconverged Fit}" ;
+      text.DrawLatex( 0.87,0.71, statusText);
+    }
+            
     c3->cd();
     hNormFactor_axis->Draw("hist");
     hNormFactor->Draw("P");
@@ -2816,7 +2956,7 @@ namespace LimitCrossCheck{
   }
 
 
-  void PrintSuspiciousFits(){
+  void PrintFits(){
 
     cout.precision(3);
 
@@ -2824,24 +2964,18 @@ namespace LimitCrossCheck{
     cout << endl;
     cout << endl;
     cout << "==================================================================" << endl;
-    cout << "           Suspicious fit results (ie with status!=1)             " << endl;
+    cout << "                          Fit results : status                    " << endl;
     cout << "===================================================================" << endl;
     cout << endl;
     cout << endl;
 
-    typedef map<TString,RooFitResult*>::iterator it_type;
-    for(it_type iterator = AllFitResults_map.begin(); iterator != AllFitResults_map.end(); iterator++) {
+    typedef map<TString,int>::iterator it_type;
+    for(it_type iterator = AllFitStatus_map.begin(); iterator != AllFitStatus_map.end(); iterator++) {
       TString fitname = iterator->first;
-      RooFitResult *fitres = iterator->second;
-      
-      int status = fitres->status();
-      if (status!=1) {
-	cout << fitname << "  :  minuit status = " << status << endl;
-      }
-      
+      int status = iterator->second;
+      cout << fitname << "  :  minuit status = " << status << endl;
     }
     
-
     cout << endl;
     cout << "==================================================================" << endl;
     cout << endl;
@@ -3015,7 +3149,8 @@ namespace LimitCrossCheck{
       if(strcmp(var->GetName(),"Lumi")==0){
         var->setVal(w->var("nominalLumi")->getVal()*(1+Nsigma*LumiRelError));
       }
-      else if (IsAnormFactor(var)) continue;
+      else if (IsAnormFactor(var) && Nsigma==0) var->setVal(1.); // nominal for normfactor is 1.0
+      else if (IsAnormFactor(var)) continue; // don't touch it if this is not nominal
       else  var->setVal(Nsigma);
     }
     
@@ -3041,7 +3176,7 @@ namespace LimitCrossCheck{
     bool result=false;
     string varname = (string) var->GetName();
     const double val =  MapNuisanceParamNom[varname];
-    if (!((TString)varname).Contains("gamma_") && val==1.0) result=true;
+    if (!((TString)varname).Contains("_stat_") && val==1.0) result=true;
 
     return result;
   }
@@ -3337,7 +3472,7 @@ namespace LimitCrossCheck{
   void Finalize() {
     outputfile->Close();
     PrintSuspiciousNPs();
-    PrintSuspiciousFits();
+    PrintFits();
   }
  
 
@@ -3673,6 +3808,7 @@ void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, Roo
 
   return asimovData;
   }  
+
 }
 
 
