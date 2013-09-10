@@ -11,9 +11,9 @@ import numpy as np
 from numpy.lib import recfunctions
 
 # pytables imports
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    import tables
+#with warnings.catch_warnings():
+#    warnings.simplefilter("ignore")
+import tables
 
 # rootpy imports
 import ROOT
@@ -66,7 +66,7 @@ def get_file(student, hdf=False, suffix=''):
     file_path = os.path.join(NTUPLE_PATH, student + suffix, filename)
     log.info("opening %s ..." % file_path)
     if hdf:
-        student_file = tables.openFile(file_path)
+        student_file = tables.openFile(file_path)#, driver="H5FD_CORE")
     else:
         student_file = ropen(file_path, 'READ')
     FILES[filename] = student_file

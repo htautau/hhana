@@ -2,6 +2,11 @@ from . import log; log = log[__name__]
 from tables import Table
 import numpy as np
 from functools import partial
+import os
+
+
+def nothing(f):
+    return f
 
 
 class memoize(object):
@@ -43,6 +48,9 @@ class memoize(object):
         return np.copy(res)
 
 
+memoize_or_nothing = nothing if os.getenv('NOCACHE', None) else memoize
+
+
 class CachedTable(Table):
 
     @classmethod
@@ -50,10 +58,10 @@ class CachedTable(Table):
         thing.__class__ = CachedTable
         return thing
 
-    @memoize
+    @memoize_or_nothing
     def readWhere(self, *args, **kwargs):
         return Table.readWhere(self, *args, **kwargs)
 
-    @memoize
+    @memoize_or_nothing
     def read_where(self, *args, **kwargs):
         return Table.read_where(self, *args, **kwargs)
