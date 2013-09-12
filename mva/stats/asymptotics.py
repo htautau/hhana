@@ -1,9 +1,11 @@
 import os
 import ROOT
+from rootpy.utils.lock import lock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'AsymptoticsCLs.C'),
+with lock(HERE):
+    ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'AsymptoticsCLs.C'),
         'k',
         'AsymptoticsCLs',
         '/tmp')

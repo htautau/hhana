@@ -1,11 +1,13 @@
 from . import log; log = log[__name__]
 from rootpy import asrootpy
+from rootpy.utils.lock import lock
 import os
 import ROOT
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'smooth.C'),
+with lock(HERE):
+    ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'smooth.C'),
         'k',
         'smooth',
         '/tmp')
