@@ -463,7 +463,7 @@ class Sample(object):
 
         if isinstance(self, QCD) and do_systematics:
             qcd_shapes = self.get_shape_systematic_array(
-                field_hist_template,
+                field_hist,
                 category, region,
                 cuts=cuts,
                 clf=clf,
