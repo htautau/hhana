@@ -566,13 +566,13 @@ def uncertainty_band(model, systematics, systematics_components):
         total_max = total_high.Clone()
         total_min = total_high.Clone()
         for m in model:
-            if high == 'NOMINAL':
+            if high == 'NOMINAL' or high not in m.systematics:
                 total_high += m.Clone()
             else:
                 #print m.title, high, list(m.systematics[high])
                 total_high += m.systematics[high]
 
-            if low == 'NOMINAL':
+            if low == 'NOMINAL' or low not in m.systematics:
                 total_low += m.Clone()
             else:
                 #print m.title, low, list(m.systematics[low])
@@ -712,19 +712,6 @@ def draw_samples(
          **kwargs)
 
 
-def get_field_hist(sample, vars):
-
-    from .samples import Data
-    field_hist = {}
-    for field, var_info in vars.items():
-        bins = var_info['bins']
-        min, max = var_info['range']
-        hist = Hist(bins, min, max, title=sample.label, **sample.hist_decor)
-        hist.decorate(**sample.hist_decor)
-        field_hist[field] = hist
-    return field_hist
-
-
 def draw_samples_array(
         vars,
         category,
@@ -779,7 +766,7 @@ def draw_samples_array(
 
     model_hists = []
     for sample in model:
-        field_hist = get_field_hist(sample, vars)
+        field_hist = sample.get_field_hist(vars)
         sample.draw_array(field_hist,
             category, region, cuts,
             weighted=weighted,
@@ -793,7 +780,7 @@ def draw_samples_array(
     if signal is not None:
         signal_hists = []
         for sample in signal:
-            field_hist = get_field_hist(sample, vars)
+            field_hist = sample.get_field_hist(vars)
             sample.draw_array(field_hist,
                 category, region, cuts,
                 weighted=weighted,
@@ -807,7 +794,7 @@ def draw_samples_array(
         signal_hists = None
 
     if data is not None:
-        data_field_hist = get_field_hist(data, vars)
+        data_field_hist = data.get_field_hist(vars)
         data.draw_array(data_field_hist, category, region, cuts,
             weighted=weighted,
             field_scale=field_scale,
@@ -855,7 +842,94 @@ def draw_samples_array(
     return figs
 
 
-def draw_channel(channel, **kwargs):
+def draw_channel_array(
+        analysis,
+        vars,
+        category,
+        region,
+        cuts=None,
+        mass=125,
+        mode=None,
+        ravel=False,
+        weighted=True,
+        weight_hist=None,
+        clf=None,
+        min_score=None,
+        max_score=None,
+        plots=None,
+        mpl=False,
+        output_suffix='',
+        unblind=False,
+        **kwargs):
+
+    # filter out plots that will not be made
+    used_vars = {}
+    field_scale = {}
+    if plots is not None:
+        for plot in plots:
+            if plot in vars:
+                var_info = vars[plot]
+                if (var_info.get('cats', None) is not None and
+                    category.name.upper() not in var_info['cats']):
+                    raise ValueError(
+                        "variable %s is not valid in the category %s" %
+                        (plot, category.name.upper()))
+                used_vars[plot] = var_info
+                if 'scale' in var_info:
+                    field_scale[plot] = var_info['scale']
+            else:
+                raise ValueError(
+                    "variable %s is not defined in mva/variables.py" % plot)
+    else:
+        for expr, var_info in vars.items():
+            if (var_info.get('cats', None) is not None and
+                category.name.upper() not in var_info['cats']):
+                continue
+            used_vars[expr] = var_info
+            if 'scale' in var_info:
+                field_scale[expr] = var_info['scale']
+    vars = used_vars
+    if not vars:
+        raise RuntimeError("no variables selected")
+
+    field_channel = analysis.get_channel_array(vars,
+        category, region, cuts,
+        include_signal=True,
+        mass=mass,
+        mode=mode,
+        clf=clf,
+        min_score=min_score,
+        max_score=max_score,
+        weighted=weighted,
+        field_scale=field_scale,
+        weight_hist=weight_hist)
+
+    figs = {}
+    for field, var_info in vars.items():
+        if unblind:
+            blind = False
+        else:
+            blind = var_info.get('blind', False)
+        output_name = var_info['filename'] + output_suffix
+        if cuts:
+            output_name += '_' + cuts.safe()
+
+        fig = draw_channel(field_channel[field],
+             data_info=str(analysis.data.info),
+             category=category,
+             name=var_info['title'] if mpl else var_info['root'],
+             units=var_info.get('units', None),
+             range=var_info['range'],
+             output_name=output_name,
+             mpl=mpl,
+             blind=blind,
+             integer=var_info.get('integer', False),
+             **kwargs)
+        figs[field] = fig
+    return figs
+
+
+def draw_channel(channel, systematics=True, **kwargs):
     """
     Draw a HistFactory::Channel only include OverallSys systematics
     in resulting band as an illustration of the level of uncertainty
@@ -868,23 +942,30 @@ def draw_channel(channel, **kwargs):
         data_hist = None
     model_hists = []
     signal_hists = []
+    systematics_terms = {}
     for sample in channel.samples:
         nominal_hist = sample.hist
-        systematics = {}
-        for overall in sample.overall_sys:
-            up_hist = nominal_hist * overall.high
-            dn_hist = nominal_hist * overall.low
-            systematics[overall.name + '_UP'] = up_hist
-            systematics[overall.name + '_DOWN'] = dn_hist
-        nominal_hist.systematics = systematics
+        if systematics:
+            _systematics = {}
+            for overall in sample.overall_sys:
+                systematics_terms[overall.name] = (
+                    overall.name + '_UP',
+                    overall.name + '_DOWN')
+                up_hist = nominal_hist * overall.high
+                dn_hist = nominal_hist * overall.low
+                _systematics[overall.name + '_UP'] = up_hist
+                _systematics[overall.name + '_DOWN'] = dn_hist
+            nominal_hist.systematics = _systematics
         if sample.GetNormFactor('SigXsecOverSM') is not None:
             signal_hists.append(nominal_hist)
         else:
             model_hists.append(nominal_hist)
+
     return draw(
         data=data_hist,
         model=model_hists,
         signal=signal_hists,
+        systematics=systematics_terms,
         **kwargs)
 
 

@@ -28,7 +28,7 @@ import numpy as np
 
 # local imports
 from mva.stats import hypotests
-from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist
+from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist, draw_channel_array
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf, braindump
 from mva.classify import ClassificationProblem
@@ -267,11 +267,11 @@ for category in analysis.iter_categories(
         else:
             VARS = VARIABLES
 
-        figs = draw_samples_array(
+        figs = draw_channel_array(
+            analysis,
             vars=VARS,
-            data=analysis.data,
-            model=analysis.backgrounds,
-            signal=[analysis.higgs_125],
+            mass=125,
+            mode='combined',
             signal_scale=50,
             category=category,
             region=target_region,

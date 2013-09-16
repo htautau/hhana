@@ -82,14 +82,34 @@ class Analysis(object):
 
         self.signals = self.get_signals(125)
 
-    def get_signals(self, mass):
+    def get_signals(self, mass=125, mode=None):
 
         signals = []
-        for modes in samples.Higgs.MODES_COMBINED:
+        if mode == 'combined':
             signals.append(samples.Higgs(
                 year=self.year,
-                modes=modes,
                 mass=mass,
+                systematics=self.systematics,
+                mpl=self.mpl,
+                scale=self.mu,
+                linecolor='red',
+                linewidth=2,
+                linestyle='dashed'))
+            return signals
+        elif mode is None:
+            for modes in samples.Higgs.MODES_COMBINED:
+                signals.append(samples.Higgs(
+                    year=self.year,
+                    modes=modes,
+                    mass=mass,
+                    systematics=self.systematics,
+                    mpl=self.mpl,
+                    scale=self.mu))
+        else:
+            signals.append(samples.Higgs(
+                year=self.year,
+                mass=mass,
+                mode=mode,
                 systematics=self.systematics,
                 mpl=self.mpl,
                 scale=self.mu))
@@ -170,14 +190,18 @@ class Analysis(object):
         return histfactory.make_channel(
             channel_name, histfactory_samples[1:], data=histfactory_samples[0])
 
-    def get_channel_array(self, field_hist_template,
+    def get_channel_array(self, vars,
                           category, region,
                           cuts=None,
                           include_signal=True,
                           mass=125,
+                          mode=None,
                           clf=None,
                           min_score=None,
                           max_score=None,
+                          weighted=True,
+                          field_scale=None,
+                          weight_hist=None,
                           systematics=True,
                           unblind=False):
 
@@ -189,23 +213,28 @@ class Analysis(object):
         if include_signal:
             suffix = '_%d' % mass
             channel_name += suffix
-            samples += self.get_signals(mass)
+            samples += self.get_signals(mass, mode)
 
         # create HistFactory samples
         histfactory_samples = []
         for s in samples:
+            field_hist = s.get_field_hist(vars)
             field_sample = s.get_histfactory_sample_array(
-                field_hist_template,
+                field_hist,
                 category, region,
                 cuts=cuts,
                 clf=clf,
                 min_score=min_score,
                 max_score=max_score,
+                weighted=weighted,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                systematics=systematics,
                 suffix=suffix)
             histfactory_samples.append(field_sample)
 
         field_channels = {}
-        for field in field_hist_template.keys():
+        for field in vars.keys():
             # create channel for this mass point
             channel = histfactory.make_channel(
                 channel_name + '_{0}'.format(field),

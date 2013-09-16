@@ -118,6 +118,17 @@ class Sample(object):
             return self._label
         return self._label_root
 
+    def get_field_hist(self, vars):
+
+        field_hist = {}
+        for field, var_info in vars.items():
+            bins = var_info['bins']
+            min, max = var_info['range']
+            hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
+            hist.decorate(**self.hist_decor)
+            field_hist[field] = hist
+        return field_hist
+
     def get_hist_array(self,
             field_hist_template,
             category, region,
@@ -130,7 +141,8 @@ class Sample(object):
             systematics_components=None,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            weighted=True):
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
@@ -153,7 +165,7 @@ class Sample(object):
 
         self.draw_array(field_hist, category, region,
             cuts=cuts,
-            weighted=True,
+            weighted=weighted,
             field_scale=field_scale,
             weight_hist=weight_hist,
             clf=clf,
@@ -177,7 +189,8 @@ class Sample(object):
             systematics_components=None,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            weighted=True):
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
@@ -200,7 +213,7 @@ class Sample(object):
             field_hist[expr] = hist
             self.draw_array(field_hist, category, region,
                 cuts=cuts,
-                weighted=True,
+                weighted=weighted,
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 clf=clf,
@@ -236,7 +249,8 @@ class Sample(object):
             systematics=True,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            weighted=True):
 
         log.info("creating histfactory sample for {0}".format(self.name))
 
@@ -258,7 +272,8 @@ class Sample(object):
             systematics_components=self.WORKSPACE_SYSTEMATICS,
             suffix=suffix,
             field_scale=field_scale,
-            weight_hist=weight_hist)
+            weight_hist=weight_hist,
+            weighted=weighted)
 
         # copy of unaltered nominal hist required by QCD shape
         nominal_hist = hist.Clone()
@@ -362,7 +377,8 @@ class Sample(object):
                      max_score=max_score,
                      suffix=suffix,
                      field_scale=field_scale,
-                     weight_hist=weight_hist)
+                     weight_hist=weight_hist,
+                     weighted=weighted)
 
                 low = ravel(low)
                 high = ravel(high)
@@ -421,7 +437,8 @@ class Sample(object):
             systematics=True,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            weighted=True):
 
         log.info("creating histfactory samples for {0}".format(self.name))
 
@@ -437,10 +454,15 @@ class Sample(object):
             systematics_components=self.WORKSPACE_SYSTEMATICS,
             suffix=suffix,
             field_scale=field_scale,
-            weight_hist=weight_hist)
+            weight_hist=weight_hist,
+            weighted=weighted)
 
-        if isinstance(self, QCD):
-            qcd_high_shapes, qcd_low_shapes = self.get_shape_systematic_array(
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
+
+        if isinstance(self, QCD) and do_systematics:
+            qcd_shapes = self.get_shape_systematic_array(
                 field_hist_template,
                 category, region,
                 cuts=cuts,
@@ -449,11 +471,8 @@ class Sample(object):
                 max_score=max_score,
                 suffix=suffix,
                 field_scale=field_scale,
-                weight_hist=weight_hist)
-
-        do_systematics = (not isinstance(self, Data)
-                          and self.systematics
-                          and systematics)
+                weight_hist=weight_hist,
+                weighted=weighted)
 
         field_samples = {}
 
@@ -553,7 +572,7 @@ class Sample(object):
 
                 if isinstance(self, QCD):
 
-                    high, low = qcd_high_shapes[field], qcd_low_shapes[field]
+                    high, low = qcd_shapes[field]
 
                     low = ravel(low)
                     high = ravel(high)
@@ -594,7 +613,10 @@ class Sample(object):
                         low=1. - lumi_uncert)
                     sample.AddOverallSys(lumi_sys)
 
-            if hasattr(self, 'histfactory'):
+            # HACK: disable calling this on signal for now since while plotting
+            # we only want to show the combined signal but in the histfactory
+            # method we require only a single mode
+            if hasattr(self, 'histfactory') and not isinstance(self, Signal):
                 # perform sample-specific items
                 log.info("calling %s histfactory method" % self.name)
                 self.histfactory(sample, category, systematics=do_systematics)
@@ -2375,7 +2397,8 @@ class QCD(Sample, Background):
             max_score=None,
             suffix=None,
             field_scale=None,
-            weight_hist=None):
+            weight_hist=None,
+            weighted=True):
 
         log.info("creating QCD shape systematic")
 
@@ -2411,7 +2434,8 @@ class QCD(Sample, Background):
                     systematics=False,
                     suffix=(suffix or '') + '_%s' % model,
                     field_scale=field_scale,
-                    weight_hist=weight_hist))
+                    weight_hist=weight_hist,
+                    weighted=weighted))
                 if model == 'OSFF':
                     norm_events = self.events(Category_Preselection, None)
 
@@ -2438,7 +2462,8 @@ class QCD(Sample, Background):
                 systematics=False,
                 suffix=(suffix or '') + '_SS_TRK',
                 field_scale=field_scale,
-                weight_hist=weight_hist)
+                weight_hist=weight_hist,
+                weighted=weighted)
             norm_events = self.events(Category_Preselection, None)
 
         else:
