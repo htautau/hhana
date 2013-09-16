@@ -855,6 +855,39 @@ def draw_samples_array(
     return figs
 
 
+def draw_channel(channel, **kwargs):
+    """
+    Draw a HistFactory::Channel only include OverallSys systematics
+    in resulting band as an illustration of the level of uncertainty
+    since correlations of the NPs are not known and it is not
+    possible to draw the statistically correct error band.
+    """
+    if channel.data and channel.data.hist:
+        data_hist = channel.data.hist
+    else:
+        data_hist = None
+    model_hists = []
+    signal_hists = []
+    for sample in channel.samples:
+        nominal_hist = sample.hist
+        systematics = {}
+        for overall in sample.overall_sys:
+            up_hist = nominal_hist * overall.high
+            dn_hist = nominal_hist * overall.low
+            systematics[overall.name + '_UP'] = up_hist
+            systematics[overall.name + '_DOWN'] = dn_hist
+        nominal_hist.systematics = systematics
+        if sample.GetNormFactor('SigXsecOverSM') is not None:
+            signal_hists.append(nominal_hist)
+        else:
+            model_hists.append(nominal_hist)
+    return draw(
+        data=data_hist,
+        model=model_hists,
+        signal=signal_hists,
+        **kwargs)
+
+
 def draw(name,
          output_name,
          category,

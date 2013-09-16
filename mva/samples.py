@@ -1205,13 +1205,6 @@ class MC(Sample):
                 max_score=max_score,
                 systematic=systematic)
 
-        """
-        print self.name
-        for term, sys_hist in field_hist['tau1_pt'].systematics.items():
-            print term, list(sys_hist)
-        print "=" * 80
-        """
-
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=True,
