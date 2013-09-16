@@ -425,7 +425,6 @@ class Sample(object):
 
         log.info("creating histfactory samples for {0}".format(self.name))
 
-
         field_hist = self.get_hist_array(
             field_hist_template,
             category, region,

@@ -169,3 +169,47 @@ class Analysis(object):
         # create channel for this mass point
         return histfactory.make_channel(
             channel_name, histfactory_samples[1:], data=histfactory_samples[0])
+
+    def get_channel_array(self, field_hist_template,
+                          category, region,
+                          cuts=None,
+                          include_signal=True,
+                          mass=125,
+                          clf=None,
+                          min_score=None,
+                          max_score=None,
+                          systematics=True,
+                          unblind=False):
+
+        # TODO: implement blinding
+        log.info("constructing channels")
+        samples = [self.data] + self.backgrounds
+        channel_name = category.name
+        suffix = None
+        if include_signal:
+            suffix = '_%d' % mass
+            channel_name += suffix
+            samples += self.get_signals(mass)
+
+        # create HistFactory samples
+        histfactory_samples = []
+        for s in samples:
+            field_sample = s.get_histfactory_sample_array(
+                field_hist_template,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score,
+                suffix=suffix)
+            histfactory_samples.append(field_sample)
+
+        field_channels = {}
+        for field in field_hist_template.keys():
+            # create channel for this mass point
+            channel = histfactory.make_channel(
+                channel_name + '_{0}'.format(field),
+                [s[field] for s in histfactory_samples[1:]],
+                data=histfactory_samples[0][field])
+            field_channels[field] = channel
+        return field_channels
