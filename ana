@@ -285,7 +285,8 @@ for category in analysis.iter_categories(
             plots=args.plots,
             output_suffix=output_suffix,
             unblind=args.unblind or is_control,
-            cuts=cuts)
+            cuts=cuts,
+            no_signal_fixes=True)
         figures[category.name] = figs
     
     if 'weights' in args.actions:

@@ -176,7 +176,8 @@ class Analysis(object):
                     min_score=None,
                     max_score=None,
                     systematics=True,
-                    unblind=False):
+                    unblind=False,
+                    no_signal_fixes=False):
 
         # TODO: implement blinding
         log.info("constructing channels")
@@ -198,7 +199,8 @@ class Analysis(object):
                 clf=clf,
                 min_score=min_score,
                 max_score=max_score,
-                suffix=suffix)
+                suffix=suffix,
+                no_signal_fixes=no_signal_fixes)
             histfactory_samples.append(sample)
 
         # create channel for this mass point
@@ -218,7 +220,8 @@ class Analysis(object):
                           field_scale=None,
                           weight_hist=None,
                           systematics=True,
-                          unblind=False):
+                          unblind=False,
+                          no_signal_fixes=False):
 
         # TODO: implement blinding
         log.info("constructing channels")
@@ -245,7 +248,8 @@ class Analysis(object):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 systematics=systematics,
-                suffix=suffix)
+                suffix=suffix,
+                no_signal_fixes=no_signal_fixes)
             histfactory_samples.append(field_sample)
 
         field_channels = {}
@@ -358,7 +362,8 @@ class Analysis(object):
                      mu=1.,
                      systematics=True,
                      unblind=False,
-                     hybrid_data=False):
+                     hybrid_data=False,
+                     no_signal_fixes=False):
         """
         Return a HistFactory Channel for each mass hypothesis
         """
@@ -444,7 +449,8 @@ class Analysis(object):
                 sample = s.get_histfactory_sample(
                     hist_template, clf,
                     category, region,
-                    cuts=cuts, scores=scores)
+                    cuts=cuts, scores=scores,
+                    no_signal_fixes=no_signal_fixes)
                 sig_samples.append(sample)
 
             # create channel for this mass point

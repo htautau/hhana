@@ -902,7 +902,8 @@ def draw_channel_array(
         max_score=max_score,
         weighted=weighted,
         field_scale=field_scale,
-        weight_hist=weight_hist)
+        weight_hist=weight_hist,
+        no_signal_fixes=True)
 
     figs = {}
     for field, var_info in vars.items():

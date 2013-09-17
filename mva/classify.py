@@ -584,7 +584,8 @@ class ClassificationProblem(object):
             category, region, cuts=control_region,
             bins=category.clf_bins + 2,
             systematics=systematics,
-            unblind=True)
+            unblind=True,
+            no_signal_fixes=True)
 
         for logy in (True, False):
             draw_channel(channel,
@@ -609,7 +610,8 @@ class ClassificationProblem(object):
             mass_points=[125],
             systematics=systematics,
             bins=category.clf_bins + 2,
-            unblind=unblind or 0.3)
+            unblind=unblind or 0.3,
+            no_signal_fixes=True)
 
         bkg_scores = scores.bkg_scores
         sig_scores = scores.all_sig_scores[125]

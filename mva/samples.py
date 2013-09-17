@@ -250,7 +250,8 @@ class Sample(object):
             suffix=None,
             field_scale=None,
             weight_hist=None,
-            weighted=True):
+            weighted=True,
+            no_signal_fixes=False):
 
         log.info("creating histfactory sample for {0}".format(self.name))
 
@@ -419,7 +420,8 @@ class Sample(object):
                     low=1. - lumi_uncert)
                 sample.AddOverallSys(lumi_sys)
 
-        if hasattr(self, 'histfactory'):
+        if hasattr(self, 'histfactory') and not (
+                isinstance(self, Signal) and no_signal_fixes):
             # perform sample-specific items
             log.info("calling %s histfactory method" % self.name)
             self.histfactory(sample, category, systematics=do_systematics)
@@ -438,7 +440,8 @@ class Sample(object):
             suffix=None,
             field_scale=None,
             weight_hist=None,
-            weighted=True):
+            weighted=True,
+            no_signal_fixes=False):
 
         log.info("creating histfactory samples for {0}".format(self.name))
 
@@ -616,7 +619,8 @@ class Sample(object):
             # HACK: disable calling this on signal for now since while plotting
             # we only want to show the combined signal but in the histfactory
             # method we require only a single mode
-            if hasattr(self, 'histfactory') and not isinstance(self, Signal):
+            if hasattr(self, 'histfactory') and not (
+                    isinstance(self, Signal) and no_signal_fixes):
                 # perform sample-specific items
                 log.info("calling %s histfactory method" % self.name)
                 self.histfactory(sample, category, systematics=do_systematics)
