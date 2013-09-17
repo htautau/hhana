@@ -5,6 +5,7 @@ import shutil
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib import cm
 
 # scikit-learn imports
 import sklearn
@@ -28,6 +29,7 @@ from . import MMC_MASS, MMC_PT
 from .plotting import (
     draw, plot_clf, plot_grid_scores,
     hist_scores, draw_samples_array,
+    draw_channel_array, draw_channel,
     efficiency_cut)
 from . import variables
 from . import LIMITS_DIR, PLOTS_DIR
@@ -567,17 +569,9 @@ class ClassificationProblem(object):
                  systematics=None,
                  signal_scale=50,
                  unblind=False,
-                 limitbins=10,
-                 limitbinning='flat',
                  mpl=False,
-                 output_formats=None,
-                 quick=False):
+                 output_formats=None):
 
-        backgrounds = analysis.backgrounds
-        signals = analysis.signals
-        data = analysis.data
-
-        year = backgrounds[0].year
         category = self.category
         region = self.region
 
@@ -585,202 +579,75 @@ class ClassificationProblem(object):
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
         log.info(control_region)
-        # data scores
-        data_scores, _ = data.scores(self,
-            category=category,
-            region=region,
-            cuts=control_region)
 
-        # determine min and max scores
-        min_score = 1e10
-        max_score = -1e10
-        _min = data_scores.min()
-        _max = data_scores.max()
-        if _min < min_score:
-            min_score = _min
-        if _max > max_score:
-            max_score = _max
-
-        # background model scores
-        bkg_scores = []
-        for bkg in backgrounds:
-            scores_dict = bkg.scores(self,
-                category=category,
-                region=region,
-                cuts=control_region)
-
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
-
-            bkg_scores.append((bkg, scores_dict))
-
-        log.info("minimum score: %f" % min_score)
-        log.info("maximum score: %f" % max_score)
-
-        # prevent bin threshold effects
-        min_score -= 0.00001
-        max_score += 0.00001
-
-        # add a bin above max score and below min score for extra beauty
-        score_width = max_score - min_score
-        bin_width = score_width / category.clf_bins
-        min_score -= bin_width
-        max_score += bin_width
-
-        plot_clf(
-            background_scores=bkg_scores,
-            category=category,
-            plot_label='Mass Control Region',
-            signal_scores=None,
-            data_scores=(data, data_scores),
-            draw_data=True,
-            data_info=str(data.info),
-            name='control' + self.output_suffix,
+        _, channel = analysis.clf_channels(self,
+            category, region, cuts=control_region,
             bins=category.clf_bins + 2,
-            min_score=min_score,
-            max_score=max_score,
             systematics=systematics,
-            mpl=mpl,
-            output_formats=output_formats,
             unblind=True)
+
+        for logy in (True, False):
+            draw_channel(channel,
+                category=category,
+                plot_label='Mass Control Region',
+                data_info=str(analysis.data.info),
+                output_name='event_bdt_score_control' + self.output_suffix,
+                name='BDT Score',
+                systematics=systematics,
+                mpl=mpl,
+                output_formats=output_formats,
+                signal_colour_map=cm.spring,
+                plot_signal_significance=True,
+                logy=logy)
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
         log.info("plotting classifier output in the signal region ...")
 
-        # determine min and max scores
-        min_score = float('inf')
-        max_score = float('-inf')
-
-        # background model scores
-        bkg_scores = []
-        for bkg in backgrounds:
-            scores_dict = bkg.scores(self,
-                    category=category,
-                    region=region,
-                    cuts=signal_region)
-
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
-
-            bkg_scores.append((bkg, scores_dict))
-
-        sig_scores = []
-        # signal scores
-        for sig in signals:
-            scores_dict = sig.scores(self,
-                category=category,
-                region=region,
-                cuts=signal_region)
-
-            for sys_term, (scores, weights) in scores_dict.items():
-                assert len(scores) == len(weights)
-                if len(scores) == 0:
-                    continue
-                _min = np.min(scores)
-                _max = np.max(scores)
-                if _min < min_score:
-                    min_score = _min
-                if _max > max_score:
-                    max_score = _max
-
-            sig_scores.append((sig, scores_dict))
-
-        # data scores
-        data_scores, _ = data.scores(self,
-            category=category,
-            region=region,
-            cuts=signal_region)
-        _min = np.min(data_scores)
-        _max = np.max(data_scores)
-        if _min < min_score:
-            min_score = _min
-        if _max > max_score:
-            max_score = _max
-
-        log.info("minimum score: %f" % min_score)
-        log.info("maximum score: %f" % max_score)
-
-        # prevent bin threshold effects
-        min_score -= 0.00001
-        max_score += 0.00001
-
-        # add a bin above max score and below min score for extra beauty
-        score_width = max_score - min_score
-        bin_width = score_width / category.clf_bins
-        min_score -= bin_width
-        max_score += bin_width
-
-        plot_clf(
-            background_scores=bkg_scores,
-            category=category,
-            plot_label='Mass Signal Region' if signal_region else None,
-            signal_scores=sig_scores,
-            signal_scale=signal_scale if not unblind else 1.,
-            data_scores=(data, data_scores),
-            draw_data=True,
-            data_info=str(data.info),
-            name='signal_region' + self.output_suffix,
+        scores, channels = analysis.clf_channels(self,
+            category, region, cuts=signal_region,
+            mass_points=[125],
+            systematics=systematics,
             bins=category.clf_bins + 2,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=systematics,
-            mpl=mpl,
-            output_formats=output_formats,
             unblind=unblind or 0.3)
 
-        # plot using the binning used for limit setting
-        limit_binning_hist_template = get_safe_template(
-                limitbinning, limitbins, bkg_scores, sig_scores)
+        bkg_scores = scores.bkg_scores
+        sig_scores = scores.all_sig_scores[125]
+        min_score = scores.min_score
+        max_score = scores.max_score
 
-        plot_clf(
-            background_scores=bkg_scores,
-            category=category,
-            plot_label='Mass Signal Region' if signal_region else None,
-            signal_scores=sig_scores,
-            signal_scale=signal_scale if not unblind else 1.,
-            data_scores=(data, data_scores),
-            draw_data=True,
-            data_info=str(data.info),
-            name='signal_region_%s%s' % (limitbinning, self.output_suffix),
-            hist_template=limit_binning_hist_template,
-            systematics=systematics,
-            mpl=mpl,
-            output_formats=output_formats,
-            unblind=unblind or 0.3)
+        for logy in (True, False):
+            draw_channel(
+                channels[125],
+                category=category,
+                plot_label='Mass Signal Region' if signal_region else None,
+                signal_scale=signal_scale if not unblind else 1.,
+                data_info=str(analysis.data.info),
+                output_name='event_bdt_score_signal_region' + self.output_suffix,
+                name='BDT Score',
+                systematics=systematics,
+                mpl=mpl,
+                output_formats=output_formats,
+                signal_colour_map=cm.spring,
+                plot_signal_significance=True,
+                logy=logy)
 
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
+
         bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
         bkg_score_hist /= sum(bkg_score_hist)
 
-        draw_samples_array(
+        draw_channel_array(
+            analysis,
             variables.VARIABLES,
             plots=[MMC_MASS],
-            data=analysis.data,
-            model=analysis.backgrounds,
-            signal=[analysis.higgs_125],
+            mass=125,
+            mode='combined',
             signal_scale=50,
             category=category,
             region=region,
-            show_ratio=True,
             show_qq=False,
             plot_signal_significance=False,
             systematics=systematics,
@@ -795,22 +662,22 @@ class ClassificationProblem(object):
         ############################################################
         # show the MMC below a BDT score that unblinds 30% of signal
         # determine BDT score with 30% of 125 signal below:
+
         signal_score_hist = Hist(1000, -1, 1)
         for s, scores_dict in sig_scores:
             histogram_scores(signal_score_hist, scores_dict, inplace=True)
         max_score = efficiency_cut(signal_score_hist, 0.3)
         log.info("plotting mmc below BDT score of %.2f" % max_score)
 
-        draw_samples_array(
+        draw_channel_array(
+            analysis,
             variables.VARIABLES,
             plots=[MMC_MASS],
-            data=analysis.data,
-            model=analysis.backgrounds,
-            signal=[analysis.higgs_125],
+            mass=125,
+            mode='combined',
             signal_scale=50,
             category=category,
             region=region,
-            show_ratio=True,
             show_qq=False,
             plot_signal_significance=False,
             systematics=systematics,

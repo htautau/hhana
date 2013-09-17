@@ -963,9 +963,10 @@ def draw_channel(channel, systematics=True, **kwargs):
 
     return draw(
         data=data_hist,
-        model=model_hists,
-        signal=signal_hists,
+        model=model_hists or None,
+        signal=signal_hists or None,
         systematics=systematics_terms,
+        show_ratio=data_hist is not None,
         **kwargs)
 
 
