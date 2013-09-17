@@ -2303,7 +2303,8 @@ class QCD(Sample, Background):
                              max_score=None,
                              suffix=None,
                              field_scale=None,
-                             weight_hist=None):
+                             weight_hist=None,
+                             weighted=True):
 
         log.info("creating QCD shape systematic")
 
@@ -2338,7 +2339,8 @@ class QCD(Sample, Background):
                     systematics=False,
                     suffix=(suffix or '') + '_%s' % model,
                     field_scale=field_scale,
-                    weight_hist=weight_hist))
+                    weight_hist=weight_hist,
+                    weighted=weighted))
                 events.append(self.events(Category_Preselection, None))
 
             OSFF, SSFF = models
@@ -2368,7 +2370,8 @@ class QCD(Sample, Background):
                 systematics=False,
                 suffix=(suffix or '') + '_SS_TRK',
                 field_scale=field_scale,
-                weight_hist=weight_hist)
+                weight_hist=weight_hist,
+                weighted=weighted)
             SS_TRK_events = self.events(Category_Preselection, None)
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
