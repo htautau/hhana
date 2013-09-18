@@ -484,57 +484,71 @@ if 'workspace' in args.actions:
             if mass not in all_channels:
                 all_channels[mass] = {}
             all_channels[mass][category.name] = channel
+    
+    workspace_output_dir = 'workspaces/hh%s' % workspace_suffix
+    if os.path.exists(workspace_output_dir):
+        shutil.rmtree(workspace_output_dir)
+    os.mkdir(workspace_output_dir)
 
-    dump_dir = ROOT.gDirectory.func()
+    for mass, category_channel in all_channels.items():
 
-    with root_open('workspaces/ws_hh%s.root' % workspace_suffix, 'recreate') as limits_file:
-        braindump(limits_file, indir=dump_dir,
-            func=lambda h: h.ClassName().startswith('TH') and
-                           h.GetName().startswith('hh_'))
-
-        xml_output_dir = 'workspaces/xml_hh%s' % workspace_suffix
-        if os.path.exists(xml_output_dir):
-            shutil.rmtree(xml_output_dir)
-        os.mkdir(xml_output_dir)
-        for mass, category_channel in all_channels.items():
-            channels = []
-            # determine limits for each category separately
-            for category, channel in category_channel.items():
-                name = "hh_category_%s_%d" % (category, mass)
-                # make workspace
-                workspace, measurement = histfactory.make_workspace(
-                    name, [channel] + controls,
-                    POI='SigXsecOverSM',
-                    lumi=1.0,
-                    lumi_rel_error=lumi_rel_error,
-                    const_params=CONST_PARAMS,
-                    silence=True)
-                # mu=1 for Asimov data
-                #measurement.SetParamValue('SigXsecOverSM', 1)
-                workspace.Write()
-                measurement.Write()
-                with silence_sout_serr():
-                    measurement.PrintXML(xml_output_dir)
-                if 'limits' in args.actions:
-                    # get limit
-                    limit_hist = hypotests.get_limit_workspace(workspace)
-                    limit_hist.Write()
-                channels.append(channel)
-            # make combined workspace
-            name = "hh_combination_%d" % mass
+        channels = []
+        
+        # make workspace for each category, including the control region in each
+        for category, channel in category_channel.items():
+            name = "hh_category_%s_%d" % (category, mass)
+            # make workspace
             workspace, measurement = histfactory.make_workspace(
-                name, channels + controls,
+                name, [channel] + controls,
                 POI='SigXsecOverSM',
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
                 const_params=CONST_PARAMS,
                 silence=True)
+
+            with root_open(os.path.join(workspace_output_dir,
+                '{0}.root'.format(name)), 'recreate') as workspace_file:
+                
+                workspace.Write()
+                
+                # mu=1 for Asimov data
+                #measurement.SetParamValue('SigXsecOverSM', 1)
+
+                histfactory.write_measurement(measurement,
+                    root_file=workspace_file,
+                    xml_path=os.path.join(workspace_output_dir, name),
+                    silence=True)
+
+                if 'limits' in args.actions:
+                    # get limit
+                    limit_hist = hypotests.get_limit_workspace(workspace)
+                    limit_hist.Write()
+
+            channels.append(channel)
+
+        # make combined workspace
+        name = "hh_combination_%d" % mass
+        workspace, measurement = histfactory.make_workspace(
+            name, channels + controls,
+            POI='SigXsecOverSM',
+            lumi=1.0,
+            lumi_rel_error=lumi_rel_error,
+            const_params=CONST_PARAMS,
+            silence=True)
+
+        with root_open(os.path.join(workspace_output_dir,
+            '{0}.root'.format(name)), 'recreate') as workspace_file:
+            
+            workspace.Write()
+            
             # mu=1 for Asimov data
             #measurement.SetParamValue('SigXsecOverSM', 1)
-            workspace.Write()
-            measurement.Write()
-            with silence_sout_serr():
-                measurement.PrintXML(xml_output_dir)
+
+            histfactory.write_measurement(measurement,
+                root_file=workspace_file,
+                xml_path=os.path.join(workspace_output_dir, name),
+                silence=True)
+
             if 'limits' in args.actions:
                 # determine limit with combined model
                 limit_hist = hypotests.get_limit_workspace(workspace)

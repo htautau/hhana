@@ -1,6 +1,7 @@
 from . import log; log = log[__name__]
 
 import math, array
+from collections import namedtuple
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -15,6 +16,201 @@ from ..samples import Higgs
 from ..classify import histogram_scores
 from .utils import efficiency_cut, get_safe_template
 from ..utils import hist_to_dict
+
+
+####################### BELOW TO BE REMOVED ###################################
+
+Scores = namedtuple('Scores', [
+    'data',
+    'data_scores',
+    'bkg_scores',
+    'all_sig_scores',
+    'min_score',
+    'max_score',])
+
+
+def get_scores(clf, category, region, backgrounds,
+               data=None, cuts=None,
+               mass_points=None, mu=1.,
+               systematics=True):
+
+    log.info("getting scores")
+    year = backgrounds[0].year
+
+    min_score = float('inf')
+    max_score = float('-inf')
+
+    # data scores
+    data_scores = None
+    if data is not None:
+        data_scores, _ = data.scores(
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts)
+        _min = data_scores.min()
+        _max = data_scores.max()
+        if _min < min_score:
+            min_score = _min
+        if _max > max_score:
+            max_score = _max
+
+    # background model scores
+    bkg_scores = []
+    for bkg in backgrounds:
+        scores_dict = bkg.scores(
+            clf,
+            category=category,
+            region=region,
+            cuts=cuts,
+            systematics=systematics,
+            systematics_components=bkg.WORKSPACE_SYSTEMATICS)
+
+        for sys_term, (scores, weights) in scores_dict.items():
+            if len(scores) == 0:
+                continue
+            _min = np.min(scores)
+            _max = np.max(scores)
+            if _min < min_score:
+                min_score = _min
+            if _max > max_score:
+                max_score = _max
+
+        bkg_scores.append((bkg, scores_dict))
+
+    # signal scores
+    all_sig_scores = {}
+    for mass in Higgs.MASS_POINTS:
+        if mass_points is not None and mass not in mass_points:
+            continue
+        sig_scores = []
+        # signal scores
+        for mode in Higgs.MODES:
+            sig = Higgs(year=year, mode=mode, mass=mass, scale=mu,
+                        systematics=systematics)
+
+            scores_dict = sig.scores(
+                clf,
+                category=category,
+                region=region,
+                cuts=cuts,
+                systematics=systematics,
+                systematics_components=sig.WORKSPACE_SYSTEMATICS)
+
+            for sys_term, (scores, weights) in scores_dict.items():
+                if len(scores) == 0:
+                    continue
+                _min = np.min(scores)
+                _max = np.max(scores)
+                if _min < min_score:
+                    min_score = _min
+                if _max > max_score:
+                    max_score = _max
+
+            sig_scores.append((sig, scores_dict))
+        all_sig_scores[mass] = sig_scores
+
+    min_score -= 1e-5
+    max_score += 1e-5
+
+    log.info("min score: {0} max score: {1}".format(min_score, max_score))
+    return Scores(
+        data=data,
+        data_scores=data_scores,
+        bkg_scores=bkg_scores,
+        all_sig_scores=all_sig_scores,
+        min_score=min_score,
+        max_score=max_score)
+
+
+def channels(clf, category, region, backgrounds,
+             data=None, cuts=None, hist_template=None,
+             bins=10, binning='constant',
+             mass_points=None, mu=1.,
+             systematics=True,
+             unblind=False,
+             hybrid_data=False):
+    """
+    Return a HistFactory Channel for each mass hypothesis
+    """
+    log.info("constructing channels")
+    channels = dict()
+
+    scores_obj = get_scores(clf, category, region, backgrounds,
+                            data=data, cuts=cuts, mass_points=mass_points,
+                            mu=mu, systematics=systematics)
+
+    data_scores = scores_obj.data_scores
+    bkg_scores = scores_obj.bkg_scores
+    all_sig_scores = scores_obj.all_sig_scores
+    min_score = scores_obj.min_score
+    max_score = scores_obj.max_score
+
+    hist_template = Hist(bins, min_score, max_score)
+
+    bkg_samples = []
+    for s, scores in bkg_scores:
+        sample = s.get_histfactory_sample(
+            hist_template, clf,
+            category, region,
+            cuts=cuts, scores=scores)
+        bkg_samples.append(sample)
+
+    data_sample = None
+    if data_scores is not None:
+        max_unblind_score = None
+        if not unblind:
+            """
+            max_unblind_score = min([
+                efficiency_cut(
+                    sum([histogram_scores(hist_template, scores)
+                         for s, scores in all_sig_scores[mass]]), 0.3)
+                    for mass in mass_points])
+            """
+            max_unblind_score = efficiency_cut(
+                sum([histogram_scores(hist_template, scores)
+                     for s, scores in all_sig_scores[125]]), 0.3)
+        data_sample = data.get_histfactory_sample(
+            hist_template, clf,
+            category, region,
+            cuts=cuts, scores=data_scores,
+            max_score=max_unblind_score)
+        if not unblind and hybrid_data:
+            # blinded bins filled with S+B, for limit/p0 plots
+            # Swagato:
+            # We have to make 2 kinds of expected sensitivity plots:
+            # blinded sensitivity and unblinded sensitivity.
+            # For the first one pure AsimovData is used, for second one I
+            # suggest to use Hybrid, because the profiled NP's are not
+            # always at 0 pull.
+            pass
+
+    # signal scores
+    for mass in Higgs.MASS_POINTS:
+        if mass_points is not None and mass not in mass_points:
+            continue
+        log.info('=' * 20)
+        log.info("%d GeV mass hypothesis" % mass)
+
+        # create HistFactory samples
+        sig_samples = []
+        for s, scores in all_sig_scores[mass]:
+            sample = s.get_histfactory_sample(
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=scores)
+            sig_samples.append(sample)
+
+        # create channel for this mass point
+        channel = histfactory.make_channel(
+            "%s_%d" % (category.name, mass),
+            bkg_samples + sig_samples,
+            data=data_sample)
+        channels[mass] = channel
+
+    return channels
+
+############################### ABOVE TO BE REMOVED ###########################
 
 
 def get_stat_w2(hist, x, y=0, z=0):
