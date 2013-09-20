@@ -16,7 +16,7 @@ def efficiency_cut(hist, effic):
     return hist.xedges(-1)
 
 
-def significance(signal, background, min_bkg=0, highstat=False):
+def significance(signal, background, min_bkg=0, highstat=True):
 
     if isinstance(signal, (list, tuple)):
         signal = sum(signal)
@@ -34,8 +34,8 @@ def significance(signal, background, min_bkg=0, highstat=False):
             sig = np.ma.fix_invalid(np.divide(S, np.sqrt(S + B)),
                 fill_value=0.)
         else:
-            # sqrt(2 * (s + B) * ln(1 + s / B) - s)
-            sig = 1.
+            # sqrt(2 * (S + B) * ln(1 + S / B) - S)
+            sig = np.sqrt(2 * (S + B) * np.ln(1 + S / B) - S)
     bins = list(background.xedges())[:-1]
     max_bin = np.argmax(np.ma.masked_array(sig, mask=exclude))
     max_sig = sig[max_bin]

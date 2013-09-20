@@ -32,6 +32,7 @@ def general_parser(parser=None):
                 '2d',
                 'plot',
                 'train',
+                'money',
                 'scatter',
                 'evaluate',
                 'workspace',

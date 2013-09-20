@@ -71,6 +71,8 @@ mass_regions = MassRegions(
 
 control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
+#signal_region = control_region
+
 train_region = mass_regions.train_region
 
 all_channels = {}
@@ -335,6 +337,58 @@ for category in analysis.iter_categories(
             grid_search=args.grid_search,
             cv_nfold=args.nfold,
             use_cache=args.use_clf_cache)
+    
+    if 'money' in args.actions and not is_control:
+
+        scores = analysis.get_scores(clf, category, target_region,
+                mode='combined', mass_points=[125],
+                systematics=args.systematics,
+                unblind=True)
+
+        from rootpy.plotting import Hist, Canvas, HistStack
+        from mva.classify import histogram_scores
+        from mva.stats.utils import significance
+        from itertools import izip
+
+        b = Hist(1000, scores.min_score, scores.max_score)
+        s = b.Clone()
+        for sample, bkg_scores in scores.bkg_scores:
+            histogram_scores(b, bkg_scores, inplace=True)
+        for sample, sig_scores in scores.all_sig_scores[125]:
+            histogram_scores(s, sig_scores, inplace=True)
+
+        # get min and max significance
+        sig, _, _ = significance(s, b)
+        min_sig, max_sig = sig.min(), sig.max()
+        sig_money = Hist(10, min_sig, max_sig + 1E-5,
+            drawstyle='hist',
+            fillstyle='solid')
+        bkg_money = sig_money.Clone()
+        d_money = sig_money.Clone()
+
+        for bin, _s in izip(s.bins(), sig):
+            sig_money.Fill(_s, bin.value)
+        for bin, _b in izip(b.bins(), sig):
+            bkg_money.Fill(_b, bin.value)
+        
+        bkg_money.color = 'blue'
+        sig_money.color = 'red'
+
+        c = Canvas()
+        c.SetLogy()
+        stack = HistStack()
+        stack.Add(bkg_money)
+        stack.Add(sig_money)
+        stack.Draw()
+        stack.xaxis.title = 'S / #sqrt{S + B}'
+        stack.yaxis.title = 'Events'
+        stack.SetMinimum(10)
+        stack.SetMaximum(1000)
+        stack.Draw()
+        stack.yaxis.SetRangeUser(10, 1000)
+        stack.yaxis.SetLimits(10, 1000)
+        c.SaveAs('money_{0}.png'.format(category.name))
+
 
     if '2d' in args.actions and not is_control:
         log.info("plotting 2d mass vs classifier output")
@@ -429,6 +483,7 @@ if 'workspace' in args.actions:
             category=category,
             region='OS',
             #clf=clf,
+            #cuts=signal_region,
             include_signal=False)
         controls.append(contr)
         # TODO check that number of SS events is consistent with nOS
