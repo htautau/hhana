@@ -1855,8 +1855,8 @@ class Higgs(MC, Signal):
 
         # QCDscale_ggH3in
         if mode == 'gg' and category.name == 'vbf':
-            up = QCDscale_ggH3in_file.up_fit
-            dn = QCDscale_ggH3in_file.dn_fit
+            up = self.QCDscale_ggH3in_file.up_fit
+            dn = self.QCDscale_ggH3in_file.dn_fit
             nom = sample.hist
             up_hist = nom.clone(shallow=True, name=nom.name + 'QCDscale_ggH3in_UP')
             dn_hist = nom.clone(shallow=True, name=nom.name + 'QCDscale_ggH3in_DOWN')
