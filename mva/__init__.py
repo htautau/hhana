@@ -1,9 +1,23 @@
 import os
 import sys
 
-LIMITS_DIR = os.getenv('HIGGSTAUTAU_LIMITS_DIR')
-if not LIMITS_DIR:
+BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
+if not BASE_DIR:
     sys.exit('You did not source setup.sh!')
+
+CACHE_DIR = os.path.join(BASE_DIR, 'cache')
+if not os.path.exists(CACHE_DIR):
+    log.info("creating directory %s" % CACHE_DIR)
+    os.mkdir(CACHE_DIR)
+
+PLOTS_DIR = os.path.join(BASE_DIR, 'plots')
+if not os.path.exists(PLOTS_DIR):
+    log.info("creating directory %s" % PLOTS_DIR)
+    os.mkdir(PLOTS_DIR)
+
+ETC_DIR = os.path.join(BASE_DIR, 'etc')
+
+NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
 
 import ROOT
 import rootpy
@@ -12,9 +26,6 @@ import logging
 # Speed things up a bit
 ROOT.SetSignalPolicy(ROOT.kSignalFast)
 
-LIMITS_DIR = os.path.join(LIMITS_DIR, 'hadhad')
-
-NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
 DEFAULT_STUDENT = 'hhskim'
 
 if not os.getenv('MVA_NO_BATCH', False):
@@ -27,19 +38,6 @@ if not os.environ.get("DEBUG", False):
 
 if hasattr(logging, 'captureWarnings'):
     logging.captureWarnings(True)
-
-BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
-CACHE_DIR = os.path.join(BASE_DIR, 'cache')
-
-if not os.path.exists(CACHE_DIR):
-    log.info("creating directory %s" % CACHE_DIR)
-    os.mkdir(CACHE_DIR)
-
-PLOTS_DIR = os.path.join(BASE_DIR, 'plots')
-
-if not os.path.exists(PLOTS_DIR):
-    log.info("creating directory %s" % PLOTS_DIR)
-    os.mkdir(PLOTS_DIR)
 
 from .utils import mkdir_p
 

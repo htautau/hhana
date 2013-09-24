@@ -32,7 +32,7 @@ from .plotting import (
     draw_channel_array, draw_channel,
     efficiency_cut)
 from . import variables
-from . import LIMITS_DIR, PLOTS_DIR
+from . import PLOTS_DIR
 from .stats.utils import get_safe_template
 from .utils import rec_to_ndarray, std
 from .systematics import systematic_name

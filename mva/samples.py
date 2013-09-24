@@ -18,7 +18,7 @@ import tables
 # rootpy imports
 import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
-from rootpy.io import root_open as ropen, TemporaryFile
+from rootpy.io import root_open, TemporaryFile
 from rootpy.tree import Tree, Cut
 from rootpy import asrootpy
 from rootpy.memory.keepalive import keepalive
@@ -32,7 +32,7 @@ from higgstautau import samples as samples_db
 # local imports
 from . import log; log = log[__name__]
 from . import variables
-from . import NTUPLE_PATH, DEFAULT_STUDENT
+from . import NTUPLE_PATH, DEFAULT_STUDENT, ETC_DIR
 from .utils import print_hist, rec_to_ndarray, rec_stack, ravel
 from .lumi import LUMI
 from .systematics import *
@@ -68,7 +68,7 @@ def get_file(student, hdf=False, suffix=''):
     if hdf:
         student_file = tables.openFile(file_path)#, driver="H5FD_CORE")
     else:
-        student_file = ropen(file_path, 'READ')
+        student_file = root_open(file_path, 'READ')
     FILES[filename] = student_file
     return student_file
 
@@ -76,9 +76,11 @@ def get_file(student, hdf=False, suffix=''):
 @atexit.register
 def cleanup():
 
-    TEMPFILE.Close()
+    if TEMPFILE:
+        TEMPFILE.close()
     for filehandle in FILES.values():
-        filehandle.close()
+        if filehandle:
+            filehandle.close()
 
 
 class Sample(object):
@@ -1769,10 +1771,13 @@ class Higgs(MC, Signal):
     QCDscale_ggH2in  ggH    VBF              1.24/0.81'''.split('\n'))
 
     GEN_QMASS = map(lambda token: token.strip().split(), '''\
-    Gen_Qmass_ggH    ggH    VBF              1.18/0.82
-    Gen_Qmass_ggH    ggH    boosted          1.29/0.71
-    Gen_Qmass_ggH    ggH    1j_nonboosted    1.09/0.91
-    Gen_Qmass_ggH    ggH    0j_nonboosted    0.89/1.11'''.split('\n'))
+    Gen_Qmass_ggH    ggH    VBF              1.19/0.81
+    Gen_Qmass_ggH    ggH    boosted          1.24/0.76
+    Gen_Qmass_ggH    ggH    1j_nonboosted    1.04/0.96
+    Gen_Qmass_ggH    ggH    0j_nonboosted    1/1'''.split('\n'))
+
+    QCDscale_ggH3in_file = root_open(
+        os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
 
     NORM_BY_THEORY = True
 
@@ -1848,7 +1853,19 @@ class Higgs(MC, Signal):
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
 
-        # TODO: QCDscale_ggH3in
+        # QCDscale_ggH3in
+        if mode == 'gg' and category.name == 'vbf':
+            up = QCDscale_ggH3in_file.up_fit
+            dn = QCDscale_ggH3in_file.dn_fit
+            nom = sample.hist
+            up_hist = nom.clone(shallow=True, name=nom.name + 'QCDscale_ggH3in_UP')
+            dn_hist = nom.clone(shallow=True, name=nom.name + 'QCDscale_ggH3in_DOWN')
+            up_hist *= up
+            dn_hist *= dn
+            shape = histfactory.HistoSys('QCDscale_ggH3in',
+                low=dn_hist,
+                high=up_hist)
+            sample.AddHistoSys(shape)
 
     def __init__(self, year,
             mode=None, modes=None,
