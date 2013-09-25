@@ -1865,6 +1865,7 @@ class Higgs(MC, Signal):
             shape = histfactory.HistoSys('QCDscale_ggH3in',
                 low=dn_hist,
                 high=up_hist)
+            norm, shape = histfactory.split_norm_shape(shape, nom)
             sample.AddHistoSys(shape)
 
     def __init__(self, year,
