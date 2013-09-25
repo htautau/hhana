@@ -1858,8 +1858,8 @@ class Higgs(MC, Signal):
             up = self.QCDscale_ggH3in_file.up_fit
             dn = self.QCDscale_ggH3in_file.dn_fit
             nom = sample.hist
-            up_hist = nom.clone(shallow=True, name=nom.name + 'QCDscale_ggH3in_UP')
-            dn_hist = nom.clone(shallow=True, name=nom.name + 'QCDscale_ggH3in_DOWN')
+            up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
+            dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
             up_hist *= up
             dn_hist *= dn
             shape = histfactory.HistoSys('QCDscale_ggH3in',
