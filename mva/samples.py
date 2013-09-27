@@ -981,12 +981,15 @@ class Data(Sample):
 
         self.name = 'Data'
 
-    def events(self, category, region, cuts=None, raw=False):
+    def events(self, category, region, cuts=None, hist=None):
 
+        if hist is None:
+            hist = Hist(1, -100, 100)
         selection = self.cuts(category, region) & cuts
         log.debug("requesting number of events from %s using cuts: %s" %
                   (self.data.GetName(), selection))
-        return self.data.GetEntries(selection)
+        self.data.Draw('1', selection, hist=hist)
+        return hist
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True):
@@ -1622,11 +1625,11 @@ class MC(Sample):
                cuts=None,
                systematic='NOMINAL',
                weighted=True,
-               scale=1.,
-               raw=False):
+               hist=None,
+               scale=1.):
 
-        total = 0.
-        hist = Hist(1, -100, 100)
+        if hist is None:
+            hist = Hist(1, -100, 100)
         for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
 
             try:
@@ -1639,23 +1642,15 @@ class MC(Sample):
                 tree = sys_trees['NOMINAL']
                 events = sys_events['NOMINAL']
 
-            if raw:
-                selection = self.cuts(category, region, systematic=systematic) & cuts
-                log.debug("requesing number of events from %s using cuts: %s"
-                          % (tree.GetName(), selection))
-                total += tree.GetEntries(selection)
-            else:
-                weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
-                weighted_selection = Cut(' * '.join(map(str,
-                         self.get_weight_branches(systematic, weighted=weighted))))
-                selection = Cut(str(weight)) * weighted_selection * (
-                        self.cuts(category, region, systematic=systematic) & cuts)
-                log.debug("requesing number of events from %s using cuts: %s"
-                          % (tree.GetName(), selection))
-                hist.Reset()
-                curr_total = tree.Draw('1', selection, hist=hist)
-                total += hist.Integral()
-        return total * scale
+            weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
+            weighted_selection = Cut(' * '.join(map(str,
+                     self.get_weight_branches(systematic, weighted=weighted))))
+            selection = Cut(str(weight * scale)) * weighted_selection * (
+                    self.cuts(category, region, systematic=systematic) & cuts)
+            log.debug("requesing number of events from %s using cuts: %s"
+                      % (tree.GetName(), selection))
+            tree.Draw('1', selection, hist=hist)
+        return hist
 
 
 class Ztautau(Background):
@@ -2024,28 +2019,25 @@ class QCD(Sample, Background):
         self.systematics = mc[0].systematics
 
     def events(self, category, region, cuts=None,
-               systematic='NOMINAL',
-               raw=False):
+               systematic='NOMINAL'):
 
-        data = self.data.events(category, self.shape_region, cuts=cuts)
-        mc_subtract = 0.
+        data = Hist(1, -100, 100)
+        mc_subtract = data.Clone()
+        self.data.events(category, self.shape_region, cuts=cuts, hist=data)
         for mc_scale, mc in zip(self.mc_scales, self.mc):
-            mc_subtract += mc.events(
+            mc.events(
                 category, self.shape_region,
                 cuts=cuts,
                 systematic=systematic,
-                raw=raw,
-                scale=mc_scale)
-
-        if raw:
-            return self.data_scale * data + mc_subtract
-
+                hist=mc_subtract,
+                scale=-1 * mc_scale)
+        """
         log.info("QCD: Data(%.3f) - MC(%.3f)" % (
             self.data_scale * data, mc_subtract))
         log.info("MC subtraction: %.1f%%" % (
             100. * mc_subtract / (self.data_scale * data)))
-
-        return (self.data_scale * data - mc_subtract) * self.scale
+        """
+        return (data * self.data_scale - mc_subtract) * self.scale
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True):
@@ -2340,7 +2332,7 @@ class QCD(Sample, Background):
         # expected number of QCD events
         # get number of events at preselection for nominal model
         from .categories import Category_Preselection
-        nominal_events = self.events(Category_Preselection, None)
+        nominal_events = self.events(Category_Preselection, None)[0]
 
         hist_template = nominal_hist.Clone()
         hist_template.Reset()
@@ -2368,7 +2360,7 @@ class QCD(Sample, Background):
                     field_scale=field_scale,
                     weight_hist=weight_hist,
                     weighted=weighted))
-                events.append(self.events(Category_Preselection, None))
+                events.append(self.events(Category_Preselection, None)[0])
 
             OSFF, SSFF = models
             OSFF_events, SSFF_events = events
@@ -2399,7 +2391,7 @@ class QCD(Sample, Background):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
-            SS_TRK_events = self.events(Category_Preselection, None)
+            SS_TRK_events = self.events(Category_Preselection, None)[0]
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
             shape_sys *= nominal_events / float(SS_TRK_events)
@@ -2437,7 +2429,7 @@ class QCD(Sample, Background):
         # expected number of QCD events
         # get number of events at preselection for nominal model
         from .categories import Category_Preselection
-        nominal_events = self.events(Category_Preselection, None)
+        nominal_events = self.events(Category_Preselection, None)[0]
 
         field_hist_template = {}
         for field, hist in field_nominal_hist.items():
@@ -2467,7 +2459,7 @@ class QCD(Sample, Background):
                     weight_hist=weight_hist,
                     weighted=weighted))
                 if model == 'OSFF':
-                    norm_events = self.events(Category_Preselection, None)
+                    norm_events = self.events(Category_Preselection, None)[0]
 
             OSFF, SSFF = models
             field_shape_sys = {}
@@ -2494,7 +2486,7 @@ class QCD(Sample, Background):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
-            norm_events = self.events(Category_Preselection, None)
+            norm_events = self.events(Category_Preselection, None)[0]
 
         else:
             raise ValueError(
