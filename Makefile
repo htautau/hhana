@@ -140,6 +140,7 @@ clean: clean-pyc
 bundle:
 	rm -f ~/higgstautau-mva-plots.tar.gz
 	tar -vpczf ~/higgstautau-mva-plots.tar.gz plots/*.png plots/*.eps cache/classify/*/tree.pdf
+	@echo bundle at ~/higgstautau-mva-plots.tar.gz
 
 test:
 	nosetests -s -v mva
