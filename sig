@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 
-import sys
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--verbose', action='store_true', default=False)
+parser.add_argument('file')
+parser.add_argument('workspace')
+args = parser.parse_args()
 
 from mva.stats import hypotests
 from rootpy.io import root_open
 
-fname, wname = sys.argv[1:]
-
-with root_open(fname) as f:
-    h = hypotests.get_significance_workspace(f[wname], verbose=True)
-    print list(h)
+with root_open(args.file) as f:
+    if args.workspace not in f:
+        f.ls()
+    else:
+        h = hypotests.get_significance_workspace(f[args.workspace], verbose=True)
+        print list(h)
