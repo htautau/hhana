@@ -104,6 +104,22 @@ if args.mass_points == 'all':
 else:
     args.mass_points = map(int, args.mass_points.split(','))
 
+import math
+
+class ufloat(object):
+    def __init__(self, value, uncert):
+        self.value = value
+        self.uncert = uncert
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        pos = int(math.floor(math.log10(abs(self.uncert))))
+        pos = abs(pos) if pos < 0 else 1
+        fmt = '${0:.'+str(pos)+'f}\pm {1:.'+str(pos)+'f}$'
+        return fmt.format(self.value, self.uncert)
+
 
 if 'yields' in args.actions:
     """
@@ -124,10 +140,10 @@ if 'yields' in args.actions:
         samples.append(('Total Background', total_model))
         samples.append(('Data', data_events))
         for name, events in samples:
-            log.info("{0} & {1:.1f}\pm{2:.1f}".format(
-                name,
+            log.info("{0} & {1}".format(
+                name, ufloat(
                 events.GetBinContent(1),
-                events.GetBinError(1)))
+                events.GetBinError(1))))
 
 
 if 'ntup' in args.actions:
