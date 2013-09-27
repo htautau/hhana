@@ -2030,7 +2030,7 @@ class QCD(Sample, Background):
                 cuts=cuts,
                 systematic=systematic,
                 hist=mc_subtract,
-                scale=-1 * mc_scale)
+                scale=mc_scale)
         """
         log.info("QCD: Data(%.3f) - MC(%.3f)" % (
             self.data_scale * data, mc_subtract))
