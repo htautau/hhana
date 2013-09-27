@@ -825,6 +825,11 @@ def draw_samples_array(
         output_name = var_info['filename'] + output_suffix
         if cuts:
             output_name += '_' + cuts.safe()
+
+        _range = var_info['range']
+        if isinstance(_range, dict):
+            _range = _range.get(category.name.upper(), _range[None])
+
         fig = draw(model=[m[field] for m in model_hists],
              data=data_field_hist[field] if data_field_hist else None,
              data_info=str(data_field_hist[field].datainfo) if data_field_hist else None,
@@ -832,7 +837,7 @@ def draw_samples_array(
              category=category,
              name=var_info['title'] if mpl else var_info['root'],
              units=var_info.get('units', None),
-             range=var_info['range'],
+             range=_range,
              output_name=output_name,
              mpl=mpl,
              blind=blind,
@@ -915,12 +920,16 @@ def draw_channel_array(
         if cuts:
             output_name += '_' + cuts.safe()
 
+        _range = var_info['range']
+        if isinstance(_range, dict):
+            _range = _range.get(category.name.upper(), _range[None])
+
         fig = draw_channel(field_channel[field],
              data_info=str(analysis.data.info),
              category=category,
              name=var_info['title'] if mpl else var_info['root'],
              units=var_info.get('units', None),
-             range=var_info['range'],
+             range=_range,
              output_name=output_name,
              mpl=mpl,
              blind=blind,

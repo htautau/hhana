@@ -120,12 +120,17 @@ class Sample(object):
             return self._label
         return self._label_root
 
-    def get_field_hist(self, vars):
+    def get_field_hist(self, vars, category):
 
         field_hist = {}
         for field, var_info in vars.items():
             bins = var_info['bins']
-            min, max = var_info['range']
+
+            _range = var_info['range']
+            if isinstance(_range, dict):
+                _range = _range.get(category.name.upper(), _range[None])
+            min, max = _range
+
             hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
             hist.decorate(**self.hist_decor)
             field_hist[field] = hist
