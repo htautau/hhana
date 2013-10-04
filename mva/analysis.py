@@ -392,7 +392,9 @@ class Analysis(object):
         bkg_samples = []
         for s, scores in bkg_scores:
             hist_template = Hist(
-                bins, min_score, max_score, title=s.label,
+                bins, min_score, max_score,
+                title=s.label,
+                type='D',
                 **s.hist_decor)
             sample = s.get_histfactory_sample(
                 hist_template, clf,
@@ -415,7 +417,9 @@ class Analysis(object):
                     sum([histogram_scores(hist_template, scores)
                          for s, scores in all_sig_scores[125]]), unblind)
             hist_template = Hist(
-                bins, min_score, max_score, title=self.data.label,
+                bins, min_score, max_score,
+                title=self.data.label,
+                type='D',
                 **self.data.hist_decor)
             data_sample = self.data.get_histfactory_sample(
                 hist_template, clf,
@@ -451,7 +455,9 @@ class Analysis(object):
             sig_samples = []
             for s, scores in all_sig_scores[mass]:
                 hist_template = Hist(
-                    bins, min_score, max_score, title=s.label,
+                    bins, min_score, max_score,
+                    title=s.label,
+                    type='D',
                     **s.hist_decor)
                 sample = s.get_histfactory_sample(
                     hist_template, clf,
