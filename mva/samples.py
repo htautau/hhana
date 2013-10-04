@@ -358,6 +358,7 @@ class Sample(object):
                     low=hist_down,
                     high=hist_up)
 
+                """
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
 
                 sample.AddOverallSys(norm)
@@ -368,11 +369,9 @@ class Sample(object):
                         sys_component.startswith('JVF') or
                         sys_component.startswith('JER')):
                     continue
+                """
 
-                # if you fit the ratio of nominal to up / down to a "pol0" and
-                # get reasonably good chi2, then you may consider dropping the
-                # histosys part
-                sample.AddHistoSys(shape)
+                sample.AddHistoSys(histsys)
 
             if isinstance(self, QCD):
                 high, low = self.get_shape_systematic(
@@ -402,10 +401,14 @@ class Sample(object):
                         self.year),
                     low=low, high=high)
 
+                """
                 norm, shape = histfactory.split_norm_shape(histsys, hist)
 
                 sample.AddOverallSys(norm)
                 sample.AddHistoSys(shape)
+                """
+
+                sample.AddHistoSys(histsys)
 
         if isinstance(self, Signal):
             log.info("defining SigXsecOverSM POI for %s" % self.name)

@@ -31,7 +31,6 @@ from mva.stats import hypotests
 from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist, draw_channel_array
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf, braindump
-from mva.classify import ClassificationProblem
 from mva.systematics import (get_systematics, iter_systematics,
     parse_systematics, systematic_name)
 from mva.categories import CATEGORIES
@@ -52,10 +51,6 @@ CONST_PARAMS = [
     'mu_XS8_ZH',
     'mu_XS7_ZH',
 ]
-
-partition_key = 'EventNumber'
-#partition_key = 'MET_phi_original * 100'
-#partition_key = None
 
 SYSTEMATICS = get_systematics(year)
 lumi_rel_error = get_lumi_uncert(year)
@@ -81,7 +76,7 @@ category_names = args.category_names
 target_region = args.target_region
 
 analysis = Analysis(
-    year=year,
+    year=args.year,
     systematics=args.systematics,
     use_embedding=args.embedding,
     target_region=args.target_region,
@@ -89,42 +84,34 @@ analysis = Analysis(
     fit_param=args.fit_param,
     random_mu=args.random_mu,
     mu=args.mu,
+    partition_key='EventNumber', # 'MET_phi_original * 100', or None
+    suffix=args.suffix,
+    transform=not args.raw_scores,
     mpl=args.mpl)
 
-output_suffix = analysis.get_suffix(args.fit_param, args.suffix)
-clf_output_suffix = output_suffix
-if not args.systematics:
-    output_suffix += '_statsonly'
-
-if not args.raw_scores:
-    ClassificationProblem.TRANSFORM = True
-
-if args.mass_points == 'all':
-    args.mass_points = Higgs.MASS_POINTS
-else:
-    args.mass_points = map(int, args.mass_points.split(','))
-
-import math
-
-class ufloat(object):
-    def __init__(self, value, uncert):
-        self.value = value
-        self.uncert = uncert
-
-    def __str__(self):
-        return repr(self)
-
-    def __repr__(self):
-        pos = int(math.floor(math.log10(abs(self.uncert))))
-        pos = abs(pos) if pos < 0 else 1
-        fmt = '${0:.'+str(pos)+'f}\pm {1:.'+str(pos)+'f}$'
-        return fmt.format(self.value, self.uncert)
+output_suffix = analysis.get_suffix()
 
 
 if 'yields' in args.actions:
     """
     Create a table of sample yields in each category and control region
     """
+    import math
+
+    class ufloat(object):
+        def __init__(self, value, uncert):
+            self.value = value
+            self.uncert = uncert
+
+        def __str__(self):
+            return repr(self)
+
+        def __repr__(self):
+            pos = int(math.floor(math.log10(abs(self.uncert))))
+            pos = abs(pos) if pos < 0 else 1
+            fmt = '${0:.'+str(pos)+'f}\pm {1:.'+str(pos)+'f}$'
+            return fmt.format(self.value, self.uncert)
+
     for category in analysis.iter_categories(
             args.categories, args.controls, names=args.category_names):
         samples = []
@@ -164,16 +151,8 @@ if 'ntup' in args.actions:
 
             if category.analysis_control:
                 continue
-            
-            clf = ClassificationProblem(
-                fields=category.features,
-                category=category,
-                region=target_region,
-                clf_output_suffix=clf_output_suffix,
-                output_suffix=output_suffix,
-                partition_key=partition_key)
-            if not clf.load():
-                sys.exit("train BDTs before requesting scores")
+
+            clf = analysis.get_clf(category, load=True)
             
             for sample in samples:
                 scores_dict = sample.scores(
@@ -220,15 +199,7 @@ if 'ntuptruth' in args.actions:
             if category.analysis_control:
                 continue
             
-            clf = ClassificationProblem(
-                fields=category.features,
-                category=category,
-                region=target_region,
-                clf_output_suffix=clf_output_suffix,
-                output_suffix=output_suffix,
-                partition_key=partition_key)
-            if not clf.load():
-                sys.exit("train BDTs before requesting scores")
+            clf = analysis.get_clf(category, load=True)
             
             for sample in signals:
                 tree = sample.trees(
@@ -330,13 +301,7 @@ for category in analysis.iter_categories(
                 systematics=args.systematics),
         ]
 
-        clf = ClassificationProblem(
-            fields=category.features,
-            category=category,
-            region=target_region,
-            clf_output_suffix=clf_output_suffix,
-            output_suffix=output_suffix,
-            partition_key=partition_key)
+        clf = analysis.get_clf(category, load=False)
         
         clf.train(
             signals=signals_train,
@@ -448,6 +413,11 @@ for category in analysis.iter_categories(
 
 if 'workspace' in args.actions:
 
+    if args.mass_points == 'all':
+        args.mass_points = Higgs.MASS_POINTS
+    else:
+        args.mass_points = map(int, args.mass_points.split(','))
+
     workspace_suffix = output_suffix
     if args.workspace_suffix:
         workspace_suffix += '_' + args.workspace_suffix
@@ -459,6 +429,9 @@ if 'workspace' in args.actions:
         systematics=args.systematics,
         use_embedding=args.embedding,
         qcd_shape_region='SS',
+        partition_key=analysis.partition_key,
+        suffix=args.suffix,
+        transform=not args.raw_scores,
         mpl=args.mpl)
     
     controls = []
@@ -476,16 +449,7 @@ if 'workspace' in args.actions:
         # apply normalization
         control_analysis.normalize(parent_category, fit_param=args.fit_param)
         
-        #clf = ClassificationProblem(
-        #    fields=parent_category.features,
-        #    category=parent_category,
-        #    region='OS',
-        #    clf_output_suffix=clf_output_suffix,
-        #    output_suffix=output_suffix,
-        #    partition_key=partition_key)
-        #
-        #if not clf.load():
-        #    sys.exit("train BDTs before requesting workspaces")
+        # clf = analysis.get_clf(parent_category, load=True)
 
         contr = control_analysis.get_channel(hist_template, expr,
             category=category,
@@ -504,15 +468,7 @@ if 'workspace' in args.actions:
         # apply normalization
         analysis.normalize(category, fit_param=args.fit_param)
 
-        clf = ClassificationProblem(
-            fields=category.features,
-            category=category,
-            region=target_region,
-            clf_output_suffix=clf_output_suffix,
-            output_suffix=output_suffix,
-            partition_key=partition_key)
-        if not clf.load():
-            sys.exit("train BDTs before requesting workspaces")
+        clf = analysis.get_clf(category, load=True)
 
         if args.optimize_limits:
             # Determine the number of bins that yields the best limit at 125

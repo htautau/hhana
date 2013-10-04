@@ -10,7 +10,7 @@ from . import samples, log; log = log[__name__]
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .stats.utils import efficiency_cut
-from .classify import histogram_scores
+from .classify import histogram_scores, Classifier
 
 
 Scores = namedtuple('Scores', [
@@ -32,6 +32,9 @@ class Analysis(object):
                  fit_param='TRACK',
                  random_mu=False,
                  mu=1.,
+                 partition_key='EventNumber',
+                 transform=True,
+                 suffix=None,
                  mpl=False):
 
         self.year = year
@@ -40,6 +43,9 @@ class Analysis(object):
         self.target_region = target_region
         self.qcd_shape_region = qcd_shape_region
         self.fit_param = fit_param
+        self.partition_key = partition_key
+        self.transform = transform
+        self.suffix = suffix
         self.mpl = mpl
 
         if use_embedding:
@@ -154,19 +160,20 @@ class Analysis(object):
                 self.normalize(category)
                 yield category
 
-    def get_suffix(self, fit_param='TRACK', suffix=None):
+    def get_suffix(self, clf=False):
 
-        output_suffix = '_%sfit_%s' % (fit_param.lower(), self.qcd_shape_region)
+        output_suffix = '_%sfit_%s' % (
+            self.fit_param.lower(), self.qcd_shape_region)
         if self.use_embedding:
             output_suffix += '_embedding'
         else:
             output_suffix += '_alpgen'
-        if suffix:
-            output_suffix += '_%s' % suffix
+        if self.suffix:
+            output_suffix += '_%s' % self.suffix
         output_suffix += '_%d' % (self.year % 1E3)
+        if not clf and not self.systematics:
+            output_suffix += '_statsonly'
         return  output_suffix
-        #if not self.systematics:
-        #    output_suffix += '_statsonly'
 
     def get_channel(self, hist_template, expr_or_clf, category, region,
                     cuts=None,
@@ -461,3 +468,21 @@ class Analysis(object):
             channels[mass] = channel
 
         return scores_obj, channels
+
+    def get_clf(self, category, load=False):
+
+        output_suffix = self.get_suffix()
+        clf_output_suffix = self.get_suffix(clf=True)
+
+        clf = Classifier(
+            fields=category.features,
+            category=category,
+            region=self.target_region,
+            clf_output_suffix=clf_output_suffix,
+            output_suffix=output_suffix,
+            partition_key=self.partition_key,
+            transform=self.transform)
+
+        if load and not clf.load():
+            raise RuntimeError("train BDTs before requesting scores")
+        return clf

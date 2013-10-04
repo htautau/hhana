@@ -101,15 +101,13 @@ def search_flat_bins(bkg_scores, min_score, max_score, bins):
     return boundaries
 
 
-class ClassificationProblem(object):
+class Classifier(object):
 
     # minimal list of spectators
     SPECTATORS = [
         MMC_PT,
         MMC_MASS,
     ]
-
-    TRANSFORM = False
 
     def __init__(self,
                  fields,
@@ -120,7 +118,8 @@ class ClassificationProblem(object):
                  standardize=False,
                  output_suffix="",
                  clf_output_suffix="",
-                 partition_key=None):
+                 partition_key=None,
+                 transform=True):
 
         self.fields = fields
         self.category = category
@@ -130,6 +129,7 @@ class ClassificationProblem(object):
         self.output_suffix = output_suffix
         self.clf_output_suffix = clf_output_suffix
         self.partition_key = partition_key
+        self.transform = transform
         self.background_label = 0
         self.signal_label = 1
 
@@ -137,7 +137,7 @@ class ClassificationProblem(object):
             spectators = []
 
         # merge in minimal list of spectators
-        for spec in ClassificationProblem.SPECTATORS:
+        for spec in Classifier.SPECTATORS:
             if spec not in spectators and spec not in fields:
                 spectators.append(spec)
 
@@ -549,12 +549,12 @@ class ClassificationProblem(object):
         scores = np.concatenate(merged_scores)
         weight = np.concatenate(merged_weight)
 
-        if ClassificationProblem.TRANSFORM:
+        if self.transform:
             log.info("classifier scores are transformed")
             # logistic tranformation used by TMVA (MethodBDT.cxx)
-            if isinstance(ClassificationProblem.TRANSFORM, types.FunctionType):
+            if isinstance(self.transform, types.FunctionType):
                 # user-defined transformation
-                scores = ClassificationProblem.TRANSFORM(scores)
+                scores = self.transform(scores)
             else:
                 # default logistic transformation
                 scores = -1 + 2.0 / (1.0 +
