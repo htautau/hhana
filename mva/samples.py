@@ -131,7 +131,10 @@ class Sample(object):
                 _range = _range.get(category.name.upper(), _range[None])
             min, max = _range
 
-            hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
+            hist = Hist(bins, min, max,
+                title=self.label,
+                type='D',
+                **self.hist_decor)
             hist.decorate(**self.hist_decor)
             field_hist[field] = hist
         return field_hist
@@ -815,7 +818,10 @@ class Sample(object):
     def draw(self, expr, category, region, bins, min, max,
              cuts=None, weighted=True, systematics=True):
 
-        hist = Hist(bins, min, max, title=self.label, **self.hist_decor)
+        hist = Hist(bins, min, max,
+            title=self.label,
+            type='D',
+            **self.hist_decor)
         self.draw_into(hist, expr, category, region,
                        cuts=cuts, weighted=weighted,
                        systematics=systematics)
@@ -829,7 +835,9 @@ class Sample(object):
                ravel=False):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
-                title=self.label, **self.hist_decor)
+            title=self.label,
+            type='D',
+            **self.hist_decor)
         self.draw_into(hist, expr, category, region, cuts=cuts,
                 systematics=systematics)
         if ravel:
@@ -1816,6 +1824,9 @@ class Higgs(MC, Signal):
         _, (br_up, br_down) = yellowhiggs.br(
             self.mass, 'tautau', error_type='factor')
         sample.AddOverallSys('ATLAS_BR_tautau', br_down, br_up)
+
+        # <NormFactor Name="mu_BR_tautau" Val="1" Low="0" High="200" />
+        sample.AddNormFactor('mu_BR_tautau', 1., 0., 200., True)
 
         if self.year == 2011:
             energy = 7

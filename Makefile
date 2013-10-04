@@ -164,7 +164,7 @@ bdt-plots:
 .PHONY: workspace
 workspace:
 	nohup ./ana workspace --mass-points all > workspace.log &
-	#nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu --mass-points all > workspace_unblind_random.log &
+	nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu --mass-points all > workspace_unblind_random.log &
 
 .PHONY: workspace-125
 workspace-125:

@@ -18,12 +18,12 @@ from matplotlib.patches import Patch
 import ROOT
 from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
 import rootpy.plotting.root2matplotlib as rplt
-from rootpy.stats.utils.quantiles import qqgraph
-from rootpy.stats.utils.plot_correlation import plot_correlation
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import get_limits, get_band
 from rootpy.plotting.style.atlas.labels import ATLAS_label
+from rootpy.plotting.contrib.quantiles import qqgraph
+from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.memory.keepalive import keepalive
 
 from .variables import VARIABLES
@@ -130,14 +130,18 @@ def correlations(signal, signal_weight,
 
     # draw correlation plots
     names = [VARIABLES[field]['title'] for field in fields]
-    plot_correlation(signal, signal_weight, names,
-                     os.path.join(PLOTS_DIR, "correlation_signal_%s%s" % (
-                         category.name, output_suffix)),
-                     title='%s signal' % category.label)
-    plot_correlation(background, background_weight, names,
-                     os.path.join(PLOTS_DIR, "correlation_background_%s%s" % (
-                         category.name, output_suffix)),
-                     title='%s background' % category.label)
+    plot_corrcoef_matrix(signal, fields=names,
+         output_name=os.path.join(PLOTS_DIR,
+             "correlation_signal_%s%s" % (
+             category.name, output_suffix)),
+         title='%s signal' % category.label,
+         weights=signal_weight)
+    plot_corrcoef_matrix(background, fields=names,
+         output_name=os.path.join(PLOTS_DIR,
+             "correlation_background_%s%s" % (
+             category.name, output_suffix)),
+         title='%s background' % category.label,
+         weights=background_weight)
 
 
 def draw_scatter(fields,
