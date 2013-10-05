@@ -14,6 +14,7 @@ class MassRegions(object):
             high=DEFAULT_HIGH_MASS,
             high_sideband_in_control=False,
             mass_window_signal_region=False,
+            train_signal_region=False,
             low_cutoff=None):
 
         # control region is low and high mass sidebands
@@ -28,10 +29,15 @@ class MassRegions(object):
             # signal region is the negation of the control region
             self.__signal_region = -self.__control_region
         else:
+            # signal region is not restricted
             self.__signal_region = Cut()
 
-        # train on everything
-        self.__train_region = Cut()
+        if train_signal_region:
+            # train on only the signal region
+            self.__train_region = self.__signal_region
+        else:
+            # train on everything
+            self.__train_region = Cut()
 
         log.info("control region: %s" % self.__control_region)
         log.info("signal region: %s" % self.__signal_region)

@@ -35,6 +35,7 @@ class Analysis(object):
                  partition_key='EventNumber',
                  transform=True,
                  suffix=None,
+                 mmc=True,
                  mpl=False):
 
         self.year = year
@@ -46,6 +47,7 @@ class Analysis(object):
         self.partition_key = partition_key
         self.transform = transform
         self.suffix = suffix
+        self.mmc = mmc
         self.mpl = mpl
 
         if use_embedding:
@@ -168,6 +170,8 @@ class Analysis(object):
             output_suffix += '_embedding'
         else:
             output_suffix += '_alpgen'
+        if not self.mmc:
+            output_suffix += '_no_mmc'
         if self.suffix:
             output_suffix += '_%s' % self.suffix
         output_suffix += '_%d' % (self.year % 1E3)
@@ -487,7 +491,8 @@ class Analysis(object):
             clf_output_suffix=clf_output_suffix,
             output_suffix=output_suffix,
             partition_key=self.partition_key,
-            transform=self.transform)
+            transform=self.transform,
+            mmc=self.mmc)
 
         if load and not clf.load():
             raise RuntimeError("train BDTs before requesting scores")

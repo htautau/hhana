@@ -63,12 +63,12 @@ mass_regions = MassRegions(
     low=args.low_mass_cut,
     high=args.high_mass_cut,
     high_sideband_in_control=args.high_sideband_in_control,
-    mass_window_signal_region=args.mass_window_signal_region)
+    mass_window_signal_region=args.no_mmc,
+    train_signal_region=args.no_mmc)
 
 control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
-#signal_region = control_region
-
+#signal_region = control_region # for creating control workspaces
 train_region = mass_regions.train_region
 
 all_channels = {}
@@ -88,6 +88,7 @@ analysis = Analysis(
     partition_key='EventNumber', # 'MET_phi_original * 100', or None
     suffix=args.suffix,
     transform=not args.raw_scores,
+    mmc=not args.no_mmc,
     mpl=args.mpl)
 
 output_suffix = analysis.get_suffix()

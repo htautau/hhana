@@ -119,7 +119,15 @@ class Classifier(object):
                  output_suffix="",
                  clf_output_suffix="",
                  partition_key=None,
-                 transform=True):
+                 transform=True,
+                 mmc=True):
+
+        fields = fields[:]
+        if not mmc:
+            try:
+                fields.remove(MMC_MASS)
+            except ValueError:
+                pass
 
         self.fields = fields
         self.category = category
@@ -130,6 +138,7 @@ class Classifier(object):
         self.clf_output_suffix = clf_output_suffix
         self.partition_key = partition_key
         self.transform = transform
+        self.mmc = mmc
         self.background_label = 0
         self.signal_label = 1
 

@@ -98,15 +98,14 @@ def mass_parser(parser=None):
             help='the high mass window cut. '
             'Norms of Z and QCD are fit above this and '
             'the signal region of the classifier output is below this')
-    parser.add_argument('--mass-window-signal-region', action='store_true',
-            default=False, help="restrict the signal region to a mass window")
     parser.add_argument('--no-sideband-in-control',
             dest='high_sideband_in_control',
             action='store_false',
             default=True,
             help='Exclude the high mass sideband in the mass control and include '
             'it in the signal region')
-
+    parse.add_argument('--no-mmc', action='store_true', default=False,
+            help="do not include the MMC in the trained classifier")
     return parser
 
 
