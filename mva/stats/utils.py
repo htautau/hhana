@@ -92,7 +92,7 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
     if binning == 'flat':
         llog.info("binning such that background is flat")
         # determine location that maximizes signal significance
-        bkg_hist = Hist(100, min_score_signal, max_score_signal)
+        bkg_hist = Hist(100, min_score_signal, max_score_signal, type='D')
         sig_hist = bkg_hist.Clone()
 
         # fill background
@@ -123,7 +123,7 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
                 bkg_scores, min_score_signal, max_cut, 5)
         # one bin above max_cut
         flat_bins.append(max_score_signal)
-        hist_template = Hist(flat_bins)
+        hist_template = Hist(flat_bins, type='D')
 
     elif binning == 'onebkg':
         # Define each bin such that it contains at least one background.
@@ -146,7 +146,8 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
                 bins + 1))
 
         nbins = 1000
-        total_bkg_hist = Hist(nbins, min_score_signal, max_score_signal)
+        total_bkg_hist = Hist(
+            nbins, min_score_signal, max_score_signal, type='D')
         bkg_arrays = []
         # fill background
         for bkg_sample, scores_dict in bkg_scores:
@@ -228,179 +229,11 @@ def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
 
         edges.append(min_score_signal)
         #llog.info("edges %s" % str(edges))
-        hist_template = Hist(edges[::-1])
+        hist_template = Hist(edges[::-1], type='D')
 
     else:
         llog.info("using constant-width bins")
         hist_template = Hist(bins,
-                min_score_signal, max_score_signal)
+            min_score_signal, max_score_signal,
+            type='D')
     return hist_template
-
-
-def uniform_binning(hist, fix_systematics=True):
-    """
-    For some obscure technical reason, HistFactory can't handle histograms with
-    variable width bins. This function takes any histogram and outputs a new
-    histogram with constant width bins along all axes by using the bin indices
-    of the input histogram as the x-axis of the new histogram.
-    """
-    llog = log['uniform_binning']
-
-    if hist.GetDimension() == 1:
-        new_hist = Hist(hist.GetNbinsX(), 0, hist.GetNbinsX(),
-                        name=hist.name + '_uniform_binning', type=hist.TYPE)
-    elif hist.GetDimension() == 2:
-        new_hist = Hist2D(hist.GetNbinsX(), 0, hist.GetNbinsX(),
-                          hist.GetNbinsY(), 0, hist.GetNbinsY(),
-                          name=hist.name + '_uniform_binning', type=hist.TYPE)
-    elif hist.GetDimension() == 3:
-        new_hist = Hist3D(hist.GetNbinsX(), 0, hist.GetNbinsX(),
-                          hist.GetNbinsY(), 0, hist.GetNbinsY(),
-                          hist.GetNbinsZ(), 0, hist.GetNbinsZ(),
-                          name=hist.name + '_uniform_binning', type=hist.TYPE)
-    else:
-        raise TypeError(
-            "unable to apply uniform binning on object "
-            "of type {0}".format(type(hist)))
-
-    # assume yerrh == yerrl (as usual for ROOT histograms)
-    for outbin, inbin in zip(new_hist.bins(), hist.bins()):
-        outbin.value = inbin.value
-        outbin.error = inbin.error
-
-    # also fix systematics hists
-    if hasattr(hist, 'systematics'):
-        if fix_systematics:
-            llog.info("fixing systematics")
-            new_systematics = {}
-            for term, sys_hist in hist.systematics.items():
-                new_systematics[term] = uniform_binning(sys_hist,
-                    fix_systematics=False)
-            new_hist.systematics = new_systematics
-        else:
-            new_hist.systematics = hist.systematics
-
-    return new_hist
-
-
-def zero_negs(hist, fix_systematics=True):
-    """
-    Return a clone of this histogram with all negative bins set to zero. The
-    errors of these bins are left untouched.
-    """
-    llog = log['zero_negs']
-    new_hist = hist.Clone(name=hist.name + '_nonegs')
-    for bin in new_hist.bins():
-        if bin.value < 0:
-            llog.warning("zeroing negative bin %d in %s" %
-                         (bin.idx, hist.name))
-            bin.value = 0.
-
-    # also fix systematics hists
-    if hasattr(hist, 'systematics'):
-        if fix_systematics:
-            llog.info("fixing systematics")
-            new_systematics = {}
-            for term, sys_hist in hist.systematics.items():
-                new_systematics[term] = zero_negs(sys_hist,
-                    fix_systematics=False)
-            new_hist.systematics = new_systematics
-        else:
-            new_hist.systematics = hist.systematics
-
-    return new_hist
-
-
-def statsfix(hist, fix_systematics=True):
-    """
-    Shortcut for applying ``uniform_binning`` and ``zero_negs``
-    """
-    return zero_negs(
-        uniform_binning(hist, fix_systematics=fix_systematics),
-        fix_systematics=fix_systematics)
-
-
-def merge_bins(hist, bin_ranges, axis=0):
-
-    new_hist = hist.merge_bins(bin_ranges, axis=axis)
-    new_hist.name = hist.name + '_merged'
-
-    if hasattr(hist, 'systematics'):
-        new_systematics = {}
-        for term, sys_hist in hist.systematics.items():
-            new_sys_hist = sys_hist.merge_bins(bin_ranges, axis=axis)
-            new_sys_hist.name = sys_hist.name + '_merged'
-            new_systematics[term] = new_sys_hist
-        new_hist.systematics = new_systematics
-    return new_hist
-
-
-def shape_is_significant(total, high, low, thresh=0.1):
-    """
-    For a given shape systematic for background-X, calculate
-    s_i=|up_i-down_i|/stat_totBckg_i, where up_i is up variation in bin-i,
-    down_i is down variation in bin-I, stat_totBckg_i is statistical
-    uncertainty for total background prediction in bin-i. If max(s_i)<0.1,
-    then drop this shape systematic for background-X
-    """
-    for bin_total, bin_high, bin_low in zip(
-            total.bins(), high.bins(), low.bins()):
-        diff = abs(bin_high.value - bin_low.value)
-        if bin_total.error == 0:
-            if diff != 0:
-                return True
-            continue
-        sig = abs(bin_high.value - bin_low.value) / bin_total.error
-        if sig > thresh:
-            return True
-    return False
-
-
-def smooth_shape(nominal, high, low, iterations=1):
-    """
-    Smooth shape systematics with respect to the nominal histogram by applying
-    TH1::Smooth() on the ratio of systematic / nominal.
-    """
-    ratio_high = high / nominal
-    ratio_low = low / nominal
-    ratio_high.Smooth(iterations)
-    ratio_low.Smooth(iterations)
-    return ratio_high * nominal, ratio_low * nominal
-
-
-def kylefix(hist, fix_systematics=False):
-    """
-    Return a clone of the input histogram where the empty bins have been filled
-    with the average weight and the errors of these bins set to sqrt(<w^2>)
-    """
-    llog = log['kylefix']
-    fixed_hist = hist.Clone(name=hist.name + '_kylefix')
-
-    sumW2TotBin = sum([bin.error**2 for bin in hist.bins()])
-    avWeightBin = hist.GetSumOfWeights() / hist.GetEntries()
-    avW2Bin = sumW2TotBin / hist.GetEntries()
-
-    # now fill empty bins with
-    # binContent = avWeight     [or avWeightbin]
-    # binError = sqrt(avW2)     [or sqrt(avW2Bin)]
-
-    for bin in fixed_hist.bins():
-        if bin.value < 1E-6:
-            llog.warning("filling empty or negative bin %d in %s" %
-                         (bin.idx, hist.name))
-            bin.value = avWeightBin
-            bin.error = sqrt(avW2Bin)
-
-    # also fix systematics hists
-    if hasattr(hist, 'systematics'):
-        if fix_systematics:
-            llog.info("applying kylefix on systematics")
-            new_systematics = {}
-            for term, sys_hist in hist.systematics.items():
-                new_systematics[term] = kylefix(sys_hist,
-                    fix_systematics=False)
-            fixed_hist.systematics = new_systematics
-        else:
-            fixed_hist.systematics = hist.systematics
-
-    return fixed_hist

@@ -146,7 +146,7 @@ def channels(clf, category, region, backgrounds,
     min_score = scores_obj.min_score
     max_score = scores_obj.max_score
 
-    hist_template = Hist(bins, min_score, max_score)
+    hist_template = Hist(bins, min_score, max_score, type='D')
 
     bkg_samples = []
     for s, scores in bkg_scores:
@@ -285,11 +285,11 @@ def rebin_hist(hist, new_binning, axis='x'):
         print "ERROR! Can only rebin x, y or z axis"
 
     if hist.DIM == 1:
-        new_hist_template = Hist(x_binning)
+        new_hist_template = Hist(x_binning, type='D')
     elif hist.DIM == 2:
-        new_hist_template = Hist2D(x_binning, y_binning)
+        new_hist_template = Hist2D(x_binning, y_binning, type='D')
     elif hist.DIM == 3:
-        new_hist_template = Hist3D(x_binning, y_binning, z_binning)
+        new_hist_template = Hist3D(x_binning, y_binning, z_binning, type='D')
 
     # Save the stats of the histogram
     stat_array = array.array('d', [0.] * 10)
@@ -576,7 +576,7 @@ def optimized_channels(clf, category, region, backgrounds,
 
         for nbins in nbins_range:
 
-            hist_template = Hist(nbins, min_score, max_score)
+            hist_template = Hist(nbins, min_score, max_score, type='D')
 
             # create HistFactory samples
             samples = []
@@ -638,7 +638,7 @@ def optimized_channels(clf, category, region, backgrounds,
 
     elif algo == 'UnevenBinningBySignificance':
         #hist_template = Hist(200, min_score, max_score)
-        hist_template = Hist(200, -1.0, 1.0)
+        hist_template = Hist(200, -1.0, 1.0, type='D')
 
         sig_hist = hist_template.Clone(title='Signal')
         sig_hist.systematics = {}
