@@ -104,7 +104,7 @@ def mass_parser(parser=None):
             default=True,
             help='Exclude the high mass sideband in the mass control and include '
             'it in the signal region')
-    parse.add_argument('--no-mmc', action='store_true', default=False,
+    parser.add_argument('--no-mmc', action='store_true', default=False,
             help="do not include the MMC in the trained classifier")
     return parser
 
