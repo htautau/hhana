@@ -1,8 +1,16 @@
-from .sample import Sample
+from .sample import Sample, Signal, Background
+from .db import DB, TEMPFILE, get_file
 from . import log
 from ..cachedtable import CachedTable
+from ..lumi import LUMI
+from ..systematics import SYSTEMATICS_BY_WEIGHT
+
+from higgstautau import samples as samples_db
 
 from rootpy import asrootpy
+
+import numpy as np
+from numpy.lib import recfunctions
 
 
 class MC(Sample):
@@ -35,7 +43,7 @@ class MC(Sample):
         'FAKERATE',
     ]
 
-    def __init__(self, year, db=DB_HH, systematics=True, **kwargs):
+    def __init__(self, year, db=DB, systematics=True, **kwargs):
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
@@ -137,6 +145,8 @@ class MC(Sample):
                   systematics=True,
                   systematics_components=None,
                   scale=1.):
+
+        from .ztautau import Ztautau
 
         if isinstance(expr, (list, tuple)):
             exprs = expr
@@ -366,6 +376,8 @@ class MC(Sample):
               cuts=None, systematic='NOMINAL',
               scale=1.):
 
+        from .ztautau import Ztautau
+
         TEMPFILE.cd()
         selection = self.cuts(category, region) & cuts
         weight_branches = self.get_weight_branches(systematic)
@@ -417,6 +429,8 @@ class MC(Sample):
                 scale=1.,
                 return_idx=False,
                 **kwargs):
+
+        from .ztautau import Ztautau
 
         if include_weight and fields is not None:
             if 'weight' not in fields:

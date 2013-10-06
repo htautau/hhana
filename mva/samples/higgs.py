@@ -1,8 +1,16 @@
-from .sample import Signal
-from .mc import MC
+import os
+
+from rootpy.io import root_open
 
 # Higgs cross sections and branching ratios
 import yellowhiggs
+
+from . import log
+from .. import ETC_DIR
+from .sample import Signal
+from .mc import MC
+
+TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 
 
 class Higgs(MC, Signal):
@@ -233,14 +241,14 @@ class Higgs(MC, Signal):
 
         super(Higgs, self).__init__(year=year, **kwargs)
 
-    def xsec_kfact_effic(isample):
+    def xsec_kfact_effic(self, isample):
 
         # use yellowhiggs for cross sections
         xs, _ = yellowhiggs.xsbr(
                 self.energy, self.masses[isample],
                 Higgs.MODES_DICT[self.modes[isample]][0], 'tautau')
         log.debug("{0} {1} {2} {3} {4} {5}".format(
-            name,
+            self.samples[isample],
             self.masses[isample],
             self.modes[isample],
             Higgs.MODES_DICT[self.modes[isample]][0],

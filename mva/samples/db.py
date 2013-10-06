@@ -1,8 +1,10 @@
+import os
 import atexit
 import tables
 from rootpy.io import root_open, TemporaryFile
 from higgstautau import datasets
 from .. import NTUPLE_PATH, DEFAULT_STUDENT
+from . import log; log = log[__name__]
 
 VERBOSE = False
 

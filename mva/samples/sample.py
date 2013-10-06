@@ -13,23 +13,15 @@ from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.tree import Tree, Cut
 from rootpy.stats import histfactory
 
-# higgstautau imports
-from higgstautau.decorators import cached_property, memoize_method
-from higgstautau import samples as samples_db
-
 # local imports
 from . import log
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, rec_to_ndarray, rec_stack, ravel
-from ..lumi import LUMI
-from ..systematics import *
-from ..constants import *
 from ..classify import histogram_scores
 from ..regions import REGIONS
+from ..systematics import WEIGHT_SYSTEMATICS
 from ..lumi import get_lumi_uncert
-from .db import DB, TEMPFILE, get_file
-
 
 
 class Sample(object):
@@ -99,6 +91,8 @@ class Sample(object):
             field_scale=None,
             weight_hist=None,
             weighted=True):
+
+        from .data import Data
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
