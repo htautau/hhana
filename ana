@@ -412,6 +412,8 @@ for category in analysis.iter_categories(
         # create correlation matrices for signal, background
         # and background and data in a control region
 
+
+
     if 'scatter' in args.actions and not is_control:
         # show 2D plots of all input variables and with BDT output
         log.info("drawing scatter plots of input variables")

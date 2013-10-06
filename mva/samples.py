@@ -361,19 +361,6 @@ class Sample(object):
                     low=hist_down,
                     high=hist_up)
 
-                """
-                norm, shape = histfactory.split_norm_shape(histsys, hist)
-
-                sample.AddOverallSys(norm)
-
-                # drop all jet related shape terms from Others (JES, JVF, JER)
-                if isinstance(self, Others) and (
-                        sys_component.startswith('JES') or
-                        sys_component.startswith('JVF') or
-                        sys_component.startswith('JER')):
-                    continue
-                """
-
                 sample.AddHistoSys(histsys)
 
             if isinstance(self, QCD):
@@ -403,13 +390,6 @@ class Sample(object):
                         '0J' if category.analysis_control else '1JBV',
                         self.year),
                     low=low, high=high)
-
-                """
-                norm, shape = histfactory.split_norm_shape(histsys, hist)
-
-                sample.AddOverallSys(norm)
-                sample.AddHistoSys(shape)
-                """
 
                 sample.AddHistoSys(histsys)
 
