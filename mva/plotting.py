@@ -995,6 +995,7 @@ def draw(name,
          signal_on_top=False,
          show_signal_error=False,
          stacked_model=True,
+         stacked_signal=True,
          plot_signal_significance=True,
          units=None,
          range=None,
@@ -1224,17 +1225,23 @@ def draw(name,
                 hist.fillstyle = 'hollow'
                 hist.linewidth = 4
                 signal_stack.Add(hist)
-            signal_stack.Draw('SAME')
-            _, _, _ymin, _ymax = get_limits(signal_stack,
+
+            if stacked_signal:
+                signal_stack.Draw('SAME')
+                _, _, _ymin, _ymax = get_limits(signal_stack,
                     logy=logy,
                     ypadding=ypadding)
-            model_stack.SetMinimum(ymin)
-            model_stack.SetMaximum(ymax)
-            signal_stack.SetMinimum(ymin)
-            signal_stack.SetMaximum(ymax)
-            signal_stack.Draw('SAME')
-            signal_stack.yaxis.SetLimits(ymin, ymax)
-            signal_stack.yaxis.SetRangeUser(ymin, ymax)
+                model_stack.SetMinimum(ymin)
+                model_stack.SetMaximum(ymax)
+                signal_stack.SetMinimum(ymin)
+                signal_stack.SetMaximum(ymax)
+                signal_stack.Draw('SAME')
+                signal_stack.yaxis.SetLimits(ymin, ymax)
+                signal_stack.yaxis.SetRangeUser(ymin, ymax)
+
+            else:
+                for h in signal_stack:
+                    h.Draw('SAME')
 
         else:
             if fill_signal:

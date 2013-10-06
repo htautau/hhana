@@ -108,34 +108,39 @@ class Analysis(object):
     def get_signals(self, mass=125, mode=None):
 
         signals = []
+        if not isinstance(mass, list):
+            mass = [mass]
         if mode == 'combined':
-            signals.append(samples.Higgs(
-                year=self.year,
-                mass=mass,
-                systematics=self.systematics,
-                mpl=self.mpl,
-                scale=self.mu,
-                linecolor='red',
-                linewidth=2,
-                linestyle='dashed'))
-            return signals
-        elif mode is None:
-            for modes in samples.Higgs.MODES_COMBINED:
+            for m in mass:
                 signals.append(samples.Higgs(
                     year=self.year,
-                    modes=modes,
-                    mass=mass,
+                    mass=m,
+                    systematics=self.systematics,
+                    mpl=self.mpl,
+                    scale=self.mu,
+                    linecolor='red',
+                    linewidth=2,
+                    linestyle='dashed'))
+            return signals
+        elif mode is None:
+            for m in mass:
+                for modes in samples.Higgs.MODES_COMBINED:
+                    signals.append(samples.Higgs(
+                        year=self.year,
+                        modes=modes,
+                        mass=m,
+                        systematics=self.systematics,
+                        mpl=self.mpl,
+                        scale=self.mu))
+        else:
+            for m in mass:
+                signals.append(samples.Higgs(
+                    year=self.year,
+                    mass=m,
+                    mode=mode,
                     systematics=self.systematics,
                     mpl=self.mpl,
                     scale=self.mu))
-        else:
-            signals.append(samples.Higgs(
-                year=self.year,
-                mass=mass,
-                mode=mode,
-                systematics=self.systematics,
-                mpl=self.mpl,
-                scale=self.mu))
         return signals
 
     def normalize(self, category, fit_param=None):
@@ -240,7 +245,10 @@ class Analysis(object):
         channel_name = category.name
         suffix = None
         if include_signal:
-            suffix = '_%d' % mass
+            if isinstance(mass, list):
+                suffix = '_' + ('_'.join(map(str, mass)))
+            else:
+                suffix = '_%d' % mass
             channel_name += suffix
             samples += self.get_signals(mass, mode)
 

@@ -26,6 +26,9 @@ import ROOT
 # numpy imports
 import numpy as np
 
+# matplotlib imports
+from matplotlib import cm
+
 # local imports
 from mva.stats import hypotests
 from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist, draw_channel_array
@@ -38,7 +41,7 @@ from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
 from mva.analysis import Analysis
 from mva.lumi import get_lumi_uncert
-from mva import log, variables, samples
+from mva import log, variables, samples, MMC_MASS
 
 CONST_PARAMS = [
     'Lumi',
@@ -272,6 +275,30 @@ for category in analysis.iter_categories(
             unblind=args.unblind or is_control,
             cuts=cuts)
         figures[category.name] = figs
+
+    if 'massplot' in args.actions:
+        cuts = Cut(args.plot_cut)
+        draw_channel_array(
+            analysis,
+            vars={MMC_MASS: VARIABLES[MMC_MASS]},
+            mass=Higgs.MASS_POINTS[::2],
+            mode='combined',
+            signal_scale=50,
+            stacked_signal=False,
+            signal_colour_map=cm.jet,
+            category=category,
+            region=target_region,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=SYSTEMATICS if args.systematics else None,
+            systematics_components=args.systematics_components,
+            mpl=args.mpl,
+            output_formats=args.output_formats,
+            weighted=not args.no_weight,
+            plots=args.plots,
+            output_suffix=output_suffix,
+            unblind=args.unblind or is_control,
+            cuts=cuts)
     
     if 'weights' in args.actions:
         cuts = Cut(args.plot_cut)

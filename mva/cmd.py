@@ -38,7 +38,8 @@ def general_parser(parser=None):
                 'workspace',
                 'limits',
                 'ntup',
-                'ntuptruth'],
+                'ntuptruth',
+                'massplot'],
             default=[],
             help='only perform these actions')
     parser.add_argument('--no-systematics', action='store_false',
