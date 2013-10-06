@@ -63,8 +63,9 @@ mass_regions = MassRegions(
     low=args.low_mass_cut,
     high=args.high_mass_cut,
     high_sideband_in_control=args.high_sideband_in_control,
-    mass_window_signal_region=args.no_mmc,
-    train_signal_region=args.no_mmc)
+    mass_window_signal_region=False, #args.no_mmc,
+    # not enough events to only train in signal region
+    train_signal_region=False)
 
 control_region = mass_regions.control_region
 signal_region = mass_regions.signal_region
