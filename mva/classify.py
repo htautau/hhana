@@ -686,7 +686,7 @@ class Classifier(object):
             plots=[MMC_MASS],
             mass=125,
             mode='combined',
-            signal_scale=50,
+            signal_scale=5,
             category=category,
             region=region,
             show_qq=False,
@@ -704,7 +704,6 @@ class Classifier(object):
         log.info("plotting mmc weighted by S / B")
 
         sob_hist = _sig / _bkg
-        print list(sob_hist)
 
         draw_channel_array(
             analysis,
@@ -712,7 +711,7 @@ class Classifier(object):
             plots=[MMC_MASS],
             mass=125,
             mode='combined',
-            signal_scale=50,
+            signal_scale=5,
             category=category,
             region=region,
             show_qq=False,

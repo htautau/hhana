@@ -127,6 +127,246 @@ class Sample(object):
 
         return field_hist
 
+    def get_hist(self,
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=None,
+            clf=None,
+            scores=None,
+            min_score=None,
+            max_score=None,
+            systematics=True,
+            systematics_components=None,
+            suffix=None,
+            field_scale=None,
+            weight_hist=None,
+            weighted=True):
+
+        from .data import Data
+
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
+
+        if min_score is None:
+            min_score = getattr(category, 'workspace_min_clf', None)
+        if max_score is None:
+            max_score = getattr(category, 'workspace_max_clf', None)
+
+        histname = 'hh_category_{0}_{1}'.format(category.name, self.name)
+        if suffix is not None:
+            histname += suffix
+        hist = hist_template.Clone(name=histname)
+        hist.Reset()
+
+        if isinstance(expr_or_clf, (basestring, tuple, list)):
+            expr = expr_or_clf
+            field_hist = dict()
+            field_hist[expr] = hist
+            self.draw_array(field_hist, category, region,
+                cuts=cuts,
+                weighted=weighted,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                clf=clf,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=do_systematics,
+                systematics_components=systematics_components)
+
+        else:
+            # histogram classifier output
+            if scores is None:
+                scores = self.scores(
+                    expr_or_clf, category, region, cuts,
+                    systematics=do_systematics,
+                    systematics_components=systematics_components)
+            histogram_scores(
+                hist, scores,
+                min_score=min_score,
+                max_score=max_score,
+                inplace=True)
+
+        return hist
+
+    def get_histfactory_sample(self,
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=None,
+            clf=None,
+            scores=None,
+            min_score=None,
+            max_score=None,
+            systematics=True,
+            suffix=None,
+            field_scale=None,
+            weight_hist=None,
+            weighted=True,
+            no_signal_fixes=False):
+
+        from .data import Data
+        from .qcd import QCD
+
+        log.info("creating histfactory sample for {0}".format(self.name))
+
+        if isinstance(self, Data):
+            sample = histfactory.Data(self.name)
+        else:
+            sample = histfactory.Sample(self.name)
+
+        hist = self.get_hist(
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=cuts,
+            clf=clf,
+            scores=scores,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=systematics,
+            systematics_components=self.WORKSPACE_SYSTEMATICS,
+            suffix=suffix,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            weighted=weighted)
+
+        # copy of unaltered nominal hist required by QCD shape
+        nominal_hist = hist.Clone()
+
+        # convert to 1D if 2D (also handles systematics if present)
+        hist = ravel(hist)
+
+        print_hist(hist)
+
+        # set the nominal histogram
+        sample.hist = hist
+
+        do_systematics = (not isinstance(self, Data)
+                          and self.systematics
+                          and systematics)
+
+        # add systematics samples
+        if do_systematics:
+
+            SYSTEMATICS = get_systematics(self.year)
+
+            for sys_component in self.WORKSPACE_SYSTEMATICS:
+
+                log.info("adding histosys for %s" % sys_component)
+
+                terms = SYSTEMATICS[sys_component]
+                if len(terms) == 1:
+                    up_term = terms[0]
+                    hist_up = hist.systematics[up_term]
+                    # use nominal hist for "down" side
+                    hist_down = hist
+
+                else:
+                    up_term, down_term = terms
+                    hist_up = hist.systematics[up_term]
+                    hist_down = hist.systematics[down_term]
+
+                if sys_component == 'JES_FlavComp':
+                    if ((isinstance(self, Signal) and self.mode == 'gg') or
+                         isinstance(self, Others)):
+                        sys_component += '_TAU_G'
+                    else:
+                        sys_component += '_TAU_Q'
+
+                elif sys_component == 'JES_PURho':
+                    if isinstance(self, Others):
+                        sys_component += '_TAU_QG'
+                    elif isinstance(self, Signal):
+                        if self.mode == 'gg':
+                            sys_component += '_TAU_GG'
+                        else:
+                            sys_component += '_TAU_QQ'
+
+                npname = 'ATLAS_{0}_{1:d}'.format(sys_component, self.year)
+
+                # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
+                npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
+                npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
+                npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
+                npname = npname.replace('JES_FlavComp_TAU_G_2012', 'JES_FlavComp_TAU_G')
+                npname = npname.replace('JES_FlavComp_TAU_Q_2012', 'JES_FlavComp_TAU_Q')
+                npname = npname.replace('JES_FlavResp_2012', 'JES_FlavResp')
+                npname = npname.replace('JES_Modelling_2012', 'JES_2012_Modelling1')
+                npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
+                npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
+                npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
+                npname = npname.replace('FAKERATE_2012', 'TAU_JFAKE_2012')
+                npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
+                npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
+                npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
+
+                histsys = histfactory.HistoSys(
+                    npname,
+                    low=hist_down,
+                    high=hist_up)
+
+                sample.AddHistoSys(histsys)
+
+            if isinstance(self, QCD):
+                high, low = self.get_shape_systematic(
+                     nominal_hist,
+                     expr_or_clf,
+                     category, region,
+                     cuts=cuts,
+                     clf=clf,
+                     min_score=min_score,
+                     max_score=max_score,
+                     suffix=suffix,
+                     field_scale=field_scale,
+                     weight_hist=weight_hist,
+                     weighted=weighted)
+
+                low = ravel(low)
+                high = ravel(high)
+
+                log.info("QCD low shape")
+                print_hist(low)
+                log.info("QCD high shape")
+                print_hist(high)
+
+                histsys = histfactory.HistoSys(
+                    'ATLAS_ANA_HH_{1:d}_QCD_{0}'.format(
+                        '0J' if category.analysis_control else '1JBV',
+                        self.year),
+                    low=low, high=high)
+
+                sample.AddHistoSys(histsys)
+
+        if isinstance(self, Signal):
+            log.info("defining SigXsecOverSM POI for %s" % self.name)
+            sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
+
+        elif isinstance(self, Background):
+            # only activate stat error on background samples
+            log.info("activating stat error for %s" % self.name)
+            sample.ActivateStatError()
+
+        if not isinstance(self, Data):
+            norm_by_theory = getattr(self, 'NORM_BY_THEORY', True)
+            sample.SetNormalizeByTheory(norm_by_theory)
+            if norm_by_theory:
+                lumi_uncert = get_lumi_uncert(self.year)
+                lumi_sys = histfactory.OverallSys(
+                    'ATLAS_LUMI_{0:d}'.format(self.year),
+                    high=1. + lumi_uncert,
+                    low=1. - lumi_uncert)
+                sample.AddOverallSys(lumi_sys)
+
+        if hasattr(self, 'histfactory') and not (
+                isinstance(self, Signal) and no_signal_fixes):
+            # perform sample-specific items
+            log.info("calling %s histfactory method" % self.name)
+            self.histfactory(sample, category, systematics=do_systematics)
+
+        return sample
+
     def get_histfactory_sample_array(self,
             field_hist_template,
             category, region,
@@ -141,6 +381,9 @@ class Sample(object):
             weight_hist=None,
             weighted=True,
             no_signal_fixes=False):
+
+        from .data import Data
+        from .qcd import QCD
 
         log.info("creating histfactory samples for {0}".format(self.name))
 
@@ -158,9 +401,6 @@ class Sample(object):
             field_scale=field_scale,
             weight_hist=weight_hist,
             weighted=weighted)
-
-        from .data import Data
-        from .qcd import QCD
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics

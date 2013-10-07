@@ -368,6 +368,103 @@ class QCD(Sample, Background):
 
         return arrays
 
+    def get_shape_systematic(self, nominal_hist,
+                             expr_or_clf,
+                             category, region,
+                             cuts=None,
+                             clf=None,
+                             min_score=None,
+                             max_score=None,
+                             suffix=None,
+                             field_scale=None,
+                             weight_hist=None,
+                             weighted=True):
+
+        log.info("creating QCD shape systematic")
+
+        # HACK
+        # use preselection as reference in which all models should have the same
+        # expected number of QCD events
+        # get number of events at preselection for nominal model
+        from .categories import Category_Preselection
+        nominal_events = self.events(Category_Preselection, None)[0]
+
+        hist_template = nominal_hist.Clone()
+        hist_template.Reset()
+
+        curr_model = self.shape_region
+        # add QCD shape systematic
+        if curr_model == 'SS':
+            # OSFF x (SS / SSFF) model in the track-fit category
+            models = []
+            events = []
+            for model in ('OSFF', 'SSFF'):
+                log.info("getting QCD shape for {0}".format(model))
+                self.shape_region = model
+                models.append(self.get_hist(
+                    hist_template,
+                    expr_or_clf,
+                    category, region,
+                    cuts=cuts,
+                    clf=clf,
+                    scores=None,
+                    min_score=min_score,
+                    max_score=max_score,
+                    systematics=False,
+                    suffix=(suffix or '') + '_%s' % model,
+                    field_scale=field_scale,
+                    weight_hist=weight_hist,
+                    weighted=weighted))
+                events.append(self.events(Category_Preselection, None)[0])
+
+            OSFF, SSFF = models
+            OSFF_events, SSFF_events = events
+            shape_sys = OSFF
+            nominal_hist_norm = nominal_hist / nominal_hist.Integral()
+            SSFF_norm = SSFF / SSFF.Integral()
+            shape_sys *= nominal_hist_norm / SSFF_norm
+            # this is approximate
+            # normalize shape_sys such that it would have the same number of
+            # events as the nominal at preselection
+            shape_sys *= nominal_events / float(OSFF_events)
+
+        elif curr_model == 'nOS':
+            # SS_TRK model elsewhere
+            self.shape_region = 'SS_TRK'
+            log.info("getting QCD shape for SS_TRK")
+            shape_sys = self.get_hist(
+                hist_template,
+                expr_or_clf,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                scores=None,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=False,
+                suffix=(suffix or '') + '_SS_TRK',
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                weighted=weighted)
+            SS_TRK_events = self.events(Category_Preselection, None)[0]
+            # normalize shape_sys such that it would have the same number of
+            # events as the nominal at preselection
+            shape_sys *= nominal_events / float(SS_TRK_events)
+
+        else:
+            raise ValueError(
+                "no QCD shape systematic defined for nominal {0}".format(
+                    curr_model))
+
+        # restore previous shape model
+        self.shape_region = curr_model
+
+        # reflect shape about the nominal to get high and low variations
+        shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
+        shape_sys_reflect.name = shape_sys.name + '_reflected'
+
+        return shape_sys, shape_sys_reflect
+
     def get_shape_systematic_array(
             self, field_nominal_hist,
             category, region,
