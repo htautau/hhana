@@ -549,11 +549,9 @@ class Analysis(object):
         sig_arrs = {}
 
         for b, rec in bkg_recs.items():
-            log.info(str(rec.dtype.names))
             bkg_arrs[b] = rec_to_ndarray(rec)
 
         for s, rec in sig_recs.items():
-            log.info(str(rec.dtype.names))
             sig_arrs[s] = rec_to_ndarray(rec)
 
         return bkg_arrs, sig_arrs

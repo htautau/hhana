@@ -120,13 +120,13 @@ def correlations(signal, signal_weight,
          output_name=os.path.join(PLOTS_DIR,
              "correlation_signal_%s%s.png" % (
              category.name, output_suffix)),
-         title='%s signal' % category.label,
+         title='%s Signal' % category.label,
          weights=signal_weight)
     plot_corrcoef_matrix(background, fields=names,
          output_name=os.path.join(PLOTS_DIR,
              "correlation_background_%s%s.png" % (
              category.name, output_suffix)),
-         title='%s background' % category.label,
+         title='%s Background' % category.label,
          weights=background_weight)
 
 
