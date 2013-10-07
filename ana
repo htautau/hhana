@@ -414,8 +414,11 @@ for category in analysis.iter_categories(
         # create correlation matrices for signal, background
         # and background and data in a control region
         clf = analysis.get_clf(category, load=True)
+        fields = clf.all_fields
+        fields.remove(MMC_MASS)
+        fields.append(MMC_MASS)
         bkg_arrs, sig_arrs = analysis.arrays(category, target_region,
-            fields=clf.all_fields,
+            fields=fields,
             clf=clf, clf_name='BDT')
         # get combined background and signal arrays
         background = np.vstack([bkg_arrs[b] for b in bkg_arrs.keys()])
