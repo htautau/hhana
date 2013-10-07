@@ -34,7 +34,7 @@ from .plotting import (
 from . import variables
 from . import PLOTS_DIR
 from .stats.utils import get_safe_template
-from .utils import rec_to_ndarray, std
+from .np_utils import rec_to_ndarray, std
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
 

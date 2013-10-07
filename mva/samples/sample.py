@@ -17,7 +17,8 @@ from rootpy.stats import histfactory
 from . import log
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
-from ..utils import print_hist, rec_to_ndarray, rec_stack, ravel
+from ..utils import print_hist, ravel
+from ..np_utils import rec_to_ndarray, rec_stack
 from ..classify import histogram_scores
 from ..regions import REGIONS
 from ..systematics import WEIGHT_SYSTEMATICS
