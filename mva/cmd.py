@@ -34,6 +34,7 @@ def general_parser(parser=None):
                 'train',
                 'money',
                 'scatter',
+                'correlate',
                 'evaluate',
                 'workspace',
                 'limits',

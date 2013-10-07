@@ -401,6 +401,8 @@ class Sample(object):
               region,
               fields=None,
               cuts=None,
+              clf=None,
+              clf_name='classifier',
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -412,13 +414,29 @@ class Sample(object):
             cuts=cuts,
             systematic=systematic)
 
-        return rec_stack(recs)
+        if include_weight and fields is not None:
+            if 'weight' not in fields:
+                fields = list(fields) + ['weight']
+        rec = rec_stack(recs, fields=fields)
+
+        if clf is not None:
+            scores, _ = clf.classify(
+                self, category, region,
+                cuts=cuts, systematic=systematic)
+            rec = recfunctions.rec_append_fields(rec,
+                names=clf_name,
+                data=scores,
+                dtypes='f4')
+
+        return rec
 
     def array(self,
               category,
               region,
               fields=None,
               cuts=None,
+              clf=None,
+              clf_name='classifer',
               include_weight=True,
               systematic='NOMINAL'):
 
@@ -427,6 +445,8 @@ class Sample(object):
             region,
             fields=fields,
             cuts=cuts,
+            clf=clf,
+            clf_name=clf_name,
             include_weight=include_weight,
             systematic=systematic))
 

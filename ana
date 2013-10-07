@@ -31,7 +31,9 @@ from matplotlib import cm
 
 # local imports
 from mva.stats import hypotests
-from mva.plotting import draw_scatter, draw_samples_array, draw_2d_hist, draw_channel_array
+from mva.plotting import (
+    draw_scatter, draw_samples_array, draw_2d_hist, draw_channel_array,
+    correlations)
 from mva.samples import Higgs
 from mva.utils import make_multipage_pdf, braindump
 from mva.systematics import (get_systematics, iter_systematics,
@@ -406,13 +408,24 @@ for category in analysis.iter_categories(
             y='mass_mmc_tau1_tau2',
             output_suffix=output_suffix)
 
-    if 'correlate' in args.actions:
+    if 'correlate' in args.actions and not is_control:
         log.info("drawing correlation matrices")
         # TODO
         # create correlation matrices for signal, background
         # and background and data in a control region
-
-
+        clf = analysis.get_clf(category, load=True)
+        bkg_arrs, sig_arrs = analysis.arrays(category, target_region,
+            fields=clf.all_fields,
+            clf=clf, clf_name='BDT')
+        # get combined background and signal arrays
+        background = np.vstack([bkg_arrs[b] for b in bkg_arrs.keys()])
+        signal = np.vstack([sig_arrs[b] for b in sig_arrs.keys()])
+        correlations(
+            signal, signal[:,-2],
+            background, background[:,-2],
+            fields=clf.all_fields + ['weight', 'BDT'],
+            category=category,
+            output_suffix=output_suffix)
 
     if 'scatter' in args.actions and not is_control:
         # show 2D plots of all input variables and with BDT output

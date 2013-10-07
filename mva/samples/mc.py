@@ -434,7 +434,7 @@ class MC(Sample):
 
         if include_weight and fields is not None:
             if 'weight' not in fields:
-                fields = fields + ['weight']
+                fields = list(fields) + ['weight']
 
         selection = self.cuts(category, region, systematic) & cuts
         table_selection = selection.where()
@@ -498,19 +498,20 @@ class MC(Sample):
             if include_weight:
                 weights = np.empty(rec.shape[0], dtype='f4')
                 weights.fill(weight)
+                # merge the weight fields
+                weights *= reduce(np.multiply,
+                    [rec[br] for br in weight_branches])
+                # drop other weight fields
+                rec = recfunctions.rec_drop_fields(rec, weight_branches)
+                # add the combined weight
                 rec = recfunctions.rec_append_fields(rec,
                     names='weight',
                     data=weights,
                     dtypes='f4')
-                # merge the weight fields
-                rec['weight'] *= reduce(np.multiply,
-                        [rec[br] for br in weight_branches])
                 if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
                     log.warning("{0}: weights sum to zero!".format(table.name))
                     for br in weight_branches:
                         log.warning("{0}: {1}".format(br, repr(rec[br])))
-                # drop other weight fields
-                rec = recfunctions.rec_drop_fields(rec, weight_branches)
 
             if fields is not None:
                 try:
@@ -520,8 +521,7 @@ class MC(Sample):
                     print rec.shape
                     print rec.dtype
                     print e
-                    continue
-                    #raise
+                    raise
             recs.append(rec)
 
         if return_idx:

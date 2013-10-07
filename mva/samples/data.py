@@ -157,14 +157,16 @@ class Data(Sample):
             # data is not weighted
             weights = np.ones(rec.shape[0], dtype='f4')
             rec = recfunctions.rec_append_fields(rec,
-                    names='weight',
-                    data=weights,
-                    dtypes='f4')
+                names='weight',
+                data=weights,
+                dtypes='f4')
+
         if fields is not None:
             rec = rec[fields]
 
         if return_idx:
             idx = self.h5data.get_where_list(selection.where(), **kwargs)
             return [(rec, idx)]
+
         return [rec]
 

@@ -111,14 +111,6 @@ def correlations(signal, signal_weight,
                  background, background_weight,
                  fields, category, output_suffix=''):
 
-    # draw correlation plots
-    corr_signal = np.hstack(map(np.hstack, signal_recs))
-    corr_signal_weight = np.concatenate(map(np.concatenate,
-        signal_weight_arrs))
-    corr_background = np.hstack(map(np.hstack, background_recs))
-    corr_background_weight = np.concatenate(map(np.concatenate,
-        background_weight_arrs))
-
     names = [
         VARIABLES[field]['title'] if field in VARIABLES else field
             for field in fields]
@@ -126,13 +118,13 @@ def correlations(signal, signal_weight,
     # draw correlation plots
     plot_corrcoef_matrix(signal, fields=names,
          output_name=os.path.join(PLOTS_DIR,
-             "correlation_signal_%s%s" % (
+             "correlation_signal_%s%s.png" % (
              category.name, output_suffix)),
          title='%s signal' % category.label,
          weights=signal_weight)
     plot_corrcoef_matrix(background, fields=names,
          output_name=os.path.join(PLOTS_DIR,
-             "correlation_background_%s%s" % (
+             "correlation_background_%s%s.png" % (
              category.name, output_suffix)),
          title='%s background' % category.label,
          weights=background_weight)

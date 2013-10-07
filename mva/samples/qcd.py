@@ -318,10 +318,15 @@ class QCD(Sample, Background):
             systematic='NOMINAL',
             return_idx=return_idx,
             **kwargs)
-        arrays = data_records
+
+        if return_idx:
+            arrays = [(d.copy(), idx) for d, idx in data_records]
+        else:
+            arrays = [d.copy() for d in data_records]
 
         for mc_scale, mc in zip(self.mc_scales, self.mc):
-            _arrays = mc.records(
+            _arrays = []
+            _arrs = mc.records(
                 category=category,
                 region=self.shape_region,
                 fields=fields,
@@ -332,13 +337,16 @@ class QCD(Sample, Background):
                 return_idx=return_idx,
                 **kwargs)
             # FIX: weight may not be present if include_weight=False
-            for array in _arrays:
-                if return_idx:
-                    for partition, idx in array:
-                        partition['weight'] *= -1
-                else:
-                    for partition in array:
-                        partition['weight'] *= -1
+            if return_idx:
+                for partition, idx in _arrs:
+                    partition = partition.copy()
+                    partition['weight'] *= -1
+                    _arrays.append((partition, idx))
+            else:
+                for partition in _arrs:
+                    partition = partition.copy()
+                    partition['weight'] *= -1
+                    _arrays.append(partition)
             arrays.extend(_arrays)
 
         scale = self.scale
@@ -348,13 +356,12 @@ class QCD(Sample, Background):
             scale -= self.scale_error
 
         # FIX: weight may not be present if include_weight=False
-        for array in arrays:
-            if return_idx:
-                for partition, idx in array:
-                    partition['weight'] *= scale
-            else:
-                for partition in array:
-                    partition['weight'] *= scale
+        if return_idx:
+            for partition, idx in arrays:
+                partition['weight'] *= scale
+        else:
+            for partition in arrays:
+                partition['weight'] *= scale
 
         return arrays
 

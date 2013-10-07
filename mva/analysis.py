@@ -11,6 +11,7 @@ from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .stats.utils import efficiency_cut
 from .classify import histogram_scores, Classifier
+from .np_utils import rec_to_ndarray
 
 
 Scores = namedtuple('Scores', [
@@ -26,7 +27,7 @@ class Analysis(object):
 
     def __init__(self, year,
                  systematics=False,
-                 use_embedding=False,
+                 use_embedding=True,
                  target_region='OS_TRK',
                  qcd_shape_region='nOS',
                  fit_param='TRACK',
@@ -505,3 +506,54 @@ class Analysis(object):
         if load and not clf.load():
             raise RuntimeError("train BDTs before requesting scores")
         return clf
+
+    def records(self, category, region, cuts=None, fields=None,
+                clf=None,
+                clf_name='classifier',
+                include_weight=True,
+                systematic='NOMINAL'):
+
+        bkg_recs = {}
+        for bkg in self.backgrounds:
+            bkg_recs[bkg] = bkg.merged_records(
+                category, region,
+                cuts=cuts, fields=fields,
+                include_weight=include_weight,
+                clf=clf,
+                clf_name=clf_name,
+                systematic=systematic)
+        sig_recs = {}
+        sig_recs[self.higgs_125] = self.higgs_125.merged_records(
+            category, region,
+            cuts=cuts, fields=fields,
+            include_weight=include_weight,
+            clf=clf,
+            clf_name=clf_name,
+            systematic=systematic)
+        return bkg_recs, sig_recs
+
+    def arrays(self, category, region, cuts=None, fields=None,
+               clf=None,
+               clf_name='classifier',
+               include_weight=True,
+               systematic='NOMINAL'):
+
+        bkg_recs, sig_recs = self.records(
+            category, region, cuts=cuts, fields=fields,
+            clf=clf,
+            clf_name=clf_name,
+            include_weight=include_weight,
+            systematic=systematic)
+
+        bkg_arrs = {}
+        sig_arrs = {}
+
+        for b, rec in bkg_recs.items():
+            log.info(str(rec.dtype.names))
+            bkg_arrs[b] = rec_to_ndarray(rec)
+
+        for s, rec in sig_recs.items():
+            log.info(str(rec.dtype.names))
+            sig_arrs[s] = rec_to_ndarray(rec)
+
+        return bkg_arrs, sig_arrs

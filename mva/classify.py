@@ -1,3 +1,4 @@
+import os
 import pickle
 from operator import itemgetter
 import types
@@ -524,14 +525,14 @@ class Classifier(object):
             raise RuntimeError("you must train the classifiers first")
 
         partitions = sample.partitioned_records(
-                category=category,
-                region=region,
-                fields=self.fields,
-                cuts=cuts,
-                systematic=systematic,
-                num_partitions=2,
-                return_idx=True,
-                key=self.partition_key)
+            category=category,
+            region=region,
+            fields=self.fields,
+            cuts=cuts,
+            systematic=systematic,
+            num_partitions=2,
+            return_idx=True,
+            key=self.partition_key)
 
         score_idx = [[], []]
         for i, partition in enumerate(partitions):
