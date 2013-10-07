@@ -649,6 +649,7 @@ class Classifier(object):
 
         bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
+        _bkg = bkg_score_hist.Clone()
         bkg_score_hist /= sum(bkg_score_hist)
 
         draw_channel_array(
@@ -665,11 +666,65 @@ class Classifier(object):
             systematics=systematics,
             weight_hist=bkg_score_hist,
             clf=self,
-            output_suffix="_reweighted" + self.output_suffix,
+            output_suffix="_reweighted_bkg" + self.output_suffix,
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
             unblind=True)
+
+        ###############################################################
+        log.info("plotting mmc weighted by signal BDT distribution")
+
+        sig_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
+        hist_scores(sig_score_hist, sig_scores)
+        _sig = sig_score_hist.Clone()
+        sig_score_hist /= sum(sig_score_hist)
+
+        draw_channel_array(
+            analysis,
+            variables.VARIABLES,
+            plots=[MMC_MASS],
+            mass=125,
+            mode='combined',
+            signal_scale=50,
+            category=category,
+            region=region,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=systematics,
+            weight_hist=sig_score_hist,
+            clf=self,
+            output_suffix="_reweighted_sig" + self.output_suffix,
+            cuts=signal_region,
+            mpl=mpl,
+            output_formats=output_formats,
+            unblind=False)
+
+        ###############################################################
+        log.info("plotting mmc weighted by S / B")
+
+        sob_hist = _sig / _bkg
+        print list(sob_hist)
+
+        draw_channel_array(
+            analysis,
+            variables.VARIABLES,
+            plots=[MMC_MASS],
+            mass=125,
+            mode='combined',
+            signal_scale=50,
+            category=category,
+            region=region,
+            show_qq=False,
+            plot_signal_significance=False,
+            systematics=systematics,
+            weight_hist=sob_hist,
+            clf=self,
+            output_suffix="_reweighted_sob" + self.output_suffix,
+            cuts=signal_region,
+            mpl=mpl,
+            output_formats=output_formats,
+            unblind=False)
 
         ############################################################
         # show the MMC below a BDT score that unblinds 30% of signal

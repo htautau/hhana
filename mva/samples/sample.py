@@ -19,7 +19,7 @@ from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, ravel
 from ..np_utils import rec_to_ndarray, rec_stack
-from ..classify import histogram_scores
+from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
 from ..systematics import WEIGHT_SYSTEMATICS
 from ..lumi import get_lumi_uncert
@@ -124,20 +124,7 @@ class Sample(object):
             max_score=max_score,
             systematics=do_systematics,
             systematics_components=systematics_components)
-        """
-        else:
-            # histogram classifier output
-            if scores is None:
-                scores = self.scores(
-                    expr_or_clf, category, region, cuts,
-                    systematics=do_systematics,
-                    systematics_components=systematics_components)
-            histogram_scores(
-                hist, scores,
-                min_score=min_score,
-                max_score=max_score,
-                inplace=True)
-        """
+
         return field_hist
 
     def get_histfactory_sample_array(self,
@@ -547,16 +534,27 @@ class Sample(object):
         from .data import Data, DataInfo
 
         all_fields = []
+        classifiers = []
         for f in field_hist.iterkeys():
             if isinstance(f, basestring):
                 all_fields.append(f)
+            elif isinstance(f, Classifier):
+                classifiers.append(f)
             else:
                 all_fields.extend(list(f))
+        if len(classifiers) > 1:
+            raise RuntimeError(
+                "more than one classifier in fields is not supported")
+        elif len(classifiers) == 1:
+            classifier = classifiers[0]
+        else:
+            classifier = None
 
         # TODO: only get unblinded vars
         rec = self.merged_records(category, region,
             fields=all_fields, cuts=cuts,
             include_weight=True,
+            clf=classifier,
             systematic=systematic)
 
         if scores is not None:
@@ -588,8 +586,10 @@ class Sample(object):
                 scores = scores[idx]
 
         for fields, hist in field_hist.items():
+            if isinstance(fields, Classifier):
+                fields = ['classifier']
             # fields can be a single field or list of fields
-            if not isinstance(fields, (list, tuple)):
+            elif not isinstance(fields, (list, tuple)):
                 fields = [fields]
             if hist is None:
                 # this var might be blinded

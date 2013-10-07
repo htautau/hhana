@@ -1,6 +1,9 @@
 from .sample import Sample, Background
 from . import log
+
 from rootpy import asrootpy
+
+import numpy as np
 
 
 class QCD(Sample, Background):
