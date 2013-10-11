@@ -59,10 +59,16 @@ class Sample(object):
             return self._label
         return self._label_root
 
-    def get_field_hist(self, vars, category):
+    def get_field_hist(self, vars, category, templates=None):
 
         field_hist = {}
         for field, var_info in vars.items():
+
+            if templates is not None and field in templates:
+                field_hist[field] = templates[field].Clone(
+                    title=self.label, **self.hist_decor)
+                continue
+
             bins = var_info['bins']
 
             _range = var_info['range']
@@ -806,7 +812,7 @@ class Sample(object):
 
         if weight_hist is not None and scores is not None:
             edges = np.array(list(weight_hist.xedges()))
-            weights = np.array(weight_hist).take(
+            weights = np.array(list(weight_hist.y())).take(
                 edges.searchsorted(scores) - 1)
             weights = rec['weight'] * weights
         else:

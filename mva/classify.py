@@ -647,10 +647,10 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
 
-        bkg_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
+        bkg_score_hist = Hist(category.limitbins / 10, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
         _bkg = bkg_score_hist.Clone()
-        bkg_score_hist /= sum(bkg_score_hist)
+        bkg_score_hist /= sum(bkg_score_hist.y())
 
         draw_channel_array(
             analysis,
@@ -675,10 +675,10 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by signal BDT distribution")
 
-        sig_score_hist = Hist(category.clf_bins + 2, min_score, max_score)
+        sig_score_hist = Hist(category.limitbins / 10, min_score, max_score)
         hist_scores(sig_score_hist, sig_scores)
         _sig = sig_score_hist.Clone()
-        sig_score_hist /= sum(sig_score_hist)
+        sig_score_hist /= sum(sig_score_hist.y())
 
         draw_channel_array(
             analysis,
@@ -704,11 +704,13 @@ class Classifier(object):
         log.info("plotting mmc weighted by S / B")
 
         sob_hist = _sig / _bkg
+        log.info(str(list(sob_hist.y())))
 
-        draw_channel_array(
+        field_channel, figs = draw_channel_array(
             analysis,
             variables.VARIABLES,
             plots=[MMC_MASS],
+            templates={MMC_MASS: Hist(30, 50, 200)},
             mass=125,
             mode='combined',
             signal_scale=5,

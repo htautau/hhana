@@ -9,10 +9,10 @@ def efficiency_cut(hist, effic):
 
     integral = hist.Integral()
     cumsum = 0.
-    for ibin, value in enumerate(hist):
-        cumsum += value
+    for bin in hist:
+        cumsum += bin.value
         if cumsum / integral > effic:
-            return hist.xedges(ibin)
+            return bin.x.low
     return hist.xedges(-1)
 
 
@@ -22,8 +22,8 @@ def significance(signal, background, min_bkg=0, highstat=True):
         signal = sum(signal)
     if isinstance(background, (list, tuple)):
         background = sum(background)
-    sig_counts = np.array(signal)
-    bkg_counts = np.array(background)
+    sig_counts = np.array(list(signal.y()))
+    bkg_counts = np.array(list(background.y()))
     # reverse cumsum
     S = sig_counts[::-1].cumsum()[::-1]
     B = bkg_counts[::-1].cumsum()[::-1]

@@ -234,6 +234,7 @@ class Analysis(object):
                           min_score=None,
                           max_score=None,
                           weighted=True,
+                          templates=None,
                           field_scale=None,
                           weight_hist=None,
                           systematics=True,
@@ -256,7 +257,7 @@ class Analysis(object):
         # create HistFactory samples
         histfactory_samples = []
         for s in samples:
-            field_hist = s.get_field_hist(vars, category)
+            field_hist = s.get_field_hist(vars, category, templates=templates)
             field_sample = s.get_histfactory_sample_array(
                 field_hist,
                 category, region,

@@ -87,10 +87,10 @@ class MC(Sample):
             weighted_events = {}
 
             if isinstance(self, Embedded_Ztautau):
-                events_bin = 0
+                events_bin = 1
             else:
                 # use mc_weighted second bin
-                events_bin = 1
+                events_bin = 2
             events_hist_suffix = '_cutflow'
 
             trees['NOMINAL'] = rfile.Get(treename)
@@ -98,7 +98,7 @@ class MC(Sample):
                 h5file.root, treename))
 
             weighted_events['NOMINAL'] = rfile.Get(
-                    treename + events_hist_suffix)[events_bin]
+                    treename + events_hist_suffix)[events_bin].value
 
             if self.systematics:
 

@@ -851,6 +851,7 @@ def draw_channel_array(
         clf=None,
         min_score=None,
         max_score=None,
+        templates=None,
         plots=None,
         mpl=False,
         output_suffix='',
@@ -896,6 +897,7 @@ def draw_channel_array(
         min_score=min_score,
         max_score=max_score,
         weighted=weighted,
+        templates=templates,
         field_scale=field_scale,
         weight_hist=weight_hist,
         no_signal_fixes=True)
@@ -926,7 +928,7 @@ def draw_channel_array(
              integer=var_info.get('integer', False),
              **kwargs)
         figs[field] = fig
-    return figs
+    return field_channel, figs
 
 
 def draw_channel(channel, systematics=True, **kwargs):
@@ -1007,6 +1009,8 @@ def draw(name,
         raise ValueError(
             'at least one of model, data, or signal must be specified')
 
+    range = model[0].bounds()
+
     root = not mpl
 
     if root:
@@ -1043,10 +1047,7 @@ def draw(name,
         right_margin = 0.04
     ratio_sep_margin = 0.030
 
-    if logy:
-        ypadding = (.25, 0.)
-    else:
-        ypadding = (.5, .05)
+    ypadding = (.5, .05)
 
     width = 1. - right_margin - left_margin
     height = 1. - top_margin - bottom_margin
@@ -1343,11 +1344,9 @@ def draw(name,
         if isinstance(blind, tuple):
             low, high = blind
             # zero out bins in blind region
-            for ibin in xrange(len(data)):
-                if (low < data.xedgesh(ibin) <= high or
-                    low <= data.xedgesl(ibin) < high):
-                    data[ibin] = 0.
-                    data.SetBinError(ibin + 1, 0.)
+            for bin in data.bins():
+                if (low < bin.x.high <= high or low <= bin.x.low < high):
+                    data[bin.idx] = (0., 0.)
         # draw data
         if root:
             hist_pad.cd()
@@ -1378,10 +1377,9 @@ def draw(name,
             total_model = sum(model)
             ratio_hist = Hist.divide(data, total_model, option='B')
             # remove bins where data is zero
-            for i, value in enumerate(data):
-                if value == 0:
-                    ratio_hist[i] = -1
-                    ratio_hist.SetBinError(i + 1, 0.)
+            for bin in data.bins():
+                if bin.value == 0:
+                    ratio_hist[bin.idx] = (-1, 0)
             ratio_hist.linecolor = 'black'
             ratio_hist.linewidth = 2
             ratio_hist.fillstyle = 'hollow'
@@ -1407,30 +1405,26 @@ def draw(name,
                 ratio_hist_tmp.yaxis.SetRangeUser(*ratio_range)
                 ratio_hist_tmp.yaxis.SetTitle('Data / Model')
                 ratio_hist_tmp.yaxis.SetNdivisions(4)
-                ratio_hist_tmp.xaxis.SetLimits(
-                    ratio_hist.xedges(0),
-                    ratio_hist.xedges(-1))
-                ratio_hist_tmp.xaxis.SetRangeUser(
-                    ratio_hist.xedges(0),
-                    ratio_hist.xedges(-1))
+                ratio_hist_tmp.xaxis.SetLimits(*ratio_hist.bounds())
+                ratio_hist_tmp.xaxis.SetRangeUser(*ratio_hist.bounds())
                 ratio_hist_tmp.xaxis.SetTickLength(
                     ratio_hist_tmp.xaxis.GetTickLength() * 2)
 
                 # draw horizontal lines
-                line = Line(ratio_hist.xedges(0), 1,
-                            ratio_hist.xedges(-1), 1)
+                line = Line(ratio_hist.lowerbound(), 1,
+                            ratio_hist.upperbound(), 1)
                 line.linestyle = 'dashed'
                 line.linewidth = 2
                 line.Draw()
 
-                line_up = Line(ratio_hist.xedges(0), 1.50,
-                               ratio_hist.xedges(-1), 1.50)
+                line_up = Line(ratio_hist.lowerbound(), 1.50,
+                               ratio_hist.upperbound(), 1.50)
                 line_up.linestyle = 'dashed'
                 line_up.linewidth = 2
                 line_up.Draw()
 
-                line_dn = Line(ratio_hist.xedges(0), 0.50,
-                               ratio_hist.xedges(-1), 0.50)
+                line_dn = Line(ratio_hist.lowerbound(), 0.50,
+                               ratio_hist.upperbound(), 0.50)
                 line_dn.linestyle = 'dashed'
                 line_dn.linewidth = 2
                 line_dn.Draw()
@@ -1900,7 +1894,6 @@ def plot_clf(background_scores,
                  category=category,
                  name="BDT Score",
                  output_name=output_name,
-                 range=(hist_template.xedges(0), hist_template.xedges(-1)),
                  show_ratio=data_hist is not None,
                  model_colour_map=None,
                  signal_colour_map=signal_colour_map,
