@@ -307,6 +307,7 @@ class Sample(object):
                 npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
                 npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
                 npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
+                npname = npname.replace('TRIGGER', 'TRIGGER_HH')
 
                 histsys = histfactory.HistoSys(
                     npname,
@@ -499,6 +500,7 @@ class Sample(object):
                     npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
                     npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
                     npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
+                    npname = npname.replace('TRIGGER', 'TRIGGER_HH')
 
                     histsys = histfactory.HistoSys(
                         npname,
