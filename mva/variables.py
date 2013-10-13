@@ -505,7 +505,7 @@ for mmc in range(2):
         'bins': 25,
         'range': (0, 250),
         'units': 'GeV',
-        'blind': (100, 140),
+        'blind': (100, 150),
     }
 
     VARIABLES['mmc%d_MET_et' % mmc] = {

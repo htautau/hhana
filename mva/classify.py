@@ -3,6 +3,7 @@ import pickle
 from operator import itemgetter
 import types
 import shutil
+import math
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -705,7 +706,7 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by S / B")
 
-        sob_hist = _sig / (_bkg**2)
+        sob_hist = (1 + _sig / _bkg).apply_func(math.log)
         log.info(str(list(sob_hist.y())))
 
         field_channel, figs = draw_channel_array(
