@@ -706,7 +706,10 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by S / B")
 
-        sob_hist = (1 + _sig / _bkg).apply_func(math.log)
+        sob_hist = (1 + _sig / _bkg)
+        _log = math.log
+        for bin in sob_hist.bins(overflow=True):
+            bin.value = _log(bin.value)
         log.info(str(list(sob_hist.y())))
 
         field_channel, figs = draw_channel_array(
