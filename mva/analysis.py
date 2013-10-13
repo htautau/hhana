@@ -7,6 +7,7 @@ from rootpy.stats import histfactory
 from rootpy.plotting import Hist
 
 from . import samples, log; log = log[__name__]
+from .samples import Higgs
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .stats.utils import efficiency_cut
@@ -113,7 +114,7 @@ class Analysis(object):
             mass = [mass]
         if mode == 'combined':
             for m in mass:
-                signals.append(samples.Higgs(
+                s = samples.Higgs(
                     year=self.year,
                     mass=m,
                     systematics=self.systematics,
@@ -121,7 +122,12 @@ class Analysis(object):
                     scale=self.mu,
                     linecolor='red',
                     linewidth=2,
-                    linestyle='dashed'))
+                    linestyle='dashed')
+                if s.mass != 125:
+                    # HACK HACK HACK
+                    log.info("SCALING SIGNAL TO 125")
+                    s.scale *= self.higgs_125.events()[1].value / s.events()[1].value
+                signals.append(s)
             return signals
         elif mode is None:
             for m in mass:
@@ -202,7 +208,10 @@ class Analysis(object):
         channel_name = category.name
         suffix = None
         if include_signal:
-            suffix = '_%d' % mass
+            if isinstance(mass, list):
+                suffix = '_' + ('_'.join(map(str, mass)))
+            else:
+                suffix = '_%d' % mass
             channel_name += suffix
             samples += self.get_signals(mass)
 
@@ -216,7 +225,7 @@ class Analysis(object):
                 clf=clf,
                 min_score=min_score,
                 max_score=max_score,
-                suffix=suffix,
+                suffix=suffix if not isinstance(s, Higgs) else None,
                 no_signal_fixes=no_signal_fixes)
             histfactory_samples.append(sample)
 
@@ -269,7 +278,7 @@ class Analysis(object):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 systematics=systematics,
-                suffix=suffix,
+                suffix=suffix if not isinstance(s, Higgs) else None,
                 no_signal_fixes=no_signal_fixes)
             histfactory_samples.append(field_sample)
 

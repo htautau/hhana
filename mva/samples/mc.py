@@ -8,6 +8,8 @@ from ..systematics import SYSTEMATICS_BY_WEIGHT, iter_systematics
 from higgstautau import samples as samples_db
 
 from rootpy import asrootpy
+from rootpy.plotting import Hist
+from rootpy.tree import Cut
 
 import numpy as np
 from numpy.lib import recfunctions
@@ -528,7 +530,7 @@ class MC(Sample):
             return zip(recs, idxs)
         return recs
 
-    def events(self, category, region,
+    def events(self, category=None, region=None,
                cuts=None,
                systematic='NOMINAL',
                weighted=True,
@@ -550,12 +552,15 @@ class MC(Sample):
                 events = sys_events['NOMINAL']
 
             weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
-            weighted_selection = Cut(' * '.join(map(str,
-                     self.get_weight_branches(systematic, weighted=weighted))))
-            selection = Cut(str(weight * scale)) * weighted_selection * (
-                    self.cuts(category, region, systematic=systematic) & cuts)
+
+            selection = Cut(' * '.join(map(str,
+                self.get_weight_branches(systematic, weighted=weighted))))
+            selection = Cut(str(weight * scale)) * selection * (
+                self.cuts(category, region, systematic=systematic) & cuts)
+
             log.debug("requesing number of events from %s using cuts: %s"
-                      % (tree.GetName(), selection))
+                % (tree.GetName(), selection))
+
             tree.Draw('1', selection, hist=hist)
         return hist
 

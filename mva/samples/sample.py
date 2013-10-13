@@ -730,8 +730,12 @@ class Sample(object):
 
     def cuts(self, category, region, systematic='NOMINAL', **kwargs):
 
-        return (category.get_cuts(self.year, **kwargs) &
-                REGIONS[region] & self._cuts)
+        cuts = Cut(self._cuts)
+        if category is not None:
+            cuts &= category.get_cuts(self.year, **kwargs)
+        if region is not None:
+            cuts &= REGIONS[region]
+        return cuts
 
     def draw(self, expr, category, region, bins, min, max,
              cuts=None, weighted=True, systematics=True):

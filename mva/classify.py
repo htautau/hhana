@@ -18,7 +18,7 @@ from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 from rootpy.plotting import Hist
-from rootpy.io import root_open as ropen
+from rootpy.io import root_open
 from rootpy.extern.tabulartext import PrettyTable
 
 from cStringIO import StringIO
@@ -585,6 +585,7 @@ class Classifier(object):
         category = self.category
         region = self.region
 
+        """
         ############################################################
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
@@ -610,6 +611,7 @@ class Classifier(object):
                 signal_colour_map=cm.spring,
                 plot_signal_significance=True,
                 logy=logy)
+        """
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -703,7 +705,7 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by S / B")
 
-        sob_hist = _sig / _bkg
+        sob_hist = _sig / (_bkg**2)
         log.info(str(list(sob_hist.y())))
 
         field_channel, figs = draw_channel_array(
@@ -711,9 +713,11 @@ class Classifier(object):
             variables.VARIABLES,
             plots=[MMC_MASS],
             templates={MMC_MASS: Hist(30, 50, 200)},
-            mass=125,
+            mass=[125, 150],
             mode='combined',
             signal_scale=5,
+            stacked_signal=False,
+            signal_colour_map=cm.jet,
             category=category,
             region=region,
             show_qq=False,
@@ -727,10 +731,17 @@ class Classifier(object):
             output_formats=output_formats,
             unblind=False)
 
+        channel = field_channel[MMC_MASS]
+        with root_open('sob.root', 'update') as f:
+            for s in channel.samples:
+                s.hist.Write()
+            channel.data.hist.Write()
+
         ############################################################
         # show the MMC below a BDT score that unblinds 30% of signal
         # determine BDT score with 30% of 125 signal below:
 
+        """
         signal_score_hist = Hist(1000, -1, 1)
         for s, scores_dict in sig_scores:
             histogram_scores(signal_score_hist, scores_dict, inplace=True)
@@ -756,7 +767,7 @@ class Classifier(object):
             mpl=mpl,
             output_formats=output_formats,
             unblind=True)
-
+        """
         #return bkg_scores, sig_scores_125
 
 
