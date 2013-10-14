@@ -990,6 +990,7 @@ def draw(name,
          units=None,
          range=None,
          plot_label=None,
+         ylabel='Events',
          model_colour_map=None,
          signal_colour_map=None,
          fill_signal=False,
@@ -1566,12 +1567,9 @@ def draw(name,
         binwidths = list(set(['%.3g' % w for w in binw]))
         if len(binwidths) == 1:
             # constant width bins
-            ylabel = 'Events / %s [%s]' % (binwidths[0], units)
-        else:
-            ylabel = 'Events'
+            ylabel = '%s / %s [%s]' % (ylabel, binwidths[0], units)
     else:
         label = name
-        ylabel = 'Events'
 
     if root:
         model_stack.yaxis.SetTitle(ylabel)

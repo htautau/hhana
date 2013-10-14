@@ -1,5 +1,6 @@
 from .sample import Sample, Background
 from . import log
+from ..systematics import systematic_name
 
 from rootpy import asrootpy
 
