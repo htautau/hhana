@@ -286,7 +286,8 @@ class MC(Sample):
                    max_score=None,
                    systematics=True,
                    systematics_components=None,
-                   scale=1.):
+                   scale=1.,
+                   bootstrap_data=False):
 
         do_systematics = self.systematics and systematics
 
@@ -498,7 +499,7 @@ class MC(Sample):
 
             # add weight field
             if include_weight:
-                weights = np.empty(rec.shape[0], dtype='f4')
+                weights = np.empty(rec.shape[0], dtype='f8')
                 weights.fill(weight)
                 # merge the weight fields
                 weights *= reduce(np.multiply,
@@ -509,7 +510,7 @@ class MC(Sample):
                 rec = recfunctions.rec_append_fields(rec,
                     names='weight',
                     data=weights,
-                    dtypes='f4')
+                    dtypes='f8')
                 if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
                     log.warning("{0}: weights sum to zero!".format(table.name))
                     for br in weight_branches:

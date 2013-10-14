@@ -719,7 +719,7 @@ class Classifier(object):
             templates={MMC_MASS: Hist(30, 50, 200)},
             mass=[125, 150],
             mode='combined',
-            signal_scale=5,
+            signal_scale=1,
             stacked_signal=False,
             signal_colour_map=cm.jet,
             category=category,
@@ -733,7 +733,8 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=False)
+            unblind=True,
+            bootstrap_data=analysis)
 
         channel = field_channel[MMC_MASS]
         with root_open('sob.root', 'update') as f:

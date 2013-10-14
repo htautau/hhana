@@ -856,6 +856,7 @@ def draw_channel_array(
         mpl=False,
         output_suffix='',
         unblind=False,
+        bootstrap_data=False,
         **kwargs):
 
     # filter out plots that will not be made
@@ -900,7 +901,8 @@ def draw_channel_array(
         templates=templates,
         field_scale=field_scale,
         weight_hist=weight_hist,
-        no_signal_fixes=True)
+        no_signal_fixes=True,
+        bootstrap_data=bootstrap_data)
 
     figs = {}
     for field, var_info in vars.items():

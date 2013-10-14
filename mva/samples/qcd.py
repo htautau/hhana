@@ -138,7 +138,8 @@ class QCD(Sample, Background):
                    min_score=None,
                    max_score=None,
                    systematics=True,
-                   systematics_components=None):
+                   systematics_components=None,
+                   bootstrap_data=False):
 
         do_systematics = self.systematics and systematics
 

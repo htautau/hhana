@@ -94,9 +94,12 @@ class Data(Sample):
                    min_score=None,
                    max_score=None,
                    systematics=True,
-                   systematics_components=None):
+                   systematics_components=None,
+                   bootstrap_data=False):
 
-        if scores is None and clf is not None:
+        if bootstrap_data:
+            scores = None
+        elif scores is None and clf is not None:
             scores = self.scores(
                 clf, category, region, cuts=cuts)
 
@@ -106,8 +109,10 @@ class Data(Sample):
             field_scale=field_scale,
             weight_hist=weight_hist,
             scores=scores,
+            clf=clf,
             min_score=min_score,
-            max_score=max_score)
+            max_score=max_score,
+            bootstrap_data=bootstrap_data)
 
     def scores(self, clf, category, region,
                cuts=None,
@@ -155,11 +160,11 @@ class Data(Sample):
         # add weight field
         if include_weight:
             # data is not weighted
-            weights = np.ones(rec.shape[0], dtype='f4')
+            weights = np.ones(rec.shape[0], dtype='f8')
             rec = recfunctions.rec_append_fields(rec,
                 names='weight',
                 data=weights,
-                dtypes='f4')
+                dtypes='f8')
 
         if fields is not None:
             rec = rec[fields]

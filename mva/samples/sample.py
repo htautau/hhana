@@ -97,7 +97,8 @@ class Sample(object):
             suffix=None,
             field_scale=None,
             weight_hist=None,
-            weighted=True):
+            weighted=True,
+            bootstrap_data=False):
 
         from .data import Data
 
@@ -129,7 +130,8 @@ class Sample(object):
             min_score=min_score,
             max_score=max_score,
             systematics=do_systematics,
-            systematics_components=systematics_components)
+            systematics_components=systematics_components,
+            bootstrap_data=bootstrap_data)
 
         return field_hist
 
@@ -387,7 +389,8 @@ class Sample(object):
             field_scale=None,
             weight_hist=None,
             weighted=True,
-            no_signal_fixes=False):
+            no_signal_fixes=False,
+            bootstrap_data=False):
 
         from .data import Data
         from .qcd import QCD
@@ -407,7 +410,8 @@ class Sample(object):
             suffix=suffix,
             field_scale=field_scale,
             weight_hist=weight_hist,
-            weighted=weighted)
+            weighted=weighted,
+            bootstrap_data=bootstrap_data)
 
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
@@ -779,9 +783,11 @@ class Sample(object):
                           field_scale=None,
                           weight_hist=None,
                           scores=None,
+                          clf=None,
                           min_score=None,
                           max_score=None,
-                          systematic='NOMINAL'):
+                          systematic='NOMINAL',
+                          bootstrap_data=False):
 
         from .data import Data, DataInfo
 
@@ -802,16 +808,51 @@ class Sample(object):
         else:
             classifier = None
 
-        # TODO: only get unblinded vars
-        rec = self.merged_records(category, region,
-            fields=all_fields, cuts=cuts,
-            include_weight=True,
-            clf=classifier,
-            systematic=systematic)
+        if isinstance(self, Data) and bootstrap_data:
+            log.info("using bootstrapped data")
+            analysis = bootstrap_data
+            recs = []
+            scores = []
+            samples = analysis.backgrounds[:] + [analysis.higgs_125]
+            for s in samples:
+                rec = s.merged_records(category, region,
+                    fields=all_fields, cuts=cuts,
+                    include_weight=True,
+                    clf=clf,
+                    systematic=systematic)
+                recs.append(rec)
+            rec = rec_stack(recs, fields=all_fields + ['classifier', 'weight'])
 
-        if scores is not None:
+            # handle negative weights separately
+            neg = rec[rec['weight'] < 0]
+            pos = rec[rec['weight'] >= 0]
+
+            def bootstrap(rec):
+                prob = np.abs(rec['weight'])
+                prob = prob / prob.sum()
+                # random sample without replacement
+                log.warning(str(int(round(abs(rec['weight'].sum())))))
+                sample_idx = np.random.choice(
+                    rec.shape[0], size=int(round(abs(rec['weight'].sum()))),
+                    replace=False, p=prob)
+                return rec[sample_idx]
+
+            rec = rec_stack([bootstrap(neg), bootstrap(pos)],
+                fields=all_fields + ['classifier', 'weight'])
+
+            rec['weight'][:] = 1.
+            scores = rec['classifier']
+        else:
+            # TODO: only get unblinded vars
+            rec = self.merged_records(category, region,
+                fields=all_fields, cuts=cuts,
+                include_weight=True,
+                clf=classifier,
+                systematic=systematic)
+
+        if isinstance(scores, tuple):
             # sanity
-            assert (scores[1] == rec['weight']).all()
+            #assert (scores[1] == rec['weight']).all()
             # ignore the score weights since they should be the same as the rec
             # weights
             scores = scores[0]
