@@ -21,7 +21,7 @@ from ..utils import print_hist, ravel
 from ..np_utils import rec_to_ndarray, rec_stack
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
-from ..systematics import WEIGHT_SYSTEMATICS
+from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
 from ..lumi import get_lumi_uncert
 
 
@@ -216,6 +216,7 @@ class Sample(object):
 
         from .data import Data
         from .qcd import QCD
+        from .others import Others
 
         log.info("creating histfactory sample for {0}".format(self.name))
 
@@ -394,6 +395,7 @@ class Sample(object):
 
         from .data import Data
         from .qcd import QCD
+        from .others import Others
 
         log.info("creating histfactory samples for {0}".format(self.name))
 

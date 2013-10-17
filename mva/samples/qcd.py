@@ -3,6 +3,7 @@ from . import log
 from ..systematics import systematic_name
 
 from rootpy import asrootpy
+from rootpy.plotting import Hist
 
 import numpy as np
 
@@ -388,8 +389,8 @@ class QCD(Sample, Background):
         # use preselection as reference in which all models should have the same
         # expected number of QCD events
         # get number of events at preselection for nominal model
-        from .categories import Category_Preselection
-        nominal_events = self.events(Category_Preselection, None)[0]
+        from ..categories import Category_Preselection
+        nominal_events = self.events(Category_Preselection, None)[1].value
 
         hist_template = nominal_hist.Clone()
         hist_template.Reset()
@@ -417,7 +418,7 @@ class QCD(Sample, Background):
                     field_scale=field_scale,
                     weight_hist=weight_hist,
                     weighted=weighted))
-                events.append(self.events(Category_Preselection, None)[0])
+                events.append(self.events(Category_Preselection, None)[1].value)
 
             OSFF, SSFF = models
             OSFF_events, SSFF_events = events
@@ -448,7 +449,7 @@ class QCD(Sample, Background):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
-            SS_TRK_events = self.events(Category_Preselection, None)[0]
+            SS_TRK_events = self.events(Category_Preselection, None)[1].value
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
             shape_sys *= nominal_events / float(SS_TRK_events)
@@ -485,8 +486,8 @@ class QCD(Sample, Background):
         # use preselection as reference in which all models should have the same
         # expected number of QCD events
         # get number of events at preselection for nominal model
-        from .categories import Category_Preselection
-        nominal_events = self.events(Category_Preselection, None)[0]
+        from ..categories import Category_Preselection
+        nominal_events = self.events(Category_Preselection, None)[1].value
 
         field_hist_template = {}
         for field, hist in field_nominal_hist.items():
@@ -516,7 +517,7 @@ class QCD(Sample, Background):
                     weight_hist=weight_hist,
                     weighted=weighted))
                 if model == 'OSFF':
-                    norm_events = self.events(Category_Preselection, None)[0]
+                    norm_events = self.events(Category_Preselection, None)[1].value
 
             OSFF, SSFF = models
             field_shape_sys = {}
@@ -543,7 +544,7 @@ class QCD(Sample, Background):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
-            norm_events = self.events(Category_Preselection, None)[0]
+            norm_events = self.events(Category_Preselection, None)[1].value
 
         else:
             raise ValueError(

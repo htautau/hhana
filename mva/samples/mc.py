@@ -100,7 +100,7 @@ class MC(Sample):
                 h5file.root, treename))
 
             weighted_events['NOMINAL'] = rfile.Get(
-                    treename + events_hist_suffix)[events_bin].value
+                treename + events_hist_suffix)[events_bin].value
 
             if self.systematics:
 
@@ -115,7 +115,7 @@ class MC(Sample):
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sys_name))
                         weighted_events[sys_term] = rfile.Get(
-                                sys_name + events_hist_suffix)[events_bin]
+                            sys_name + events_hist_suffix)[events_bin].value
 
                 if systematics_samples:
                     for sample_name, sys_term in systematics_samples.items():
@@ -130,7 +130,7 @@ class MC(Sample):
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sample_name))
                         weighted_events[sys_term] = getattr(rfile,
-                                sample_name + events_hist_suffix)[events_bin]
+                            sample_name + events_hist_suffix)[events_bin].value
 
             if hasattr(self, 'xsec_kfact_effic'):
                 xs, kfact, effic = self.xsec_kfact_effic(i)
@@ -513,8 +513,6 @@ class MC(Sample):
                     dtypes='f8')
                 if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
                     log.warning("{0}: weights sum to zero!".format(table.name))
-                    for br in weight_branches:
-                        log.warning("{0}: {1}".format(br, repr(rec[br])))
 
             if fields is not None:
                 try:

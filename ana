@@ -360,25 +360,30 @@ for category in analysis.iter_categories(
 
         b = Hist(1000, scores.min_score, scores.max_score)
         s = b.Clone()
+        data = b.Clone()
         for sample, bkg_scores in scores.bkg_scores:
             histogram_scores(b, bkg_scores, inplace=True)
         for sample, sig_scores in scores.all_sig_scores[125]:
             histogram_scores(s, sig_scores, inplace=True)
+        histogram_scores(data, scores.data_scores, inplace=True)
 
         # get min and max significance
         sig, _, _ = significance(s, b)
         min_sig, max_sig = sig.min(), sig.max()
+        log.warning("{0} {1}".format(min_sig, max_sig))
         sig_money = Hist(10, min_sig, max_sig + 1E-5,
             drawstyle='hist',
             fillstyle='solid')
         bkg_money = sig_money.Clone()
-        d_money = sig_money.Clone()
+        data_money = sig_money.Clone()
 
         for bin, _s in izip(s.bins(), sig):
             sig_money.Fill(_s, bin.value)
         for bin, _b in izip(b.bins(), sig):
             bkg_money.Fill(_b, bin.value)
-        
+        for bin, _d in izip(data.bins(), sig):
+            data_money.Fill(_d, bin.value)
+
         bkg_money.color = 'blue'
         sig_money.color = 'red'
 
@@ -395,6 +400,7 @@ for category in analysis.iter_categories(
         stack.Draw()
         stack.yaxis.SetRangeUser(10, 1000)
         stack.yaxis.SetLimits(10, 1000)
+        data_money.Draw('same E0')
         c.SaveAs('money_{0}.png'.format(category.name))
 
 

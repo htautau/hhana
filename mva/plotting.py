@@ -590,8 +590,8 @@ def uncertainty_band(model, systematics, systematics_components):
         total_model_stat_high = total_model.Clone()
         total_model_stat_low = total_model.Clone()
         for i in xrange(len(total_model)):
-            total_model_stat_high[i] += total_model.yerrh(i)
-            total_model_stat_low[i] -= total_model.yerrl(i)
+            total_model_stat_high[i].value += total_model.yerrh(i)
+            total_model_stat_low[i].value -= total_model.yerrl(i)
         var_high.append(total_model_stat_high)
         var_low.append(total_model_stat_low)
 
@@ -601,9 +601,9 @@ def uncertainty_band(model, systematics, systematics_components):
     low_band = high_band.Clone()
     for i in xrange(len(high_band)):
         sum_high = math.sqrt(
-                sum([(v[i] - total_model[i])**2 for v in var_high]))
+            sum([(v[i].value - total_model[i].value)**2 for v in var_high]))
         sum_low = math.sqrt(
-                sum([(v[i] - total_model[i])**2 for v in var_low]))
+            sum([(v[i].value - total_model[i].value)**2 for v in var_low]))
         high_band[i] = sum_high
         low_band[i] = sum_low
     return total_model, high_band, low_band
