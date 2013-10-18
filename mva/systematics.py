@@ -39,6 +39,10 @@ SYSTEMATICS_2011 = {
 }
 
 SYSTEMATICS_2012 = {
+
+    'MET_RESOSOFTTERMS': (('MET_RESOSOFTTERMS_UP',), ('MET_RESOSOFTTERMS_DOWN',)),
+    'MET_SCALESOFTTERMS': (('MET_SCALESOFTTERMS_UP',), ('MET_SCALESOFTTERMS_DOWN',)),
+
     #'JES': (('JES_UP',), ('JES_DOWN',)),
     'JES_Modelling': (('JES_Modelling_UP',), ('JES_Modelling_DOWN',)),
     'JES_Detector': (('JES_Detector_UP',), ('JES_Detector_DOWN',)),

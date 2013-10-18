@@ -25,6 +25,32 @@ from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
 from ..lumi import get_lumi_uncert
 
 
+def get_workspace_np_name(syst, year):
+
+    npname = 'ATLAS_{0}_{1:d}'.format(syst, year)
+
+    # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
+    npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
+    npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
+    npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
+    npname = npname.replace('JES_FlavComp_TAU_G_2012', 'JES_FlavComp_TAU_G')
+    npname = npname.replace('JES_FlavComp_TAU_Q_2012', 'JES_FlavComp_TAU_Q')
+    npname = npname.replace('JES_FlavResp_2012', 'JES_FlavResp')
+    npname = npname.replace('JES_Modelling_2012', 'JES_2012_Modelling1')
+    npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
+    npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
+    npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
+    npname = npname.replace('FAKERATE_2012', 'TAU_JFAKE_2012')
+    npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
+    npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
+    npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
+    npname = npname.replace('TRIGGER', 'TRIGGER_HH')
+    npname = npname.replace('MET_RESOSOFTTERMS_2012', 'MET_RESOSOFT')
+    npname = npname.replace('MET_SCALESOFTTERMS_2012', 'MET_SCALESOFT')
+
+    return npname
+
+
 class Sample(object):
 
     WORKSPACE_SYSTEMATICS = []
@@ -293,24 +319,7 @@ class Sample(object):
                         else:
                             sys_component += '_TAU_QQ'
 
-                npname = 'ATLAS_{0}_{1:d}'.format(sys_component, self.year)
-
-                # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
-                npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
-                npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
-                npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
-                npname = npname.replace('JES_FlavComp_TAU_G_2012', 'JES_FlavComp_TAU_G')
-                npname = npname.replace('JES_FlavComp_TAU_Q_2012', 'JES_FlavComp_TAU_Q')
-                npname = npname.replace('JES_FlavResp_2012', 'JES_FlavResp')
-                npname = npname.replace('JES_Modelling_2012', 'JES_2012_Modelling1')
-                npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
-                npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
-                npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
-                npname = npname.replace('FAKERATE_2012', 'TAU_JFAKE_2012')
-                npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
-                npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
-                npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
-                npname = npname.replace('TRIGGER', 'TRIGGER_HH')
+                npname = get_workspace_np_name(sys_component, self.year)
 
                 histsys = histfactory.HistoSys(
                     npname,
@@ -489,24 +498,7 @@ class Sample(object):
                             else:
                                 sys_component += '_TAU_QQ'
 
-                    npname = 'ATLAS_{0}_{1:d}'.format(sys_component, self.year)
-
-                    # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
-                    npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
-                    npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
-                    npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
-                    npname = npname.replace('JES_FlavComp_TAU_G_2012', 'JES_FlavComp_TAU_G')
-                    npname = npname.replace('JES_FlavComp_TAU_Q_2012', 'JES_FlavComp_TAU_Q')
-                    npname = npname.replace('JES_FlavResp_2012', 'JES_FlavResp')
-                    npname = npname.replace('JES_Modelling_2012', 'JES_2012_Modelling1')
-                    npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
-                    npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
-                    npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
-                    npname = npname.replace('FAKERATE_2012', 'TAU_JFAKE_2012')
-                    npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
-                    npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
-                    npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
-                    npname = npname.replace('TRIGGER', 'TRIGGER_HH')
+                    npname = get_workspace_np_name(sys_component, self.year)
 
                     histsys = histfactory.HistoSys(
                         npname,

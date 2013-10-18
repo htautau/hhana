@@ -20,6 +20,8 @@ class MC(Sample):
     # TODO: remove 'JE[S|R]' here unless embedded classes should inherit from
     # elsewhere
     WORKSPACE_SYSTEMATICS = Sample.WORKSPACE_SYSTEMATICS + [
+        'MET_RESOSOFTTERMS',
+        'MET_SCALESOFTTERMS',
         #'JES',
         'JES_Modelling',
         'JES_Detector',
