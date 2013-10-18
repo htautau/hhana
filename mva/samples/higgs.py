@@ -1,6 +1,7 @@
 import os
 
 from rootpy.io import root_open
+from rootpy.stats import histfactory
 
 # Higgs cross sections and branching ratios
 import yellowhiggs
