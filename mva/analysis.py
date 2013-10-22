@@ -129,19 +129,19 @@ class Analysis(object):
                     s.scale *= self.higgs_125.events()[1].value / s.events()[1].value
                 signals.append(s)
             return signals
-        elif mode is None:
+        elif mode == 'workspace':
             for m in mass:
-                for modes in samples.Higgs.MODES_COMBINED:
+                for mode in samples.Higgs.MODES:
                     signals.append(samples.Higgs(
                         year=self.year,
-                        modes=modes,
+                        mode=mode,
                         mass=m,
                         systematics=self.systematics,
                         mpl=self.mpl,
                         scale=self.mu))
-        elif mode == 'workspace':
+        elif mode is None:
             for m in mass:
-                for modes in samples.Higgs.MODES:
+                for modes in samples.Higgs.MODES_COMBINED:
                     signals.append(samples.Higgs(
                         year=self.year,
                         modes=modes,
