@@ -205,6 +205,7 @@ class Analysis(object):
                     cuts=None,
                     include_signal=True,
                     mass=125,
+                    mode=None
                     clf=None,
                     min_score=None,
                     max_score=None,
@@ -223,7 +224,7 @@ class Analysis(object):
             else:
                 suffix = '_%d' % mass
             channel_name += suffix
-            samples += self.get_signals(mass)
+            samples += self.get_signals(mass, mode)
 
         # create HistFactory samples
         histfactory_samples = []
