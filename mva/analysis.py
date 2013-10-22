@@ -387,7 +387,6 @@ class Analysis(object):
     def clf_channels(self, clf,
                      category, region,
                      cuts=None,
-                     hist_template=None,
                      bins=10,
                      mass_points=None,
                      mode=None,

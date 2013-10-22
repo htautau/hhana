@@ -80,7 +80,6 @@ signal_region = mass_regions.signal_region
 #signal_region = control_region # for creating control workspaces
 train_region = mass_regions.train_region
 
-all_channels = {}
 categories = CATEGORIES[args.categories]
 category_names = args.category_names
 target_region = args.target_region
@@ -608,38 +607,20 @@ def make_workspaces():
     # yup, adding Channels using rootpy's HistFactory pythonizations
     controls = [sum(controls)]
 
+    all_channels = {}
     for category in categories:
         # apply normalization
         analysis.normalize(category, fit_param=args.fit_param)
         clf = analysis.get_clf(category, load=True)
-        if args.optimize_limits:
-            # Determine the number of bins that yields the best limit at 125
-            channels = hypotests.optimized_channels(
-                clf, category, target_region,
-                analysis.backgrounds,
-                data=analysis.data, 
-                cuts=signal_region,
-                mass_points=args.mass_points,
-                mu=analysis.mu,
-                systematics=args.systematics,
-                lumi_rel_error=lumi_rel_error,
-                algo='EvenBinningByLimit',
-                #algo='UnevenBinningBySignificance',
-                #unblind=args.unblind
-                )
-        else:
-            # construct a "channel" for each mass point
-            channels = hypotests.channels(
-                clf, category, target_region,
-                analysis.backgrounds,
-                data=analysis.data, 
-                cuts=signal_region,
-                bins=category.limitbins,
-                binning=category.limitbinning,
-                mass_points=args.mass_points,
-                mu=analysis.mu,
-                systematics=args.systematics,
-                unblind=args.unblind)
+        # construct a "channel" for each mass point
+        scores, channels = analysis.clf_channels(
+            clf, category, target_region,
+            cuts=signal_region,
+            bins=category.limitbins,
+            mass_points=args.mass_points,
+            mu=analysis.mu,
+            systematics=args.systematics,
+            unblind=args.unblind)
         for mass, channel in channels.items():
             if mass not in all_channels:
                 all_channels[mass] = {}
