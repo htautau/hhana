@@ -703,7 +703,7 @@ if 'track-workspace' in args.actions:
     write_workspaces(mass_category_channel)
 
 if 'deta-workspace' in args.actions:
-    hist_template = Hist(10, 0, 3, type='D')
+    hist_template = Hist(10, 0, 1.5, type='D')
     mass_category_channel = make_var_channels(
         hist_template,
         'dEta_tau1_tau2',
