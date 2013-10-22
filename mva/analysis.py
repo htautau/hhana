@@ -205,7 +205,7 @@ class Analysis(object):
                     cuts=None,
                     include_signal=True,
                     mass=125,
-                    mode=None
+                    mode=None,
                     clf=None,
                     min_score=None,
                     max_score=None,
