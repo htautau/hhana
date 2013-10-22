@@ -139,6 +139,16 @@ class Analysis(object):
                         systematics=self.systematics,
                         mpl=self.mpl,
                         scale=self.mu))
+        elif mode == 'workspace':
+            for m in mass:
+                for modes in samples.Higgs.MODES:
+                    signals.append(samples.Higgs(
+                        year=self.year,
+                        modes=modes,
+                        mass=m,
+                        systematics=self.systematics,
+                        mpl=self.mpl,
+                        scale=self.mu))
         else:
             for m in mass:
                 signals.append(samples.Higgs(

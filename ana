@@ -619,7 +619,8 @@ def make_track_channels(categories, include_signal=False):
                     #clf=clf,
                     #cuts=signal_region,
                     include_signal=True,
-                    mass=mass)
+                    mass=mass,
+                    mode='workspace')
                 if mass not in channels:
                     channels[mass] = {}
                 channels[mass][category.name] = contr
@@ -639,6 +640,7 @@ def make_clf_channels():
             cuts=signal_region,
             bins=category.limitbins,
             mass_points=args.mass_points,
+            mode='workspace',
             systematics=args.systematics,
             unblind=args.unblind)
         for mass, channel in channels.items():
