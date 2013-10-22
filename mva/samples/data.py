@@ -8,6 +8,7 @@ import numpy as np
 from numpy.lib import recfunctions
 
 from rootpy import asrootpy
+from rootpy.plotting import Hist
 
 
 class DataInfo():

@@ -81,12 +81,10 @@ class QCD(Sample, Background):
                 systematic=systematic,
                 hist=mc_subtract,
                 scale=mc_scale)
-        """
         log.info("QCD: Data(%.3f) - MC(%.3f)" % (
-            self.data_scale * data, mc_subtract))
+            (self.data_scale * data)[1].value, mc_subtract[1].value))
         log.info("MC subtraction: %.1f%%" % (
-            100. * mc_subtract / (self.data_scale * data)))
-        """
+            100. * (mc_subtract[1].value) / ((self.data_scale * data)[1].value)))
         return (data * self.data_scale - mc_subtract) * self.scale
 
     def draw_into(self, hist, expr, category, region,
