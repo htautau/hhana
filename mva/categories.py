@@ -421,6 +421,12 @@ CATEGORIES = {
         Category_Nonboosted_1J,
         #Category_Nonboosted_0J,
     ],
+    'mva_all': [
+        Category_VBF,
+        Category_Boosted,
+        Category_Nonboosted_1J,
+        Category_Nonboosted_0J,
+    ],
     'mva_id_controls': [
         Category_VBF_ID_Control,
         Category_Boosted_ID_Control,

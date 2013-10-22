@@ -390,7 +390,6 @@ class Analysis(object):
                      bins=10,
                      mass_points=None,
                      mode=None,
-                     mu=1.,
                      systematics=True,
                      unblind=False,
                      hybrid_data=False,

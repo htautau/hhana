@@ -37,6 +37,8 @@ def general_parser(parser=None):
                 'correlate',
                 'evaluate',
                 'workspace',
+                'track-workspace',
+                'deta-workspace',
                 'ntup',
                 'ntuptruth',
                 'massplot'],
