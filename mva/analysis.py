@@ -31,6 +31,7 @@ class Analysis(object):
                  use_embedding=True,
                  target_region='OS_TRK',
                  qcd_shape_region='nOS',
+                 decouple_qcd_shape=True,
                  fit_param='TRACK',
                  random_mu=False,
                  mu=1.,
@@ -94,6 +95,7 @@ class Analysis(object):
             data=self.data,
             mc=[self.ztautau, self.others],
             shape_region=qcd_shape_region,
+            decouple_shape=decouple_qcd_shape,
             mpl=mpl)
 
         self.qcd.scale = 1.

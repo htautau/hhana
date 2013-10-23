@@ -69,6 +69,7 @@ def general_parser(parser=None):
     parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,
             default='nOS',
             help='QCD shape region')
+    parser.add_argument('--no-decouple-qcd-shape', action='store_true', default=False)
     parser.add_argument('--optimize-limits', default=False, action='store_true')
     parser.add_argument('--mass-points', default='125')
     parser.add_argument('--target-region', choices=TARGET_REGIONS,

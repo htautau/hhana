@@ -351,8 +351,8 @@ class Sample(object):
                 print_hist(high)
 
                 histsys = histfactory.HistoSys(
-                    'ATLAS_ANA_HH_{1:d}_QCD_{0}'.format(
-                        '0J' if category.analysis_control else '1JBV',
+                    'ATLAS_ANA_HH_{1:d}_QCD{0}'.format(
+                        '_CR' if category.analysis_control and self.decouple_shape else '',
                         self.year),
                     low=low, high=high)
 
@@ -534,8 +534,8 @@ class Sample(object):
                     print_hist(high)
 
                     histsys = histfactory.HistoSys(
-                        'ATLAS_ANA_HH_{1:d}_QCD_{0}'.format(
-                            '0J' if category.analysis_control else '1JBV',
+                        'ATLAS_ANA_HH_{1:d}_QCD{0}'.format(
+                            '_CR' if category.analysis_control and self.decouple_shape else '',
                             self.year),
                         low=low, high=high)
 

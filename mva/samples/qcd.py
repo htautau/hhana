@@ -40,6 +40,7 @@ class QCD(Sample, Background):
                  data_scale=1.,
                  mc_scales=None,
                  shape_region='SS',
+                 decouple_shape=True,
                  cuts=None,
                  color='#59d454',
                  mpl=False):
@@ -66,6 +67,7 @@ class QCD(Sample, Background):
             self.mc_scales = [1. for m in self.mc]
         self.scale_error = scale_error
         self.shape_region = shape_region
+        self.decouple_shape = decouple_shape
         self.systematics = mc[0].systematics
 
     def events(self, category, region, cuts=None,
