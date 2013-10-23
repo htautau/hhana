@@ -683,14 +683,14 @@ def draw_samples(
         if ndim > 1 and ravel:
             data_hist = data_hist.ravel()
 
-        log.info("Data events: %d" % sum(data_hist))
-        log.info("Model events: %f" % sum(sum(model_hists)))
+        log.info("Data events: %d" % sum(data_hist.y()))
+        log.info("Model events: %f" % sum(sum(model_hists).y()))
         for hist in model_hists:
-            log.info("{0} {1}".format(hist.GetTitle(), sum(hist)))
+            log.info("{0} {1}".format(hist.GetTitle(), sum(hist.y())))
         if signal is not None:
-            log.info("Signal events: %f" % sum(sum(signal_hists)))
-        log.info("Data / Model: %f" % (sum(data_hist) /
-            sum(sum(model_hists))))
+            log.info("Signal events: %f" % sum(sum(signal_hists).y()))
+        log.info("Data / Model: %f" % (sum(data_hist.y()) /
+            sum(sum(model_hists).y())))
 
     else:
         data_hist = None

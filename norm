@@ -147,8 +147,8 @@ for cat_def in args.categories:
         scale_init = 1.
         
         # Determine scale factor to get from 1p3p embedded Z to 1p3p ALPGEN Z
-        sf_embed_13 = ztt.events(category, 'OS_TRK') / ztt_embedded.events(category, 'OS_TRK')
-        sf_embed = ztt.events(category, 'OS') / ztt_embedded.events(category, 'OS')
+        sf_embed_13 = ztt.events(category, 'OS_TRK')[1].value / ztt_embedded.events(category, 'OS_TRK')[1].value
+        sf_embed = ztt.events(category, 'OS')[1].value / ztt_embedded.events(category, 'OS')[1].value
 
         """
         # Initialize Z scale to (data - QCD - others) / Z
@@ -456,9 +456,9 @@ for cat_def in args.categories:
         qcd_others_scale_nos = 1.
         
         qcd.shape_region = 'SS_TRK'
-        qcd_events_ss = qcd.events(category, 'SS_TRK')
+        qcd_events_ss = qcd.events(category, 'SS_TRK')[1].value
         qcd.shape_region = 'nOS'
-        qcd_events_nos = qcd.events(category, 'nOS')
+        qcd_events_nos = qcd.events(category, 'nOS')[1].value
 
         sf_qcd = qcd_events_ss / float(qcd_events_nos)
 
