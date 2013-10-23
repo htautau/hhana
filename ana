@@ -338,7 +338,7 @@ for category in analysis.iter_categories(
             stacked_model=False,
             cuts=cuts)
 
-    if 'train' in args.actions and not is_control:
+    if 'train' in args.actions: # and not is_control:
         # all modes, all masses
         signals_train = [
             Higgs(
@@ -501,7 +501,7 @@ for category in analysis.iter_categories(
             classifier=clf if 'train' in args.actions else None,
             unblind=args.unblind)
 
-    if 'evaluate' in args.actions and not is_control:
+    if 'evaluate' in args.actions: # and not is_control:
         # create BDT validation plots
         clf.evaluate(
             analysis,

@@ -365,7 +365,7 @@ class Category_Nonboosted_0J(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
-    limitbins = 7
+    limitbins = 100
     features = features_0j
     # train with all modes
     norm_category = Category_Preselection
