@@ -39,6 +39,7 @@ def general_parser(parser=None):
                 'workspace',
                 'track-workspace',
                 'deta-workspace',
+                'bdt-workspace',
                 'ntup',
                 'ntuptruth',
                 'massplot'],

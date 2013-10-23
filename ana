@@ -668,7 +668,7 @@ def make_var_channels(hist_template, expr, categories, include_signal=False):
     return channels
 
 
-def make_clf_channels():
+def make_clf_channels(categories):
 
     all_channels = {}
     for category in categories:
@@ -695,12 +695,15 @@ if 'workspace' in args.actions:
     controls = make_track_channels(
         CATEGORIES['mva_workspace_controls'],
         include_signal=False)
-    mass_category_channel = make_clf_channels()
+    mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
+
+
+categories = CATEGORIES['mva_all']
 
 if 'track-workspace' in args.actions:
     mass_category_channel = make_track_channels(
-        CATEGORIES['mva_all'],
+        categories,
         include_signal=True)
     write_workspaces(mass_category_channel)
 
@@ -709,6 +712,11 @@ if 'deta-workspace' in args.actions:
     mass_category_channel = make_var_channels(
         hist_template,
         'dEta_tau1_tau2',
-        CATEGORIES['mva_all'],
+        categories,
         include_signal=True)
     write_workspaces(mass_category_channel)
+
+if 'bdt-workspace' in args.actions:
+    mass_category_channel = make_clf_channels(categories)
+    write_workspaces(mass_category_channel)
+
