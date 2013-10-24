@@ -397,6 +397,22 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
     #norm_category = Category_Preselection
 
 
+class Category_Rest(Category_Preselection):
+
+    analysis_control = True
+    name = 'rest'
+    label = r'$\tau_{h}\tau_{h}$: Rest Category'
+    root_label = '#tau_{h}#tau_{h}: Rest Category'
+    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts)
+    fitbins = 8
+    limitbins = 100
+    features = features_0j
+    # train with all modes
+    norm_category = Category_Preselection
+    #workspace_min_clf = 0.
+
+
 CATEGORIES = {
     'cuts_presel': [
         Category_Cuts_Preselection,
@@ -418,14 +434,15 @@ CATEGORIES = {
     'mva': [
         Category_VBF,
         Category_Boosted,
-        Category_Nonboosted_1J,
+        #Category_Nonboosted_1J,
         #Category_Nonboosted_0J,
     ],
     'mva_all': [
         Category_VBF,
         Category_Boosted,
-        Category_Nonboosted_1J,
-        Category_Nonboosted_0J,
+        #Category_Nonboosted_1J,
+        #Category_Nonboosted_0J,
+        Category_Rest,
     ],
     'mva_id_controls': [
         Category_VBF_ID_Control,
@@ -442,6 +459,7 @@ CATEGORIES = {
     'mva_workspace_controls': [
         #Category_Nonboosted_1J_Control,
         #Category_Nonboosted_0J_Control,
-        Category_Nonboosted_0J,
+        #Category_Nonboosted_0J,
+        Category_Rest,
     ]
 }
