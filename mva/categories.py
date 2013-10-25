@@ -255,7 +255,7 @@ class Category_VBF(Category_Preselection):
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
     #limitbins = 98
-    limitbins = 400
+    limitbins = 40
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
@@ -289,7 +289,7 @@ class Category_Boosted(Category_Preselection):
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
     #limitbins = 86
-    limitbins = 400
+    limitbins = 40
     # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes
@@ -324,7 +324,7 @@ class Category_Nonboosted_1J(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 5
-    limitbins = 100
+    limitbins = 10
     features = features_1j
     # train with all modes
     norm_category = Category_Preselection
@@ -365,7 +365,7 @@ class Category_Nonboosted_0J(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
-    limitbins = 100
+    limitbins = 10
     features = features_0j
     # train with all modes
     norm_category = Category_Preselection
@@ -406,7 +406,7 @@ class Category_Rest(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
-    limitbins = 100
+    limitbins = 10
     features = features_0j
     # train with all modes
     norm_category = Category_Preselection
@@ -434,15 +434,15 @@ CATEGORIES = {
     'mva': [
         Category_VBF,
         Category_Boosted,
-        #Category_Nonboosted_1J,
+        Category_Nonboosted_1J,
         #Category_Nonboosted_0J,
     ],
     'mva_all': [
         Category_VBF,
         Category_Boosted,
-        #Category_Nonboosted_1J,
-        #Category_Nonboosted_0J,
-        Category_Rest,
+        Category_Nonboosted_1J,
+        Category_Nonboosted_0J,
+        #Category_Rest,
     ],
     'mva_id_controls': [
         Category_VBF_ID_Control,
@@ -459,7 +459,7 @@ CATEGORIES = {
     'mva_workspace_controls': [
         #Category_Nonboosted_1J_Control,
         #Category_Nonboosted_0J_Control,
-        #Category_Nonboosted_0J,
-        Category_Rest,
+        Category_Nonboosted_0J,
+        #Category_Rest,
     ]
 }

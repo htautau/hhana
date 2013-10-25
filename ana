@@ -692,9 +692,17 @@ def make_clf_channels(categories):
     
     
 if 'workspace' in args.actions:
-    controls = make_track_channels(
+    #controls = make_track_channels(
+    #    CATEGORIES['mva_workspace_controls'],
+    #    include_signal=False)
+    
+    hist_template = Hist(10, 0, 1.5, type='D')
+    controls = make_var_channels(
+        hist_template,
+        'dEta_tau1_tau2',
         CATEGORIES['mva_workspace_controls'],
-        include_signal=False)
+        include_signal=True)[125].values()
+
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 

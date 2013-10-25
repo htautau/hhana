@@ -13,8 +13,17 @@ class Ztautau(Background):
 
     def histfactory(self, sample, category, systematics=True):
 
-        sample.AddNormFactor('ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
-                             1., 0., 50., False)
+        if self.workspace_norm is not None:
+            sample.AddNormFactor(
+                'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
+                self.workspace_norm,
+                self.workspace_norm,
+                self.workspace_norm,
+                True) # const
+        else:
+            sample.AddNormFactor(
+                'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
+                1., 0., 50., False) # floating
 
     def __init__(self, *args, **kwargs):
         """
@@ -22,6 +31,7 @@ class Ztautau(Background):
         the normalization is determined by a fit to the data
         """
         self.scale_error = 0.
+        self.workspace_norm = kwargs.pop('workspace_norm', None)
         super(Ztautau, self).__init__(*args, **kwargs)
 
 
