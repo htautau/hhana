@@ -287,7 +287,7 @@ def make_clf_channels(categories):
             mass_points=args.mass_points,
             mode='workspace',
             systematics=args.systematics,
-            unblind=args.unblind)
+            unblind=args.unblind or 0.3)
         for mass, channel in channels.items():
             if mass not in all_channels:
                 all_channels[mass] = {}
@@ -760,14 +760,12 @@ if 'workspace' in args.actions:
     #controls = make_track_channels(
     #    CATEGORIES['mva_workspace_controls'],
     #    include_signal=False)
-    
     hist_template = Hist(10, 0, 1.5, type='D')
     controls = make_var_channels(
         hist_template,
         'dEta_tau1_tau2',
         CATEGORIES['mva_workspace_controls'],
-        include_signal=True)[125].values()
-
+        include_signal=False)
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 

@@ -217,7 +217,6 @@ class Analysis(object):
                     min_score=None,
                     max_score=None,
                     systematics=True,
-                    unblind=False,
                     no_signal_fixes=False):
 
         # TODO: implement blinding
@@ -265,7 +264,6 @@ class Analysis(object):
                           field_scale=None,
                           weight_hist=None,
                           systematics=True,
-                          unblind=False,
                           no_signal_fixes=False,
                           bootstrap_data=False):
 
