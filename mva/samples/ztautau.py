@@ -20,6 +20,13 @@ class Ztautau(Background):
                 self.workspace_norm,
                 self.workspace_norm,
                 True) # const
+        elif self.constrain_norm:
+            # overallsys
+            error = self.scale_error / self.scale
+            sample.AddOverallSys(
+                'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
+                1. - error,
+                1. + error)
         else:
             sample.AddNormFactor(
                 'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
@@ -32,6 +39,7 @@ class Ztautau(Background):
         """
         self.scale_error = 0.
         self.workspace_norm = kwargs.pop('workspace_norm', None)
+        self.constrain_norm = kwargs.pop('constrain_norm', False)
         super(Ztautau, self).__init__(*args, **kwargs)
 
 

@@ -23,6 +23,13 @@ class QCD(Sample, Background):
                 self.workspace_norm,
                 self.workspace_norm,
                 True) # const
+        elif self.constrain_norm:
+            # overallsys
+            error = self.scale_error / self.scale
+            sample.AddOverallSys(
+                'ATLAS_norm_HH_{0:d}_QCD'.format(self.year),
+                1. - error,
+                1. + error)
         else:
             sample.AddNormFactor(
                 'ATLAS_norm_HH_{0:d}_QCD'.format(self.year),
@@ -51,6 +58,7 @@ class QCD(Sample, Background):
                  shape_region='SS',
                  decouple_shape=True,
                  workspace_norm=None,
+                 constrain_norm=False,
                  cuts=None,
                  color='#59d454',
                  mpl=False):
@@ -79,6 +87,7 @@ class QCD(Sample, Background):
         self.shape_region = shape_region
         self.decouple_shape = decouple_shape
         self.workspace_norm = workspace_norm
+        self.constrain_norm = constrain_norm
         self.systematics = mc[0].systematics
 
     def events(self, category, region, cuts=None,

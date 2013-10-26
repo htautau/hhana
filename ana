@@ -94,6 +94,7 @@ analysis = Analysis(
     target_region=args.target_region,
     qcd_shape_region=args.qcd_shape_region,
     decouple_qcd_shape=not args.no_decouple_qcd_shape,
+    constrain_norms=args.constrain_norms,
     fit_param=args.fit_param,
     random_mu=args.random_mu,
     mu=args.mu,
@@ -760,12 +761,15 @@ if 'workspace' in args.actions:
     #controls = make_track_channels(
     #    CATEGORIES['mva_workspace_controls'],
     #    include_signal=False)
-    hist_template = Hist(10, 0, 1.5, type='D')
-    controls = make_var_channels(
-        hist_template,
-        'dEta_tau1_tau2',
-        CATEGORIES['mva_workspace_controls'],
-        include_signal=False)
+    if args.constrain_norms:
+        controls = []
+    else:
+        hist_template = Hist(10, 0, 1.5, type='D')
+        controls = make_var_channels(
+            hist_template,
+            'dEta_tau1_tau2',
+            CATEGORIES['mva_workspace_controls'],
+            include_signal=False)
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 

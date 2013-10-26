@@ -84,6 +84,8 @@ def general_parser(parser=None):
     parser.add_argument('--systematics-components', default=None,
             help='only include the following systematics in plots Example: '
                  'TES_TRUE_UP,QCD_SHAPE_UP')
+    parser.add_argument('--constrain-norms',
+            action='store_true', default=False)
     return parser
 
 

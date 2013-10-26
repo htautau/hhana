@@ -34,6 +34,7 @@ class Analysis(object):
                  decouple_qcd_shape=True,
                  qcd_workspace_norm=None,
                  ztt_workspace_norm=None,
+                 constrain_norms=False,
                  fit_param='TRACK',
                  random_mu=False,
                  mu=1.,
@@ -61,6 +62,7 @@ class Analysis(object):
                 year=year,
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
+                constrain_norm=constrain_norms,
                 mpl=mpl)
         else:
             log.info("Using ALPGEN Ztautau")
@@ -68,6 +70,7 @@ class Analysis(object):
                 year=year,
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
+                constrain_norm=constrain_norms,
                 mpl=mpl)
 
         self.others = samples.Others(
@@ -101,6 +104,7 @@ class Analysis(object):
             shape_region=qcd_shape_region,
             decouple_shape=decouple_qcd_shape,
             workspace_norm=qcd_workspace_norm,
+            constrain_norm=constrain_norms,
             mpl=mpl)
 
         self.qcd.scale = 1.
