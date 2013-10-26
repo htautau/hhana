@@ -586,7 +586,6 @@ class Classifier(object):
         category = self.category
         region = self.region
 
-        """
         ############################################################
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
@@ -612,7 +611,6 @@ class Classifier(object):
                 signal_colour_map=cm.spring,
                 plot_signal_significance=True,
                 logy=logy)
-        """
 
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
