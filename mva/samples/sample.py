@@ -25,7 +25,7 @@ from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
 from ..lumi import get_lumi_uncert
 
 
-def get_workspace_np_name(syst, year):
+def get_workspace_np_name(sample, syst, year):
 
     npname = 'ATLAS_{0}_{1:d}'.format(syst, year)
 
@@ -44,9 +44,15 @@ def get_workspace_np_name(syst, year):
     npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
     npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
     npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
-    npname = npname.replace('TRIGGER', 'TRIGGER_HH')
     npname = npname.replace('MET_RESOSOFTTERMS_2012', 'MET_RESOSOFT')
     npname = npname.replace('MET_SCALESOFTTERMS_2012', 'MET_SCALESOFT')
+
+    from .ztautau import Embedded_Ztautau
+
+    if isinstance(sample, Embedded_Ztautau):
+        npname = npname.replace('TRIGGER', 'TRIGGER_EMB_HH')
+    else:
+        npname = npname.replace('TRIGGER', 'TRIGGER_HH')
 
     return npname
 
@@ -319,7 +325,7 @@ class Sample(object):
                         else:
                             sys_component += '_TAU_QQ'
 
-                npname = get_workspace_np_name(sys_component, self.year)
+                npname = get_workspace_np_name(self, sys_component, self.year)
 
                 histsys = histfactory.HistoSys(
                     npname,
@@ -498,7 +504,7 @@ class Sample(object):
                             else:
                                 sys_component += '_TAU_QQ'
 
-                    npname = get_workspace_np_name(sys_component, self.year)
+                    npname = get_workspace_np_name(self, sys_component, self.year)
 
                     histsys = histfactory.HistoSys(
                         npname,
