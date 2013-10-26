@@ -166,6 +166,11 @@ workspace:
 	nohup ./ana workspace --mass-points all > workspace.log &
 	nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu --mass-points all > workspace_unblind_random.log &
 
+.PHONY: workspace-const
+workspace-const:
+	nohup ./ana workspace --constrain-norms --workspace-suffix const_norms --mass-points all > workspace_const_norms.log &
+	nohup ./ana workspace --constrain-norms --unblind --mu 123 --workspace-suffix const_norms_unblinded_random_mu --mass-points all > workspace_const_norms_unblind_random.log &
+
 .PHONY: workspace-125
 workspace-125:
 	nohup ./ana workspace > workspace.log &
