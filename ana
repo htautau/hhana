@@ -17,7 +17,6 @@ import shutil
 from rootpy.tree import Cut
 from rootpy.io import root_open
 from rootpy.stats import histfactory
-from rootpy.stats.fit import fit_workspace
 from rootpy.plotting import Hist2D, Hist
 from rootpy.utils.silence import silence_sout_serr
 from rootpy.plotting.contrib import plot_contour_matrix
@@ -321,7 +320,7 @@ if 'norm' in args.actions:
         const_params=CONST_PARAMS,
         silence=True)
     # fit workspace
-    minim = fit_workspace(workspace, minimizer_type='Minuit', strategy=1)
+    minim = workspace.fit(minimizer_type='Minuit', strategy=1)
     fit_result = minim.save()
     # get fitted norms and errors
     qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_QCD')
