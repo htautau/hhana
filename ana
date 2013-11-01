@@ -372,29 +372,47 @@ if 'yields' in args.actions:
             pos = abs(pos) if pos < 0 else 1
             fmt = '${0:.'+str(pos)+'f}\pm {1:.'+str(pos)+'f}$'
             return fmt.format(self.value, self.uncert)
+    
+    header = ['Process/Category',]
+    rows = []
+    for sample in analysis.signals + analysis.backgrounds:
+        row = [sample._label]
+        rows.append(row)
+    rows.extend([
+        ['Total Background'],
+        ['Total Signal'],
+        ['Data']])
 
     for category in analysis.iter_categories(
             args.categories, args.controls, names=args.category_names):
-        samples = []
+        header.append(
+            category.name.capitalize() if category.name != 'vbf' else
+            category.name.upper())
+        irow = 0
         total_signal = Hist(1, -100, 100)
-        for sample in analysis.signals:
+        for sample in analysis.signals[::-1]:
             events = sample.events(category, target_region)
             total_signal += events
-            samples.append((sample._label, events))
-        total_model = Hist(1, -100, 100)
-        for sample in analysis.backgrounds:
-            events = sample.events(category, target_region)
-            total_model += events
-            samples.append((sample._label, events))
-        data_events = analysis.data.events(category, target_region)
-        samples.append(('Total Background', total_model))
-        samples.append(('Total Signal', total_signal))
-        samples.append(('Data', data_events))
-        for name, events in samples:
-            log.info("{0} & {1}".format(
-                name, ufloat(
+            rows[irow].append(repr(ufloat(
                 events.GetBinContent(1),
                 events.GetBinError(1))))
+            irow += 1
+        total_model = Hist(1, -100, 100)
+        for sample in analysis.backgrounds[::-1]:
+            events = sample.events(category, target_region)
+            total_model += events
+            rows[irow].append(repr(ufloat(
+                events.GetBinContent(1),
+                events.GetBinError(1))))
+            irow += 1
+        data_events = analysis.data.events(category, target_region)
+        for i, h in enumerate((total_model, total_signal, data_events)):
+            rows[irow + i].append(repr(ufloat(
+                h.GetBinContent(1),
+                h.GetBinError(1))))
+    for row in rows:
+        print ' & '.join(row) + '\\\\'
+
 
 
 if 'ntup' in args.actions:
