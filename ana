@@ -375,7 +375,7 @@ if 'yields' in args.actions:
     
     header = ['Process/Category',]
     rows = []
-    for sample in analysis.signals + analysis.backgrounds:
+    for sample in analysis.signals[::-1] + analysis.backgrounds[::-1]:
         row = [sample._label]
         rows.append(row)
     rows.extend([
