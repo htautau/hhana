@@ -356,12 +356,11 @@ class Sample(object):
                 log.info("QCD high shape")
                 print_hist(high)
 
-                histsys = histfactory.HistoSys(
-                    'ATLAS_ANA_HH_{1:d}_QCD{0}'.format(
-                        '_CR' if category.analysis_control and self.decouple_shape else '',
-                        self.year),
-                    low=low, high=high)
-
+                npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
+                if category.analysis_control and self.decouple_shape:
+                    npname += '_CR'
+                log.warning(npname)
+                histsys = histfactory.HistoSys(npname, low=low, high=high)
                 sample.AddHistoSys(histsys)
 
         if isinstance(self, Signal):
@@ -539,16 +538,12 @@ class Sample(object):
                     log.info("QCD high shape")
                     print_hist(high)
 
-                    histsys = histfactory.HistoSys(
-                        'ATLAS_ANA_HH_{1:d}_QCD{0}'.format(
-                            '_CR' if category.analysis_control and self.decouple_shape else '',
-                            self.year),
-                        low=low, high=high)
-
-                    norm, shape = histfactory.split_norm_shape(histsys, hist)
-
-                    sample.AddOverallSys(norm)
-                    sample.AddHistoSys(shape)
+                    npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
+                    if category.analysis_control and self.decouple_shape:
+                        npname += '_CR'
+                    log.warning(npname)
+                    histsys = histfactory.HistoSys(npname, low=low, high=high)
+                    sample.AddHistoSys(histsys)
 
             if isinstance(self, Signal):
                 log.info("defining SigXsecOverSM POI for %s" % self.name)

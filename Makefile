@@ -158,7 +158,6 @@ plots:
 bdt-plots:
 	nohup ./ana train evaluate --output-formats eps png --category-names vbf > bdt_plots_vbf.log &
 	nohup ./ana train evaluate --output-formats eps png --category-names boosted > bdt_plots_boosted.log &
-	nohup ./ana train evaluate --output-formats eps png --category-names 1j_nonboosted > bdt_plots_1j.log &
 	nohup ./ana train evaluate --output-formats eps png --categories mva_deta_controls --unblind > deta_control_plots.log & 
 
 .PHONY: workspace
