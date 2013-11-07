@@ -808,19 +808,23 @@ class Sample(object):
             analysis = bootstrap_data
             recs = []
             scores = []
-            samples = analysis.backgrounds[:] + [analysis.higgs_125]
-            for s in samples:
+            for s in analysis.backgrounds:
                 rec = s.merged_records(category, region,
                     fields=all_fields, cuts=cuts,
                     include_weight=True,
                     clf=clf,
                     systematic=systematic)
                 recs.append(rec)
-            rec = rec_stack(recs, fields=all_fields + ['classifier', 'weight'])
+            b_rec = rec_stack(recs, fields=all_fields + ['classifier', 'weight'])
+            s_rec = analysis.higgs_125.merged_records(category, region,
+                fields=all_fields, cuts=cuts,
+                include_weight=True,
+                clf=clf,
+                systematic=systematic)
 
             # handle negative weights separately
-            neg = rec[rec['weight'] < 0]
-            pos = rec[rec['weight'] >= 0]
+            b_neg = b_rec[b_rec['weight'] < 0]
+            b_pos = b_rec[b_rec['weight'] >= 0]
 
             def bootstrap(rec):
                 prob = np.abs(rec['weight'])
@@ -832,7 +836,10 @@ class Sample(object):
                     replace=False, p=prob)
                 return rec[sample_idx]
 
-            rec = rec_stack([bootstrap(neg), bootstrap(pos)],
+            rec = rec_stack([
+                bootstrap(b_neg),
+                bootstrap(b_pos),
+                bootstrap(s_rec)],
                 fields=all_fields + ['classifier', 'weight'])
 
             rec['weight'][:] = 1.

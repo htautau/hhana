@@ -588,6 +588,7 @@ class Classifier(object):
 
         ############################################################
         # show the background model and data in the control region
+        """
         log.info("plotting classifier output in control region ...")
         log.info(control_region)
 
@@ -611,7 +612,7 @@ class Classifier(object):
                 signal_colour_map=cm.spring,
                 plot_signal_significance=True,
                 logy=logy)
-
+        """
         ########################################################################
         # show the background model and 125 GeV signal in the signal region
         log.info("plotting classifier output in the signal region ...")
@@ -648,7 +649,7 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
 
-        bkg_score_hist = Hist(category.limitbins / 10, min_score, max_score)
+        bkg_score_hist = Hist(category.limitbins, min_score, max_score)
         hist_scores(bkg_score_hist, bkg_scores)
         _bkg = bkg_score_hist.Clone()
         bkg_score_hist /= sum(bkg_score_hist.y())
@@ -676,7 +677,7 @@ class Classifier(object):
         ###############################################################
         log.info("plotting mmc weighted by signal BDT distribution")
 
-        sig_score_hist = Hist(category.limitbins / 10, min_score, max_score)
+        sig_score_hist = Hist(category.limitbins, min_score, max_score)
         hist_scores(sig_score_hist, sig_scores)
         _sig = sig_score_hist.Clone()
         sig_score_hist /= sum(sig_score_hist.y())
