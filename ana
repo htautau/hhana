@@ -666,11 +666,11 @@ for category in analysis.iter_categories(
         stack.Draw()
         stack.xaxis.title = 'S / #sqrt{S + B}'
         stack.yaxis.title = 'Events'
-        stack.SetMinimum(10)
-        stack.SetMaximum(1000)
+        stack.SetMinimum(15)
+        stack.SetMaximum(700)
         stack.Draw()
-        stack.yaxis.SetRangeUser(10, 1000)
-        stack.yaxis.SetLimits(10, 1000)
+        stack.yaxis.SetRangeUser(15, 700)
+        stack.yaxis.SetLimits(15, 700)
         data_money.Draw('same E0')
         c.SaveAs('money_{0}.png'.format(category.name))
 

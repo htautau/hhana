@@ -700,7 +700,7 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=False)
+            unblind=unblind)
 
         ###############################################################
         log.info("plotting mmc weighted by S / B")
@@ -733,8 +733,8 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=True,
-            bootstrap_data=analysis)
+            unblind=True)
+            #bootstrap_data=analysis)
 
         channel = field_channel[MMC_MASS]
         with root_open('sob.root', 'update') as f:
