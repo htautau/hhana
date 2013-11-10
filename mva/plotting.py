@@ -964,7 +964,6 @@ def draw_channel(channel, systematics=True, **kwargs):
             signal_hists.append(nominal_hist)
         else:
             model_hists.append(nominal_hist)
-
     return draw(
         data=data_hist,
         model=model_hists or None,

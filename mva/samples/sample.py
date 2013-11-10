@@ -510,21 +510,7 @@ class Sample(object):
                         low=hist_down,
                         high=hist_up)
 
-                    norm, shape = histfactory.split_norm_shape(histsys, hist)
-
-                    sample.AddOverallSys(norm)
-
-                    # drop all jet related shape terms from Others (JES, JVF, JER)
-                    if isinstance(self, Others) and (
-                            sys_component.startswith('JES') or
-                            sys_component.startswith('JVF') or
-                            sys_component.startswith('JER')):
-                        continue
-
-                    # if you fit the ratio of nominal to up / down to a "pol0" and
-                    # get reasonably good chi2, then you may consider dropping the
-                    # histosys part
-                    sample.AddHistoSys(shape)
+                    sample.AddHistoSys(histsys)
 
                 if isinstance(self, QCD):
 
