@@ -947,6 +947,7 @@ def draw_channel(channel, systematics=True, **kwargs):
     model_hists = []
     signal_hists = []
     systematics_terms = {}
+    sys_names = channel.sys_names()
     for sample in channel.samples:
         nominal_hist = sample.hist
         if systematics:
@@ -959,6 +960,14 @@ def draw_channel(channel, systematics=True, **kwargs):
                 dn_hist = nominal_hist * overall.low
                 _systematics[overall.name + '_UP'] = up_hist
                 _systematics[overall.name + '_DOWN'] = dn_hist
+            """
+            for sys_name in sys_names:
+                dn_hist, up_hist = sample.sys_hist(sys_name)
+                _systematics[sys_name + '_DOWN'] = dn_hist
+                _systematics[sys_name + '_UP'] = up_hist
+                log.info("%s %f %f" % (sys_name, dn_hist.integral(), up_hist.integral()))
+            log.info(repr(_systematics))
+            """
             nominal_hist.systematics = _systematics
         if sample.GetNormFactor('SigXsecOverSM') is not None:
             signal_hists.append(nominal_hist)

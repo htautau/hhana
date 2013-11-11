@@ -279,7 +279,7 @@ class Sample(object):
         # convert to 1D if 2D (also handles systematics if present)
         hist = ravel(hist)
 
-        print_hist(hist)
+        #print_hist(hist)
 
         # set the nominal histogram
         sample.hist = hist
@@ -351,10 +351,10 @@ class Sample(object):
                 low = ravel(low)
                 high = ravel(high)
 
-                log.info("QCD low shape")
-                print_hist(low)
-                log.info("QCD high shape")
-                print_hist(high)
+                #log.info("QCD low shape")
+                #print_hist(low)
+                #log.info("QCD high shape")
+                #print_hist(high)
 
                 npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                 if category.analysis_control and self.decouple_shape:
@@ -461,7 +461,7 @@ class Sample(object):
             # convert to 1D if 2D (also handles systematics if present)
             hist = ravel(hist)
 
-            print_hist(hist)
+            #print_hist(hist)
 
             # set the nominal histogram
             sample.hist = hist
@@ -519,10 +519,10 @@ class Sample(object):
                     low = ravel(low)
                     high = ravel(high)
 
-                    log.info("QCD low shape")
-                    print_hist(low)
-                    log.info("QCD high shape")
-                    print_hist(high)
+                    #log.info("QCD low shape")
+                    #print_hist(low)
+                    #log.info("QCD high shape")
+                    #print_hist(high)
 
                     npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                     if category.analysis_control and self.decouple_shape:
