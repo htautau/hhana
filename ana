@@ -568,7 +568,7 @@ for category in analysis.iter_categories(
             output_suffix=output_suffix,
             unblind=args.unblind or is_control,
             cuts=cuts,
-            fit=nps)
+            fit=None) # vars at pre-fit
         figures[category.name] = figs
 
     if 'massplot' in args.actions:
