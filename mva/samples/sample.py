@@ -359,7 +359,6 @@ class Sample(object):
                 npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                 if category.analysis_control and self.decouple_shape:
                     npname += '_CR'
-                log.warning(npname)
                 histsys = histfactory.HistoSys(npname, low=low, high=high)
                 sample.AddHistoSys(histsys)
 
@@ -527,7 +526,6 @@ class Sample(object):
                     npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                     if category.analysis_control and self.decouple_shape:
                         npname += '_CR'
-                    log.warning(npname)
                     histsys = histfactory.HistoSys(npname, low=low, high=high)
                     sample.AddHistoSys(histsys)
 

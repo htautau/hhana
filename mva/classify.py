@@ -581,14 +581,14 @@ class Classifier(object):
                  signal_scale=50,
                  unblind=False,
                  mpl=False,
+                 fit=None,
                  output_formats=None):
 
         category = self.category
         region = self.region
 
-        ############################################################
+        ##########################################################
         # show the background model and data in the control region
-        """
         log.info("plotting classifier output in control region ...")
         log.info(control_region)
 
@@ -611,9 +611,10 @@ class Classifier(object):
                 output_formats=output_formats,
                 signal_colour_map=cm.spring,
                 plot_signal_significance=True,
-                logy=logy)
-        """
-        ########################################################################
+                logy=logy,
+                fit=fit)
+
+        ###################################################################
         # show the background model and 125 GeV signal in the signal region
         log.info("plotting classifier output in the signal region ...")
 
@@ -644,7 +645,8 @@ class Classifier(object):
                 output_formats=output_formats,
                 signal_colour_map=cm.spring,
                 plot_signal_significance=True,
-                logy=logy)
+                logy=logy,
+                fit=fit)
 
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
@@ -672,7 +674,8 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=True)
+            unblind=True,
+            fit=fit)
 
         ###############################################################
         log.info("plotting mmc weighted by signal BDT distribution")
@@ -700,7 +703,8 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=unblind)
+            unblind=unblind,
+            fit=fit)
 
         ###############################################################
         log.info("plotting mmc weighted by S / B")
@@ -732,6 +736,7 @@ class Classifier(object):
             output_suffix="_reweighted_sob" + self.output_suffix,
             cuts=signal_region,
             mpl=mpl,
+            fit=fit,
             output_formats=output_formats,
             unblind=True)
             #bootstrap_data=analysis)

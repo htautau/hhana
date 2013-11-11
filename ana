@@ -513,6 +513,23 @@ if 'ntuptruth' in args.actions:
                 outtree.Write(output_name)
 
 
+COMBINATION_MAPPING = {
+    'ATLAS_norm_HH12_QCD': 'ATLAS_norm_HH_2012_QCD',
+    'ATLAS_norm_HH12_Ztt': 'ATLAS_norm_HH_2012_Ztt',
+    'ATLAS_ANA_HH12_QCD': 'ATLAS_ANA_HH_2012_QCD',
+    'ATLAS_TRIGGER_HH_2012_Emb': 'ATLAS_TRIGGER_EMB_HH_2012',
+}
+
+fit = root_open('fit.root')
+ws = fit.combined
+ws.loadSnapshot('unconditional')
+mc = ws.obj('ModelConfig')
+nps = mc.nuisance_parameters
+# hack names
+for np in nps:
+    if np.name in COMBINATION_MAPPING:
+        np.name = COMBINATION_MAPPING[np.name]
+
 for category in analysis.iter_categories(
     args.categories, args.controls, names=args.category_names):
 
@@ -523,11 +540,12 @@ for category in analysis.iter_categories(
         cuts = Cut(args.plot_cut)
 
         if args.plot_expr is not None:
-            VARS = {tuple(args.plot_expr.split(',')):
-                    {'title': args.plot_name,
-                     'range': (args.plot_min, args.plot_max),
-                     'bins': args.plot_bins,
-                     'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
+            VARS = {
+                tuple(args.plot_expr.split(',')): {
+                    'title': args.plot_name,
+                    'range': (args.plot_min, args.plot_max),
+                    'bins': args.plot_bins,
+                    'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
         else:
             VARS = VARIABLES
 
@@ -549,7 +567,8 @@ for category in analysis.iter_categories(
             plots=args.plots,
             output_suffix=output_suffix,
             unblind=args.unblind or is_control,
-            cuts=cuts)
+            cuts=cuts,
+            fit=nps)
         figures[category.name] = figs
 
     if 'massplot' in args.actions:
@@ -769,7 +788,8 @@ for category in analysis.iter_categories(
             unblind=args.unblind,
             systematics=SYSTEMATICS if args.systematics else None,
             output_formats=args.output_formats,
-            mpl=args.mpl)
+            mpl=args.mpl,
+            fit=nps)
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
 
