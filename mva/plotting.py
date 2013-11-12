@@ -1182,7 +1182,9 @@ def draw(name,
         for s in scaled_signal:
             if fill_signal:
                 s.fillstyle = 'solid'
+                s.fillcolor = s.linecolor
                 s.linewidth = 0
+                s.linestyle = 'solid'
                 alpha = .75
             else:
                 s.fillstyle = 'hollow'
@@ -1201,6 +1203,10 @@ def draw(name,
                 hist.SetLineWidth(0)
                 hist.drawstyle = 'hist'
                 model_stack.Add(hist)
+            if signal is not None and signal_on_top:
+                for s in scaled_signal:
+                    s.drawstyle = 'hist'
+                    model_stack.Add(s)
             model_stack.Draw()
             _, _, ymin, ymax = get_limits(model_stack,
                     logy=logy,
