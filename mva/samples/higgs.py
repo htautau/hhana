@@ -243,11 +243,10 @@ class Higgs(MC, Signal):
         super(Higgs, self).__init__(year=year, **kwargs)
 
     def xsec_kfact_effic(self, isample):
-
         # use yellowhiggs for cross sections
         xs, _ = yellowhiggs.xsbr(
-                self.energy, self.masses[isample],
-                Higgs.MODES_DICT[self.modes[isample]][0], 'tautau')
+            self.energy, self.masses[isample],
+            Higgs.MODES_DICT[self.modes[isample]][0], 'tautau')
         log.debug("{0} {1} {2} {3} {4} {5}".format(
             self.samples[isample],
             self.masses[isample],
@@ -259,4 +258,3 @@ class Higgs(MC, Signal):
         kfact = 1.
         effic = 1.
         return xs, kfact, effic
-

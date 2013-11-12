@@ -160,6 +160,10 @@ bdt-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted > bdt_plots_boosted.log &
 	nohup ./ana train evaluate --unblind --output-formats eps png --categories mva_deta_controls > deta_control_plots.log & 
 
+.PHONY: workspace-unblind
+workspace-unblind:
+	nohup ./ana workspace --unblind --mass-points all > workspace_unblind.log &
+
 .PHONY: workspace
 workspace:
 	nohup ./ana workspace --mass-points all > workspace.log &
