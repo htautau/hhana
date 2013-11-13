@@ -64,9 +64,10 @@ from rootpy.plotting.style import get_style, set_style
 style = get_style('ATLAS')
 #style.SetFrameLineWidth(2)
 style.SetLineWidth(2)
-style.SetTitleYOffset(1.8)
+#style.SetTitleYOffset(1.8)
 style.SetTickLength(0.04, 'X')
 style.SetTickLength(0.02, 'Y')
+
 style.SetHistTopMargin(0.)
 style.SetHatchesLineWidth(2)
 style.SetHatchesSpacing(1.1)

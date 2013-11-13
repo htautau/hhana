@@ -160,8 +160,12 @@ class Classifier(object):
         # each trained on the opposite partition
         self.clfs = None
 
-    def load(self):
-
+    def load(self, swap=False):
+        """
+        If swap is True then use the internal classifiers on the "wrong"
+        partitions. This is used when demonstrating stability in data. The
+        shape of the data distribution should be the same for both classifiers.
+        """
         use_cache = True
         # attempt to load existing classifiers
         clfs = [None, None]
@@ -184,10 +188,12 @@ class Classifier(object):
                 print >> out, clf
                 log.info(out.getvalue())
                 print_feature_ranking(clf, self.fields)
-                # check that testing on training sample gives better
-                # performance by swapping the following lines
-                #clfs[partition_idx] = clf
-                clfs[(partition_idx + 1) % 2] = clf
+                if swap:
+                    # DANGER
+                    log.warning("will apply classifiers on swapped partitions")
+                    clfs[partition_idx] = clf
+                else:
+                    clfs[(partition_idx + 1) % 2] = clf
             else:
                 log.warning("could not open %s" % clf_filename)
                 use_cache = False
