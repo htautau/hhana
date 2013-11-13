@@ -750,6 +750,7 @@ for category in analysis.iter_categories(
 
     if '2d' in args.actions and not is_control:
         log.info("plotting 2d mass vs classifier output")
+        clf = analysis.get_clf(category, load=True)
         draw_2d_hist(
             clf,
             category,
@@ -817,10 +818,10 @@ for category in analysis.iter_categories(
             weights=[background[:,-2], signal[:,-2]],
             sample_names=['Background', 'Signal'])
 
-
     if 'scatter' in args.actions and not is_control:
         # show 2D plots of all input variables and with BDT output
         log.info("drawing scatter plots of input variables")
+        clf = analysis.get_clf(category, load=True)
         draw_scatter(
             clf.all_fields,
             category,
