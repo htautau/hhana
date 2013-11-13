@@ -77,3 +77,6 @@ set_style(style)
 from rootpy.utils.silence import silence_sout_serr
 with silence_sout_serr():
     from rootpy.stats import mute_roostats; mute_roostats()
+
+import yellowhiggs
+log.info("using yellowhiggs {0}".format(yellowhiggs.__version__))

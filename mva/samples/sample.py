@@ -279,7 +279,7 @@ class Sample(object):
         # convert to 1D if 2D (also handles systematics if present)
         hist = ravel(hist)
 
-        print_hist(hist)
+        #print_hist(hist)
 
         # set the nominal histogram
         sample.hist = hist
@@ -351,15 +351,14 @@ class Sample(object):
                 low = ravel(low)
                 high = ravel(high)
 
-                log.info("QCD low shape")
-                print_hist(low)
-                log.info("QCD high shape")
-                print_hist(high)
+                #log.info("QCD low shape")
+                #print_hist(low)
+                #log.info("QCD high shape")
+                #print_hist(high)
 
                 npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                 if category.analysis_control and self.decouple_shape:
                     npname += '_CR'
-                log.warning(npname)
                 histsys = histfactory.HistoSys(npname, low=low, high=high)
                 sample.AddHistoSys(histsys)
 
@@ -461,7 +460,7 @@ class Sample(object):
             # convert to 1D if 2D (also handles systematics if present)
             hist = ravel(hist)
 
-            print_hist(hist)
+            #print_hist(hist)
 
             # set the nominal histogram
             sample.hist = hist
@@ -510,21 +509,7 @@ class Sample(object):
                         low=hist_down,
                         high=hist_up)
 
-                    norm, shape = histfactory.split_norm_shape(histsys, hist)
-
-                    sample.AddOverallSys(norm)
-
-                    # drop all jet related shape terms from Others (JES, JVF, JER)
-                    if isinstance(self, Others) and (
-                            sys_component.startswith('JES') or
-                            sys_component.startswith('JVF') or
-                            sys_component.startswith('JER')):
-                        continue
-
-                    # if you fit the ratio of nominal to up / down to a "pol0" and
-                    # get reasonably good chi2, then you may consider dropping the
-                    # histosys part
-                    sample.AddHistoSys(shape)
+                    sample.AddHistoSys(histsys)
 
                 if isinstance(self, QCD):
 
@@ -533,15 +518,14 @@ class Sample(object):
                     low = ravel(low)
                     high = ravel(high)
 
-                    log.info("QCD low shape")
-                    print_hist(low)
-                    log.info("QCD high shape")
-                    print_hist(high)
+                    #log.info("QCD low shape")
+                    #print_hist(low)
+                    #log.info("QCD high shape")
+                    #print_hist(high)
 
                     npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                     if category.analysis_control and self.decouple_shape:
                         npname += '_CR'
-                    log.warning(npname)
                     histsys = histfactory.HistoSys(npname, low=low, high=high)
                     sample.AddHistoSys(histsys)
 

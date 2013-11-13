@@ -152,13 +152,17 @@ dump:
 
 .PHONY: plots
 plots:
-	nohup ./ana plot --output-formats eps png > var_plots.log &
+	nohup ./ana plot --unblind --output-formats eps png > var_plots.log &
 
 .PHONY: bdt-plots
 bdt-plots:
-	nohup ./ana train evaluate --output-formats eps png --category-names vbf > bdt_plots_vbf.log &
-	nohup ./ana train evaluate --output-formats eps png --category-names boosted > bdt_plots_boosted.log &
-	nohup ./ana train evaluate --output-formats eps png --categories mva_deta_controls --unblind > deta_control_plots.log & 
+	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf > bdt_plots_vbf.log &
+	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted > bdt_plots_boosted.log &
+	nohup ./ana train evaluate --unblind --output-formats eps png --categories mva_deta_controls > deta_control_plots.log & 
+
+.PHONY: workspace-unblind
+workspace-unblind:
+	nohup ./ana workspace --unblind --mass-points all > workspace_unblind.log &
 
 .PHONY: workspace
 workspace:

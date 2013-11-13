@@ -25,6 +25,7 @@ from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.plotting.contrib.quantiles import qqgraph
 from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.memory.keepalive import keepalive
+from rootpy.stats.histfactory import HistoSys, split_norm_shape
 
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
@@ -526,6 +527,8 @@ def uncertainty_band(model, systematics, systematics_components):
     total_model = sum(model)
     var_high = []
     var_low = []
+    log.warning("uncertainty_band")
+    log.warning(repr(systematics))
     for term, variations in systematics.items():
         if len(variations) == 2:
             high, low = variations
@@ -539,16 +542,16 @@ def uncertainty_band(model, systematics, systematics_components):
 
         if systematics_components is not None:
             if high not in systematics_components:
-                log.debug("filtering out {0}".format(high))
+                log.warning("filtering out {0}".format(high))
                 high = 'NOMINAL'
             if low not in systematics_components:
-                log.debug("filtering out {0}".format(low))
+                log.warning("filtering out {0}".format(low))
                 low = 'NOMINAL'
 
         if high == 'NOMINAL' and low == 'NOMINAL':
             continue
 
-        log.debug("band includes {0}".format(term))
+        log.info("band includes {0}".format(term))
 
         total_high = model[0].Clone()
         total_high.Reset()
@@ -560,12 +563,14 @@ def uncertainty_band(model, systematics, systematics_components):
                 total_high += m.Clone()
             else:
                 #print m.title, high, list(m.systematics[high])
+                log.info("using {0}".format(high))
                 total_high += m.systematics[high]
 
             if low == 'NOMINAL' or low not in m.systematics:
                 total_low += m.Clone()
             else:
                 #print m.title, low, list(m.systematics[low])
+                log.info("using {0}".format(low))
                 total_low += m.systematics[low]
 
         if total_low.Integral() <= 0:
@@ -933,13 +938,16 @@ def draw_channel_array(
     return field_channel, figs
 
 
-def draw_channel(channel, systematics=True, **kwargs):
+def draw_channel(channel, systematics=True, fit=None, **kwargs):
     """
     Draw a HistFactory::Channel only include OverallSys systematics
     in resulting band as an illustration of the level of uncertainty
     since correlations of the NPs are not known and it is not
     possible to draw the statistically correct error band.
     """
+    if fit is not None:
+        log.info("applying snapshot on channel {0}".format(channel.name))
+        channel = channel.apply_snapshot(fit)
     if channel.data and channel.data.hist:
         data_hist = channel.data.hist
     else:
@@ -947,10 +955,12 @@ def draw_channel(channel, systematics=True, **kwargs):
     model_hists = []
     signal_hists = []
     systematics_terms = {}
+    sys_names = channel.sys_names()
     for sample in channel.samples:
         nominal_hist = sample.hist
         if systematics:
             _systematics = {}
+            """
             for overall in sample.overall_sys:
                 systematics_terms[overall.name] = (
                     overall.name + '_UP',
@@ -959,12 +969,24 @@ def draw_channel(channel, systematics=True, **kwargs):
                 dn_hist = nominal_hist * overall.low
                 _systematics[overall.name + '_UP'] = up_hist
                 _systematics[overall.name + '_DOWN'] = dn_hist
+            """
+            for sys_name in sys_names:
+                systematics_terms[sys_name] = (
+                    sys_name + '_UP',
+                    sys_name + '_DOWN')
+                dn_hist, up_hist = sample.sys_hist(sys_name)
+                hsys = HistoSys(sys_name, low=dn_hist, high=up_hist)
+                norm, shape = split_norm_shape(hsys, nominal_hist)
+                # include only overallsys component
+                _systematics[sys_name + '_DOWN'] = nominal_hist * norm.low
+                _systematics[sys_name + '_UP'] = nominal_hist * norm.high
+                log.info("%s %f %f" % (sys_name, dn_hist.integral(), up_hist.integral()))
+            log.info(repr(_systematics))
             nominal_hist.systematics = _systematics
         if sample.GetNormFactor('SigXsecOverSM') is not None:
             signal_hists.append(nominal_hist)
         else:
             model_hists.append(nominal_hist)
-
     return draw(
         data=data_hist,
         model=model_hists or None,
@@ -1160,7 +1182,9 @@ def draw(name,
         for s in scaled_signal:
             if fill_signal:
                 s.fillstyle = 'solid'
+                s.fillcolor = s.linecolor
                 s.linewidth = 0
+                s.linestyle = 'solid'
                 alpha = .75
             else:
                 s.fillstyle = 'hollow'
@@ -1179,6 +1203,10 @@ def draw(name,
                 hist.SetLineWidth(0)
                 hist.drawstyle = 'hist'
                 model_stack.Add(hist)
+            if signal is not None and signal_on_top:
+                for s in scaled_signal:
+                    s.drawstyle = 'hist'
+                    model_stack.Add(s)
             model_stack.Draw()
             _, _, ymin, ymax = get_limits(model_stack,
                     logy=logy,

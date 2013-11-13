@@ -581,14 +581,15 @@ class Classifier(object):
                  signal_scale=50,
                  unblind=False,
                  mpl=False,
+                 fit=None,
                  output_formats=None):
 
         category = self.category
         region = self.region
 
-        ############################################################
-        # show the background model and data in the control region
         """
+        ##########################################################
+        # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
         log.info(control_region)
 
@@ -611,17 +612,20 @@ class Classifier(object):
                 output_formats=output_formats,
                 signal_colour_map=cm.spring,
                 plot_signal_significance=True,
-                logy=logy)
+                logy=logy,
+                fit=fit)
         """
-        ########################################################################
+
+        ###################################################################
         # show the background model and 125 GeV signal in the signal region
         log.info("plotting classifier output in the signal region ...")
 
         scores, channels = analysis.clf_channels(self,
             category, region, cuts=signal_region,
             mass_points=[125],
+            mode='combined',
             systematics=systematics,
-            bins=category.clf_bins + 2,
+            bins=category.limitbins / 2,
             unblind=unblind or 0.3,
             no_signal_fixes=True)
 
@@ -636,16 +640,19 @@ class Classifier(object):
                 category=category,
                 plot_label='Mass Signal Region' if signal_region else None,
                 signal_scale=signal_scale if not unblind else 1.,
+                signal_on_top=True if unblind else False,
+                fill_signal=True if unblind else False,
                 data_info=str(analysis.data.info),
                 output_name='event_bdt_score_signal_region' + self.output_suffix,
                 name='BDT Score',
                 systematics=systematics,
                 mpl=mpl,
                 output_formats=output_formats,
-                signal_colour_map=cm.spring,
                 plot_signal_significance=True,
-                logy=logy)
+                logy=logy,
+                fit=fit)
 
+        """
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
 
@@ -672,7 +679,8 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=True)
+            unblind=True,
+            fit=fit)
 
         ###############################################################
         log.info("plotting mmc weighted by signal BDT distribution")
@@ -700,7 +708,8 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=unblind)
+            unblind=unblind,
+            fit=fit)
 
         ###############################################################
         log.info("plotting mmc weighted by S / B")
@@ -732,6 +741,7 @@ class Classifier(object):
             output_suffix="_reweighted_sob" + self.output_suffix,
             cuts=signal_region,
             mpl=mpl,
+            fit=fit,
             output_formats=output_formats,
             unblind=True)
             #bootstrap_data=analysis)
@@ -746,7 +756,6 @@ class Classifier(object):
         # show the MMC below a BDT score that unblinds 30% of signal
         # determine BDT score with 30% of 125 signal below:
 
-        """
         signal_score_hist = Hist(1000, -1, 1)
         for s, scores_dict in sig_scores:
             histogram_scores(signal_score_hist, scores_dict, inplace=True)
@@ -771,9 +780,10 @@ class Classifier(object):
             cuts=signal_region,
             mpl=mpl,
             output_formats=output_formats,
-            unblind=True)
-        """
+            unblind=True,
+            fit=fit)
         #return bkg_scores, sig_scores_125
+        """
 
 
 def purity_score(bdt, X):
