@@ -576,7 +576,7 @@ for category in analysis.iter_categories(
         fig = Canvas()
         fig.SetLogy()
         h = Hist(20, -1, 1, title='BDTs in normal order')
-        h_swap = h.Clone(color='red', title='BDTs swapped')
+        h_swap = h.Clone(color='red', markerstyle='o', title='BDTs swapped')
         h.fill_array(scores)
         h_swap.fill_array(scores_swap)
         h.Draw()
