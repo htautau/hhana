@@ -625,6 +625,76 @@ for category in analysis.iter_categories(
             fit=None) # vars at pre-fit
         figures[category.name] = figs
 
+    if 'plotevolving' in args.actions:
+        from copy import deepcopy    
+
+        clf = analysis.get_clf(category, load=True)
+        score_cuts = [-1.0, 0.0, 0.5, 0.9, 0.95, 0.987]
+
+        override_vars = [
+             'averageIntPerXing',
+            'mmc0_mass',
+            'dEta_jets',
+            'dR_tau1_tau2',
+            'jet1_pt',
+            'jet1_eta',
+#             'jet1_phi',
+            'jet2_pt',
+            'jet2_eta',
+#             'jet2_phi',
+            'tau1_pt',
+            'tau1_eta',
+            'tau1_phi',
+            'tau2_pt',
+            'tau2_eta',
+            'tau2_phi',
+        ]
+
+        if args.plot_expr is not None:
+            VARS_ORIGINAL = {tuple(args.plot_expr.split(',')):
+                    {'title': args.plot_name,
+                     'range': (args.plot_min, args.plot_max),
+                     'bins': args.plot_bins,
+                     'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
+        elif override_vars is not None:
+            VARS_ORIGINAL = {}
+            for v in override_vars:
+                VARS_ORIGINAL[v] = VARIABLES[v]
+        else:
+            VARS_ORIGINAL = VARIABLES
+
+        for sc in score_cuts:
+            figures[category.name] = {}
+            cuts = Cut(args.plot_cut)
+            VARS = deepcopy(VARS_ORIGINAL)
+            for v in VARS:
+                VARS[v]['filename'] += '_minscore_' + str(sc)
+
+            figs = draw_channel_array(
+                analysis,
+                vars=VARS,
+                mass=125,
+                mode='combined',
+                signal_scale=1,
+                category=category,
+                region=target_region,
+                show_qq=False,
+                plot_signal_significance=False,
+                systematics=SYSTEMATICS if args.systematics else None,
+                systematics_components=args.systematics_components,
+                mpl=args.mpl,
+                output_formats=args.output_formats,
+                weighted=not args.no_weight,
+                plots=args.plots,
+                output_suffix=output_suffix,
+                unblind=args.unblind or is_control,
+                cuts=cuts,
+                clf=clf,
+                min_score = sc,
+                signal_on_top=True,
+            )
+            figures[category.name] = figs
+
     if 'massplot' in args.actions:
         cuts = Cut(args.plot_cut)
         draw_channel_array(

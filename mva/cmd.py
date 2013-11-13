@@ -32,6 +32,7 @@ def general_parser(parser=None):
                 'weights',
                 '2d',
                 'plot',
+                'plotevolving',
                 'train',
                 'money',
                 'scatter',
