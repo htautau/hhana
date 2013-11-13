@@ -38,7 +38,7 @@ from mva.plotting import (
     draw_scatter, draw_samples_array, draw_2d_hist,
     draw_channel_array, draw_channel,
     correlations)
-from mva.samples import Higgs
+from mva.samples import Higgs, Data
 from mva.utils import make_multipage_pdf, braindump
 from mva.systematics import (get_systematics, iter_systematics,
     parse_systematics, systematic_name)
@@ -448,6 +448,97 @@ if 'ntuptruth' in args.actions:
                 out.cd()
                 outtree = tree.CloneTree(-1, 'fast')
                 outtree.SetWeight(1.)
+                outtree.Write(output_name)
+
+if 'top10' in args.actions:
+    # create an ntuple containing trees for each sample with classifier scores
+    # and event weights
+    
+    from root_numpy import array2tree
+    from array import array
+    from ROOT import TTree
+
+    with root_open('hhntup_top10.root', 'recreate') as out:
+
+        branch_list = [
+            'RunNumber', 'EventNumber', 'actualIntPerXing', 'averageIntPerXing', 'number_of_good_vertices',
+            'score', 'mmc0_mass', 'mass_jet1_jet2', 'dEta_jets', 'numJets',
+            'MET_et', 'MET_phi', 'MET_ety', 'MET_etx',
+            'jet1_pt', 'jet1_eta', 'jet1_phi', 'jet1_m', 'jet1_et', 'jet1_e', 'jet1_p',
+            'jet2_pt', 'jet2_eta', 'jet2_phi', 'jet2_m', 'jet2_et', 'jet2_e', 'jet2_p',
+            'tau1_pt', 'tau1_eta', 'tau1_phi', 'tau1_m', 'tau1_et', 'tau1_e', 'tau1_p', 'tau1_charge', 'tau1_numTrack',
+            'tau2_pt', 'tau2_eta', 'tau2_phi', 'tau2_m', 'tau2_et', 'tau2_e', 'tau2_p', 'tau2_charge', 'tau2_numTrack',
+        ]
+
+        samples_list = [
+            Data(year)
+        ]
+
+        for category in analysis.iter_categories(
+                args.categories, args.controls, names=args.category_names):
+
+            if category.analysis_control:
+                continue
+            
+            clf = analysis.get_clf(category, load=True)
+            
+            for sample in samples_list:
+                tree = sample.trees(
+                    category, target_region)[0]
+                scores_dict = sample.scores(
+                    clf, category, target_region,
+                    systematics=False)
+
+                scores, weights = scores_dict
+                
+                new_fields = np.c_[scores, weights]
+                rec = np.core.records.fromarrays(
+                    new_fields.transpose(),
+                    names='score, weight',
+                    formats='f4, f4')
+                    
+                output_name = 'category_{0}'.format(
+                    category.name).replace('.', '_')
+                
+                tree.SetWeight(1.)
+
+                # add branches to existing tree
+                array2tree(rec, tree=tree)
+                tree.create_buffer()
+
+                # find the top ten scores
+                top10 = []
+                for e in range(tree.GetEntries()):
+                    tree.GetEntry(e)
+                    if len(top10) < 10:
+                        top10.append( (tree.RunNumber, tree.EventNumber, tree.score, e) )
+                    else:
+                        top10 = sorted(top10, key=lambda t: t[2])
+                        if tree.score > top10[0][2]:
+                            top10[0] = (tree.RunNumber, tree.EventNumber, tree.score, e)
+                print top10
+
+                add = {}
+                outtree = TTree(tree.GetName(), tree.GetTitle())
+                for b in tree.GetListOfBranches():
+                    n = b.GetName()
+                    if n in branch_list:
+                        l = b.GetTitle()[-1]
+                        if l in ['i']:
+                            a = array('I', [0])
+                        elif l in ['I']:
+                            a = array('i', [0])
+                        elif l in ['F']:
+                            a = array('f', [0])
+                        add[n] = a
+                        outtree.Branch(n, a, b.GetTitle())
+
+                for _, _, _, e in top10:
+                    tree.GetEntry(e)
+                    for a in add:
+                        add[a][0] = getattr(tree, a)
+                    outtree.Fill()
+                out.cd()
                 outtree.Write(output_name)
 
 

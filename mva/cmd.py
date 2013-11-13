@@ -43,6 +43,7 @@ def general_parser(parser=None):
                 'bdt-workspace',
                 'ntup',
                 'ntuptruth',
+                'top10',
                 'massplot'],
             default=[],
             help='only perform these actions')
