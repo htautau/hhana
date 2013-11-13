@@ -27,6 +27,7 @@ def general_parser(parser=None):
     parser.add_argument('actions', nargs='*',
             choices=[
                 'norm',
+                'stability',
                 'validate',
                 'weights',
                 '2d',
