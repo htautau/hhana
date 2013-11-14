@@ -551,8 +551,6 @@ def uncertainty_band(model, systematics, systematics_components):
         if high == 'NOMINAL' and low == 'NOMINAL':
             continue
 
-        log.info("band includes {0}".format(term))
-
         total_high = model[0].Clone()
         total_high.Reset()
         total_low = total_high.Clone()
@@ -563,14 +561,12 @@ def uncertainty_band(model, systematics, systematics_components):
                 total_high += m.Clone()
             else:
                 #print m.title, high, list(m.systematics[high])
-                log.info("using {0}".format(high))
                 total_high += m.systematics[high]
 
             if low == 'NOMINAL' or low not in m.systematics:
                 total_low += m.Clone()
             else:
                 #print m.title, low, list(m.systematics[low])
-                log.info("using {0}".format(low))
                 total_low += m.systematics[low]
 
         if total_low.Integral() <= 0:
