@@ -138,10 +138,13 @@ class Analysis(object):
                     linecolor='red',
                     linewidth=2,
                     linestyle='dashed')
-                if s.mass != 125:
-                    # HACK HACK HACK
+                if s.mass not in (125, None):
+                    log.warning("HACK HACK HACK")
                     log.info("SCALING SIGNAL TO 125")
-                    s.scale *= self.higgs_125.events()[1].value / s.events()[1].value
+                    log.info(str(s.mass))
+                    sf= self.higgs_125.events()[1].value / s.events()[1].value
+                    log.info(str(sf))
+                    s.scale *= sf
                 signals.append(s)
             return signals
         elif mode == 'workspace':

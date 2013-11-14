@@ -586,14 +586,12 @@ class Classifier(object):
                  systematics=None,
                  signal_scale=50,
                  unblind=False,
-                 mpl=False,
                  fit=None,
                  output_formats=None):
 
         category = self.category
         region = self.region
 
-        """
         ##########################################################
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
@@ -614,13 +612,10 @@ class Classifier(object):
                 output_name='event_bdt_score_control' + self.output_suffix,
                 name='BDT Score',
                 systematics=systematics,
-                mpl=mpl,
                 output_formats=output_formats,
                 signal_colour_map=cm.spring,
-                plot_signal_significance=True,
                 logy=logy,
                 fit=fit)
-        """
 
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -652,13 +647,10 @@ class Classifier(object):
                 output_name='event_bdt_score_signal_region' + self.output_suffix,
                 name='BDT Score',
                 systematics=systematics,
-                mpl=mpl,
                 output_formats=output_formats,
-                plot_signal_significance=True,
                 logy=logy,
                 fit=fit)
 
-        """
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
 
@@ -676,14 +668,11 @@ class Classifier(object):
             signal_scale=50,
             category=category,
             region=region,
-            show_qq=False,
-            plot_signal_significance=False,
             systematics=systematics,
             weight_hist=bkg_score_hist,
             clf=self,
             output_suffix="_reweighted_bkg" + self.output_suffix,
             cuts=signal_region,
-            mpl=mpl,
             output_formats=output_formats,
             unblind=True,
             fit=fit)
@@ -705,14 +694,11 @@ class Classifier(object):
             signal_scale=5,
             category=category,
             region=region,
-            show_qq=False,
-            plot_signal_significance=False,
             systematics=systematics,
             weight_hist=sig_score_hist,
             clf=self,
             output_suffix="_reweighted_sig" + self.output_suffix,
             cuts=signal_region,
-            mpl=mpl,
             output_formats=output_formats,
             unblind=unblind,
             fit=fit)
@@ -739,14 +725,11 @@ class Classifier(object):
             ylabel='ln(1+S/B) Weighted Events',
             category=category,
             region=region,
-            show_qq=False,
-            plot_signal_significance=False,
             systematics=systematics,
             weight_hist=sob_hist,
             clf=self,
             output_suffix="_reweighted_sob" + self.output_suffix,
             cuts=signal_region,
-            mpl=mpl,
             fit=fit,
             output_formats=output_formats,
             unblind=True)
@@ -777,19 +760,15 @@ class Classifier(object):
             signal_scale=50,
             category=category,
             region=region,
-            show_qq=False,
-            plot_signal_significance=False,
             systematics=systematics,
             clf=self,
             max_score=max_score,
             output_suffix="_lowbdt" + self.output_suffix,
             cuts=signal_region,
-            mpl=mpl,
             output_formats=output_formats,
             unblind=True,
             fit=fit)
         #return bkg_scores, sig_scores_125
-        """
 
 
 def purity_score(bdt, X):

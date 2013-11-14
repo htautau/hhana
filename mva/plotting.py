@@ -939,7 +939,7 @@ def draw_channel(channel, systematics=True, fit=None, **kwargs):
     possible to draw the statistically correct error band.
     """
     if fit is not None:
-        log.info("applying snapshot on channel {0}".format(channel.name))
+        log.warning("applying snapshot on channel {0}".format(channel.name))
         channel = channel.apply_snapshot(fit)
     if channel.data and channel.data.hist:
         data_hist = channel.data.hist
