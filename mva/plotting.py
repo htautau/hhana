@@ -527,8 +527,6 @@ def uncertainty_band(model, systematics, systematics_components):
     total_model = sum(model)
     var_high = []
     var_low = []
-    log.warning("uncertainty_band")
-    log.warning(repr(systematics))
     for term, variations in systematics.items():
         if len(variations) == 2:
             high, low = variations
