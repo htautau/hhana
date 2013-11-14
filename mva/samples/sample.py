@@ -295,8 +295,6 @@ class Sample(object):
 
             for sys_component in self.WORKSPACE_SYSTEMATICS:
 
-                log.info("adding histosys for %s" % sys_component)
-
                 terms = SYSTEMATICS[sys_component]
                 if len(terms) == 1:
                     up_term = terms[0]
@@ -363,12 +361,10 @@ class Sample(object):
                 sample.AddHistoSys(histsys)
 
         if isinstance(self, Signal):
-            log.info("defining SigXsecOverSM POI for %s" % self.name)
             sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
 
         elif isinstance(self, Background):
             # only activate stat error on background samples
-            log.info("activating stat error for %s" % self.name)
             sample.ActivateStatError()
 
         if not isinstance(self, Data):
@@ -385,7 +381,6 @@ class Sample(object):
         if hasattr(self, 'histfactory') and not (
                 isinstance(self, Signal) and no_signal_fixes):
             # perform sample-specific items
-            log.info("calling %s histfactory method" % self.name)
             self.histfactory(sample, category, systematics=do_systematics)
 
         return sample
@@ -472,8 +467,6 @@ class Sample(object):
 
                 for sys_component in self.WORKSPACE_SYSTEMATICS:
 
-                    log.info("adding histosys for %s" % sys_component)
-
                     terms = SYSTEMATICS[sys_component]
                     if len(terms) == 1:
                         up_term = terms[0]
@@ -530,12 +523,10 @@ class Sample(object):
                     sample.AddHistoSys(histsys)
 
             if isinstance(self, Signal):
-                log.info("defining SigXsecOverSM POI for %s" % self.name)
                 sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
 
             elif isinstance(self, Background):
                 # only activate stat error on background samples
-                log.info("activating stat error for %s" % self.name)
                 sample.ActivateStatError()
 
             if not isinstance(self, Data):
@@ -555,7 +546,6 @@ class Sample(object):
             if hasattr(self, 'histfactory') and not (
                     isinstance(self, Signal) and no_signal_fixes):
                 # perform sample-specific items
-                log.info("calling %s histfactory method" % self.name)
                 self.histfactory(sample, category, systematics=do_systematics)
 
             field_samples[field] = sample

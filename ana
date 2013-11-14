@@ -611,8 +611,6 @@ for category in analysis.iter_categories(
             signal_scale=50,
             category=category,
             region=target_region,
-            show_qq=False,
-            plot_signal_significance=False,
             systematics=SYSTEMATICS if args.systematics else None,
             systematics_components=args.systematics_components,
             mpl=args.mpl,

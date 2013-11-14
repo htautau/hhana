@@ -34,12 +34,12 @@ class DataInfo():
 
     def __str__(self):
         if self.mode == 'root':
-            label = '#scale[0.7]{#int}dt L = %.1f fb^{-1} ' % self.lumi
+            label = '#scale[0.7]{#int} L dt = %.1f fb^{-1} ' % self.lumi
             label += '#sqrt{#font[52]{s}} = '
             label += '+'.join(map(lambda e: '%d TeV' % e,
                                   sorted(set(self.energies))))
         else:
-            label = '$\int dt L = %.1f$ fb$^{-1}$ ' % self.lumi
+            label = '$\int L dt = %.1f$ fb$^{-1}$ ' % self.lumi
             label += '$\sqrt{s} =$ '
             label += '$+$'.join(map(lambda e: '%d TeV' % e,
                                     sorted(set(self.energies))))
@@ -60,10 +60,8 @@ class Data(Sample):
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
 
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
-
-        self._label = '%s Data' % self.year
-        self._label_root = '%s Data' % self.year
-
+        self._label = 'Data'
+        self._label_root = 'Data'
         self.name = 'Data'
 
     def events(self, category, region, cuts=None, hist=None):

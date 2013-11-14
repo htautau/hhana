@@ -490,7 +490,7 @@ VARIABLES = {
         'root': '#font[52]{Resonance p}_{T}',
         'filename': 'resonance_pt',
         'bins': 20,
-        'range': (0, 200),
+        'range': {'BOOSTED': (80, 200), None: (0, 200)},
         'scale': 0.001,
         'units': 'GeV',
     },

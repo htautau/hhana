@@ -52,12 +52,14 @@ class MC(Sample):
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
             sample_info = samples_db.get_sample(
-                    'hadhad', year, 'background', sample_key)
+                'hadhad', year, 'background', sample_key)
             self.name = sample_info['name']
             self._label = sample_info['latex']
             self._label_root = sample_info['root']
+
             if 'color' in sample_info and 'color' not in kwargs:
                 kwargs['color'] = sample_info['color']
+
             self.samples = sample_info['samples']
 
         elif isinstance(self, Signal):

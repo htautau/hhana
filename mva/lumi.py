@@ -22,7 +22,4 @@ for filename in lumi_files:
 
 
 def get_lumi_uncert(year):
-
-    uncert = LUMI_UNCERT[year]
-    log.info("Using lumi uncertainty of %.1f%% for %d" % (uncert * 100., year))
-    return uncert
+    return LUMI_UNCERT[year]

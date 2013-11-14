@@ -63,6 +63,7 @@ class Analysis(object):
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
                 constrain_norm=constrain_norms,
+                color='#00A3FF',
                 mpl=mpl)
         else:
             log.info("Using ALPGEN Ztautau")
@@ -71,11 +72,13 @@ class Analysis(object):
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
                 constrain_norm=constrain_norms,
+                color='#00A3FF',
                 mpl=mpl)
 
         self.others = samples.Others(
             year=year,
             systematics=systematics,
+            color='#8A0F0F',
             mpl=mpl)
 
         if random_mu:
@@ -105,6 +108,7 @@ class Analysis(object):
             decouple_shape=decouple_qcd_shape,
             workspace_norm=qcd_workspace_norm,
             constrain_norm=constrain_norms,
+            color='#00FF00',
             mpl=mpl)
 
         self.qcd.scale = 1.

@@ -60,19 +60,19 @@ class QCD(Sample, Background):
                  workspace_norm=None,
                  constrain_norm=False,
                  cuts=None,
-                 color='#59d454',
-                 mpl=False):
+                 mpl=False,
+                 **kwargs):
 
         QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(
             year=data.year,
             scale=scale,
-            color=color,
-            mpl=mpl)
+            mpl=mpl,
+            **kwargs)
         self.data = data
         self.mc = mc
         self.name = 'QCD'
-        self._label = 'QCD Multi-jet (%s)' % shape_region.replace('_', ' ')
+        self._label = 'Multijet'
         self._label_root = self._label
         self.scale = 1.
         self.data_scale = data_scale

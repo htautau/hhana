@@ -61,13 +61,12 @@ MMC_PT = 'mmc%d_resonance_pt' % MMC_VERSION
 
 from rootpy.plotting.style import get_style, set_style
 
-style = get_style('ATLAS')
+style = get_style('ATLAS', shape='square')
 #style.SetFrameLineWidth(2)
-style.SetLineWidth(2)
+#style.SetLineWidth(2)
 #style.SetTitleYOffset(1.8)
-style.SetTickLength(0.04, 'X')
-style.SetTickLength(0.02, 'Y')
-
+#style.SetTickLength(0.04, 'X')
+#style.SetTickLength(0.02, 'Y')
 style.SetHistTopMargin(0.)
 style.SetHatchesLineWidth(2)
 style.SetHatchesSpacing(1.1)

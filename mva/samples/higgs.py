@@ -200,8 +200,8 @@ class Higgs(MC, Signal):
 
         #self._label = r'%s$H%s\rightarrow\tau_{\mathrm{had}}\tau_{\mathrm{had}}$' % (
         #        str_mode, str_mass)
-        self._label = r'%sH(%s)$\rightarrow\tau_{h}\tau_{h}$' % (str_mode, str_mass)
-        self._label_root = '%sH(%s)#rightarrow#tau_{h}#tau_{h}' % (str_mode, str_mass)
+        self._label = r'%sH(%s)$\rightarrow\tau\tau$' % (str_mode, str_mass)
+        self._label_root = '%sH(%s)#rightarrow#tau#tau' % (str_mode, str_mass)
 
         if year == 2011:
             suffix = 'mc11c'
