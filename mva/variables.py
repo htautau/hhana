@@ -171,7 +171,7 @@ VARIABLES = {
         'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
         'filename': 'tau1_pt',
         'bins': 20,
-        'range': {'0J_NONBOOSTED': (30, 90), None: (30, 160)},
+        'range': {'0J_NONBOOSTED': (35, 90), None: (35, 160)},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -180,7 +180,7 @@ VARIABLES = {
         'root': '#font[152]{#tau}_{2} #font[52]{p}_{T}',
         'filename': 'tau2_pt',
         'bins': 20,
-        'range': {'0J_NONBOOSTED': (20, 60), None: (20, 160)},
+        'range': {'0J_NONBOOSTED': (25, 60), None: (25, 100)},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -327,8 +327,8 @@ VARIABLES = {
         'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
         'filename': 'dr_tau1_tau2',
-        'bins': 20,
-        'range': (0., 4.),
+        'bins': 10,
+        'range': (0.8, 2.8),
     },
     'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
@@ -365,7 +365,7 @@ VARIABLES = {
         'root': '#font[152]{#tau}_{1} #font[52]{Centrality Fraction}',
         'filename': 'tau1_centfrac',
         'bins': 20,
-        'range': (0, 1),
+        'range': (0.5, 1),
     },
     #'tau_centrality_product': {
     #    'title': r'$\tau$ Centrality Product',
@@ -383,14 +383,6 @@ VARIABLES = {
         'range': (0, 1),
         'cats': ['2J', 'VBF']
     },
-    #'tau1_centrality_boosted': {
-    #    'title': r'Boosted $\tau_1$ Centrality',
-    #    'root': 'Boosted #tau_1 Centrality',
-    #    'filename': 'tau1_centrality_boosted',
-    #    'bins': 20,
-    #    'range': (0, 1),
-    #    'cats': ['2J', 'VBF']
-    #},
     'tau2_centrality': {
         'title': r'$\tau_2$ Centrality',
         'root': '#font[152]{#tau}_{2} #font[52]{Centrality}',
@@ -399,14 +391,6 @@ VARIABLES = {
         'range': (0, 1),
         'cats': ['2J', 'VBF']
     },
-    #'tau2_centrality_boosted': {
-    #    'title': r'Boosted $\tau_2$ Centrality',
-    #    'root': 'Boosted #tau_2 Centrality',
-    #    'filename': 'tau2_centrality_boosted',
-    #    'bins': 20,
-    #    'range': (0, 1),
-    #    'cats': ['2J', 'VBF']
-    #},
     'jet1_eta': {
         'title': r'jet$_{1}$ $\eta$',
         'root': '#font[52]{jet}_{1} #font[152]{#eta}',
@@ -451,14 +435,6 @@ VARIABLES = {
         'range': (0, 6),
         'cats': ['2J', 'VBF']
     },
-    #'dEta_jets_boosted': {
-    #    'title': r'Boosted $|\Delta\eta_{jet_{1},\/jet_{2}}|$',
-    #    'root': 'Boosted |#Delta#eta_{jet_{1}, jet_{2}}|',
-    #    'filename': 'dEta_jets_boosted',
-    #    'bins': 20,
-    #    'range': (0, 6),
-    #    'cats': ['2J', 'VBF']
-    #},
     'eta_product_jets': {
         'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
         'root': '#font[52]{jet}_{1} #font[152]{#eta} #times #font[52]{jet}_{2} #font[152]{#eta}',
@@ -540,6 +516,6 @@ for mmc in range(2):
         'root': '#font[52]{MMC Resonance p}_{T}',
         'filename': 'mmc%d_resonance_pt' % mmc,
         'bins': 20,
-        'range': (0, 200),
+        'range': {'BOOSTED': (50, 200), None: (0, 200)},
         'units': 'GeV',
     }

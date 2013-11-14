@@ -1340,23 +1340,26 @@ def draw(name,
 
     right_legend.Draw()
 
+    if data is not None:
+        binw = list(data.xwidth())
+    elif model is not None:
+        binw = list(model[0].xwidth())
+    else:
+        if isinstance(signal, (list, tuple)):
+            binw = list(signal[0].xwidth())
+        else:
+            binw = list(signal.xwidth())
+    binwidths = list(set(['%.3g' % w for w in binw]))
+
     if units is not None:
         label = '%s [%s]' % (name, units)
-        if data is not None:
-            binw = list(data.xwidth())
-        elif model is not None:
-            binw = list(model[0].xwidth())
-        else:
-            if isinstance(signal, (list, tuple)):
-                binw = list(signal[0].xwidth())
-            else:
-                binw = list(signal.xwidth())
-        binwidths = list(set(['%.3g' % w for w in binw]))
         if len(binwidths) == 1:
             # constant width bins
             ylabel = '%s / %s [%s]' % (ylabel, binwidths[0], units)
     else:
         label = name
+        if len(binwidths) == 1:
+            ylabel = '%s / %s' % (ylabel, binwidths[0])
 
     model_stack.yaxis.SetTitle(ylabel)
     base_hist = model_stack
