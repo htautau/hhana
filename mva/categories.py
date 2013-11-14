@@ -447,13 +447,13 @@ CATEGORIES = {
     'mva_id_controls': [
         Category_VBF_ID_Control,
         Category_Boosted_ID_Control,
-        Category_Nonboosted_1J_ID_Control,
+        #Category_Nonboosted_1J_ID_Control,
         #Category_Nonboosted_0J_ID_Control,
     ],
     'mva_deta_controls': [
         Category_VBF_DEta_Control,
         Category_Boosted_DEta_Control,
-        Category_Nonboosted_1J_DEta_Control,
+        #Category_Nonboosted_1J_DEta_Control,
         #Category_Nonboosted_0J_DEta_Control,
     ],
     'mva_workspace_controls': [
