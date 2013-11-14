@@ -59,7 +59,7 @@ VARIABLES = {
     },
     'vector_sum_pt': {
         'title': r'$\sum \vec{p}_T$ Taus, $E^{miss}_{T}$, and Two Leading Jets',
-        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus,} #font[52]{E}^{miss}_{T}, #font[52]{and Two Leading Jets}',
+        'root': '#font[52]{p}_{T}^{Total}',
         'filename': 'vector_sum_pt',
         'bins': 20,
         'range': (0, 200),
@@ -134,14 +134,14 @@ VARIABLES = {
     #},
     'MET_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
-        'root': '#font[52]{E}^{miss}_{T} #font[52]{Centrality}',
+        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} #font[52]{Centrality}',
         'filename': 'met_centrality',
         'bins': 20,
         'range': (-math.sqrt(2), math.sqrt(2)),
     },
     'mass_vis_tau1_tau2': {
         'title': r'$M^{vis}(\tau_{1},\/\tau_{2})$',
-        'root': '#font[52]{M}^{vis}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_vis',
         'bins': 20,
         'range': {'0J_NONBOOSTED': (30, 150), None: (0, 250)},
@@ -151,7 +151,7 @@ VARIABLES = {
     },
     'mass_collinear_tau1_tau2': {
         'title': r'$M^{col}(\tau_{1},\/\tau_{2})$',
-        'root': '#font[52]{M}^{col}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_collinear',
         'bins': 20,
         'range': (0, 250),
@@ -161,7 +161,7 @@ VARIABLES = {
     },
     'tau_pt_ratio': {
         'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
-        'root': '#font[152]{#tau}_{1}  #font[52]{p}_{T} / #font[152]{#tau}_{2} #font[52]{p}_{T}',
+        'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
         'filename': 'tau_pt_ratio',
         'bins': 20,
         'range': (0, 5),
@@ -261,14 +261,14 @@ VARIABLES = {
     #},
     'tau1_collinear_momentum_fraction': {
         'title': r'$\tau_{1}$ Visible Momentum Fraction',
-        'root': '#font[152]{#tau}_{1} #font[52]{Visible Momentum Fraction}',
+        'root': '#font[152]{#tau}_{x1}',
         'filename': 'tau1_x',
         'bins': 20,
         'range': (-3, 4),
     },
     'tau2_collinear_momentum_fraction': {
         'title': r'$\tau_{2}$ Visible Momentum Fraction',
-        'root': '#font[152]{#tau}_{2} #font[52]{Visible Momentum Fraction}',
+        'root': '#font[152]{#tau}_{x2}',
         'filename': 'tau2_x',
         'bins': 20,
         'range': (-3, 4),
@@ -311,35 +311,35 @@ VARIABLES = {
     #},
     'cos_theta_tau1_tau2': {
         'title': r'$\cos[\alpha(\tau_{1},\/\tau_{2})]$',
-        'root': '#font[52]{cos}[#font[152]{#alpha}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})]',
+        'root': '#font[52]{cos}(#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}})',
         'filename': 'cos_theta_tau1_tau2',
         'bins': 20,
         'range': (-1, 1),
     },
     'theta_tau1_tau2': {
         'title': r'$\alpha(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#alpha}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'theta_tau1_tau2',
         'bins': 20,
         'range': (0, math.pi),
     },
     'dR_tau1_tau2': {
         'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[152]{#Delta}#font[52]{R}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'dr_tau1_tau2',
         'bins': 10,
         'range': (0.8, 2.8),
     },
     'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta#phi}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[152]{#Delta#phi}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'dphi_tau1_tau2',
         'bins': 20,
         'range': (0., math.pi),
     },
     'dEta_tau1_tau2': {
         'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta#eta}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[152]{#Delta#eta}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'deta_tau1_tau2',
         'bins': 10,
         'range': (0., 1.5),
@@ -377,7 +377,7 @@ VARIABLES = {
     #},
     'tau1_centrality': {
         'title': r'$\tau_1$ Centrality',
-        'root': '#font[152]{#tau}_{1} #font[52]{Centrality}',
+        'root': '#font[152]{#tau}_{1} #font[152]{#eta} #font[52]{Centrality}',
         'filename': 'tau1_centrality',
         'bins': 20,
         'range': (0, 1),
@@ -385,7 +385,7 @@ VARIABLES = {
     },
     'tau2_centrality': {
         'title': r'$\tau_2$ Centrality',
-        'root': '#font[152]{#tau}_{2} #font[52]{Centrality}',
+        'root': '#font[152]{#tau}_{2} #font[152]{#eta} #font[52]{Centrality}',
         'filename': 'tau2_centrality',
         'bins': 20,
         'range': (0, 1),
@@ -393,7 +393,7 @@ VARIABLES = {
     },
     'jet1_eta': {
         'title': r'jet$_{1}$ $\eta$',
-        'root': '#font[52]{jet}_{1} #font[152]{#eta}',
+        'root': '#font[152]{#eta}(#font[52]{j}1)',
         'filename': 'jet1_eta',
         'bins': 20,
         'range': (-5, 5),
@@ -401,7 +401,7 @@ VARIABLES = {
     },
     'jet2_eta': {
         'title': r'jet$_{2}$ $\eta$',
-        'root': '#font[52]{jet}_{2} #font[152]{#eta}',
+        'root': '#font[152]{#eta}(#font[52]{j}2)',
         'filename': 'jet2_eta',
         'bins': 20,
         'range': (-5, 5),
@@ -409,7 +409,7 @@ VARIABLES = {
     },
     'jet1_pt': {
         'title': r'jet$_{1}$ $p_{T}$',
-        'root': '#font[52]{jet}_{1} #font[52]{p}_{T}',
+        'root': '#font[52]{p}_{T}(#font[52]{j}1)',
         'filename': 'jet1_pt',
         'bins': 20,
         'range': (20, 200),
@@ -419,7 +419,7 @@ VARIABLES = {
     },
     'jet2_pt': {
         'title': r'jet$_{2}$ $p_{T}$',
-        'root': '#font[52]{jet}_{2} #font[52]{p}_{T}',
+        'root': '#font[52]{p}_{T}(#font[52]{j}2)',
         'filename': 'jet2_pt',
         'bins': 20,
         'range': (20, 200),
@@ -429,7 +429,7 @@ VARIABLES = {
     },
     'dEta_jets': {
         'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
-        'root': '#font[152]{#Delta#eta}(#font[52]{jet}_{1}, #font[52]{jet}_{2})',
+        'root': '#font[152]{#Delta#eta}_{(#font[52]{j}1,#font[52]{j}2)}',
         'filename': 'dEta_jets',
         'bins': 10,
         'range': (2, 6),
@@ -437,7 +437,7 @@ VARIABLES = {
     },
     'eta_product_jets': {
         'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
-        'root': '#font[52]{jet}_{1} #font[152]{#eta} #times #font[52]{jet}_{2} #font[152]{#eta}',
+        'root': '#font[152]{#eta}_{#font[52]{j}1} #times #font[152]{#eta}_{#font[52]{j}2}',
         'filename': 'eta_product_jets',
         'bins': 20,
         'range': (-10, 10),
@@ -453,7 +453,7 @@ VARIABLES = {
     #},
     'mass_jet1_jet2': {
         'title': r'$M(jet_{1},\/jet_{2})$',
-        'root': '#font[52]{M}(#font[52]{jet}_{1},#font[52]{jet}_{2})',
+        'root': '#font[52]{m}_{#font[52]{j}1,#font[52]{j}2}',
         'filename': 'mass_jet1_jet2',
         'bins': 20,
         'range': (0, 1000),
@@ -476,7 +476,7 @@ for mmc in range(2):
 
     VARIABLES['mmc%d_mass' % mmc] = {
         'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
-        'root': '#font[52]{M}^{MMC}(#font[152]{#tau}_{1},#font[152]{#tau}_{2})',
+        'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mmc%d_mass' % mmc,
         'bins': 25,
         'range': (0, 250),
