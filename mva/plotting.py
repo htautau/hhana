@@ -1022,7 +1022,7 @@ def draw(name,
     if data is None:
         show_ratio=False
 
-    ypadding = (.5, .05)
+    ypadding = (.5, .0)
 
     if show_ratio:
         ratio_range = (0, 2)
