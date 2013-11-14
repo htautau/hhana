@@ -559,8 +559,11 @@ for np in nps:
     if np.name in COMBINATION_MAPPING:
         np.name = COMBINATION_MAPPING[np.name]
 
-for category in analysis.iter_categories(
-    args.categories, args.controls, names=args.category_names):
+cat_defs = [args.categories]
+if args.categories != 'presel':
+    cat_defs.append(args.controls)
+
+for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     is_control = category.analysis_control
 

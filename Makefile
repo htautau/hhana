@@ -153,6 +153,7 @@ dump:
 .PHONY: plots
 plots:
 	nohup ./ana plot --unblind --output-formats eps png > var_plots.log &
+	nohup ./ana plot --unblind --categories presel --output-formats eps png > var_plots_presel.log &
 
 .PHONY: bdt-plots
 bdt-plots:

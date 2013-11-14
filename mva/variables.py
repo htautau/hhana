@@ -29,15 +29,15 @@ VARIABLES = {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB,BCID}',
         'filename': 'averageIntPerXing',
-        'bins': 20,
-        'range': (1, 46),
+        'bins': 10,
+        'range': (5, 35),
     },
     'actualIntPerXing': {
         'title': r'$\langle\mu\rangle|_{LB}(BCID)$',
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB}#font[52]{(BCID)}',
         'filename': 'actualIntPerXing',
-        'bins': 20,
-        'range': (1, 46),
+        'bins': 10,
+        'range': (5, 35),
     },
     'sum_pt': {
         'title': r'$\sum p_T$ Taus and Two Leading Jets',
@@ -428,11 +428,11 @@ VARIABLES = {
         'cats': ['2J', 'VBF']
     },
     'dEta_jets': {
-        'title': r'$|\Delta\eta(jet_{1},\/jet_{2})|$',
-        'root': '|#font[152]{#Delta#eta}(#font[52]{jet}_{1}, #font[52]{jet}_{2})|',
+        'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
+        'root': '#font[152]{#Delta#eta}(#font[52]{jet}_{1}, #font[52]{jet}_{2})',
         'filename': 'dEta_jets',
-        'bins': 20,
-        'range': (0, 6),
+        'bins': 10,
+        'range': (2, 6),
         'cats': ['2J', 'VBF']
     },
     'eta_product_jets': {
