@@ -72,7 +72,7 @@ style.SetHatchesLineWidth(2)
 style.SetHatchesSpacing(1.1)
 set_style(style)
 
-#ROOT.TGaxis.SetMaxDigits(3)
+ROOT.TGaxis.SetMaxDigits(4)
 
 from rootpy.utils.silence import silence_sout_serr
 with silence_sout_serr():
