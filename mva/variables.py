@@ -462,11 +462,15 @@ VARIABLES = {
         'cats': ['2J', 'VBF']
     },
     'resonance_pt': {
-        'title': r'Resonance $p_T$',
-        'root': '#font[52]{Resonance p}_{T}',
+        'title': r'$p_T^{H}$',
+        'root': '#font[52]{p}_{T}^{H}',
         'filename': 'resonance_pt',
         'bins': 20,
-        'range': {'BOOSTED': (80, 200), None: (0, 200)},
+        'range': {
+            'BOOSTED': (90, 250),
+            'VBF': (40, 250),
+            'REST': (0, 110),
+            None: (0, 200)},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -512,8 +516,8 @@ for mmc in range(2):
     }
 
     VARIABLES['mmc%d_resonance_pt' % mmc] = {
-        'title': r'MMC Resonance $p_T$',
-        'root': '#font[52]{MMC Resonance p}_{T}',
+        'title': r'MMC $p_T^H$',
+        'root': 'MMC #font[52]{p}_{T}^{H}',
         'filename': 'mmc%d_resonance_pt' % mmc,
         'bins': 20,
         'range': {'BOOSTED': (50, 200), None: (0, 200)},
