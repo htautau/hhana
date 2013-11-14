@@ -122,7 +122,7 @@ class Analysis(object):
 
         self.signals = self.get_signals(125)
 
-    def get_signals(self, mass=125, mode=None):
+    def get_signals(self, mass=125, mode=None, scale_125=False):
 
         signals = []
         if not isinstance(mass, list):
@@ -138,9 +138,8 @@ class Analysis(object):
                     linecolor='red',
                     linewidth=2,
                     linestyle='dashed')
-                if s.mass not in (125, None):
-                    log.warning("HACK HACK HACK")
-                    log.info("SCALING SIGNAL TO 125")
+                if s.mass != 125 and scale_125:
+                    log.warning("SCALING SIGNAL TO 125")
                     log.info(str(s.mass))
                     sf= self.higgs_125.events()[1].value / s.events()[1].value
                     log.info(str(sf))
@@ -267,6 +266,7 @@ class Analysis(object):
                           include_signal=True,
                           mass=125,
                           mode=None,
+                          scale_125=False,
                           clf=None,
                           min_score=None,
                           max_score=None,
@@ -289,7 +289,7 @@ class Analysis(object):
             else:
                 suffix = '_%d' % mass
             channel_name += suffix
-            samples += self.get_signals(mass, mode)
+            samples += self.get_signals(mass, mode, scale_125=scale_125)
 
         # create HistFactory samples
         histfactory_samples = []

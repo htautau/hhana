@@ -844,6 +844,7 @@ def draw_channel_array(
         cuts=None,
         mass=125,
         mode=None,
+        scale_125=False,
         ravel=False,
         weighted=True,
         weight_hist=None,
@@ -893,6 +894,7 @@ def draw_channel_array(
         include_signal=True,
         mass=mass,
         mode=mode,
+        scale_125=scale_125,
         clf=clf,
         min_score=min_score,
         max_score=max_score,
@@ -985,6 +987,7 @@ def draw(name,
          signal=None,
          signal_scale=1.,
          signal_on_top=False,
+         signal_linestyles=None,
          show_signal_error=False,
          stacked_model=True,
          stacked_signal=True,
@@ -1092,7 +1095,7 @@ def draw(name,
             scaled_signal = signal
         if signal_colour_map is not None:
             set_colours(scaled_signal, signal_colour_map)
-        for s in scaled_signal:
+        for i, s in enumerate(scaled_signal):
             if fill_signal:
                 s.fillstyle = 'solid'
                 s.fillcolor = s.linecolor
@@ -1102,7 +1105,10 @@ def draw(name,
             else:
                 s.fillstyle = 'hollow'
                 s.linewidth = 2
-                s.linestyle = 'dashed'
+                if signal_linestyles is not None:
+                    s.linestyle = signal_linestyles[i]
+                else:
+                    s.linestyle = 'dashed'
                 alpha = 1.
 
     ymin, ymax = float('-inf'), float('inf')
