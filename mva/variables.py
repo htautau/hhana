@@ -449,7 +449,7 @@ VARIABLES = {
         'filename': 'dEta_jets',
         'bins': 10,
         'range': (2, 6),
-        'cats': ['2J', 'VBF']
+        'cats': ['2J', 'VBF', 'PRESELECTION']
     },
     'eta_product_jets': {
         'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
