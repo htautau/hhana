@@ -615,7 +615,8 @@ class Classifier(object):
                 output_formats=output_formats,
                 signal_colour_map=cm.spring,
                 logy=logy,
-                fit=fit)
+                #fit=fit PREFIT
+                )
 
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -649,7 +650,28 @@ class Classifier(object):
                 systematics=systematics,
                 output_formats=output_formats,
                 logy=logy,
-                fit=fit)
+                fit=fit) #POSTFIT
+
+        ###############################################################
+        log.info("plotting mmc")
+
+        draw_channel_array(
+            analysis,
+            variables.VARIABLES,
+            plots=[MMC_MASS],
+            mass=125,
+            mode='combined',
+            signal_scale=signal_scale if not unblind else 1.,
+            signal_on_top=True if unblind else False,
+            fill_signal=True if unblind else False,
+            category=category,
+            region=region,
+            systematics=systematics,
+            output_suffix="_postfit" + self.output_suffix,
+            cuts=signal_region,
+            output_formats=output_formats,
+            unblind=True,
+            fit=fit)
 
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
