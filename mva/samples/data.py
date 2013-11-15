@@ -48,7 +48,7 @@ class DataInfo():
 
 class Data(Sample):
 
-    def __init__(self, year, markersize=1.2, **kwargs):
+    def __init__(self, year, markersize=2, **kwargs):
 
         super(Data, self).__init__(
             year=year, scale=1.,

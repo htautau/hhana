@@ -137,7 +137,7 @@ class Analysis(object):
                     scale=self.mu,
                     linecolor='red',
                     linewidth=2,
-                    linestyle='dashed')
+                    linestyle='solid')
                 if s.mass != 125 and scale_125:
                     log.warning("SCALING SIGNAL TO 125")
                     log.info(str(s.mass))

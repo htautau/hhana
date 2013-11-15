@@ -67,9 +67,14 @@ style = get_style('ATLAS', shape='square')
 #style.SetTitleYOffset(1.8)
 #style.SetTickLength(0.04, 'X')
 #style.SetTickLength(0.02, 'Y')
+
+# custom HSG4 modifications
+style.SetPadLeftMargin(0.16)
+style.SetTitleYOffset(1.6)
+
 style.SetHistTopMargin(0.)
-style.SetHatchesLineWidth(2)
-style.SetHatchesSpacing(1.1)
+style.SetHatchesLineWidth(1)
+style.SetHatchesSpacing(1)
 set_style(style)
 
 ROOT.TGaxis.SetMaxDigits(4)

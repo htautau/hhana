@@ -1004,6 +1004,7 @@ def draw(name,
          systematics=None,
          systematics_components=None,
          integer=False,
+         textsize=25,
          logy=False):
 
     if model is None and data is None and signal is None:
@@ -1108,7 +1109,7 @@ def draw(name,
                 if signal_linestyles is not None:
                     s.linestyle = signal_linestyles[i]
                 else:
-                    s.linestyle = 'dashed'
+                    s.linestyle = 'solid'
                 alpha = 1.
 
     ymin, ymax = float('-inf'), float('inf')
@@ -1179,7 +1180,7 @@ def draw(name,
                 high,
                 middle_hist=total_model)
             error_band_model.fillstyle = '/'
-            error_band_model.fillcolor = '#cccccc'
+            error_band_model.fillcolor = '#858585'
             error_band_model.Draw('same e2')
 
         if signal is not None and show_signal_error:
@@ -1196,7 +1197,7 @@ def draw(name,
                 high,
                 middle_hist=total_signal * signal_scale)
             error_band_signal.fillstyle = '\\'
-            error_band_signal.fillcolor = '#cccccc'
+            error_band_signal.fillcolor = '#858585'
             error_band_signal.Draw('same e2')
             signal_stack.Draw('SAME')
 
@@ -1291,7 +1292,7 @@ def draw(name,
                 error_band = get_band(ratio_hist_high,
                                         ratio_hist_low)
                 error_band.fillstyle = '/'
-                error_band.fillcolor = '#7a7a7a'
+                error_band.fillcolor = '#858585'
                 error_band.Draw('same E2')
 
             # draw points above band
@@ -1308,18 +1309,18 @@ def draw(name,
             leftmargin=0.02,
             rightmargin=0.5,
             margin=0.45,
-            textsize=20,
+            textsize=textsize,
             entrysep=0.02,
             entryheight=0.04,
-            topmargin=0.12)
+            topmargin=0.15)
         for hist in reversed(model):
             model_legend.AddEntry(hist, style='F')
         if systematics:
             model_err_band = error_band_model.Clone()
-            model_err_band.linewidth = 2
-            model_err_band.linecolor = 'black'
-            model_err_band.fillcolor = 'black'
-            model_err_band.title = 'stat #oplus sys'
+            model_err_band.linewidth = 0
+            model_err_band.linecolor = 'white'
+            model_err_band.fillcolor = '#858585'
+            model_err_band.title = 'stat #oplus sys uncert'
             model_legend.AddEntry(model_err_band, style='F')
         model_legend.Draw()
 
@@ -1329,10 +1330,10 @@ def draw(name,
         leftmargin=0.3,
         rightmargin=0.12,
         margin=0.3,
-        textsize=20,
+        textsize=textsize,
         entrysep=0.02,
         entryheight=0.04,
-        topmargin=0.12)
+        topmargin=0.15)
     right_legend.AddEntry(data, style='lep')
     if signal is not None:
         for s in reversed(scaled_signal):
@@ -1349,7 +1350,7 @@ def draw(name,
             binw = list(signal[0].xwidth())
         else:
             binw = list(signal.xwidth())
-    binwidths = list(set(['%.3g' % w for w in binw]))
+    binwidths = list(set(['%.2g' % w for w in binw]))
 
     if units is not None:
         label = '%s [%s]' % (name, units)
@@ -1389,25 +1390,27 @@ def draw(name,
 
     hist_pad.cd()
     label = ROOT.TLatex(
-        hist_pad.GetLeftMargin() + 0.03, 0.9,
+        hist_pad.GetLeftMargin() + 0.03, 0.89,
         category.root_label)
     label.SetNDC()
     label.SetTextFont(43)
-    label.SetTextSize(20)
+    label.SetTextSize(textsize)
     label.Draw()
     keepalive(hist_pad, label)
 
     if data_info is not None:
         plabel = ROOT.TLatex(
-            hist_pad.GetLeftMargin() + 0.03, 0.85,
+            hist_pad.GetLeftMargin() + 0.03, 0.82,
             data_info)
         plabel.SetNDC()
         plabel.SetTextFont(43)
-        plabel.SetTextSize(20)
+        plabel.SetTextSize(textsize)
         plabel.Draw()
         keepalive(hist_pad, plabel)
 
-    ATLAS_label(0.69, 0.9, sep=0.12, pad=hist_pad, sqrts=None, text="Internal")
+    ATLAS_label(0.65, 0.89,
+        sep=0.14, pad=hist_pad, sqrts=None,
+        text="Internal", textsize=textsize)
 
     hist_pad.Update()
     hist_pad.Modified()
@@ -1951,8 +1954,8 @@ def draw_tmp(name,
                 model_legend.AddEntry(hist, style='F')
             if systematics:
                 model_err_band = error_band_model.Clone()
-                model_err_band.linewidth = 2
-                model_err_band.linecolor = 'black'
+                model_err_band.linewidth = 0
+                #model_err_band.linecolor = 'white'
                 model_err_band.fillcolor = 'black'
                 model_err_band.title = 'stat #oplus sys'
                 model_legend.AddEntry(model_err_band, style='F')
