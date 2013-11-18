@@ -815,10 +815,6 @@ def draw_samples_array(
         if cuts:
             output_name += '_' + cuts.safe()
 
-        _range = var_info['range']
-        if isinstance(_range, dict):
-            _range = _range.get(category.name.upper(), _range[None])
-
         fig = draw(model=[m[field] for m in model_hists],
              data=data_field_hist[field] if data_field_hist else None,
              data_info=str(data_field_hist[field].datainfo) if data_field_hist else None,
@@ -826,7 +822,6 @@ def draw_samples_array(
              category=category,
              name=var_info['title'] if mpl else var_info['root'],
              units=var_info.get('units', None),
-             range=_range,
              output_name=output_name,
              mpl=mpl,
              blind=blind,
@@ -915,16 +910,11 @@ def draw_channel_array(
         if cuts:
             output_name += '_' + cuts.safe()
 
-        _range = var_info['range']
-        if isinstance(_range, dict):
-            _range = _range.get(category.name.upper(), _range[None])
-
         fig = draw_channel(field_channel[field],
              data_info=str(analysis.data.info),
              category=category,
              name=var_info['title'] if mpl else var_info['root'],
              units=var_info.get('units', None),
-             range=_range,
              output_name=output_name,
              blind=blind,
              integer=var_info.get('integer', False),
@@ -992,7 +982,6 @@ def draw(name,
          stacked_model=True,
          stacked_signal=True,
          units=None,
-         range=None,
          plot_label=None,
          ylabel='Events',
          model_colour_map=None,

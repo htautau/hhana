@@ -101,12 +101,14 @@ class Sample(object):
                     title=self.label, **self.hist_decor)
                 continue
 
-            bins = var_info['bins']
-
             _range = var_info['range']
             if isinstance(_range, dict):
                 _range = _range.get(category.name.upper(), _range[None])
-            min, max = _range
+            if len(_range) == 3:
+                bins, min, max = _range
+            else:
+                min, max = _range
+                bins = var_info['bins']
 
             hist = Hist(bins, min, max,
                 title=self.label,
