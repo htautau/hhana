@@ -223,7 +223,8 @@ class Analysis(object):
 
     def get_suffix(self, clf=False):
 
-        output_suffix = '_%s' % self.qcd_shape_region
+        # "track" here only for historical reasons
+        output_suffix = '_trackfit_%s' % self.qcd_shape_region
         if self.use_embedding:
             output_suffix += '_embedding'
         else:
