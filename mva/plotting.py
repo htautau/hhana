@@ -993,7 +993,7 @@ def draw(name,
          systematics=None,
          systematics_components=None,
          integer=False,
-         textsize=25,
+         textsize=22,
          logy=False):
 
     if model is None and data is None and signal is None:
