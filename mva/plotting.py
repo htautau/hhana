@@ -1323,7 +1323,7 @@ def draw(name,
             model_err_band.linewidth = 0
             model_err_band.linecolor = 'white'
             model_err_band.fillcolor = '#858585'
-            model_err_band.title = 'stat #oplus sys uncert'
+            model_err_band.title = 'Uncert.'
             model_legend.AddEntry(model_err_band, style='F')
         model_legend.Draw()
 
@@ -1960,7 +1960,7 @@ def draw_tmp(name,
                 model_err_band.linewidth = 0
                 #model_err_band.linecolor = 'white'
                 model_err_band.fillcolor = 'black'
-                model_err_band.title = 'stat #oplus sys'
+                model_err_band.title = 'Uncert.'
                 model_legend.AddEntry(model_err_band, style='F')
             model_legend.Draw()
         else:
