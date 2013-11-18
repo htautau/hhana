@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+
+from mva.analysis import get_analysis
+
+analysis = get_analysis(args)
+
+from rootpy.plotting import Hist
+from rootpy.stats import histfactory
+from mva.plotting import draw_channel
+from mva.categories import Category_Rest, Category_Preselection
+from mva.lumi import get_lumi_uncert
+from mva.norm import cache
+from mva import CONST_PARAMS
+
+lumi_rel_error = get_lumi_uncert(year)
+
+#category = Category_Rest
+category = Category_Preselection
+
+hist_template = Hist(10, 0, 1.5, type='D')
+channels = make_var_channels(
+    hist_template,
+    'dEta_tau1_tau2',
+    [category],
+    include_signal=False)
+draw_channel(channels[0], name='deta',
+    category=category,
+    output_name='deta_prefit')
+workspace, measurement = histfactory.make_workspace(
+    'normalization_deta', channels,
+    POI=None,
+    lumi=1.0,
+    lumi_rel_error=lumi_rel_error,
+    const_params=CONST_PARAMS,
+    silence=True)
+# fit workspace
+minim = workspace.fit(minimizer_type='Minuit', strategy=1)
+fit_result = minim.save()
+# get fitted norms and errors
+qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_QCD')
+ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_Ztt')
+qcd_scale = qcd.getVal()
+qcd_scale_error = qcd.getError()
+ztt_scale = ztt.getVal()
+ztt_scale_error = ztt.getError()
+cache.set_scales(
+    args.year,
+    category.name,
+    args.embedding,
+    'TRACK', #TODO: remove
+    args.qcd_shape_region,
+    qcd_scale=analysis.qcd.scale * qcd_scale,
+    qcd_scale_error=analysis.qcd.scale * qcd_scale_error / qcd_scale,
+    qcd_data_scale=1.,
+    qcd_z_scale=1.,
+    qcd_others_scale=1.,
+    z_scale=analysis.ztautau.scale * ztt_scale,
+    z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
+analysis.normalize(category)
+channels = make_var_channels(
+    hist_template,
+    'dEta_tau1_tau2',
+    [category],
+    include_signal=False)
+draw_channel(channels[0], name='deta',
+    category=category,
+    output_name='deta_postfit')

@@ -85,3 +85,16 @@ with silence_sout_serr():
 
 import yellowhiggs
 log.info("using yellowhiggs {0}".format(yellowhiggs.__version__))
+
+CONST_PARAMS = [
+    'Lumi',
+    'mu_XS8_ggH',
+    'mu_XS7_ggH',
+    'mu_XS8_VBF',
+    'mu_XS7_VBF',
+    'mu_XS8_WH',
+    'mu_XS7_WH',
+    'mu_XS8_ZH',
+    'mu_XS7_ZH',
+    'mu_BR_tautau',
+]
