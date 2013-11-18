@@ -24,30 +24,6 @@ def general_parser(parser=None):
     """
     General Options
     """
-    parser.add_argument('actions', nargs='*',
-            choices=[
-                'norm',
-                'stability',
-                'validate',
-                'weights',
-                '2d',
-                'plot',
-                'plotevolving',
-                'train',
-                'money',
-                'scatter',
-                'correlate',
-                'evaluate',
-                'workspace',
-                'track-workspace',
-                'deta-workspace',
-                'bdt-workspace',
-                'ntup',
-                'ntuptruth',
-                'top10',
-                'massplot'],
-            default=[],
-            help='only perform these actions')
     parser.add_argument('--no-systematics', action='store_false',
             dest='systematics',
             help="turn off systematics",
@@ -119,27 +95,6 @@ def mass_parser(parser=None):
     return parser
 
 
-def fitting_parser(parser=None):
-
-    if parser is None:
-        parser = base_parser()
-    """
-    Fitting Options
-    """
-    parser.add_argument('--refit',
-            action='store_false', dest='use_fit_cache',
-            help="do not use cached background scale factors "
-            "and instead recalculate them",
-            default=True)
-    parser.add_argument('--fit-param', choices=('track', 'mass'),
-            default='track',
-            help='parameters used to determine normalization of QCD and Z')
-    parser.add_argument('--draw-fit', action='store_true', default=False,
-            help='draw the QCD/Z norm fit results')
-
-    return parser
-
-
 def training_parser(parser=None):
 
     if parser is None:
@@ -207,24 +162,34 @@ def plotting_parser(parser=None):
     return parser
 
 
-def fit_parser():
-
-    parser = base_parser()
-    parser.add_argument('categories', nargs='+', choices=CATEGORIES.keys(),
-            help='category definitions')
-    parser.add_argument('--plot', action='store_true', default=False,
-            help='plot distributions before and after fit')
-    parser.add_argument('--roofit', action='store_true', default=False,
-            help='use RooFit instead of TrackFit')
-
-    return parser
-
-
-def get_parser():
-
+def get_parser(actions=True):
     parser = general_parser()
     mass_parser(parser)
-    fitting_parser(parser)
     training_parser(parser)
     plotting_parser(parser)
+    if actions:
+        parser.add_argument('actions', nargs='*',
+            choices=[
+                'norm',
+                'stability',
+                'validate',
+                'weights',
+                '2d',
+                'plot',
+                'plotevolving',
+                'train',
+                'money',
+                'scatter',
+                'correlate',
+                'evaluate',
+                'workspace',
+                'track-workspace',
+                'deta-workspace',
+                'bdt-workspace',
+                'ntup',
+                'ntuptruth',
+                'top10',
+                'massplot'],
+            default=[],
+            help='only perform these actions')
     return parser

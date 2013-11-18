@@ -46,7 +46,7 @@ from mva.systematics import (get_systematics, iter_systematics,
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS
-from mva.analysis import Analysis
+from mva.analysis import get_analysis, Analysis
 from mva.lumi import get_lumi_uncert
 from mva import log, variables, samples, MMC_MASS
 from mva.norm import cache
@@ -87,22 +87,7 @@ categories = CATEGORIES[args.categories]
 category_names = args.category_names
 target_region = args.target_region
 
-analysis = Analysis(
-    year=args.year,
-    systematics=args.systematics,
-    use_embedding=args.embedding,
-    target_region=args.target_region,
-    qcd_shape_region=args.qcd_shape_region,
-    decouple_qcd_shape=args.decouple_qcd_shape,
-    constrain_norms=args.constrain_norms,
-    fit_param=args.fit_param,
-    random_mu=args.random_mu,
-    mu=args.mu,
-    partition_key='EventNumber', # 'MET_phi_original * 100', or None
-    suffix=args.suffix,
-    transform=not args.raw_scores,
-    mmc=not args.no_mmc,
-    mpl=args.mpl)
+analysis = get_analysis(args)
 
 output_suffix = analysis.get_suffix()
 

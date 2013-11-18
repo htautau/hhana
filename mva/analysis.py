@@ -24,6 +24,25 @@ Scores = namedtuple('Scores', [
     'max_score',])
 
 
+def get_analysis(args):
+    analysis = Analysis(
+        year=args.year,
+        systematics=args.systematics,
+        use_embedding=args.embedding,
+        target_region=args.target_region,
+        qcd_shape_region=args.qcd_shape_region,
+        decouple_qcd_shape=args.decouple_qcd_shape,
+        constrain_norms=args.constrain_norms,
+        random_mu=args.random_mu,
+        mu=args.mu,
+        partition_key='EventNumber', # 'MET_phi_original * 100', or None
+        suffix=args.suffix,
+        transform=not args.raw_scores,
+        mmc=not args.no_mmc,
+        mpl=args.mpl)
+    return analysis
+
+
 class Analysis(object):
 
     def __init__(self, year,
@@ -35,7 +54,6 @@ class Analysis(object):
                  qcd_workspace_norm=None,
                  ztt_workspace_norm=None,
                  constrain_norms=False,
-                 fit_param='TRACK',
                  random_mu=False,
                  mu=1.,
                  partition_key='EventNumber',
@@ -49,7 +67,6 @@ class Analysis(object):
         self.use_embedding = use_embedding
         self.target_region = target_region
         self.qcd_shape_region = qcd_shape_region
-        self.fit_param = fit_param
         self.partition_key = partition_key
         self.transform = transform
         self.suffix = suffix
@@ -180,13 +197,13 @@ class Analysis(object):
                     scale=self.mu))
         return signals
 
-    def normalize(self, category, fit_param=None):
+    def normalize(self, category):
 
         norm_cache.qcd_ztautau_norm(
             ztautau=self.ztautau,
             qcd=self.qcd,
             category=category,
-            param=fit_param if fit_param is not None else self.fit_param)
+            param='TRACK')
 
     def iter_categories(self, *definitions, **kwargs):
 
@@ -206,8 +223,7 @@ class Analysis(object):
 
     def get_suffix(self, clf=False):
 
-        output_suffix = '_%sfit_%s' % (
-            self.fit_param.lower(), self.qcd_shape_region)
+        output_suffix = '_%s' % self.qcd_shape_region
         if self.use_embedding:
             output_suffix += '_embedding'
         else:
