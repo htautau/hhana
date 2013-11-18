@@ -58,14 +58,13 @@ VARIABLES = {
         'units': 'GeV',
     },
     'vector_sum_pt': {
-        'title': r'$\sum \vec{p}_T$ Taus, $E^{miss}_{T}$, and Two Leading Jets',
+        'title': r'$\sum \vec{p}_T$',
         'root': '#font[52]{p}_{T}^{Total}',
         'filename': 'vector_sum_pt',
         'bins': 20,
         'range': (0, 200),
         'scale': 0.001,
         'units': 'GeV',
-        'cats': ['2J', 'VBF']
     },
     'numJets': {
         'title': r'Number of Selected Jets',
