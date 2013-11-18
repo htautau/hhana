@@ -7,7 +7,7 @@ from rootpy.stats import histfactory
 from rootpy.plotting import Hist
 
 from . import samples, log; log = log[__name__]
-from .samples import Higgs
+from .samples import Higgs, Data
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .stats.utils import efficiency_cut
@@ -90,7 +90,7 @@ class Analysis(object):
 
         self.data = samples.Data(year=year,
             markersize=1.2,
-            linewidth=2,
+            linewidth=1,
             mpl=mpl)
 
         self.higgs_125 = samples.Higgs(

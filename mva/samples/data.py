@@ -58,7 +58,6 @@ class Data(Sample):
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
         self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
-
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
         self._label = 'Data'
         self._label_root = 'Data'

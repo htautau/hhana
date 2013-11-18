@@ -1211,6 +1211,7 @@ def draw(name,
         #data.SetMaximum(ymax)
         #data.Draw('same E1')
         data_poisson = data.poisson_errors()
+        data_poisson.markersize = 1.2
         data_poisson.Draw('PZ')
         data.yaxis.SetLimits(ymin, ymax)
         data.yaxis.SetRangeUser(ymin, ymax)

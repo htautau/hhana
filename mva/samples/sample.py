@@ -114,7 +114,6 @@ class Sample(object):
                 title=self.label,
                 type='D',
                 **self.hist_decor)
-            hist.decorate(**self.hist_decor)
             field_hist[field] = hist
         return field_hist
 
