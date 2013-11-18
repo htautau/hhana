@@ -1129,7 +1129,8 @@ def draw(name,
         model_stack.Draw()
         _, _, ymin, ymax = get_limits(model_stack,
                 logy=logy,
-                ypadding=ypadding)
+                ypadding=ypadding,
+                logy_crop_value=1E-1)
         model_stack.SetMinimum(ymin)
         model_stack.SetMaximum(ymax)
         model_stack.Draw()
@@ -1155,7 +1156,8 @@ def draw(name,
             signal_stack.Draw('SAME')
             _, _, _ymin, _ymax = get_limits(signal_stack,
                 logy=logy,
-                ypadding=ypadding)
+                ypadding=ypadding,
+                logy_crop_value=1E-1)
             model_stack.SetMinimum(ymin)
             model_stack.SetMaximum(ymax)
             signal_stack.SetMinimum(ymin)
@@ -1212,7 +1214,8 @@ def draw(name,
         hist_pad.cd()
         _, _, _ymin, _ymax = get_limits(data,
             logy=logy,
-            ypadding=ypadding)
+            ypadding=ypadding,
+            logy_crop_value=1E-1)
         if _ymin < ymin:
             ymin = _ymin
         if _ymax > ymax:
