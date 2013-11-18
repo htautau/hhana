@@ -1359,7 +1359,7 @@ def draw(name,
         label = '%s [%s]' % (name, units)
         if len(binwidths) == 1:
             # constant width bins
-            ylabel = '%s / %s [%s]' % (ylabel, binwidths[0], units)
+            ylabel = '%s / %s %s' % (ylabel, binwidths[0], units)
     else:
         label = name
         if len(binwidths) == 1:

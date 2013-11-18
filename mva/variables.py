@@ -444,7 +444,7 @@ VARIABLES = {
     },
     'dEta_jets': {
         'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
-        'root': '#font[152]{#Delta#eta}_{(#font[52]{j}1,#font[52]{j}2)}',
+        'root': '#font[152]{#Delta#eta}(#font[52]{j}1,#font[52]{j}2)',
         'filename': 'dEta_jets',
         'bins': 10,
         'range': (2, 6),
