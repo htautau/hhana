@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+
+from mva.analysis import get_analysis
+
+analysis = get_analysis(args)
+
+from rootpy.plotting import Hist, Canvas, Legend
+from mva.categories import Category_1J
+
