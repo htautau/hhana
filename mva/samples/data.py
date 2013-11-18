@@ -48,11 +48,11 @@ class DataInfo():
 
 class Data(Sample):
 
-    def __init__(self, year, markersize=2, **kwargs):
+    def __init__(self, year, **kwargs):
 
         super(Data, self).__init__(
             year=year, scale=1.,
-            markersize=markersize, **kwargs)
+            **kwargs)
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)

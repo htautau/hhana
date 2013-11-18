@@ -88,7 +88,10 @@ class Analysis(object):
             log.info("using a mu (signal strength) of {0:.1f}".format(mu))
             self.mu = mu
 
-        self.data = samples.Data(year=year, mpl=mpl)
+        self.data = samples.Data(year=year,
+            markersize=1.2,
+            linewidth=2,
+            mpl=mpl)
 
         self.higgs_125 = samples.Higgs(
             year=year,

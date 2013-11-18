@@ -1218,10 +1218,11 @@ def draw(name,
             ymin = _ymin
         if _ymax > ymax:
             ymax = _ymax
-        data.SetMinimum(ymin)
-        data.SetMaximum(ymax)
-        data.linewidth = 2
-        data.Draw('same E1')
+        #data.SetMinimum(ymin)
+        #data.SetMaximum(ymax)
+        #data.Draw('same E1')
+        data_poisson = data.poisson_errors()
+        data_poisson.Draw('PZ')
         data.yaxis.SetLimits(ymin, ymax)
         data.yaxis.SetRangeUser(ymin, ymax)
 
