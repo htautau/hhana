@@ -1071,7 +1071,7 @@ def draw(name,
         hist_pad.SetTopMargin(1.01 - rect_hist[3] - rect_hist[1])
         hist_pad.Draw()
     else:
-        fig = Canvas(size_includes_decorations=True) # HSG4 consistency
+        fig = Canvas()
         hist_pad = fig
 
     if logy:
