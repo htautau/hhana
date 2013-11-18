@@ -481,7 +481,7 @@ if 'top10' in args.actions:
                 
             # get the record array
             rec = data.merged_records(
-                category, target_region, fields=fields)
+                category, target_region, fields=fields, include_weight=False)
             # get the scores
             scores, _ = data.scores(
                 clf, category, target_region,
