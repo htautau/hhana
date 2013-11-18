@@ -1105,7 +1105,7 @@ def draw(name,
                 alpha = .75
             else:
                 s.fillstyle = 'hollow'
-                s.linewidth = 2
+                s.linewidth = 3
                 if signal_linestyles is not None:
                     s.linestyle = signal_linestyles[i]
                 else:
@@ -1149,8 +1149,6 @@ def draw(name,
         signal_stack = HistStack()
         for hist in scaled_signal:
             hist.drawstyle = 'hist'
-            hist.fillstyle = 'hollow'
-            hist.linewidth = 4
             signal_stack.Add(hist)
         if stacked_signal:
             signal_stack.Draw('SAME')
@@ -1671,7 +1669,7 @@ def draw_tmp(name,
             for hist in scaled_signal:
                 hist.drawstyle = 'hist'
                 hist.fillstyle = 'hollow'
-                hist.linewidth = 4
+                hist.linewidth = 3
                 signal_stack.Add(hist)
 
             if stacked_signal:
