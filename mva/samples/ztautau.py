@@ -48,6 +48,10 @@ class MC_Ztautau(Ztautau, MC):
     WORKSPACE_SYSTEMATICS = MC.WORKSPACE_SYSTEMATICS
 
 
+class MC_Ztautau_DY(MC_Ztautau):
+    pass
+
+
 class Embedded_Ztautau(Ztautau, MC):
 
     WORKSPACE_SYSTEMATICS = Sample.WORKSPACE_SYSTEMATICS + [
