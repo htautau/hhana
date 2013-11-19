@@ -10,8 +10,12 @@ analysis = get_analysis(args)
 
 from rootpy.plotting import Hist, Canvas, Legend
 from rootpy.plotting.utils import get_limits
+from rootpy.plotting.style.atlas import ATLAS_label
 from mva.categories import Category_Preselection
+from mva.variables import VARIABLES
 from mva import MMC_MASS
+
+import ROOT
 
 category = Category_Preselection
 region = 'OS'
@@ -31,30 +35,47 @@ higgs /= higgs.integral()
 # fit and get resolutions
 ztt_fit = ztt.Fit('gaus', 'S')
 higgs_fit = higgs.Fit('gaus', 'S')
-
 ztt_sigma = ztt_fit.Parameter(2)
 higgs_sigma = higgs_fit.Parameter(2)
-
 ztt_fwhm = 2.355 * ztt_sigma
 higgs_fwhm = 2.355 * higgs_sigma
 
-ztt.title = '%s #sigma=%.1f GeV FWHM=%.1f GeV' % (ztt.title, ztt_sigma, ztt_fwhm)
-higgs.title = '%s #sigma=%.1f GeV FWHM=%.1f GeV' % (higgs.title, higgs_sigma, higgs_fwhm)
+def fwhm(h1):
+    bin1 = h1.FindFirstBinAbove(h1.max() / 2)
+    bin2 = h1.FindLastBinAbove(h1.max() / 2)
+    return h1.GetBinCenter(bin2) - h1.GetBinCenter(bin1)
+
+print fwhm(ztt)
+print fwhm(higgs)
 
 _, _, _, ymax = get_limits([ztt, higgs], ypadding=(0.3, 0)) 
 
 plot = Canvas()
 ztt.Draw()
-ztt.yaxis.title = 'Events / 5 GeV'
-ztt.xaxis.title = 'm_{#tau#tau}^{MMC} [GeV]'
+ztt.yaxis.title = 'Fraction of Events / 5 GeV'
+ztt.xaxis.title = '%s [GeV]' % VARIABLES[MMC_MASS]['root']
 ztt.yaxis.SetLimits(0, ymax)
 ztt.yaxis.SetRangeUser(0, ymax)
 ztt.xaxis.SetNdivisions(507, True)
 higgs.Draw('same')
 leg = Legend(2, pad=plot,
-    leftmargin=0.03, rightmargin=0.3, margin=0.2,
+    leftmargin=0.03,
+    rightmargin=0.3,
+    topmargin=0.12,
+    entryheight=0.04,
+    margin=0.2,
     textsize=22)
 leg.AddEntry(ztt, style='L')
 leg.AddEntry(higgs, style='L')
 leg.Draw()
+ATLAS_label(0.65, 0.89,
+    sep=0.14, pad=plot, sqrts=None,
+    text="Internal", textsize=22)
+label = ROOT.TLatex(
+    plot.GetLeftMargin() + 0.03, 0.89,
+    category.root_label)
+label.SetNDC()
+label.SetTextFont(43)
+label.SetTextSize(22)
+label.Draw()
 plot.SaveAs('mass_resolution.png')
