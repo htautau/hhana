@@ -109,7 +109,7 @@ def write_workspaces(mass_category_channel, controls=None):
             # make workspace
             workspace, measurement = histfactory.make_workspace(
                 name, [channel] + (
-                    controls[mass] if isinstance(controls, dict) else controls),
+                    controls[mass].values() if isinstance(controls, dict) else controls),
                 POI='SigXsecOverSM',
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
@@ -132,7 +132,7 @@ def write_workspaces(mass_category_channel, controls=None):
         name = "hh_combination_%d" % mass
         workspace, measurement = histfactory.make_workspace(
             name, channels + (
-                controls[mass] if isinstance(controls, dict) else controls),
+                controls[mass].values() if isinstance(controls, dict) else controls),
             POI='SigXsecOverSM',
             lumi=1.0,
             lumi_rel_error=lumi_rel_error,
