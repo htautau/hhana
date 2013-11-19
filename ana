@@ -108,7 +108,8 @@ def write_workspaces(mass_category_channel, controls=None):
             name = "hh_category_%s_%d" % (category, mass)
             # make workspace
             workspace, measurement = histfactory.make_workspace(
-                name, [channel] + controls,
+                name, [channel] + (
+                    controls[mass] if isinstance(controls, dict) else controls),
                 POI='SigXsecOverSM',
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
@@ -130,7 +131,8 @@ def write_workspaces(mass_category_channel, controls=None):
         # make combined workspace
         name = "hh_combination_%d" % mass
         workspace, measurement = histfactory.make_workspace(
-            name, channels + controls,
+            name, channels + (
+                controls[mass] if isinstance(controls, dict) else controls),
             POI='SigXsecOverSM',
             lumi=1.0,
             lumi_rel_error=lumi_rel_error,
@@ -758,7 +760,7 @@ if 'workspace' in args.actions:
             hist_template,
             'dEta_tau1_tau2',
             CATEGORIES['mva_workspace_controls'],
-            include_signal=False)
+            include_signal=True)
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 
