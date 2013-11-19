@@ -68,7 +68,7 @@ leg = Legend(2, pad=plot,
 leg.AddEntry(ztt, style='L')
 leg.AddEntry(higgs, style='L')
 leg.Draw()
-ATLAS_label(0.65, 0.89,
+ATLAS_label(0.62, 0.89,
     sep=0.14, pad=plot, sqrts=None,
     text="Internal", textsize=22)
 label = ROOT.TLatex(
@@ -79,3 +79,4 @@ label.SetTextFont(43)
 label.SetTextSize(22)
 label.Draw()
 plot.SaveAs('mass_resolution.png')
+#plot.SaveAs('mass_resolution.C')
