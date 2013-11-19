@@ -1210,6 +1210,7 @@ def draw(name,
         #data.SetMinimum(ymin)
         #data.SetMaximum(ymax)
         #data.Draw('same E1')
+        data.markersize = 1.2
         data_poisson = data.poisson_errors()
         data_poisson.markersize = 1.2
         data_poisson.Draw('PZ')
@@ -1400,8 +1401,8 @@ def draw(name,
         plabel.Draw()
         keepalive(hist_pad, plabel)
 
-    ATLAS_label(0.65, 0.89,
-        sep=0.14, pad=hist_pad, sqrts=None,
+    ATLAS_label(0.62, 0.89,
+        sep=0.135, pad=hist_pad, sqrts=None,
         text="Internal", textsize=textsize)
 
     hist_pad.Update()
