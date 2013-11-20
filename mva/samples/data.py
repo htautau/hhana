@@ -35,7 +35,7 @@ class DataInfo():
     def __str__(self):
         if self.mode == 'root':
             label = '#scale[0.7]{#int} L dt = %.1f fb^{-1} ' % self.lumi
-            label += '#sqrt{#font[52]{s}} = '
+            label += '  #sqrt{#font[52]{s}} = '
             label += '+'.join(map(lambda e: '%d TeV' % e,
                                   sorted(set(self.energies))))
         else:
