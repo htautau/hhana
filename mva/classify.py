@@ -607,7 +607,8 @@ class Classifier(object):
             no_signal_fixes=True)
 
         for logy in (True, False):
-            draw_channel(channel,
+            # prefit
+            draw_channel(channel[125],
                 category=category,
                 plot_label='Mass Control Region',
                 data_info=str(analysis.data.info),
@@ -616,9 +617,8 @@ class Classifier(object):
                 systematics=systematics,
                 output_formats=output_formats,
                 signal_scale=signal_scale,
-                signal_on_top=True,
+                signal_on_top=False,
                 logy=logy,
-                #fit=fit PREFIT
                 ypadding=(0.3, 0))
 
         ###################################################################
