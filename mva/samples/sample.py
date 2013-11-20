@@ -835,6 +835,7 @@ class Sample(object):
             scores = scores[0]
 
         if weight_hist is not None and scores is not None:
+            log.warning("applying a weight histogram")
             edges = np.array(list(weight_hist.xedges()))
             weights = np.array(list(weight_hist.y())).take(
                 edges.searchsorted(scores) - 1)

@@ -726,6 +726,7 @@ if 'mass-workspace' in args.actions:
                 cuts=signal_region,
                 include_signal=True,
                 weight_hist=sob_hist,
+                clf=clf,
                 mass=mass,
                 scale_125=True,
                 mode='workspace',
