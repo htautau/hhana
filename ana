@@ -12,6 +12,7 @@ year = args.year
 # stdlib imports
 import os, sys
 import shutil
+import math
 
 # rootpy imports
 from rootpy.tree import Cut
@@ -684,3 +685,50 @@ if 'deta-workspace' in args.actions:
 if 'bdt-workspace' in args.actions:
     mass_category_channel = make_clf_channels(categories)
     write_workspaces(mass_category_channel)
+
+
+if 'mass-workspace' in args.actions:
+    hist_template = Hist(50, 0, 250, type='D')
+    
+    channels = {}
+    for category in analysis.iter_categories(args.categories):
+
+        clf = analysis.get_clf(category, load=True)
+        scores = self.get_scores(
+            clf, category, target_region, cuts=signal_region,
+            mass_points=[125], mode='combined',
+            systematics=systematics,
+            unblind=True)
+
+        bkg_scores = scores.bkg_scores
+        sig_scores = scores.all_sig_scores[125]
+        min_score = scores.min_score
+        max_score = scores.max_score
+        
+        bkg_score_hist = Hist(category.limitbins, min_score, max_score, type='D')
+        sig_score_hist = bkg_score_hist.Clone()
+        hist_scores(bkg_score_hist, bkg_scores)
+        _bkg = bkg_score_hist.Clone()
+        hist_scores(sig_score_hist, sig_scores)
+        _sig = sig_score_hist.Clone()
+        sob_hist = (1 + _sig / _bkg)
+        _log = math.log
+        for bin in sob_hist.bins(overflow=True):
+            bin.value = _log(bin.value)
+        log.info(str(list(sob_hist.y())))
+        
+        for mass in Higgs.MASS_POINTS:
+            channel = analysis.get_channel_array(
+                {MMC_MASS, hist_template},
+                category=category,
+                region=target_region,
+                cuts=signal_region,
+                include_signal=True,
+                weight_hist=sob_hist,
+                mass=mass,
+                scale_125=True,
+                mode='workspace')[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    write_workspaces(channels)

@@ -186,6 +186,7 @@ def get_parser(actions=True):
                 'track-workspace',
                 'deta-workspace',
                 'bdt-workspace',
+                'mass-workspace',
                 'ntup',
                 'ntuptruth',
                 'top10',
