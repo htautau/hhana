@@ -147,6 +147,8 @@ class Analysis(object):
         signals = []
         if not isinstance(mass, list):
             mass = [mass]
+        if scale_125:
+            events_125 = self.higgs_125.events()[1].value
         if mode == 'combined':
             for m in mass:
                 s = samples.Higgs(
@@ -158,24 +160,38 @@ class Analysis(object):
                     linecolor='red',
                     linewidth=2,
                     linestyle='solid')
-                if s.mass != 125 and scale_125:
+                if m != 125 and scale_125:
                     log.warning("SCALING SIGNAL TO 125")
                     log.info(str(s.mass))
-                    sf= self.higgs_125.events()[1].value / s.events()[1].value
+                    sf = events_125 / s.events()[1].value
                     log.info(str(sf))
                     s.scale *= sf
                 signals.append(s)
             return signals
         elif mode == 'workspace':
             for m in mass:
+                if m != 125 and scale_125:
+                    curr_events = samples.Higgs(
+                        year=self.year,
+                        mass=m,
+                        systematics=False,
+                        scale=self.mu).events()[1].value
+                    log.warning("SCALING SIGNAL TO 125")
+                    sf = events_125 / curr_events
+                    log.info(str(sf))
                 for mode in samples.Higgs.MODES:
-                    signals.append(samples.Higgs(
+                    s = samples.Higgs(
                         year=self.year,
                         mode=mode,
                         mass=m,
                         systematics=self.systematics,
                         mpl=self.mpl,
-                        scale=self.mu))
+                        scale=self.mu)
+                    if m != 125 and scale_125:
+                        log.warning("SCALING SIGNAL TO 125")
+                        log.info(str(s.mass))
+                        s.scale *= sf
+                    signals.append(s)
         elif mode is None:
             for m in mass:
                 for modes in samples.Higgs.MODES_COMBINED:
