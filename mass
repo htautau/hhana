@@ -10,6 +10,50 @@ from mva.variables import VARIABLES
 from mva import MMC_MASS
 import ROOT
 
+
+def fwhm(h1):
+    bin1 = h1.FindFirstBinAbove(h1.max() / 2)
+    bin2 = h1.FindLastBinAbove(h1.max() / 2)
+    return h1.GetBinCenter(bin2) - h1.GetBinCenter(bin1)
+
+
+def plot_mass(ztt, higgs, category):
+    print "FWHM:"
+    print " Ztt %.1f" % fwhm(ztt)
+    print " Htt %.1f" % fwhm(higgs)
+    _, _, _, ymax = get_limits([ztt, higgs], ypadding=(0.3, 0)) 
+    plot = Canvas()
+    ztt.Draw()
+    ztt.yaxis.title = 'Fraction of Events / 5 GeV'
+    ztt.xaxis.title = '%s [GeV]' % VARIABLES[MMC_MASS]['root']
+    ztt.yaxis.SetLimits(0, ymax)
+    ztt.yaxis.SetRangeUser(0, ymax)
+    ztt.xaxis.SetNdivisions(507, True)
+    higgs.Draw('same')
+    leg = Legend(2, pad=plot,
+        leftmargin=0.03,
+        rightmargin=0.3,
+        topmargin=0.12,
+        entryheight=0.04,
+        margin=0.2,
+        textsize=22)
+    leg.AddEntry(ztt, style='L')
+    leg.AddEntry(higgs, style='L')
+    leg.Draw()
+    ATLAS_label(0.62, 0.89,
+        sep=0.14, pad=plot, sqrts=None,
+        text="Internal", textsize=22)
+    label = ROOT.TLatex(
+        plot.GetLeftMargin() + 0.03, 0.89,
+        category.root_label)
+    label.SetNDC()
+    label.SetTextFont(43)
+    label.SetTextSize(22)
+    label.Draw()
+    for fmt in ('eps', 'png'):
+        plot.SaveAs('mass_%s.%s' % (category.name, fmt))
+
+
 args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args)
 
@@ -36,43 +80,5 @@ higgs_sigma = higgs_fit.Parameter(2)
 ztt_fwhm = 2.355 * ztt_sigma
 higgs_fwhm = 2.355 * higgs_sigma
 
-def fwhm(h1):
-    bin1 = h1.FindFirstBinAbove(h1.max() / 2)
-    bin2 = h1.FindLastBinAbove(h1.max() / 2)
-    return h1.GetBinCenter(bin2) - h1.GetBinCenter(bin1)
-
-print fwhm(ztt)
-print fwhm(higgs)
-
-_, _, _, ymax = get_limits([ztt, higgs], ypadding=(0.3, 0)) 
-
-plot = Canvas()
-ztt.Draw()
-ztt.yaxis.title = 'Fraction of Events / 5 GeV'
-ztt.xaxis.title = '%s [GeV]' % VARIABLES[MMC_MASS]['root']
-ztt.yaxis.SetLimits(0, ymax)
-ztt.yaxis.SetRangeUser(0, ymax)
-ztt.xaxis.SetNdivisions(507, True)
-higgs.Draw('same')
-leg = Legend(2, pad=plot,
-    leftmargin=0.03,
-    rightmargin=0.3,
-    topmargin=0.12,
-    entryheight=0.04,
-    margin=0.2,
-    textsize=22)
-leg.AddEntry(ztt, style='L')
-leg.AddEntry(higgs, style='L')
-leg.Draw()
-ATLAS_label(0.62, 0.89,
-    sep=0.14, pad=plot, sqrts=None,
-    text="Internal", textsize=22)
-label = ROOT.TLatex(
-    plot.GetLeftMargin() + 0.03, 0.89,
-    category.root_label)
-label.SetNDC()
-label.SetTextFont(43)
-label.SetTextSize(22)
-label.Draw()
-plot.SaveAs('mass_resolution.png')
-#plot.SaveAs('mass_resolution.C')
+# plot the mass distributions
+plot_mass(ztt, higgs, category)
