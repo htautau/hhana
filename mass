@@ -71,12 +71,12 @@ for category in (Category_1J_Inclusive, Category_Boosted, Category_VBF):
     higgs /= higgs.integral()
 
     # fit and get resolutions
-    ztt_fit = ztt.Fit('gaus', 'S')
-    higgs_fit = higgs.Fit('gaus', 'S')
-    ztt_sigma = ztt_fit.Parameter(2)
-    higgs_sigma = higgs_fit.Parameter(2)
-    ztt_fwhm = 2.355 * ztt_sigma
-    higgs_fwhm = 2.355 * higgs_sigma
+    #ztt_fit = ztt.Fit('gaus', 'S')
+    #higgs_fit = higgs.Fit('gaus', 'S')
+    #ztt_sigma = ztt_fit.Parameter(2)
+    #higgs_sigma = higgs_fit.Parameter(2)
+    #ztt_fwhm = 2.355 * ztt_sigma
+    #higgs_fwhm = 2.355 * higgs_sigma
 
     # plot the mass distributions
     plot_mass(ztt, higgs, category)
