@@ -719,7 +719,8 @@ if 'mass-workspace' in args.actions:
         
         for mass in Higgs.MASS_POINTS:
             channel = analysis.get_channel_array(
-                {MMC_MASS: hist_template},
+                {MMC_MASS: VARIABLES[MMC_MASS]},
+                templates={MMC_MASS: hist_template},
                 category=category,
                 region=target_region,
                 cuts=signal_region,
