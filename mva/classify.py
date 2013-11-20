@@ -599,6 +599,8 @@ class Classifier(object):
 
         _, channel = analysis.clf_channels(self,
             category, region, cuts=control_region,
+            mass_points=[125],
+            mode='combined',
             bins=category.clf_bins + 2,
             systematics=systematics,
             unblind=True,
@@ -613,10 +615,11 @@ class Classifier(object):
                 name='BDT Score',
                 systematics=systematics,
                 output_formats=output_formats,
-                signal_colour_map=cm.spring,
+                signal_scale=signal_scale,
+                signal_on_top=True,
                 logy=logy,
                 #fit=fit PREFIT
-                )
+                ypadding=(0.3, 0))
 
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -671,6 +674,7 @@ class Classifier(object):
             cuts=signal_region,
             output_formats=output_formats,
             unblind=True,
+            ypadding=(0.3, 0),
             fit=fit)
 
         ###############################################################

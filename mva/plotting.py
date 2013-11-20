@@ -994,7 +994,9 @@ def draw(name,
          systematics_components=None,
          integer=False,
          textsize=22,
-         logy=False):
+         logy=False,
+         separate_legends=False,
+         ypadding=None):
 
     if model is None and data is None and signal is None:
         raise ValueError(
@@ -1012,7 +1014,8 @@ def draw(name,
     if data is None:
         show_ratio=False
 
-    ypadding = (.5, .0)
+    if ypadding is None:
+        ypadding = (.5, .0)
 
     if show_ratio:
         ratio_range = (0, 2)
@@ -1292,47 +1295,80 @@ def draw(name,
             ratio_pad.cd()
             ratio_hist.Draw('same E0')
 
-    if model is not None:
+    if separate_legends:
+        if model is not None:
+            hist_pad.cd()
+            n_entries = len(model)
+            if systematics:
+                n_entries += 1
+            model_legend = Legend(n_entries,
+                pad=hist_pad,
+                leftmargin=0.45,
+                rightmargin=0.12,
+                margin=0.45,
+                textsize=textsize,
+                entrysep=0.02,
+                entryheight=0.04,
+                topmargin=0.15)
+            for hist in reversed(model):
+                model_legend.AddEntry(hist, style='F')
+            if systematics:
+                model_err_band = error_band_model.Clone()
+                model_err_band.linewidth = 0
+                model_err_band.linecolor = 'white'
+                model_err_band.fillcolor = '#858585'
+                model_err_band.title = 'Uncert.'
+                model_legend.AddEntry(model_err_band, style='F')
+            model_legend.Draw()
+
         hist_pad.cd()
-        n_entries = len(model)
-        if systematics:
-            n_entries += 1
-        model_legend = Legend(n_entries,
+        right_legend = Legend(len(signal) + 1 if signal is not None else 1,
             pad=hist_pad,
-            leftmargin=0.45,
-            rightmargin=0.12,
-            margin=0.45,
+            leftmargin=0.02,
+            rightmargin=0.5,
+            margin=0.35,
             textsize=textsize,
             entrysep=0.02,
             entryheight=0.04,
             topmargin=0.15)
-        for hist in reversed(model):
-            model_legend.AddEntry(hist, style='F')
-        if systematics:
-            model_err_band = error_band_model.Clone()
-            model_err_band.linewidth = 0
-            model_err_band.linecolor = 'white'
-            model_err_band.fillcolor = '#858585'
-            model_err_band.title = 'Uncert.'
-            model_legend.AddEntry(model_err_band, style='F')
-        model_legend.Draw()
-
-    hist_pad.cd()
-    right_legend = Legend(len(signal) + 1 if signal is not None else 1,
-        pad=hist_pad,
-        leftmargin=0.02,
-        rightmargin=0.5,
-        margin=0.35,
-        textsize=textsize,
-        entrysep=0.02,
-        entryheight=0.04,
-        topmargin=0.15)
-    right_legend.AddEntry(data, style='lep')
-    if signal is not None:
-        for s in reversed(scaled_signal):
-            right_legend.AddEntry(s, style='F' if fill_signal else 'L')
-
-    right_legend.Draw()
+        right_legend.AddEntry(data, style='lep')
+        if signal is not None:
+            for s in reversed(scaled_signal):
+                right_legend.AddEntry(s, style='F' if fill_signal else 'L')
+        right_legend.Draw()
+    else:
+        hist_pad.cd()
+        n_entries = 1
+        if signal is not None:
+            n_entries += len(scaled_signal)
+        if model is not None:
+            n_entries += len(model)
+            if systematics:
+                n_entries += 1
+        legend = Legend(n_entries,
+            pad=hist_pad,
+            leftmargin=0.37,
+            rightmargin=0.12,
+            margin=0.38,
+            textsize=textsize,
+            entrysep=0.02,
+            entryheight=0.04,
+            topmargin=0.15)
+        legend.AddEntry(data, style='lep')
+        if signal is not None:
+            for s in reversed(scaled_signal):
+                legend.AddEntry(s, style='F' if fill_signal else 'L')
+        if model:
+            for hist in reversed(model):
+                legend.AddEntry(hist, style='F')
+            if systematics:
+                model_err_band = error_band_model.Clone()
+                model_err_band.linewidth = 0
+                model_err_band.linecolor = 'white'
+                model_err_band.fillcolor = '#858585'
+                model_err_band.title = 'Uncert.'
+                legend.AddEntry(model_err_band, style='F')
+        legend.Draw()
 
     if data is not None:
         binw = list(data.xwidth())
