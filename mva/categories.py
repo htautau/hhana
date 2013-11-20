@@ -208,7 +208,6 @@ class Category(object):
 # Cut-based categories
 
 class Category_Cuts_Preselection(Category):
-
     name = 'cut_preselection'
     label = r'$\tau_{had}\tau_{had}$ Cut-based Preselection'
     root_label = '#tau_{had}#tau_{had} Cut-based Preselection'
@@ -216,7 +215,6 @@ class Category_Cuts_Preselection(Category):
 
 
 class Category_Cuts_Preselection_DEta_Control(Category_Cuts_Preselection):
-
     name = 'cut_preselection_deta_control'
     label = r'$\tau_{had}\tau_{had}$ $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Cut-based Preselection'
 
@@ -224,7 +222,6 @@ class Category_Cuts_Preselection_DEta_Control(Category_Cuts_Preselection):
 # MVA preselection categories
 
 class Category_Preselection(Category):
-
     name = 'preselection'
     label = r'$\tau_{had}\tau_{had}$ Preselection'
     root_label = '#tau_{had}#tau_{had} Preselection'
@@ -233,21 +230,18 @@ class Category_Preselection(Category):
 
 
 class Category_Preselection_ID_Control(Category_Preselection):
-
     is_control = True
     name = 'preselection_id_control'
     label = r'$\tau_{had}\tau_{had}$ ID Control Region at Preselection'
 
 
 class Category_Preselection_DEta_Control(Category_Preselection):
-
     is_control = True
     name = 'preselection_deta_control'
     label = r'$\tau_{had}\tau_{had}$ $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Preselection'
 
 
 class Category_VBF(Category_Preselection):
-
     name = 'vbf'
     label = r'$\tau_{had}\tau_{had}$ VBF'
     root_label = '#tau_{had}#tau_{had} VBF'
@@ -263,7 +257,6 @@ class Category_VBF(Category_Preselection):
 
 
 class Category_VBF_ID_Control(Category_VBF):
-
     is_control = True
     name = 'vbf_id_control'
     label = r'$\tau_{had}\tau_{had}$ VBF ID CR'
@@ -271,7 +264,6 @@ class Category_VBF_ID_Control(Category_VBF):
 
 
 class Category_VBF_DEta_Control(Category_VBF):
-
     is_control = True
     name = 'vbf_deta_control'
     label = r'$\tau_{had}\tau_{had}$ VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
@@ -281,7 +273,6 @@ class Category_VBF_DEta_Control(Category_VBF):
 
 
 class Category_Boosted(Category_Preselection):
-
     name = 'boosted'
     label = r'$\tau_{had}\tau_{had}$ Boosted'
     root_label = '#tau_{had}#tau_{had} Boosted'
@@ -297,7 +288,6 @@ class Category_Boosted(Category_Preselection):
 
 
 class Category_Boosted_ID_Control(Category_Boosted):
-
     is_control = True
     name = 'boosted_id_control'
     label = r'$\tau_{had}\tau_{had}$ Boosted ID CR'
@@ -307,7 +297,6 @@ class Category_Boosted_ID_Control(Category_Boosted):
 
 
 class Category_Boosted_DEta_Control(Category_Boosted):
-
     is_control = True
     name = 'boosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$ Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
@@ -317,7 +306,6 @@ class Category_Boosted_DEta_Control(Category_Boosted):
 
 
 class Category_Nonboosted_1J(Category_Preselection):
-
     name = '1j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$ 1-Jet'
     root_label = '#tau_{had}#tau_{had} 1-Jet'
@@ -340,14 +328,12 @@ class Category_Nonboosted_1J_Control(Category_Nonboosted_1J):
 
 
 class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
-
     is_control = True
     name = '1j_nonboosted_id_control'
     label = r'$\tau_{had}\tau_{had}$ 1-Jet ID CR'
 
 
 class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
-
     is_control = True
     name = '1j_nonboosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$ 1-Jet $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
@@ -357,7 +343,6 @@ class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
 
 
 class Category_Nonboosted_0J(Category_Preselection):
-
     analysis_control = True
     name = '0j_nonboosted'
     label = r'$\tau_{had}\tau_{had}$ 0-Jet'
@@ -381,14 +366,12 @@ class Category_Nonboosted_0J_Control(Category_Nonboosted_0J):
 
 
 class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
-
     is_control = True
     name = '0j_nonboosted_id_control'
     label = r'$\tau_{had}\tau_{had}$ 0-Jet ID CR'
 
 
 class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
-
     is_control = True
     name = '0j_nonboosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$ 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
@@ -398,7 +381,6 @@ class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
 
 
 class Category_Rest(Category_Preselection):
-
     analysis_control = True
     name = 'rest'
     label = r'$\tau_{had}\tau_{had}$ Rest'
@@ -411,6 +393,14 @@ class Category_Rest(Category_Preselection):
     # train with all modes
     norm_category = Category_Preselection
     #workspace_min_clf = 0.
+
+
+class Category_1J_Inclusive(Category_Preselection):
+    name = '1j_inclusive'
+    root_label = '#tau_{had}#tau_{had} Inclusive 1-Jet'
+    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    cuts = AT_LEAST_1JET
+    norm_category = Category_Preselection
 
 
 CATEGORIES = {

@@ -5,7 +5,7 @@ from rootpy.plotting.utils import get_limits
 from rootpy.plotting.style.atlas import ATLAS_label
 from mva.cmd import get_parser
 from mva.analysis import get_analysis
-from mva.categories import Category_Preselection
+from mva.categories import Category_1J_Inclusive, Category_Boosted, Category_VBF
 from mva.variables import VARIABLES
 from mva import MMC_MASS
 import ROOT
@@ -56,29 +56,27 @@ def plot_mass(ztt, higgs, category):
 
 args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args)
-
-category = Category_Preselection
 region = 'OS'
-
 template = Hist(40, 0, 200, linewidth=3, drawstyle='hist')
 
-ztt = template.Clone(title=analysis.ztautau.label)
-higgs = template.Clone(title=analysis.higgs_125.label, linecolor='red', linestyle='dashed')
+for category in (Category_1J_Inclusive, Category_Boosted, Category_VBF):
+    ztt = template.Clone(title=analysis.ztautau.label)
+    higgs = template.Clone(title=analysis.higgs_125.label, linecolor='red', linestyle='dashed')
 
-analysis.ztautau.draw_into(ztt, MMC_MASS, category, region)
-analysis.higgs_125.draw_into(higgs, MMC_MASS, category, region)
+    analysis.ztautau.draw_into(ztt, MMC_MASS, category, region)
+    analysis.higgs_125.draw_into(higgs, MMC_MASS, category, region)
 
-# normalize
-ztt /= ztt.integral()
-higgs /= higgs.integral()
+    # normalize
+    ztt /= ztt.integral()
+    higgs /= higgs.integral()
 
-# fit and get resolutions
-ztt_fit = ztt.Fit('gaus', 'S')
-higgs_fit = higgs.Fit('gaus', 'S')
-ztt_sigma = ztt_fit.Parameter(2)
-higgs_sigma = higgs_fit.Parameter(2)
-ztt_fwhm = 2.355 * ztt_sigma
-higgs_fwhm = 2.355 * higgs_sigma
+    # fit and get resolutions
+    ztt_fit = ztt.Fit('gaus', 'S')
+    higgs_fit = higgs.Fit('gaus', 'S')
+    ztt_sigma = ztt_fit.Parameter(2)
+    higgs_sigma = higgs_fit.Parameter(2)
+    ztt_fwhm = 2.355 * ztt_sigma
+    higgs_fwhm = 2.355 * higgs_sigma
 
-# plot the mass distributions
-plot_mass(ztt, higgs, category)
+    # plot the mass distributions
+    plot_mass(ztt, higgs, category)
