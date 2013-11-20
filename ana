@@ -694,7 +694,7 @@ if 'mass-workspace' in args.actions:
     for category in analysis.iter_categories(args.categories):
 
         clf = analysis.get_clf(category, load=True)
-        scores = self.get_scores(
+        scores = analysis.get_scores(
             clf, category, target_region, cuts=signal_region,
             mass_points=[125], mode='combined',
             systematics=systematics,
