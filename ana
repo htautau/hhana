@@ -38,7 +38,7 @@ from mva.stats import hypotests
 from mva.plotting import (
     draw_scatter, draw_samples_array, draw_2d_hist,
     draw_channel_array, draw_channel,
-    correlations)
+    correlations, hist_scores)
 from mva.samples import Higgs, Data
 from mva.utils import make_multipage_pdf, braindump
 from mva.systematics import (get_systematics, iter_systematics,
@@ -697,7 +697,7 @@ if 'mass-workspace' in args.actions:
         scores = analysis.get_scores(
             clf, category, target_region, cuts=signal_region,
             mass_points=[125], mode='combined',
-            systematics=systematics,
+            systematics=False,
             unblind=True)
 
         bkg_scores = scores.bkg_scores
@@ -727,7 +727,8 @@ if 'mass-workspace' in args.actions:
                 weight_hist=sob_hist,
                 mass=mass,
                 scale_125=True,
-                mode='workspace')[MMC_MASS]
+                mode='workspace',
+                systematics=args.systematics)[MMC_MASS]
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel
