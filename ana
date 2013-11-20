@@ -688,7 +688,7 @@ if 'bdt-workspace' in args.actions:
 
 
 if 'mass-workspace' in args.actions:
-    hist_template = Hist(50, 0, 250, type='D')
+    hist_template = Hist(30, 50, 200, type='D')
     
     channels = {}
     for category in analysis.iter_categories(args.categories):
@@ -719,7 +719,7 @@ if 'mass-workspace' in args.actions:
         
         for mass in Higgs.MASS_POINTS:
             channel = analysis.get_channel_array(
-                {MMC_MASS, hist_template},
+                {MMC_MASS: hist_template},
                 category=category,
                 region=target_region,
                 cuts=signal_region,
