@@ -301,7 +301,7 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     is_control = True
     name = 'boosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$ Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    root_label = '#tau_{had}#tau_{had} Boosted Multijet CR'
+    root_label = '#tau_{had}#tau_{had} Boosted'
     plot_label = 'Multijet CR'
     #norm_category = Category_Preselection_DEta_Control
     norm_category = Category_Preselection
