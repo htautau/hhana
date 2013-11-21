@@ -675,6 +675,9 @@ class Classifier(object):
             ypadding=(0.3, 0),
             fit=fit)
 
+        if 'control' in category.name:
+            return
+
         ###############################################################
         log.info("plotting mmc weighted by background BDT distribution")
 
