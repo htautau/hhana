@@ -960,12 +960,16 @@ def draw_channel(channel, systematics=True, fit=None, **kwargs):
             signal_hists.append(nominal_hist)
         else:
             model_hists.append(nominal_hist)
-    return draw(
-        data=data_hist,
-        model=model_hists or None,
-        signal=signal_hists or None,
-        systematics=systematics_terms,
-        **kwargs)
+    figs = []
+    for logy in (False, True):
+        figs.append(draw(
+            data=data_hist,
+            model=model_hists or None,
+            signal=signal_hists or None,
+            systematics=systematics_terms,
+            logy=logy,
+            **kwargs))
+    return figs
 
 
 def draw(name,
@@ -1015,7 +1019,10 @@ def draw(name,
         show_ratio=False
 
     if ypadding is None:
-        ypadding = (.5, .0)
+        if logy:
+            ypadding = (.6, .0)
+        else:
+            ypadding = (.5, .0)
 
     if show_ratio:
         ratio_range = (0, 2)
@@ -1440,6 +1447,15 @@ def draw(name,
     ATLAS_label(0.62, 0.89,
         sep=0.135, pad=hist_pad, sqrts=None,
         text="Internal", textsize=textsize)
+
+    if plot_label is not None:
+        label = ROOT.TLatex(
+            0.7, 0.82, plot_label)
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        label.Draw()
+        keepalive(hist_pad, label)
 
     hist_pad.Update()
     hist_pad.Modified()

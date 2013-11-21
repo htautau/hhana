@@ -80,10 +80,10 @@ VARIABLES = {
         'filename': 'MET',
         'bins': 20,
         'range': {
-            '0J_NONBOOSTED': (12, 10, 70),
-            'PRESELECTION': (12, 10, 70),
-            'REST': (12, 10, 70),
-            None: (18, 10, 100)},
+            '0J_NONBOOSTED': (11, 15, 70),
+            'PRESELECTION': (11, 15, 70),
+            'REST': (11, 15, 70),
+            None: (17, 15, 100)},
         'scale': 1./1000,
         'units': 'GeV',
     },
@@ -340,7 +340,7 @@ VARIABLES = {
     },
     'dR_tau1_tau2': {
         'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta}#font[52]{R}_{#font[152]{#tau}#font[152]{#tau}}',
+        'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dr_tau1_tau2',
         'bins': 10,
         'range': (0.8, 2.8),
@@ -354,7 +354,7 @@ VARIABLES = {
     },
     'dEta_tau1_tau2': {
         'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta#eta}_{#font[152]{#tau}#font[152]{#tau}}',
+        'root': '#font[152]{#Delta#eta}(#font[152]{#tau}_{had},#font[152]{#tau}_{had})',
         'filename': 'deta_tau1_tau2',
         'bins': 10,
         'range': (0., 1.5),
@@ -444,10 +444,10 @@ VARIABLES = {
     },
     'dEta_jets': {
         'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
-        'root': '#font[152]{#Delta#eta}(#font[52]{j}1,#font[52]{j}2)',
+        'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
         'filename': 'dEta_jets',
-        'bins': 10,
-        'range': (2, 6),
+        'bins': 15,
+        'range': (0, 7.5),
         'cats': ['2J', 'VBF', 'PRESELECTION']
     },
     'eta_product_jets': {
@@ -468,7 +468,7 @@ VARIABLES = {
     #},
     'mass_jet1_jet2': {
         'title': r'$M(jet_{1},\/jet_{2})$',
-        'root': '#font[52]{m}_{#font[52]{j}1,#font[52]{j}2}',
+        'root': '#font[52]{m}_{#font[52]{j}_{1},#font[52]{j}_{2}}',
         'filename': 'mass_jet1_jet2',
         'bins': 20,
         'range': (0, 1000),

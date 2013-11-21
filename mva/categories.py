@@ -181,6 +181,7 @@ class Category(object):
     # only unblind up to this number of bins in half-blind mode
     # flat, onebkg or constant (see mva/stats/utils.py)
     limitbinning = 'constant'
+    plot_label = None
 
     @classmethod
     def get_cuts(cls, year, deta_cut=True):
@@ -267,7 +268,7 @@ class Category_VBF_DEta_Control(Category_VBF):
     is_control = True
     name = 'vbf_deta_control'
     label = r'$\tau_{had}\tau_{had}$ VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    root_label = '#tau_{had}#tau_{had} VBF Multijet CR'
+    plot_label = 'Multijet CR'
     norm_category = Category_Preselection_DEta_Control
     #norm_category = Category_Preselection
 
@@ -301,6 +302,7 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     name = 'boosted_deta_control'
     label = r'$\tau_{had}\tau_{had}$ Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     root_label = '#tau_{had}#tau_{had} Boosted Multijet CR'
+    plot_label = 'Multijet CR'
     #norm_category = Category_Preselection_DEta_Control
     norm_category = Category_Preselection
 

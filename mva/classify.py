@@ -606,20 +606,18 @@ class Classifier(object):
             unblind=True,
             no_signal_fixes=True)
 
-        for logy in (True, False):
-            # prefit
-            draw_channel(channel[125],
-                category=category,
-                plot_label='Mass Control Region',
-                data_info=str(analysis.data.info),
-                output_name='event_bdt_score_control' + self.output_suffix,
-                name='BDT Score',
-                systematics=systematics,
-                output_formats=output_formats,
-                signal_scale=signal_scale,
-                signal_on_top=False,
-                logy=logy,
-                ypadding=(0.3, 0))
+        # prefit
+        draw_channel(channel[125],
+            category=category,
+            plot_label='#font[52]{Z}#rightarrow#tau#tau CR',
+            data_info=str(analysis.data.info),
+            output_name='event_bdt_score_control' + self.output_suffix,
+            name='BDT Score',
+            systematics=systematics,
+            output_formats=output_formats,
+            signal_scale=signal_scale,
+            signal_on_top=False,
+            ypadding=(0.3, 0))
 
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -639,21 +637,20 @@ class Classifier(object):
         min_score = scores.min_score
         max_score = scores.max_score
 
-        for logy in (True, False):
-            draw_channel(
-                channels[125],
-                category=category,
-                plot_label='Mass Signal Region' if signal_region else None,
-                signal_scale=signal_scale if not unblind else 1.,
-                signal_on_top=True if unblind else False,
-                #fill_signal=True if unblind else False,
-                data_info=str(analysis.data.info),
-                output_name='event_bdt_score_signal_region' + self.output_suffix,
-                name='BDT Score',
-                systematics=systematics,
-                output_formats=output_formats,
-                logy=logy,
-                fit=fit) #POSTFIT
+        draw_channel(
+            channels[125],
+            category=category,
+            plot_label=category.plot_label,
+            #plot_label='Mass Signal Region' if signal_region else None,
+            signal_scale=signal_scale if not unblind else 1.,
+            signal_on_top=True if unblind else False,
+            #fill_signal=True if unblind else False,
+            data_info=str(analysis.data.info),
+            output_name='event_bdt_score_signal_region' + self.output_suffix,
+            name='BDT Score',
+            systematics=systematics,
+            output_formats=output_formats,
+            fit=fit) #POSTFIT
 
         ###############################################################
         log.info("plotting mmc")
@@ -662,6 +659,7 @@ class Classifier(object):
             analysis,
             variables.VARIABLES,
             plots=[MMC_MASS],
+            plot_label=category.plot_label,
             mass=125,
             mode='combined',
             signal_scale=signal_scale if not unblind else 1.,
