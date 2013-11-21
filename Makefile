@@ -154,7 +154,7 @@ dump:
 plots:
 	nohup ./ana plot --unblind --category-names vbf --output-formats eps png > var_plots_vbf.log &
 	nohup ./ana plot --unblind --category-names boosted --output-formats eps png > var_plots_boosted.log &
-	nohup ./ana plot --unblind --category-named rest --output-formats eps png > var_plots_rest.log &
+	nohup ./ana plot --unblind --category-names rest --output-formats eps png > var_plots_rest.log &
 	nohup ./ana plot --unblind --categories presel --output-formats eps png > var_plots_presel.log &
 
 .PHONY: bdt-plots
