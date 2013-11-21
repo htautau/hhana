@@ -612,7 +612,7 @@ class Classifier(object):
             plot_label='#font[52]{Z}#rightarrow#tau#tau CR',
             data_info=str(analysis.data.info),
             output_name='event_bdt_score_control' + self.output_suffix,
-            name='BDT Score',
+            name='BDT score',
             systematics=systematics,
             output_formats=output_formats,
             signal_scale=signal_scale,
@@ -647,7 +647,7 @@ class Classifier(object):
             #fill_signal=True if unblind else False,
             data_info=str(analysis.data.info),
             output_name='event_bdt_score_signal_region' + self.output_suffix,
-            name='BDT Score',
+            name='BDT score',
             systematics=systematics,
             output_formats=output_formats,
             fit=fit) #POSTFIT

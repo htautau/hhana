@@ -446,8 +446,11 @@ VARIABLES = {
         'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
         'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
         'filename': 'dEta_jets',
+        'cuts': 'dEta_jets > 0', # ignore default value in plot
         'bins': 15,
-        'range': (0, 7.5),
+        'range': {
+            'VBF': (11, 2, 7.5),
+            None: (15, 0, 7.5)},
         'cats': ['2J', 'VBF', 'PRESELECTION']
     },
     'eta_product_jets': {
