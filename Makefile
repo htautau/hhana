@@ -161,9 +161,11 @@ plots:
 bdt-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf > bdt_plots_vbf.log &
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted > bdt_plots_boosted.log &
+
+.PHONY: bdt-control-plots
+bdt-control-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
-
 
 .PHONY: workspace-unblind
 workspace-unblind:
