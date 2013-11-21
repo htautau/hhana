@@ -298,7 +298,8 @@ class MC(Sample):
         if scores is None and clf is not None:
             scores = self.scores(
                 clf, category, region, cuts=cuts,
-                systematics=systematics)
+                systematics=systematics,
+                systematics_components=systematics_components)
 
         self.draw_array_helper(field_hist, category, region,
             cuts=cuts,

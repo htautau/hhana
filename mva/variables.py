@@ -137,7 +137,7 @@ VARIABLES = {
     #},
     'MET_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
-        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} #font[52]{Centrality}',
+        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
         'filename': 'met_centrality',
         'bins': 20,
         'range': (-math.sqrt(2), math.sqrt(2)),
@@ -384,7 +384,7 @@ VARIABLES = {
     },
     #'tau_centrality_product': {
     #    'title': r'$\tau$ Centrality Product',
-    #    'root': '#font[152]{#tau} #font[52]{Centrality Product}',
+    #    'root': '#font[152]{#tau} centrality product',
     #    'filename': 'tau_centrality_product',
     #    'bins': 20,
     #    'range': (0, 1),
@@ -392,7 +392,7 @@ VARIABLES = {
     #},
     'tau1_centrality': {
         'title': r'$\tau_1$ Centrality',
-        'root': '#font[152]{#tau}_{1} #font[152]{#eta} #font[52]{Centrality}',
+        'root': '#font[152]{#tau}_{1} #font[152]{#eta} centrality',
         'filename': 'tau1_centrality',
         'bins': 20,
         'range': (0, 1),
@@ -400,7 +400,7 @@ VARIABLES = {
     },
     'tau2_centrality': {
         'title': r'$\tau_2$ Centrality',
-        'root': '#font[152]{#tau}_{2} #font[152]{#eta} #font[52]{Centrality}',
+        'root': '#font[152]{#tau}_{2} #font[152]{#eta} centrality',
         'filename': 'tau2_centrality',
         'bins': 20,
         'range': (0, 1),
