@@ -10,6 +10,7 @@ from numpy.lib import recfunctions
 # rootpy imports
 import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
+from rootpy.plotting.hist import _HistBase
 from rootpy.tree import Tree, Cut
 from rootpy.stats import histfactory
 
@@ -98,6 +99,10 @@ class Sample(object):
 
             if templates is not None and field in templates:
                 field_hist[field] = templates[field].Clone(
+                    title=self.label, **self.hist_decor)
+                continue
+            elif isinstance(var_info, _HistBase):
+                field_hist[field] = var_info.Clone(
                     title=self.label, **self.hist_decor)
                 continue
 

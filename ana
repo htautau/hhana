@@ -728,7 +728,29 @@ if 'mass-workspace' in args.actions:
                 weight_hist=sob_hist,
                 clf=clf,
                 mass=mass,
-                scale_125=True,
+                scale_125=False, # CHANGE
+                mode='workspace',
+                systematics=args.systematics)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    write_workspaces(channels)
+
+
+if '2d-mass-workspace' in args.actions:
+    hist_template = Hist2D(250, 0, 250, 200, -1, 1, type='D')
+    channels = {}
+    for category in analysis.iter_categories(args.categories):
+        clf = analysis.get_clf(category, load=True)
+        for mass in [125]: #Higgs.MASS_POINTS:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=target_region,
+                cuts=signal_region,
+                clf=clf,
+                include_signal=True,
+                mass=mass,
                 mode='workspace',
                 systematics=args.systematics)[MMC_MASS]
             if mass not in channels:
