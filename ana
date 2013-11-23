@@ -742,7 +742,7 @@ if '2d-mass-workspace' in args.actions:
     channels = {}
     for category in analysis.iter_categories(args.categories):
         clf = analysis.get_clf(category, load=True)
-        for mass in [125]: #Higgs.MASS_POINTS:
+        for mass in Higgs.MASS_POINTS:
             channel = analysis.get_channel_array(
                 {MMC_MASS: hist_template},
                 category=category,

@@ -48,7 +48,11 @@ class memoize(object):
         return np.copy(res)
 
 
-memoize_or_nothing = nothing if os.getenv('NOCACHE', None) else memoize
+if os.getenv('NOCACHE', None):
+    memoize_or_nothing = nothing
+    log.warning("table cache is disabled")
+else:
+    memoize_or_nothing = memoize
 
 
 class CachedTable(Table):
