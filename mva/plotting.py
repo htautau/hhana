@@ -1004,13 +1004,12 @@ def draw(name,
          logy=False,
          separate_legends=False,
          ypadding=None,
-         legend_position='right'):
+         legend_position='right',
+         range=None):
 
     if model is None and data is None and signal is None:
         raise ValueError(
             'at least one of model, data, or signal must be specified')
-
-    range = model[0].bounds()
 
     if show_ratio and model is None:
         show_ratio = False
@@ -1137,15 +1136,6 @@ def draw(name,
         model_stack.SetMinimum(ymin)
         model_stack.SetMaximum(ymax)
         model_stack.Draw()
-        #ratio_abs_height / figheight
-        #model_stack.GetXaxis().SetTickLength(
-        #    model_stack.GetXaxis().GetTickLength() * figheight / hist_abs_height)
-        if integer:
-            model_stack.GetXaxis().SetNdivisions(7, True)
-        else:
-            model_stack.GetXaxis().SetNdivisions(507, True)
-        if 'BDT' in name:
-            model_stack.GetXaxis().SetRangeUser(-1., 1.3)
         model_stack.yaxis.SetLimits(ymin, ymax)
         model_stack.yaxis.SetRangeUser(ymin, ymax)
 
@@ -1435,10 +1425,6 @@ def draw(name,
             base_hist.xaxis.GetLabelOffset() * 4)
     base_hist.xaxis.SetTitle(label)
 
-    if range is not None:
-        model_stack.xaxis.SetLimits(*range)
-        model_stack.xaxis.SetRangeUser(*range)
-
     filename = os.path.join(PLOTS_DIR,
         'var_%s_%s' %
         (category.name,
@@ -1482,9 +1468,24 @@ def draw(name,
         label.Draw()
         keepalive(hist_pad, label)
 
+    if 'BDT' not in name:
+        if integer:
+            model_stack.xaxis.SetNdivisions(7)
+        else:
+            model_stack.xaxis.SetNdivisions(507)
+
     hist_pad.Update()
     hist_pad.Modified()
     hist_pad.RedrawAxis()
+
+    if 'BDT' in name:
+        log.warning("using BDT axes ranges")
+        model_stack.xaxis.SetLimits(-1, 1.3)
+        #model_stack.xaxis.SetRangeUser(-1, 1.3)
+    elif range is not None:
+        range = model[0].bounds()
+        model_stack.xaxis.SetLimits(*range)
+        #model_stack.xaxis.SetRangeUser(*range)
 
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)
