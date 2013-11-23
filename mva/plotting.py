@@ -1025,7 +1025,7 @@ def draw(name,
         if logy:
             ypadding = (.6, .0)
         else:
-            ypadding = (.3, .0)
+            ypadding = (.35, .0)
 
     if show_ratio:
         ratio_range = (0, 2)

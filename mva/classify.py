@@ -619,8 +619,6 @@ class Classifier(object):
             signal_scale=signal_scale,
             signal_on_top=False)
 
-        return
-
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
         log.info("plotting classifier output in the signal region ...")
@@ -676,6 +674,9 @@ class Classifier(object):
             unblind=True,
             ypadding=(0.3, 0),
             fit=fit)
+
+        # hack
+        return
 
         if 'control' in category.name:
             return

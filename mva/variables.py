@@ -362,6 +362,7 @@ VARIABLES = {
         'filename': 'deta_tau1_tau2',
         'bins': 10,
         'range': (0., 1.5),
+        'ypadding': (0.5, 0),
     },
     'tau1_charge': {
         'title': r'$\tau_1$ Charge',
