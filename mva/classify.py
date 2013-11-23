@@ -609,7 +609,7 @@ class Classifier(object):
         # prefit
         draw_channel(channel[125],
             category=category,
-            plot_label='#font[52]{Z}#rightarrow#tau#tau CR',
+            plot_label='Sideband CR',
             data_info=str(analysis.data.info),
             output_name='event_bdt_score_control' + self.output_suffix,
             name='BDT score',

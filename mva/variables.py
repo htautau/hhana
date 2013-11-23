@@ -62,7 +62,9 @@ VARIABLES = {
         'root': '#font[52]{p}_{T}^{Total}',
         'filename': 'vector_sum_pt',
         'bins': 20,
-        'range': (0, 200),
+        'range': {
+            'VBF': (0, 100),
+            None: (0, 200)},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -141,6 +143,7 @@ VARIABLES = {
         'filename': 'met_centrality',
         'bins': 20,
         'range': (-math.sqrt(2), math.sqrt(2)),
+        'legend': 'left',
     },
     'mass_vis_tau1_tau2': {
         'title': r'$M^{vis}(\tau_{1},\/\tau_{2})$',
@@ -344,6 +347,7 @@ VARIABLES = {
         'filename': 'dr_tau1_tau2',
         'bins': 10,
         'range': (0.8, 2.8),
+        'ypadding': (0.5, 0),
     },
     'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
@@ -396,7 +400,8 @@ VARIABLES = {
         'filename': 'tau1_centrality',
         'bins': 20,
         'range': (0, 1),
-        'cats': ['2J', 'VBF']
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
     },
     'tau2_centrality': {
         'title': r'$\tau_2$ Centrality',
@@ -404,7 +409,8 @@ VARIABLES = {
         'filename': 'tau2_centrality',
         'bins': 20,
         'range': (0, 1),
-        'cats': ['2J', 'VBF']
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
     },
     'jet1_eta': {
         'title': r'jet$_{1}$ $\eta$',
@@ -455,11 +461,12 @@ VARIABLES = {
     },
     'eta_product_jets': {
         'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
-        'root': '#font[152]{#eta}_{#font[52]{j}1} #times #font[152]{#eta}_{#font[52]{j}2}',
+        'root': '#font[152]{#eta}_{#font[52]{j}_{1}} #times #font[152]{#eta}_{#font[52]{j}_{2}}',
         'filename': 'eta_product_jets',
-        'bins': 20,
-        'range': (-10, 10),
-        'cats': ['2J', 'VBF']
+        'bins': 15,
+        'range': (-10, 5),
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
     },
     #'eta_product_jets_boosted': {
     #    'title': r'Boosted $\eta_{jet_{1}} \times \/ \eta_{jet_{2}}$',

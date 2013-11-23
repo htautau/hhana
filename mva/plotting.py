@@ -909,7 +909,8 @@ def draw_channel_array(
         output_name = var_info['filename'] + output_suffix
         if cuts:
             output_name += '_' + cuts.safe()
-
+        ypadding = kwargs.pop('ypadding', var_info.get('ypadding', None))
+        legend_position = kwargs.pop('legend_position', var_info.get('legend', 'right'))
         fig = draw_channel(field_channel[field],
              data_info=str(analysis.data.info),
              category=category,
@@ -918,6 +919,8 @@ def draw_channel_array(
              output_name=output_name,
              blind=blind,
              integer=var_info.get('integer', False),
+             ypadding=ypadding,
+             legend_position=legend_position,
              **kwargs)
         figs[field] = fig
     return field_channel, figs
@@ -1000,7 +1003,8 @@ def draw(name,
          textsize=22,
          logy=False,
          separate_legends=False,
-         ypadding=None):
+         ypadding=None,
+         legend_position='right'):
 
     if model is None and data is None and signal is None:
         raise ValueError(
@@ -1022,7 +1026,7 @@ def draw(name,
         if logy:
             ypadding = (.6, .0)
         else:
-            ypadding = (.5, .0)
+            ypadding = (.3, .0)
 
     if show_ratio:
         ratio_range = (0, 2)
@@ -1140,6 +1144,8 @@ def draw(name,
             model_stack.GetXaxis().SetNdivisions(7, True)
         else:
             model_stack.GetXaxis().SetNdivisions(507, True)
+        if 'BDT' in name:
+            model_stack.GetXaxis().SetRangeUser(-1., 1.3)
         model_stack.yaxis.SetLimits(ymin, ymax)
         model_stack.yaxis.SetRangeUser(ymin, ymax)
 
@@ -1179,7 +1185,10 @@ def draw(name,
                 high,
                 middle_hist=total_model)
             error_band_model.fillstyle = '/'
-            error_band_model.fillcolor = '#858585'
+            error_band_model.fillcolor = 13
+            error_band_model.linecolor = 10
+            error_band_model.markersize = 0
+            error_band_model.markercolor = 10
             error_band_model.Draw('same e2')
 
         if signal is not None and show_signal_error:
@@ -1196,7 +1205,10 @@ def draw(name,
                 high,
                 middle_hist=total_signal * signal_scale)
             error_band_signal.fillstyle = '\\'
-            error_band_signal.fillcolor = '#858585'
+            error_band_signal.fillcolor = 13
+            error_band_signal.linecolor = 10
+            error_band_signal.markersize = 0
+            error_band_signal.markercolor = 10
             error_band_signal.Draw('same e2')
             signal_stack.Draw('SAME')
 
@@ -1352,15 +1364,28 @@ def draw(name,
             n_entries += len(model)
             if systematics:
                 n_entries += 1
-        legend = Legend(n_entries,
-            pad=hist_pad,
-            leftmargin=0.39,
-            rightmargin=0.12,
-            margin=0.35,
-            textsize=textsize,
-            entrysep=0.02,
-            entryheight=0.04,
-            topmargin=0.15)
+        if legend_position == 'left':
+            legend = Legend(n_entries,
+                pad=hist_pad,
+                leftmargin=0.05,
+                rightmargin=0.46,
+                margin=0.35,
+                textsize=textsize,
+                entrysep=0.02,
+                entryheight=0.04,
+                topmargin=0.15)
+
+        else:
+            legend = Legend(n_entries,
+                pad=hist_pad,
+                leftmargin=0.39,
+                rightmargin=0.12,
+                margin=0.35,
+                textsize=textsize,
+                entrysep=0.02,
+                entryheight=0.04,
+                topmargin=0.15)
+
         legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -1445,8 +1470,8 @@ def draw(name,
         keepalive(hist_pad, plabel)
 
     ATLAS_label(0.62, 0.89,
-        sep=0.135, pad=hist_pad, sqrts=None,
-        text="Internal", textsize=textsize)
+        sep=0.132, pad=hist_pad, sqrts=None,
+        text="Preliminary", textsize=textsize)
 
     if plot_label is not None:
         label = ROOT.TLatex(
