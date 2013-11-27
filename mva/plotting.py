@@ -1405,12 +1405,12 @@ def draw(name,
 
     if units is not None:
         label = '%s [%s]' % (name, units)
-        if len(binwidths) == 1:
+        if len(binwidths) == 1 and binwidths[0] != '1':
             # constant width bins
             ylabel = '%s / %s %s' % (ylabel, binwidths[0], units)
     else:
         label = name
-        if len(binwidths) == 1:
+        if len(binwidths) == 1 and binwidths[0] != '1':
             ylabel = '%s / %s' % (ylabel, binwidths[0])
 
     model_stack.yaxis.SetTitle(ylabel)

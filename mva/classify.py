@@ -592,6 +592,8 @@ class Classifier(object):
         category = self.category
         region = self.region
 
+
+        """
         ##########################################################
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
@@ -651,6 +653,7 @@ class Classifier(object):
             systematics=systematics,
             output_formats=output_formats,
             fit=fit) #POSTFIT
+        """
 
         ###############################################################
         log.info("plotting mmc")
@@ -659,10 +662,11 @@ class Classifier(object):
             analysis,
             variables.VARIABLES,
             plots=[MMC_MASS],
-            plot_label=category.plot_label,
+            #plot_label=category.plot_label,
             mass=125,
             mode='combined',
-            signal_scale=signal_scale if not unblind else 1.,
+            plot_label='Signal Region',
+            signal_scale=signal_scale if not unblind else 1,
             signal_on_top=True if unblind else False,
             #fill_signal=True if unblind else False,
             category=category,
@@ -675,7 +679,7 @@ class Classifier(object):
             ypadding=(0.3, 0),
             fit=fit)
 
-        # hack
+        # HACK
         return
 
         if 'control' in category.name:
@@ -746,7 +750,7 @@ class Classifier(object):
             analysis,
             variables.VARIABLES,
             plots=[MMC_MASS],
-            templates={MMC_MASS: Hist(30, 50, 200)},
+            templates={MMC_MASS: Hist(15, 50, 200)},
             mass=[125, 150],
             scale_125=True,
             mode='combined',
