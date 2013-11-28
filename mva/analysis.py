@@ -1,18 +1,25 @@
+# stdlib imports
 import random
 from collections import namedtuple
 
+# numpy imports
 import numpy as np
 
+# rootpy imports
 from rootpy.stats import histfactory
 from rootpy.plotting import Hist
 
+# root_numpy imports
+from root_numpy import rec2array
+
+# local imports
 from . import samples, log; log = log[__name__]
 from .samples import Higgs, Data
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .stats.utils import efficiency_cut
 from .classify import histogram_scores, Classifier
-from .np_utils import rec_to_ndarray
+from .np_utils import rec2array
 
 
 Scores = namedtuple('Scores', [
@@ -622,9 +629,9 @@ class Analysis(object):
         sig_arrs = {}
 
         for b, rec in bkg_recs.items():
-            bkg_arrs[b] = rec_to_ndarray(rec)
+            bkg_arrs[b] = rec2array(rec)
 
         for s, rec in sig_recs.items():
-            sig_arrs[s] = rec_to_ndarray(rec)
+            sig_arrs[s] = rec2array(rec)
 
         return bkg_arrs, sig_arrs

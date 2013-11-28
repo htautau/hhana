@@ -1,11 +1,16 @@
+# stdlib imports
 import os
 import pickle
 from operator import itemgetter
 import types
 import shutil
 import math
+from cStringIO import StringIO
 
+# numpy imports
 import numpy as np
+
+# matplotlib imports
 from matplotlib import pyplot as plt
 from matplotlib import cm
 
@@ -18,12 +23,15 @@ from sklearn.metrics import precision_score
 from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
+# rootpy imports
 from rootpy.plotting import Hist
 from rootpy.io import root_open
 from rootpy.extern.tabulartext import PrettyTable
 
-from cStringIO import StringIO
+# root_numpy imports
+from root_numpy import rec2array
 
+# local imports
 from .samples import *
 from . import log; log = log[__name__]
 from . import CACHE_DIR
@@ -36,13 +44,15 @@ from .plotting import (
 from . import variables
 from . import PLOTS_DIR
 from .stats.utils import get_safe_template
-from .np_utils import rec_to_ndarray, std
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
 
 
-def print_feature_ranking(clf, fields):
+def std(X):
+    return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 
+
+def print_feature_ranking(clf, fields):
     if hasattr(clf, 'feature_importances_'):
         importances = clf.feature_importances_
         indices = np.argsort(importances)[::-1]
@@ -68,7 +78,6 @@ def print_feature_ranking(clf, fields):
 
 
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
-
     scores = []
     weights = []
     for bkg, scores_dict in bkg_scores:
@@ -104,7 +113,6 @@ def search_flat_bins(bkg_scores, min_score, max_score, bins):
 
 
 class Classifier(object):
-
     # minimal list of spectators
     SPECTATORS = [
         MMC_PT,
@@ -243,8 +251,8 @@ class Classifier(object):
             signal_weight_arrs.append(
                (left['weight'], right['weight']))
             signal_arrs.append(
-               (rec_to_ndarray(left, self.fields),
-                rec_to_ndarray(right, self.fields)))
+               (rec2array(left, self.fields),
+                rec2array(right, self.fields)))
             signal_recs.append((left, right))
 
         background_recs = []
@@ -261,8 +269,8 @@ class Classifier(object):
             background_weight_arrs.append(
                (left['weight'], right['weight']))
             background_arrs.append(
-               (rec_to_ndarray(left, self.fields),
-                rec_to_ndarray(right, self.fields)))
+               (rec2array(left, self.fields),
+                rec2array(right, self.fields)))
             background_recs.append((left, right))
 
         self.clfs = [None, None]
@@ -545,7 +553,7 @@ class Classifier(object):
         for i, partition in enumerate(partitions):
             for rec, idx in partition:
                 weight = rec['weight']
-                arr = rec_to_ndarray(rec, self.fields)
+                arr = rec2array(rec, self.fields)
                 # each classifier is never used on the partition that trained it
                 scores = self.clfs[i].decision_function(arr)
                 score_idx[i].append((idx, scores, weight))

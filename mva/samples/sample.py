@@ -14,12 +14,14 @@ from rootpy.plotting.hist import _HistBase
 from rootpy.tree import Tree, Cut
 from rootpy.stats import histfactory
 
+# root_numpy imports
+from root_numpy import rec2array, stack
+
 # local imports
 from . import log
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, ravel
-from ..np_utils import rec_to_ndarray, rec_stack
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
 from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
@@ -631,7 +633,7 @@ class Sample(object):
         if include_weight and fields is not None:
             if 'weight' not in fields:
                 fields = list(fields) + ['weight']
-        rec = rec_stack(recs, fields=fields)
+        rec = stack(recs, fields=fields)
 
         if clf is not None:
             scores, _ = clf.classify(
@@ -654,7 +656,7 @@ class Sample(object):
               include_weight=True,
               systematic='NOMINAL'):
 
-        return rec_to_ndarray(self.merged_records(
+        return rec2array(self.merged_records(
             category,
             region,
             fields=fields,
@@ -795,7 +797,7 @@ class Sample(object):
                     clf=clf,
                     systematic=systematic)
                 recs.append(rec)
-            b_rec = rec_stack(recs, fields=all_fields + ['classifier', 'weight'])
+            b_rec = stack(recs, fields=all_fields + ['classifier', 'weight'])
             s_rec = analysis.higgs_125.merged_records(category, region,
                 fields=all_fields, cuts=cuts,
                 include_weight=True,
@@ -816,7 +818,7 @@ class Sample(object):
                     replace=False, p=prob)
                 return rec[sample_idx]
 
-            rec = rec_stack([
+            rec = stack([
                 bootstrap(b_neg),
                 bootstrap(b_pos),
                 bootstrap(s_rec)],
@@ -883,7 +885,7 @@ class Sample(object):
                     if field in field_scale:
                         arr[field] *= field_scale[field]
             # convert to array
-            arr = rec_to_ndarray(arr, fields=fields)
+            arr = rec2array(arr, fields=fields)
             # HACK HACK HACK
             _weights = weights
             if fields == ['dEta_jets']:
