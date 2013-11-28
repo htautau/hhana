@@ -11,30 +11,26 @@ from .. import ETC_DIR
 from .sample import Signal
 from .mc import MC
 
+
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 
 
 class Higgs(MC, Signal):
-
     MASS_POINTS = range(100, 155, 5)
-
     MODES = ['Z', 'W', 'gg', 'VBF']
     MODES_COMBINED = [['Z', 'W'], ['gg'], ['VBF']]
-
     MODES_DICT = {
         'gg': ('ggf', 'PowHegPythia_', 'PowHegPyth8_AU2CT10_'),
         'VBF': ('vbf', 'PowHegPythia_', 'PowHegPythia8_AU2CT10_'),
         'Z': ('zh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
         'W': ('wh', 'Pythia', 'Pythia8_AU2CTEQ6L1_'),
     }
-
     MODES_WORKSPACE = {
         'gg': 'ggH',
         'VBF': 'VBF',
         'Z': 'ZH',
         'W': 'WH',
     }
-
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
     QCD_SCALE = map(lambda token: token.strip().split(), '''\
     QCDscale_qqH     VBF    0j_nonboosted    1.020/0.980
@@ -51,16 +47,13 @@ class Higgs(MC, Signal):
     QCDscale_ggH1in  ggH    boosted          1.32/0.76
     QCDscale_ggH2in  ggH    boosted          0.90/1.11
     QCDscale_ggH2in  ggH    VBF              1.24/0.81'''.split('\n'))
-
     GEN_QMASS = map(lambda token: token.strip().split(), '''\
     Gen_Qmass_ggH    ggH    VBF              1.19/0.81
     Gen_Qmass_ggH    ggH    boosted          1.24/0.76
     Gen_Qmass_ggH    ggH    1j_nonboosted    1.04/0.96
     Gen_Qmass_ggH    ggH    0j_nonboosted    1/1'''.split('\n'))
-
     QCDscale_ggH3in_file = root_open(
         os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
-
     NORM_BY_THEORY = True
 
     def histfactory(self, sample, category, systematics=True):
@@ -158,7 +151,6 @@ class Higgs(MC, Signal):
             mass=None, masses=None,
             sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
             **kwargs):
-
         if masses is None:
             if mass is not None:
                 assert mass in Higgs.MASS_POINTS

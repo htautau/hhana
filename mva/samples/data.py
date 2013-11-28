@@ -49,7 +49,6 @@ class DataInfo():
 class Data(Sample):
 
     def __init__(self, year, **kwargs):
-
         super(Data, self).__init__(
             year=year, scale=1.,
             **kwargs)
@@ -64,7 +63,6 @@ class Data(Sample):
         self.name = 'Data'
 
     def events(self, category, region, cuts=None, hist=None):
-
         if hist is None:
             hist = Hist(1, -100, 100)
         selection = self.cuts(category, region) & cuts
@@ -75,7 +73,6 @@ class Data(Sample):
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True):
-
         self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
         if not hasattr(hist, 'datainfo'):
             hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
@@ -94,7 +91,6 @@ class Data(Sample):
                    systematics=True,
                    systematics_components=None,
                    bootstrap_data=False):
-
         if bootstrap_data:
             scores = None
         elif scores is None and clf is not None:
@@ -116,7 +112,6 @@ class Data(Sample):
                cuts=None,
                systematics=True,
                systematics_components=None):
-
         return clf.classify(self,
                 category=category,
                 region=region,
@@ -127,7 +122,6 @@ class Data(Sample):
               region,
               cuts=None,
               systematic='NOMINAL'):
-
         TEMPFILE.cd()
         tree = asrootpy(self.data.CopyTree(self.cuts(category, region) & cuts))
         tree.userdata.weight_branches = []
@@ -142,7 +136,6 @@ class Data(Sample):
                 systematic='NOMINAL',
                 return_idx=False,
                 **kwargs):
-
         if include_weight and fields is not None:
             if 'weight' not in fields:
                 fields = list(fields) + ['weight']
@@ -172,4 +165,3 @@ class Data(Sample):
             return [(rec, idx)]
 
         return [rec]
-

@@ -230,12 +230,6 @@ class Category_Preselection(Category):
     #cuts = Cut('theta_tau1_tau2 > 0.6')
 
 
-class Category_Preselection_ID_Control(Category_Preselection):
-    is_control = True
-    name = 'preselection_id_control'
-    label = r'$\tau_{had}\tau_{had}$ ID Control Region at Preselection'
-
-
 class Category_Preselection_DEta_Control(Category_Preselection):
     is_control = True
     name = 'preselection_deta_control'
@@ -255,13 +249,6 @@ class Category_VBF(Category_Preselection):
     # train with only VBF
     signal_train_modes = ['VBF']
     norm_category = Category_Preselection
-
-
-class Category_VBF_ID_Control(Category_VBF):
-    is_control = True
-    name = 'vbf_id_control'
-    label = r'$\tau_{had}\tau_{had}$ VBF ID CR'
-    root_label = '#tau_{had}#tau_{had} VBF ID CR'
 
 
 class Category_VBF_DEta_Control(Category_VBF):
@@ -288,15 +275,6 @@ class Category_Boosted(Category_Preselection):
     norm_category = Category_Preselection
 
 
-class Category_Boosted_ID_Control(Category_Boosted):
-    is_control = True
-    name = 'boosted_id_control'
-    label = r'$\tau_{had}\tau_{had}$ Boosted ID CR'
-    year_cuts = {
-        2011: ID_MEDIUM_NOT_TIGHT,
-        2012: ID_MEDIUM_NOT_TIGHT}
-
-
 class Category_Boosted_DEta_Control(Category_Boosted):
     is_control = True
     name = 'boosted_deta_control'
@@ -305,81 +283,6 @@ class Category_Boosted_DEta_Control(Category_Boosted):
     plot_label = 'Multijet CR'
     #norm_category = Category_Preselection_DEta_Control
     norm_category = Category_Preselection
-
-
-class Category_Nonboosted_1J(Category_Preselection):
-    name = '1j_nonboosted'
-    label = r'$\tau_{had}\tau_{had}$ 1-Jet'
-    root_label = '#tau_{had}#tau_{had} 1-Jet'
-    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = AT_LEAST_1JET & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
-    fitbins = 5
-    limitbins = 10
-    features = features_1j
-    # train with all modes
-    norm_category = Category_Preselection
-    #workspace_min_clf = 0.
-
-
-class Category_Nonboosted_1J_Control(Category_Nonboosted_1J):
-    # used only for the trackfit control region in the workspace
-    name = '1j_nonboosted_control'
-    is_control = True
-    workspace_min_clf = None
-    workspace_max_clf = 0.
-
-
-class Category_Nonboosted_1J_ID_Control(Category_Nonboosted_1J):
-    is_control = True
-    name = '1j_nonboosted_id_control'
-    label = r'$\tau_{had}\tau_{had}$ 1-Jet ID CR'
-
-
-class Category_Nonboosted_1J_DEta_Control(Category_Nonboosted_1J):
-    is_control = True
-    name = '1j_nonboosted_deta_control'
-    label = r'$\tau_{had}\tau_{had}$ 1-Jet $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    root_label = '#tau_{had}#tau_{had} 1-Jet Multijet CR'
-    norm_category = Category_Preselection_DEta_Control
-    #norm_category = Category_Preselection
-
-
-class Category_Nonboosted_0J(Category_Preselection):
-    analysis_control = True
-    name = '0j_nonboosted'
-    label = r'$\tau_{had}\tau_{had}$ 0-Jet'
-    root_label = '#tau_{had}#tau_{had} 0-Jet'
-    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = (- Category_Nonboosted_1J.cuts) & (- Category_Boosted.cuts) & (- Category_VBF.cuts)
-    fitbins = 8
-    limitbins = 10
-    features = features_0j
-    # train with all modes
-    norm_category = Category_Preselection
-    #workspace_min_clf = 0.
-
-
-class Category_Nonboosted_0J_Control(Category_Nonboosted_0J):
-    # used only for the trackfit control region in the workspace
-    name = '0j_nonboosted_control'
-    is_control = True
-    workspace_min_clf = None
-    workspace_max_clf = 0.
-
-
-class Category_Nonboosted_0J_ID_Control(Category_Nonboosted_0J):
-    is_control = True
-    name = '0j_nonboosted_id_control'
-    label = r'$\tau_{had}\tau_{had}$ 0-Jet ID CR'
-
-
-class Category_Nonboosted_0J_DEta_Control(Category_Nonboosted_0J):
-    is_control = True
-    name = '0j_nonboosted_deta_control'
-    label = r'$\tau_{had}\tau_{had}$ 0-Jet Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    root_label = '#tau_{had}#tau_{had} 0-Jet Multijet CR'
-    norm_category = Category_Preselection_DEta_Control
-    #norm_category = Category_Preselection
 
 
 class Category_Rest(Category_Preselection):
@@ -409,16 +312,11 @@ CATEGORIES = {
     'cuts_presel': [
         Category_Cuts_Preselection,
         ],
-    'cuts_presel_id_controls': [
-        ],
     'cuts_presel_deta_controls': [
         Category_Cuts_Preselection_DEta_Control,
         ],
     'presel': [
         Category_Preselection,
-        ],
-    'presel_id_controls': [
-        Category_Preselection_ID_Control,
         ],
     'presel_deta_controls': [
         Category_Preselection_DEta_Control,
@@ -426,32 +324,17 @@ CATEGORIES = {
     'mva': [
         Category_VBF,
         Category_Boosted,
-        #Category_Nonboosted_1J,
-        #Category_Nonboosted_0J,
     ],
     'mva_all': [
         Category_VBF,
         Category_Boosted,
-        #Category_Nonboosted_1J,
-        #Category_Nonboosted_0J,
         Category_Rest,
-    ],
-    'mva_id_controls': [
-        Category_VBF_ID_Control,
-        Category_Boosted_ID_Control,
-        #Category_Nonboosted_1J_ID_Control,
-        #Category_Nonboosted_0J_ID_Control,
     ],
     'mva_deta_controls': [
         Category_VBF_DEta_Control,
         Category_Boosted_DEta_Control,
-        #Category_Nonboosted_1J_DEta_Control,
-        #Category_Nonboosted_0J_DEta_Control,
     ],
     'mva_workspace_controls': [
-        #Category_Nonboosted_1J_Control,
-        #Category_Nonboosted_0J_Control,
-        #Category_Nonboosted_0J,
         Category_Rest,
     ]
 }

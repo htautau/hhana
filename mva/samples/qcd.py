@@ -9,13 +9,11 @@ import numpy as np
 
 
 class QCD(Sample, Background):
-
     # don't include MC systematics in workspace for QCD
     WORKSPACE_SYSTEMATICS = [] #MC.WORKSPACE_SYSTEMATICS
     NORM_BY_THEORY = False
 
     def histfactory(self, sample, category, systematics=True):
-
         if self.workspace_norm is not None:
             sample.AddNormFactor(
                 'ATLAS_norm_HH_{0:d}_QCD'.format(self.year),
@@ -37,7 +35,6 @@ class QCD(Sample, Background):
 
     @staticmethod
     def sample_compatibility(data, mc):
-
         if not isinstance(mc, (list, tuple)):
             raise TypeError("mc must be a list or tuple of MC samples")
         if not mc:
@@ -62,7 +59,6 @@ class QCD(Sample, Background):
                  cuts=None,
                  mpl=False,
                  **kwargs):
-
         QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(
             year=data.year,
@@ -92,7 +88,6 @@ class QCD(Sample, Background):
 
     def events(self, category, region, cuts=None,
                systematic='NOMINAL'):
-
         data = Hist(1, -100, 100)
         mc_subtract = data.Clone()
         self.data.events(category, self.shape_region, cuts=cuts, hist=data)
@@ -111,9 +106,7 @@ class QCD(Sample, Background):
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None, weighted=True, systematics=True):
-
         # TODO: handle QCD shape systematic
-
         MC_bkg = hist.Clone()
         MC_bkg.Reset()
         for mc_scale, mc in zip(self.mc_scales, self.mc):
@@ -162,7 +155,6 @@ class QCD(Sample, Background):
                    systematics=True,
                    systematics_components=None,
                    bootstrap_data=False):
-
         do_systematics = self.systematics and systematics
 
         field_hist_MC_bkg = dict([(expr, hist.Clone())
@@ -252,7 +244,6 @@ class QCD(Sample, Background):
                systematics=True,
                systematics_components=None,
                **kwargs):
-
         # data
         data_scores, data_weights = self.data.scores(
             clf,
@@ -293,7 +284,6 @@ class QCD(Sample, Background):
 
     def trees(self, category, region, cuts=None,
               systematic='NOMINAL'):
-
         TEMPFILE.cd()
         data_tree = asrootpy(
                 self.data.data.CopyTree(
@@ -332,9 +322,7 @@ class QCD(Sample, Background):
                 systematic='NOMINAL',
                 return_idx=False,
                 **kwargs):
-
         assert include_weight == True
-
         data_records = self.data.records(
             category=category,
             region=self.shape_region,
@@ -402,9 +390,7 @@ class QCD(Sample, Background):
                              field_scale=None,
                              weight_hist=None,
                              weighted=True):
-
         log.info("creating QCD shape systematic")
-
         # HACK
         # use preselection as reference in which all models should have the same
         # expected number of QCD events

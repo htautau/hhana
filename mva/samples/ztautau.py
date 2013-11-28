@@ -8,11 +8,9 @@ from rootpy.tree import Cut
 
 
 class Ztautau(Background):
-
     NORM_BY_THEORY = False
 
     def histfactory(self, sample, category, systematics=True):
-
         if self.workspace_norm is not None:
             sample.AddNormFactor(
                 'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),
@@ -44,7 +42,6 @@ class Ztautau(Background):
 
 
 class MC_Ztautau(Ztautau, MC):
-
     WORKSPACE_SYSTEMATICS = MC.WORKSPACE_SYSTEMATICS
 
 
@@ -53,7 +50,6 @@ class MC_Ztautau_DY(MC_Ztautau):
 
 
 class Embedded_Ztautau(Ztautau, MC):
-
     WORKSPACE_SYSTEMATICS = Sample.WORKSPACE_SYSTEMATICS + [
         'MFS',
         'ISOL',
@@ -73,13 +69,11 @@ class Embedded_Ztautau(Ztautau, MC):
     ]
 
     def xsec_kfact_effic(self, isample):
-
         return 1., 1., 1.
 
     def get_weight_branches(self, systematic,
                             no_cuts=False, only_cuts=False,
                             weighted=True):
-
         if not weighted:
             return ["1.0"]
         systerm, variation = Sample.get_sys_term_variation(systematic)
@@ -110,7 +104,6 @@ class Embedded_Ztautau(Ztautau, MC):
         return weight_branches
 
     def iter_weight_branches(self):
-
         for type, variations in WEIGHT_SYSTEMATICS.items():
             for variation in variations:
                 if variation == 'NOMINAL':
@@ -125,7 +118,6 @@ class Embedded_Ztautau(Ztautau, MC):
                 yield self.get_weight_branches(term), term
 
     def cuts(self, category, region, systematic='NOMINAL', **kwargs):
-
         sys_cut = Cut()
         systerm, variation = Sample.get_sys_term_variation(systematic)
         for term, variations in EMBEDDING_SYSTEMATICS.items():
@@ -135,4 +127,3 @@ class Embedded_Ztautau(Ztautau, MC):
                 sys_cut &= variations['NOMINAL']
         return (category.get_cuts(self.year, **kwargs) &
                 REGIONS[region] & self._cuts & sys_cut)
-

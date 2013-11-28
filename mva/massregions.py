@@ -16,7 +16,6 @@ class MassRegions(object):
             mass_window_signal_region=False,
             train_signal_region=False,
             low_cutoff=None):
-
         # control region is low and high mass sidebands
         self.__control_region = Cut('%s < %d' % (MMC_MASS, low))
         if low_cutoff is not None:
@@ -45,18 +44,15 @@ class MassRegions(object):
 
     @property
     def control_region(self):
-
         # make a copy
         return Cut(self.__control_region)
 
     @property
     def signal_region(self):
-
         # make a copy
         return Cut(self.__signal_region)
 
     @property
     def train_region(self):
-
         # make a copy
         return Cut(self.__train_region)

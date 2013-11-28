@@ -9,7 +9,6 @@ LUMI_UNCERT = {
     2011: 0.018,
     2012: 0.028
 }
-
 LUMI = {}
 lumi_files = glob(os.path.join(NTUPLE_PATH, DEFAULT_STUDENT, 'lumi_*'))
 
