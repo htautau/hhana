@@ -19,7 +19,6 @@ from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .stats.utils import efficiency_cut
 from .classify import histogram_scores, Classifier
-from .np_utils import rec2array
 
 
 Scores = namedtuple('Scores', [

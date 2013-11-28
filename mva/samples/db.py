@@ -13,7 +13,7 @@ TEMPFILE = TemporaryFile()
 
 
 def get_file(student=DEFAULT_STUDENT, hdf=False, suffix=''):
-    ext = '.h5' is hdf else '.root'
+    ext = '.h5' if hdf else '.root'
     filename = student + ext
     if filename in FILES:
         return FILES[filename]
