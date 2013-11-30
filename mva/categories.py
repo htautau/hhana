@@ -210,22 +210,19 @@ class Category(object):
 
 class Category_Cuts_Preselection(Category):
     name = 'cut_preselection'
-    label = r'$\tau_{had}\tau_{had}$ Cut-based Preselection'
-    root_label = '#tau_{had}#tau_{had} Cut-based Preselection'
+    label = '#tau_{had}#tau_{had} Cut-based Preselection'
     common_cuts = COMMON_CUTS_CUTBASED
 
 
 class Category_Cuts_Preselection_DEta_Control(Category_Cuts_Preselection):
     name = 'cut_preselection_deta_control'
-    label = r'$\tau_{had}\tau_{had}$ $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Cut-based Preselection'
 
 
 # MVA preselection categories
 
 class Category_Preselection(Category):
     name = 'preselection'
-    label = r'$\tau_{had}\tau_{had}$ Preselection'
-    root_label = '#tau_{had}#tau_{had} Preselection'
+    label = '#tau_{had}#tau_{had} Preselection'
     common_cuts = COMMON_CUTS_MVA
     #cuts = Cut('theta_tau1_tau2 > 0.6')
 
@@ -233,13 +230,11 @@ class Category_Preselection(Category):
 class Category_Preselection_DEta_Control(Category_Preselection):
     is_control = True
     name = 'preselection_deta_control'
-    label = r'$\tau_{had}\tau_{had}$ $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region at Preselection'
 
 
 class Category_VBF(Category_Preselection):
     name = 'vbf'
-    label = r'$\tau_{had}\tau_{had}$ VBF'
-    root_label = '#tau_{had}#tau_{had} VBF'
+    label = '#tau_{had}#tau_{had} VBF'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
     fitbins = 5
@@ -254,7 +249,6 @@ class Category_VBF(Category_Preselection):
 class Category_VBF_DEta_Control(Category_VBF):
     is_control = True
     name = 'vbf_deta_control'
-    label = r'$\tau_{had}\tau_{had}$ VBF Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
     plot_label = 'Multijet CR'
     norm_category = Category_Preselection_DEta_Control
     #norm_category = Category_Preselection
@@ -262,8 +256,7 @@ class Category_VBF_DEta_Control(Category_VBF):
 
 class Category_Boosted(Category_Preselection):
     name = 'boosted'
-    label = r'$\tau_{had}\tau_{had}$ Boosted'
-    root_label = '#tau_{had}#tau_{had} Boosted'
+    label = '#tau_{had}#tau_{had} Boosted'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
     fitbins = 5
@@ -278,8 +271,7 @@ class Category_Boosted(Category_Preselection):
 class Category_Boosted_DEta_Control(Category_Boosted):
     is_control = True
     name = 'boosted_deta_control'
-    label = r'$\tau_{had}\tau_{had}$ Boosted Category $\Delta \eta_{\tau_{1},\/\tau_{2}} \geq 1.5$ Control Region'
-    root_label = '#tau_{had}#tau_{had} Boosted'
+    label = '#tau_{had}#tau_{had} Boosted'
     plot_label = 'Multijet CR'
     #norm_category = Category_Preselection_DEta_Control
     norm_category = Category_Preselection
@@ -288,8 +280,7 @@ class Category_Boosted_DEta_Control(Category_Boosted):
 class Category_Rest(Category_Preselection):
     analysis_control = True
     name = 'rest'
-    label = r'$\tau_{had}\tau_{had}$ Rest'
-    root_label = '#tau_{had}#tau_{had} Rest'
+    label = '#tau_{had}#tau_{had} Rest'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     fitbins = 8
@@ -302,7 +293,7 @@ class Category_Rest(Category_Preselection):
 
 class Category_1J_Inclusive(Category_Preselection):
     name = '1j_inclusive'
-    root_label = '#tau_{had}#tau_{had} Inclusive 1-Jet'
+    label = '#tau_{had}#tau_{had} Inclusive 1-Jet'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = AT_LEAST_1JET
     norm_category = Category_Preselection

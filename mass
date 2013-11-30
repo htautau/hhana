@@ -46,7 +46,7 @@ def plot_mass(ztt, higgs, category):
         text="Internal", textsize=22)
     label = ROOT.TLatex(
         plot.GetLeftMargin() + 0.03, 0.89,
-        category.root_label)
+        category.label)
     label.SetNDC()
     label.SetTextFont(43)
     label.SetTextSize(22)

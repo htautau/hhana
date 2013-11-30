@@ -1438,7 +1438,7 @@ def draw(name,
     hist_pad.cd()
     label = ROOT.TLatex(
         hist_pad.GetLeftMargin() + 0.03, 0.89,
-        category.root_label)
+        category.label)
     label.SetNDC()
     label.SetTextFont(43)
     label.SetTextSize(textsize)
@@ -2160,7 +2160,7 @@ def draw_tmp(name,
 
     if root:
         hist_pad.cd()
-        label = ROOT.TLatex(rect_hist[0] + 0.03, 0.9, category.root_label)
+        label = ROOT.TLatex(rect_hist[0] + 0.03, 0.9, category.label)
         label.SetNDC()
         label.SetTextFont(43)
         label.SetTextSize(20)
