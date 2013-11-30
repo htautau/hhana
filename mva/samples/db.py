@@ -1,8 +1,17 @@
+# stdlib imports
 import os
 import atexit
+
+# pytables imports
 import tables
+
+# rootpy imports
 from rootpy.io import root_open, TemporaryFile
+
+# higgstautau imports
 from higgstautau import datasets
+
+# local imports
 from .. import NTUPLE_PATH, DEFAULT_STUDENT
 from . import log; log = log[__name__]
 

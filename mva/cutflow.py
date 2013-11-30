@@ -1,18 +1,22 @@
+# stdlib imports
 import math
 import os
 import sys
 
-from argparse import ArgumentParser
-
-from higgstautau import datasets
+# rootpy imports
+from rootpy.extern.argparse import ArgumentParser
 from rootpy.extern.tabulartext import TextTable
 from rootpy.io import root_open as ropen
+
+# higgstautau imports
+from higgstautau import datasets
+
+# local imports
 from .lumi import LUMI
 from . import log; log = log[__name__]
 
 
 def get_parser():
-
     parser = ArgumentParser()
     parser.add_argument('--format', choices=('latex', 'text'), default='text')
     parser.add_argument('--errors', action='store_true', default=False)
@@ -31,21 +35,17 @@ def get_parser():
 
 
 def tab(s, tabstr=4 * ' '):
-
     return '\n'.join(((tabstr) + x if x else x) for x in s.splitlines())
 
 
 def make_cutflow(samples, args):
-
     used_samples, filters, cutflows, data_index = make_cutflow_table(samples, args)
     print_cutflow(used_samples, filters, cutflows, data_index, args)
 
 
 def make_cutflow_table(samples, args):
-
     filters = None
     db = datasets.Database(args.db)
-
     # build table
     cutflow_table = {}
     data_index = []
@@ -105,7 +105,6 @@ def make_cutflow_table(samples, args):
 
 
 def print_cutflow(samples, filters, cutflows, data_index, args, stream=None):
-
     if args.landscape:
         cutflows = zip(*cutflows)
     if stream is None:

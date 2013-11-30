@@ -1,18 +1,22 @@
+# higgstautau imports
+from higgstautau import samples as samples_db
+
+# rootpy imports
+from rootpy import asrootpy
+from rootpy.plotting import Hist
+from rootpy.tree import Cut
+
+# numpy imports
+import numpy as np
+from numpy.lib import recfunctions
+
+# local imports
 from .sample import Sample, Signal, Background
 from .db import DB, TEMPFILE, get_file
 from . import log
 from ..cachedtable import CachedTable
 from ..lumi import LUMI
 from ..systematics import SYSTEMATICS_BY_WEIGHT, iter_systematics, systematic_name
-
-from higgstautau import samples as samples_db
-
-from rootpy import asrootpy
-from rootpy.plotting import Hist
-from rootpy.tree import Cut
-
-import numpy as np
-from numpy.lib import recfunctions
 
 
 class MC(Sample):

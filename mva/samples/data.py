@@ -1,14 +1,17 @@
+# numpy imports
+import numpy as np
+from numpy.lib import recfunctions
+
+# rootpy imports
+from rootpy import asrootpy
+from rootpy.plotting import Hist
+
+# local imports
 from . import log
 from .sample import Sample
 from .db import TEMPFILE, get_file
 from ..cachedtable import CachedTable
 from ..lumi import LUMI
-
-import numpy as np
-from numpy.lib import recfunctions
-
-from rootpy import asrootpy
-from rootpy.plotting import Hist
 
 
 class DataInfo():

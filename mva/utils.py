@@ -1,16 +1,22 @@
+# stdlib imports
 import sys
 import os
 import errno
-from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 from cStringIO import StringIO
+
+# matplotlib imports
+from matplotlib.backends.backend_pdf import PdfPages
+
+# ROOT/rootpy
 from rootpy.context import preserve_current_directory
 import ROOT
+
+# local imports
 from . import log; log = log[__name__]
 
 
 def print_hist(hist):
-
     out = StringIO()
     print >> out
     print >> out
@@ -22,7 +28,6 @@ def print_hist(hist):
 
 
 def hist_to_dict(hist):
-
     hist_dict = dict()
     for i, value in enumerate(hist):
         hist_dict[hist.xaxis.GetBinLabel(i + 1)] = value
@@ -56,7 +61,6 @@ class Tee(object):
 
 
 def make_multipage_pdf(figs, name, dir=None):
-
     now = datetime.datetime.today()
     if dir is not None:
         path = os.path.join(dir, '%s.pdf' % name)
@@ -95,7 +99,6 @@ def braindump(outdir, indir=None, func=None):
 
 
 def ravel(hist):
-
     if hist.GetDimension() != 2:
         return hist
     # convert to 1D hist

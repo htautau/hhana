@@ -1,10 +1,13 @@
+# stdlib imports
 import os
 import sys
 import math
 import itertools
 
+# numpy imports
 import numpy as np
 
+# matplotlib imports
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib import cm
@@ -15,6 +18,7 @@ from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
+# ROOT/rootpy imports
 import ROOT
 from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
 import rootpy.plotting.root2matplotlib as rplt
@@ -27,6 +31,7 @@ from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.memory.keepalive import keepalive
 from rootpy.stats.histfactory import HistoSys, split_norm_shape
 
+# local imports
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
 from .systematics import iter_systematics, systematic_name

@@ -1,11 +1,14 @@
-from .sample import Sample, Background
-from . import log
-from ..systematics import systematic_name
-
+# rootpy imports
 from rootpy import asrootpy
 from rootpy.plotting import Hist
 
+# numpy imports
 import numpy as np
+
+# local imports
+from .sample import Sample, Background
+from . import log
+from ..systematics import systematic_name
 
 
 class QCD(Sample, Background):

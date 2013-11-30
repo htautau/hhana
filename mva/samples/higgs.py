@@ -1,11 +1,14 @@
+# stdlib imports
 import os
 
+# rootpy imports
 from rootpy.io import root_open
 from rootpy.stats import histfactory
 
 # Higgs cross sections and branching ratios
 import yellowhiggs
 
+# local imports
 from . import log
 from .. import ETC_DIR
 from .sample import Signal

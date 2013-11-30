@@ -1,10 +1,12 @@
+# rootpy imports
+from rootpy.tree import Cut
+
+# local imports
 from .sample import Sample, Background
 from .mc import MC
 from . import log
 from ..systematics import EMBEDDING_SYSTEMATICS, WEIGHT_SYSTEMATICS
 from ..regions import REGIONS
-
-from rootpy.tree import Cut
 
 
 class Ztautau(Background):

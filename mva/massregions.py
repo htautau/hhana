@@ -1,4 +1,7 @@
+# rootpy imports
 from rootpy.tree import Cut
+
+# local imports
 from . import MMC_MASS
 from . import log; log = log[__name__]
 
