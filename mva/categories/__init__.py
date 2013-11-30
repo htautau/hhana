@@ -1,5 +1,5 @@
-from .mva_categories import *
-from .cuts_categories import *
+from .mva import *
+from .cuts import *
 
 CATEGORIES = {
     'cuts_presel': [

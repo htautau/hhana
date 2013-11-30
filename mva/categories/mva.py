@@ -1,18 +1,23 @@
 from .base import Category
-from .cuts import *
+from .selections import *
 from .features import *
 
-# Cut-based categories
+# preselection cuts
+COMMON_CUTS_MVA = (
+    LEAD_TAU_35 & SUBLEAD_TAU_25
+    & MET
+    & Cut('%s > 0' % MMC_MASS)
+    & Cut('0.8 < dR_tau1_tau2 < 2.8')
+    & TAU_SAME_VERTEX
+    # looser MET centrality
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (math.pi / 2))
+    )
 
-class Category_Cuts_Preselection(Category):
-    name = 'cut_preselection'
-    label = '#tau_{had}#tau_{had} Cut-based Preselection'
-    common_cuts = COMMON_CUTS_CUTBASED
-
-
-class Category_Cuts_Preselection_DEta_Control(Category_Cuts_Preselection):
-    name = 'cut_preselection_deta_control'
-
+# additional cuts after preselection
+#CATEGORY_CUTS_MVA = (
+#    Cut('%s > 80' % MMC_MASS)
+#    )
+CATEGORY_CUTS_MVA = Cut()
 
 # MVA preselection categories
 
