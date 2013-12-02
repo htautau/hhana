@@ -110,3 +110,13 @@ def ravel_hist(hist):
             rsyst[term] = syshist.ravel(name=syshist.name + '_ravel')
         rhist.systematics = rsyst
     return rhist
+
+
+def uniform_hist(hist):
+    rhist = hist.uniform_binned(name = hist.name + '_uniform')
+    if hasattr(hist, 'systematics'):
+        rsyst = {}
+        for term, syshist in hist.systematics.items():
+            rsyst[term] = syshist.uniform_binned(name=syshist.name + '_uniform')
+        rhist.systematics = rsyst
+    return rhist

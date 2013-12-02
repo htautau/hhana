@@ -808,3 +808,24 @@ if '2d-mass-workspace' in args.actions:
             channels[mass][category.name] = channel
     #write_workspaces(channels) # slow with this many bins
     write_measurements(channels)
+
+
+if 'cuts-workspace':
+    channels = {}
+    for category in analysis.iter_categories('cuts'):
+        hist_template = Hist(category.limitbins, type='D')
+        for mass in args.mass_points:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=target_region,
+                cuts=None,
+                include_signal=True,
+                mass=mass,
+                mode='workspace',
+                systematics=args.systematics,
+                uniform=True)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    write_workspaces(channels)

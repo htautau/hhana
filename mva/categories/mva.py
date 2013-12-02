@@ -38,7 +38,6 @@ class Category_VBF(Category_Preselection):
     label = '#tau_{had}#tau_{had} VBF'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
-    fitbins = 5
     #limitbins = 98
     limitbins = 40
     features = features_2j
@@ -60,7 +59,6 @@ class Category_Boosted(Category_Preselection):
     label = '#tau_{had}#tau_{had} Boosted'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
-    fitbins = 5
     #limitbins = 86
     limitbins = 40
     # warning: some variables will be undefined for some events
@@ -84,7 +82,6 @@ class Category_Rest(Category_Preselection):
     label = '#tau_{had}#tau_{had} Rest'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts)
-    fitbins = 8
     limitbins = 10
     features = features_0j
     # train with all modes

@@ -188,6 +188,7 @@ def get_parser(actions=True):
                 'bdt-workspace',
                 'mass-workspace',
                 '2d-mass-workspace',
+                'cuts-workspace',
                 'ntup',
                 'ntuptruth',
                 'top10',

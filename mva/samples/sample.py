@@ -21,7 +21,7 @@ from root_numpy import rec2array, stack
 from . import log
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
-from ..utils import print_hist, ravel_hist
+from ..utils import print_hist, ravel_hist, uniform_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
 from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
@@ -253,7 +253,8 @@ class Sample(object):
             weight_hist=None,
             weighted=True,
             no_signal_fixes=False,
-            ravel=True):
+            ravel=True,
+            uniform=False):
 
         from .data import Data
         from .qcd import QCD
@@ -288,6 +289,9 @@ class Sample(object):
         if ravel:
             # convert to 1D if 2D (also handles systematics if present)
             hist = ravel_hist(hist)
+        if uniform:
+            # convert to uniform binning
+            hist = uniform_hist(hist)
 
         #print_hist(hist)
 
@@ -359,6 +363,9 @@ class Sample(object):
                 if ravel:
                     low = ravel_hist(low)
                     high = ravel_hist(high)
+                if uniform:
+                    low = uniform_hist(low)
+                    high = uniform_hist(high)
 
                 #log.info("QCD low shape")
                 #print_hist(low)
@@ -411,7 +418,8 @@ class Sample(object):
             weighted=True,
             no_signal_fixes=False,
             bootstrap_data=False,
-            ravel=True):
+            ravel=True,
+            uniform=False):
 
         from .data import Data
         from .qcd import QCD
@@ -464,9 +472,11 @@ class Sample(object):
             # copy of unaltered nominal hist required by QCD shape
             nominal_hist = hist.Clone()
 
-            # convert to 1D if 2D (also handles systematics if present)
             if ravel:
+                # convert to 1D if 2D (also handles systematics if present)
                 hist = ravel_hist(hist)
+            if uniform:
+                hist = uniform_hist(hist)
 
             #print_hist(hist)
 
@@ -524,6 +534,9 @@ class Sample(object):
                     if ravel:
                         low = ravel_hist(low)
                         high = ravel_hist(high)
+                    if uniform:
+                        low = uniform_hist(low)
+                        high = uniform_hist(high)
 
                     #log.info("QCD low shape")
                     #print_hist(low)

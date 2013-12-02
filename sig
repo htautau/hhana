@@ -16,4 +16,4 @@ with root_open(args.file) as f:
         f.ls()
     else:
         h = hypotests.get_significance_workspace(f[args.workspace], verbose=True)
-        print list(h)
+        print list(h.y())

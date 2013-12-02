@@ -5,8 +5,12 @@ CATEGORIES = {
     'cuts_presel': [
         Category_Cuts_Preselection,
         ],
-    'cuts_presel_deta_controls': [
-        Category_Cuts_Preselection_DEta_Control,
+    'cuts' : [
+        Category_Cuts_VBF_LowDR,
+        Category_Cuts_VBF_HighDR_Tight,
+        Category_Cuts_VBF_HighDR_Loose,
+        Category_Cuts_Boosted_Tight,
+        Category_Cuts_Boosted_Loose,
         ],
     'presel': [
         Category_Preselection,
