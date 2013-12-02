@@ -98,7 +98,7 @@ def braindump(outdir, indir=None, func=None):
             thing.Write()
 
 
-def ravel(hist):
+def ravel_hist(hist):
     if hist.GetDimension() != 2:
         return hist
     # convert to 1D hist

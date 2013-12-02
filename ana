@@ -89,24 +89,77 @@ if args.workspace_suffix:
     workspace_suffix += '_' + args.workspace_suffix
 workspace_suffix = workspace_suffix.lower()
 
+silence = False
+
 """
 Workspace functions
 """
 
-def write_workspaces(mass_category_channel, controls=None):
-    
+def write_measurements(mass_category_channel, controls=None):
+    log.info("writing measurements ...")
     if controls is None:
         controls = []
     workspace_output_dir = 'workspaces/hh%s' % workspace_suffix
     if os.path.exists(workspace_output_dir):
         shutil.rmtree(workspace_output_dir)
     os.mkdir(workspace_output_dir)
+    for mass, category_channel in mass_category_channel.items():
+        channels = []
+        # make measurement for each category, including the control region in each
+        for category, channel in category_channel.items():
+            name = "hh_category_%s_%d" % (category, mass)
+            log.info("writing {0} ...".format(name))
+            # make measurement
+            measurement = histfactory.make_measurement(
+                name, [channel] + (
+                    controls[mass].values() if isinstance(controls, dict) else controls),
+                POI='SigXsecOverSM',
+                lumi=1.0,
+                lumi_rel_error=lumi_rel_error,
+                const_params=CONST_PARAMS)
+            with root_open(os.path.join(workspace_output_dir,
+                '{0}.root'.format(name)), 'recreate') as workspace_file:
+                # mu=1 for Asimov data
+                #measurement.SetParamValue('SigXsecOverSM', 1)
+                histfactory.write_measurement(measurement,
+                    root_file=workspace_file,
+                    xml_path=os.path.join(workspace_output_dir, name),
+                    silence=silence)
+            channels.append(channel)
+        # make combined measurement
+        name = "hh_combination_%d" % mass
+        log.info("writing {0} ...".format(name))
+        measurement = histfactory.make_measurement(
+            name, channels + (
+                controls[mass].values() if isinstance(controls, dict) else controls),
+            POI='SigXsecOverSM',
+            lumi=1.0,
+            lumi_rel_error=lumi_rel_error,
+            const_params=CONST_PARAMS)
+        with root_open(os.path.join(workspace_output_dir,
+            '{0}.root'.format(name)), 'recreate') as workspace_file:
+            # mu=1 for Asimov data
+            #measurement.SetParamValue('SigXsecOverSM', 1)
+            histfactory.write_measurement(measurement,
+                root_file=workspace_file,
+                xml_path=os.path.join(workspace_output_dir, name),
+                silence=silence)
 
+
+def write_workspaces(mass_category_channel, controls=None):
+    log.info("writing workspaces ...")
+    if controls is None:
+        controls = []
+    workspace_output_dir = 'workspaces/hh%s' % workspace_suffix
+    if os.path.exists(workspace_output_dir):
+        shutil.rmtree(workspace_output_dir)
+    os.mkdir(workspace_output_dir)
     for mass, category_channel in mass_category_channel.items():
         channels = []
         # make workspace for each category, including the control region in each
         for category, channel in category_channel.items():
             name = "hh_category_%s_%d" % (category, mass)
+            log.info("writing {0} ...".format(name))
             # make workspace
             workspace, measurement = histfactory.make_workspace(
                 name, [channel] + (
@@ -115,8 +168,7 @@ def write_workspaces(mass_category_channel, controls=None):
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
                 const_params=CONST_PARAMS,
-                silence=True)
-
+                silence=silence)
             with root_open(os.path.join(workspace_output_dir,
                 '{0}.root'.format(name)), 'recreate') as workspace_file:
                 workspace.Write()
@@ -125,12 +177,11 @@ def write_workspaces(mass_category_channel, controls=None):
                 histfactory.write_measurement(measurement,
                     root_file=workspace_file,
                     xml_path=os.path.join(workspace_output_dir, name),
-                    silence=True)
-
+                    silence=silence)
             channels.append(channel)
-
         # make combined workspace
         name = "hh_combination_%d" % mass
+        log.info("writing {0} ...".format(name))
         workspace, measurement = histfactory.make_workspace(
             name, channels + (
                 controls[mass].values() if isinstance(controls, dict) else controls),
@@ -138,8 +189,7 @@ def write_workspaces(mass_category_channel, controls=None):
             lumi=1.0,
             lumi_rel_error=lumi_rel_error,
             const_params=CONST_PARAMS,
-            silence=True)
-
+            silence=silence)
         with root_open(os.path.join(workspace_output_dir,
             '{0}.root'.format(name)), 'recreate') as workspace_file:
             workspace.Write()
@@ -148,11 +198,10 @@ def write_workspaces(mass_category_channel, controls=None):
             histfactory.write_measurement(measurement,
                 root_file=workspace_file,
                 xml_path=os.path.join(workspace_output_dir, name),
-                silence=True)
+                silence=silence)
 
     
 def make_track_channels(categories, include_signal=False):
-
     # create control region Channels here
     control_analysis = Analysis(
         year=year,
@@ -210,7 +259,6 @@ def make_track_channels(categories, include_signal=False):
 
 
 def make_var_channels(hist_template, expr, categories, include_signal=False):
-
     if not include_signal:
         channels = []
         for category in categories:
@@ -249,7 +297,6 @@ def make_var_channels(hist_template, expr, categories, include_signal=False):
 
 
 def make_clf_channels(categories):
-
     all_channels = {}
     for category in categories:
         # apply normalization
@@ -744,7 +791,7 @@ if '2d-mass-workspace' in args.actions:
     channels = {}
     for category in analysis.iter_categories(args.categories):
         clf = analysis.get_clf(category, load=True)
-        for mass in Higgs.MASS_POINTS:
+        for mass in args.mass_points:
             channel = analysis.get_channel_array(
                 {MMC_MASS: hist_template},
                 category=category,
@@ -754,8 +801,10 @@ if '2d-mass-workspace' in args.actions:
                 include_signal=True,
                 mass=mass,
                 mode='workspace',
-                systematics=args.systematics)[MMC_MASS]
+                systematics=args.systematics,
+                ravel=False)[MMC_MASS]
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel
-    write_workspaces(channels)
+    #write_workspaces(channels) # slow with this many bins
+    write_measurements(channels)

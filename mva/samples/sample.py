@@ -21,7 +21,7 @@ from root_numpy import rec2array, stack
 from . import log
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
-from ..utils import print_hist, ravel
+from ..utils import print_hist, ravel_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
 from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
@@ -252,7 +252,8 @@ class Sample(object):
             field_scale=None,
             weight_hist=None,
             weighted=True,
-            no_signal_fixes=False):
+            no_signal_fixes=False,
+            ravel=True):
 
         from .data import Data
         from .qcd import QCD
@@ -284,8 +285,9 @@ class Sample(object):
         # copy of unaltered nominal hist required by QCD shape
         nominal_hist = hist.Clone()
 
-        # convert to 1D if 2D (also handles systematics if present)
-        hist = ravel(hist)
+        if ravel:
+            # convert to 1D if 2D (also handles systematics if present)
+            hist = ravel_hist(hist)
 
         #print_hist(hist)
 
@@ -354,8 +356,9 @@ class Sample(object):
                      weight_hist=weight_hist,
                      weighted=weighted)
 
-                low = ravel(low)
-                high = ravel(high)
+                if ravel:
+                    low = ravel_hist(low)
+                    high = ravel_hist(high)
 
                 #log.info("QCD low shape")
                 #print_hist(low)
@@ -407,7 +410,8 @@ class Sample(object):
             weight_hist=None,
             weighted=True,
             no_signal_fixes=False,
-            bootstrap_data=False):
+            bootstrap_data=False,
+            ravel=True):
 
         from .data import Data
         from .qcd import QCD
@@ -461,7 +465,8 @@ class Sample(object):
             nominal_hist = hist.Clone()
 
             # convert to 1D if 2D (also handles systematics if present)
-            hist = ravel(hist)
+            if ravel:
+                hist = ravel_hist(hist)
 
             #print_hist(hist)
 
@@ -516,8 +521,9 @@ class Sample(object):
 
                     high, low = qcd_shapes[field]
 
-                    low = ravel(low)
-                    high = ravel(high)
+                    if ravel:
+                        low = ravel_hist(low)
+                        high = ravel_hist(high)
 
                     #log.info("QCD low shape")
                     #print_hist(low)

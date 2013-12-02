@@ -318,7 +318,8 @@ class Analysis(object):
                           weight_hist=None,
                           systematics=True,
                           no_signal_fixes=False,
-                          bootstrap_data=False):
+                          bootstrap_data=False,
+                          ravel=True):
 
         # TODO: implement blinding
         log.info("constructing channels")
@@ -350,7 +351,8 @@ class Analysis(object):
                 systematics=systematics,
                 suffix=suffix if not isinstance(s, Higgs) else None,
                 no_signal_fixes=no_signal_fixes,
-                bootstrap_data=bootstrap_data)
+                bootstrap_data=bootstrap_data,
+                ravel=ravel)
             histfactory_samples.append(field_sample)
 
         field_channels = {}
