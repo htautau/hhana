@@ -317,8 +317,8 @@ class QCD(Sample, Background):
         return trees
 
     def records(self,
-                category,
-                region,
+                category=None,
+                region=None,
                 fields=None,
                 cuts=None,
                 include_weight=True,

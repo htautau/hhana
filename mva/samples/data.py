@@ -65,7 +65,7 @@ class Data(Sample):
         self._label_root = 'Data'
         self.name = 'Data'
 
-    def events(self, category, region, cuts=None, hist=None):
+    def events(self, category=None, region=None, cuts=None, hist=None):
         if hist is None:
             hist = Hist(1, -100, 100)
         selection = self.cuts(category, region) & cuts
@@ -131,8 +131,8 @@ class Data(Sample):
         return [tree]
 
     def records(self,
-                category,
-                region,
+                category=None,
+                region=None,
                 fields=None,
                 cuts=None,
                 include_weight=True,
@@ -149,7 +149,10 @@ class Data(Sample):
         log.debug("using selection: %s" % selection)
 
         # read the table with a selection
-        rec = self.h5data.read_where(selection.where(), **kwargs)
+        if selection:
+            rec = self.h5data.read_where(selection.where(), **kwargs)
+        else:
+            rec = self.h5data.read(**kwargs)
 
         # add weight field
         if include_weight:
@@ -164,6 +167,7 @@ class Data(Sample):
             rec = rec[fields]
 
         if return_idx:
+            # only valid if selection is non-empty
             idx = self.h5data.get_where_list(selection.where(), **kwargs)
             return [(rec, idx)]
 

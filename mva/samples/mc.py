@@ -432,8 +432,8 @@ class MC(Sample):
         return trees
 
     def records(self,
-                category,
-                region,
+                category=None,
+                region=None,
                 fields=None,
                 cuts=None,
                 include_weight=True,
@@ -495,7 +495,10 @@ class MC(Sample):
 
             # read the table with a selection
             try:
-                rec = table.read_where(table_selection, **kwargs)
+                if table_selection:
+                    rec = table.read_where(table_selection, **kwargs)
+                else:
+                    rec = table.read(**kwargs)
             except Exception as e:
                 print table
                 print e
@@ -503,6 +506,7 @@ class MC(Sample):
                 #raise
 
             if return_idx:
+                # only valid if table_selection is non-empty
                 idx = table.get_where_list(table_selection, **kwargs)
                 idxs.append(idx)
 
@@ -571,4 +575,3 @@ class MC(Sample):
 
             tree.Draw('1', selection, hist=hist)
         return hist
-

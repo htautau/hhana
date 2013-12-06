@@ -580,8 +580,8 @@ class Sample(object):
         return field_samples
 
     def partitioned_records(self,
-              category,
-              region,
+              category=None,
+              region=None,
               fields=None,
               cuts=None,
               include_weight=True,
@@ -599,8 +599,8 @@ class Sample(object):
                 # split by index
                 log.info("splitting records by index parity")
                 recs = self.records(
-                    category,
-                    region,
+                    category=category,
+                    region=region,
                     fields=fields,
                     include_weight=include_weight,
                     cuts=cuts,
@@ -616,8 +616,8 @@ class Sample(object):
                     "splitting records by key parity: {0}".format(
                         partition_cut))
                 recs = self.records(
-                    category,
-                    region,
+                    category=category,
+                    region=region,
                     fields=fields,
                     include_weight=include_weight,
                     cuts=partition_cut & cuts,
@@ -632,8 +632,8 @@ class Sample(object):
         return partitions
 
     def merged_records(self,
-              category,
-              region,
+              category=None,
+              region=None,
               fields=None,
               cuts=None,
               clf=None,
@@ -642,8 +642,8 @@ class Sample(object):
               systematic='NOMINAL'):
 
         recs = self.records(
-            category,
-            region,
+            category=category,
+            region=region,
             fields=fields,
             include_weight=include_weight,
             cuts=cuts,
@@ -666,8 +666,8 @@ class Sample(object):
         return rec
 
     def array(self,
-              category,
-              region,
+              category=None,
+              region=None,
               fields=None,
               cuts=None,
               clf=None,
@@ -676,8 +676,8 @@ class Sample(object):
               systematic='NOMINAL'):
 
         return rec2array(self.merged_records(
-            category,
-            region,
+            category=category,
+            region=region,
             fields=fields,
             cuts=cuts,
             clf=clf,
@@ -730,7 +730,7 @@ class Sample(object):
                 term = ('%s_%s' % (type, variation),)
                 yield self.get_weight_branches(term), term
 
-    def cuts(self, category, region, systematic='NOMINAL', **kwargs):
+    def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
 
         cuts = Cut(self._cuts)
         if category is not None:
