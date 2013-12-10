@@ -77,13 +77,13 @@ class Higgs(MC, Signal):
 
         # QCD_SCALE
         for qcd_scale_term, qcd_scale_mode, qcd_scale_category, values in self.QCD_SCALE:
-            if qcd_scale_mode == _qcd_scale_mode and category.name.lower() == qcd_scale_category.lower():
+            if qcd_scale_mode == _qcd_scale_mode and qcd_scale_category.lower() in category.name.lower():
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(qcd_scale_term, low, high)
 
         # GEN_QMASS
         for qmass_term, qmass_mode, qmass_category, values in self.GEN_QMASS:
-            if qmass_mode == _qcd_scale_mode and category.name.lower() == qmass_category.lower():
+            if qmass_mode == _qcd_scale_mode and qmass_category.lower() in category.name.lower():
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(qmass_term, low, high)
 
@@ -116,7 +116,7 @@ class Higgs(MC, Signal):
 
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
         # underlying event uncertainty in the VBF category
-        if category.name == 'vbf':
+        if 'vbf' in category.name.lower():
             if mode == 'gg':
                 sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
             elif mode == 'VBF':
@@ -134,7 +134,7 @@ class Higgs(MC, Signal):
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
 
-        # QCDscale_ggH3in
+        # QCDscale_ggH3in MVA only
         if mode == 'gg' and category.name == 'vbf':
             up = self.QCDscale_ggH3in_file.up_fit
             dn = self.QCDscale_ggH3in_file.dn_fit
