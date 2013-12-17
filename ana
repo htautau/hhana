@@ -810,7 +810,7 @@ if '2d-mass-workspace' in args.actions:
     write_measurements(channels)
 
 
-if 'cuts-workspace':
+if 'cuts-workspace' in args.actions:
     channels = {}
     for category in analysis.iter_categories('cuts'):
         hist_template = Hist(category.limitbins, type='D')
