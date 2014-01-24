@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+# get event numbers of embedding in the top 10 bins
+
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+
+from mva.analysis import get_analysis
+from mva.samples import Higgs
+from rootpy.plotting import Hist
+
+analysis = get_analysis(args)
+target_region = args.target_region
+ztt = analysis.ztautau
+
+for category in analysis.iter_categories(
+        args.categories, args.controls, names=args.category_names):
+
+    if category.analysis_control:
+        continue
+    
+    outfile = open('embedding_events_{0}.txt'.format(category.name), 'w')
+
+    clf = analysis.get_clf(category, load=True)
+    scores = ztt.scores(clf, category, target_region,
+        systematics=False)['NOMINAL'][0]
+
+    # determine top 10 bins
+    hist_template = Hist(category.limitbins, -1, 1, type='D')
+    edges = list(hist_template.xedges())[-11:]
+
+    # determine run/event numbers in each bin
+    table = ztt.merged_records(fields=['RunNumber', 'EventNumber'], category=category, region=target_region)
+    for ibin in xrange(10):
+        low, high = edges[ibin:ibin + 2]
+        outfile.write("BDT Score Range {0} - {1}\n".format(low, high))
+        scores_in_bin = (low <= scores) & (scores < high)
+        events_in_bin = table[scores_in_bin]
+        events_in_bin.sort(order=['RunNumber', 'EventNumber'])
+        for event in events_in_bin:
+            outfile.write("{0} {1}\n".format(event[0], event[1]))
+        outfile.write("\n")
+    outfile.close()
