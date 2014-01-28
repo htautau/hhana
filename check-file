@@ -55,7 +55,6 @@ for i, filename in enumerate(args.files):
                 events = len(tree)
                 if not events:
                     continue
-                """
                 # Use RunNumber and EventNumber to uniquely define each event
                 keys = tree.to_array(['RunNumber', 'EventNumber'])
                 if keys.shape != np.unique(keys).shape:
@@ -64,9 +63,8 @@ for i, filename in enumerate(args.files):
                     print dup_idx(keys)
                 else:
                     print "GOOD %s" % treename
-                # Check the tree for invalid values
-                check_nan_inf(tree.to_array())
-                """
+                ## Check the tree for invalid values
+                #check_nan_inf(tree.to_array())
                 # Check fraction of even and odd EventNumbers
                 even = tree.GetEntries('((abs(MET_phi_original*100)%2)>=1)&&((abs(MET_phi_original*100)%2)<2)')
                 odd =  tree.GetEntries('((abs(MET_phi_original*100)%2)>=0)&&((abs(MET_phi_original*100)%2)<1)')
