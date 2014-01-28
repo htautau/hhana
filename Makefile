@@ -153,11 +153,11 @@ ntup-update:
 
 .PHONY: $(HHNTUP)/merged_grl_11.xml
 $(HHNTUP)/merged_grl_11.xml:
-	ls $(HHNTUP)/data/data11-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
+	ls $(HHNTUP)/data/hhskim.data11-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
 
 .PHONY: $(HHNTUP)/merged_grl_12.xml
 $(HHNTUP)/merged_grl_12.xml:
-	ls $(HHNTUP)/data/data12-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
+	ls $(HHNTUP)/data/hhskim.data12-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
 
 .PHONY: $(HHNTUP)/observed_grl_11.xml
 $(HHNTUP)/observed_grl_11.xml: $(HHNTUP)/merged_grl_11.xml ../higgstautau/grl/2011/current.xml 
@@ -180,6 +180,8 @@ grl-11: ~/observed_grl_11.xml
 
 .PHONY: grl-12
 grl-12: ~/observed_grl_12.xml
+
+grl: grl-11 grl-12
 
 clean-grl:
 	rm -f $(HHNTUP)/observed_grl_11.xml
