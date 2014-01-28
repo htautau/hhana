@@ -90,8 +90,7 @@ SYSTEMATICS_BY_WEIGHT = [
     ('TAUID_DOWN',),
 ]
 
-WEIGHT_SYSTEMATICS = {}
-"""
+WEIGHT_SYSTEMATICS = {
     'TRIGGER': {
         'UP': [
             'tau1_trigger_sf_high',
@@ -123,7 +122,6 @@ WEIGHT_SYSTEMATICS = {}
             'tau1_id_sf',
             'tau2_id_sf']},
 }
-"""
 
 EMBEDDING_SYSTEMATICS = {
     'ISOL': { # MUON ISOLATION
