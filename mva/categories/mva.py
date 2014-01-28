@@ -4,7 +4,8 @@ from .features import *
 
 # preselection cuts
 COMMON_CUTS_MVA = (
-    LEAD_TAU_35 & SUBLEAD_TAU_25
+    Cut('trigger')
+    & LEAD_TAU_35 & SUBLEAD_TAU_25
     & MET
     & Cut('%s > 0' % MMC_MASS)
     & Cut('0.8 < dR_tau1_tau2 < 2.8')
