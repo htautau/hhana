@@ -38,7 +38,22 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).data12-JetTauEtmiss.root:
 		mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).data12-JetTauEtmiss_*.log $(HHNTUP_RUNNING)/data_log/; \
 	fi
 
+$(HHNTUP_RUNNING)/$(HHSTUDENT).data11-JetTauEtmiss.root:
+	if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).data11-JetTauEtmiss_1.root ]; then \
+		test -d $(HHNTUP_RUNNING)/data || mkdir $(HHNTUP_RUNNING)/data; \
+		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).data11-JetTauEtmiss_*.root $(HHNTUP_RUNNING)/data; \
+		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).data11-JetTauEtmiss.root $(HHNTUP_RUNNING)/data/$(HHSTUDENT).data11-JetTauEtmiss_*.root; \
+		test -d $(HHNTUP_RUNNING)/data_log || mkdir $(HHNTUP_RUNNING)/data_log; \
+		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).data11_*.e[0-9]* $(HHNTUP_RUNNING)/data_log/; \
+		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).data11_*.o[0-9]* $(HHNTUP_RUNNING)/data_log/; \
+		mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).data11-JetTauEtmiss_*.log $(HHNTUP_RUNNING)/data_log/; \
+	fi
+
 init-data-12: $(HHNTUP_RUNNING)/$(HHSTUDENT).data12-JetTauEtmiss.root
+
+init-data-11: $(HHNTUP_RUNNING)/$(HHSTUDENT).data11-JetTauEtmiss.root
+
+init-data: init-data-11 init-data-12
 
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_EOP_UP.root:
 	test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
@@ -76,27 +91,52 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root:
 	if [ -f $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-DN_1.root ]; then \
 		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-DN_*.root; \
 	fi
+
+$(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root:
+	test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
 	
-.PHONY: embed-12-log
-embed-12-log:
+	for syst in im up dn; do \
+		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_1.root ]; then \
+			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
+		fi; \
+		if [ -f $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_1.root ]; then \
+			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_[0-9]*.root; \
+		fi; \
+	done
+	
+	for syst in no tight; do \
+		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_1.root ]; then \
+			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
+		fi; \
+		if [ -f $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_1.root ]; then \
+			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_[0-9]*.root; \
+		fi; \
+	done
+
+.PHONY: embed-log
+embed-log:
 	test -d $(HHNTUP_RUNNING)/embed_log || mkdir $(HHNTUP_RUNNING)/embed_log
-	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-*.e[0-9]* $(HHNTUP_RUNNING)/embed_log/
-	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-*.o[0-9]* $(HHNTUP_RUNNING)/embed_log/
-	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).embed12-HH-*.log $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed1[1-2]-*.e[0-9]* $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed1[1-2]-*.o[0-9]* $(HHNTUP_RUNNING)/embed_log/
+	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).embed1[1-2]-*.log $(HHNTUP_RUNNING)/embed_log/
+
+init-embed-11: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root
 
 init-embed-12-sys: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_EOP_UP.root
 
 init-embed-12-nominal: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root
 
-init-embed-12: init-embed-12-nominal init-embed-12-sys embed-12-log
+init-embed-12: init-embed-12-nominal init-embed-12-sys embed-log
 
-init-mc-12:
+init-embed: init-embed-11 init-embed-12 embed-log
+
+init-mc:
 	test -d $(HHNTUP_RUNNING)/mc_log || mkdir $(HHNTUP_RUNNING)/mc_log
-	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).*mc12*.e[1-9]* $(HHNTUP_RUNNING)/mc_log/
-	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).*mc12*.o[1-9]* $(HHNTUP_RUNNING)/mc_log/
-	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).*mc12*.log $(HHNTUP_RUNNING)/mc_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).*mc1[1-2]*.e[1-9]* $(HHNTUP_RUNNING)/mc_log/
+	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).*mc1[1-2]*.o[1-9]* $(HHNTUP_RUNNING)/mc_log/
+	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).*mc1[1-2]*.log $(HHNTUP_RUNNING)/mc_log/
 
-init-ntup: init-data-12 init-embed-12 init-mc-12
+init-ntup: init-data init-embed init-mc
 
 $(HHNTUP)/$(HHSTUDENT).root:
 	./merge-ntup -s $(HHSTUDENT) -o $(HHNTUP)/$(HHSTUDENT).root $(HHNTUP)/$(HHSTUDENT).*.root
@@ -111,25 +151,43 @@ ntup-update:
 	./merge-ntup -s $(HHSTUDENT) -o $(HHNTUP)/$(HHSTUDENT).root $(HHNTUP_RUNNING)/$(HHSTUDENT).*.root
 	root2hdf5 --update --complib lzo --complevel 0 --quiet $(HHNTUP)/$(HHSTUDENT).root
 
-.PHONY: $(HHNTUP)/merged_grl.xml
-$(HHNTUP)/merged_grl.xml:
-	ls $(HHNTUP)/data/*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
+.PHONY: $(HHNTUP)/merged_grl_11.xml
+$(HHNTUP)/merged_grl_11.xml:
+	ls $(HHNTUP)/data/data11-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
 
-.PHONY: $(HHNTUP)/observed_grl.xml
-$(HHNTUP)/observed_grl.xml: $(HHNTUP)/merged_grl.xml ../higgstautau-dev/grl/2012/current.xml 
+.PHONY: $(HHNTUP)/merged_grl_12.xml
+$(HHNTUP)/merged_grl_12.xml:
+	ls $(HHNTUP)/data/data12-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
+
+.PHONY: $(HHNTUP)/observed_grl_11.xml
+$(HHNTUP)/observed_grl_11.xml: $(HHNTUP)/merged_grl_11.xml ../higgstautau/grl/2011/current.xml 
 	grl and $^ > $@
 
-.PHONY: ~/observed_grl.xml
-~/observed_grl.xml: $(HHNTUP)/observed_grl.xml
+.PHONY: $(HHNTUP)/observed_grl_12.xml
+$(HHNTUP)/observed_grl_12.xml: $(HHNTUP)/merged_grl_12.xml ../higgstautau/grl/2012/current.xml 
+	grl and $^ > $@
+
+.PHONY: ~/observed_grl_11.xml
+~/observed_grl_11.xml: $(HHNTUP)/observed_grl_11.xml
 	cp $^ $@
 
-.PHONY: grl
-grl: ~/observed_grl.xml
+.PHONY: ~/observed_grl_12.xml
+~/observed_grl_12.xml: $(HHNTUP)/observed_grl_12.xml
+	cp $^ $@
+
+.PHONY: grl-11
+grl-11: ~/observed_grl_11.xml
+
+.PHONY: grl-12
+grl-12: ~/observed_grl_12.xml
 
 clean-grl:
-	rm -f $(HHNTUP)/observed_grl.xml
-	rm -f ~/observed_grl.xml
-	rm -f $(HHNTUP)/merged_grl.xml
+	rm -f $(HHNTUP)/observed_grl_11.xml
+	rm -f $(HHNTUP)/observed_grl_12.xml
+	rm -f ~/observed_grl_11.xml
+	rm -f ~/observed_grl_12.xml
+	rm -f $(HHNTUP)/merged_grl_11.xml
+	rm -f $(HHNTUP)/merged_grl_12.xml
 
 clean-pyc:                                                                      
 	find . -name "*.pyc" -exec rm {} \;
