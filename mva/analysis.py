@@ -67,7 +67,6 @@ class Analysis(object):
                  suffix=None,
                  mmc=True,
                  mpl=False):
-
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
@@ -149,7 +148,6 @@ class Analysis(object):
         self.signals = self.get_signals(125)
 
     def get_signals(self, mass=125, mode=None, scale_125=False):
-
         signals = []
         if not isinstance(mass, list):
             mass = [mass]
@@ -220,7 +218,6 @@ class Analysis(object):
         return signals
 
     def normalize(self, category):
-
         norm_cache.qcd_ztautau_norm(
             ztautau=self.ztautau,
             qcd=self.qcd,
@@ -228,7 +225,6 @@ class Analysis(object):
             param='TRACK')
 
     def iter_categories(self, *definitions, **kwargs):
-
         names = kwargs.pop('names', None)
         for definition in definitions:
             for category in CATEGORIES[definition]:
@@ -244,7 +240,6 @@ class Analysis(object):
                 yield category
 
     def get_suffix(self, clf=False):
-
         # "track" here only for historical reasons
         output_suffix = '_trackfit_%s' % self.qcd_shape_region
         if self.use_embedding:
@@ -638,3 +633,41 @@ class Analysis(object):
             sig_arrs[s] = rec2array(rec)
 
         return bkg_arrs, sig_arrs
+
+    def make_var_channels(self, hist_template, expr, categories, region,
+                          include_signal=False, mass_points=None):
+        if not include_signal:
+            channels = []
+            for category in categories:
+                parent_category = category.get_parent()
+                # apply normalization
+                self.normalize(parent_category)
+                # clf = analysis.get_clf(parent_category, load=True)
+                contr = self.get_channel(hist_template, expr,
+                    category=category,
+                    region=region,
+                    #clf=clf,
+                    #cuts=signal_region,
+                    include_signal=False)
+                channels.append(contr)
+                # TODO check that number of SS events is consistent with nOS
+        else:
+            channels = {}
+            for category in categories:
+                parent_category = category.get_parent()
+                # apply normalization
+                analysis.normalize(parent_category)
+                # clf = analysis.get_clf(parent_category, load=True)
+                for mass in mass_points:
+                    contr = analysis.get_channel(hist_template, expr,
+                        category=category,
+                        region=region,
+                        #clf=clf,
+                        #cuts=signal_region,
+                        include_signal=True,
+                        mass=mass,
+                        mode='workspace')
+                    if mass not in channels:
+                        channels[mass] = {}
+                    channels[mass][category.name] = contr
+        return channels

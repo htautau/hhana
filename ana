@@ -258,44 +258,6 @@ def make_track_channels(categories, include_signal=False):
     return channels
 
 
-def make_var_channels(hist_template, expr, categories, include_signal=False):
-    if not include_signal:
-        channels = []
-        for category in categories:
-            parent_category = category.get_parent()
-            # apply normalization
-            analysis.normalize(parent_category)
-            # clf = analysis.get_clf(parent_category, load=True)
-            contr = analysis.get_channel(hist_template, expr,
-                category=category,
-                region=target_region,
-                #clf=clf,
-                #cuts=signal_region,
-                include_signal=False)
-            channels.append(contr)
-            # TODO check that number of SS events is consistent with nOS
-    else:
-        channels = {}
-        for category in categories:
-            parent_category = category.get_parent()
-            # apply normalization
-            analysis.normalize(parent_category)
-            # clf = analysis.get_clf(parent_category, load=True)
-            for mass in args.mass_points:
-                contr = analysis.get_channel(hist_template, expr,
-                    category=category,
-                    region=target_region,
-                    #clf=clf,
-                    #cuts=signal_region,
-                    include_signal=True,
-                    mass=mass,
-                    mode='workspace')
-                if mass not in channels:
-                    channels[mass] = {}
-                channels[mass][category.name] = contr
-    return channels
-
-
 def make_clf_channels(categories):
     all_channels = {}
     for category in categories:

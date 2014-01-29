@@ -11,7 +11,6 @@ SCALES_FILE = os.path.join(CACHE_DIR, 'norm.cache')
 
 
 def print_scales():
-
     for year in SCALES.keys():
         for category in sorted(SCALES[year].keys()):
             for embedding in SCALES[year][category].keys():
@@ -49,7 +48,6 @@ def qcd_ztautau_norm(ztautau,
                      qcd,
                      category,
                      param):
-
     norm_category = getattr(category, 'norm_category', None)
     if norm_category is not None:
         category = norm_category.name
@@ -79,7 +77,6 @@ def qcd_ztautau_norm(ztautau,
 
 
 def get_scales(year, category, embedded, param, shape_region, verbose=True):
-
     year %= 1E3
     category = category.upper()
     param = param.upper()
@@ -105,7 +102,6 @@ def get_scales(year, category, embedded, param, shape_region, verbose=True):
 
 
 def has_category(year, category, embedded, param, shape_region):
-
     year %= 1E3
     category = category.upper()
     param = param.upper()
@@ -121,7 +117,6 @@ def set_scales(year, category, embedded, param, shape_region,
                qcd_z_scale,
                qcd_others_scale,
                z_scale, z_scale_error):
-
     global MODIFIED
     year %= 1E3
     param = param.upper()

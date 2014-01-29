@@ -16,20 +16,50 @@ from mva.lumi import get_lumi_uncert
 from mva.norm import cache
 from mva import CONST_PARAMS
 
-lumi_rel_error = get_lumi_uncert(year)
+lumi_rel_error = get_lumi_uncert(args.year)
 
+# reference category for initial normalization
 #category = Category_Rest
 category = Category_Preselection
 
+# initialize QCD and Ztautau normalizations to 50/50 of data yield
+data_yield = analysis.data.events(category, args.target_region)[1].value
+ztt_yield = analysis.ztautau.events(category, args.target_region)[1].value
+qcd_yield = analysis.qcd.events(category, args.target_region)[1].value
+
+qcd_scale = data_yield / (2 * qcd_yield)
+ztt_scale = data_yield / (2 * ztt_yield)
+
+cache.set_scales(
+    args.year,
+    category.name,
+    args.embedding,
+    'TRACK', #TODO: remove
+    args.qcd_shape_region,
+    qcd_scale=qcd_scale,
+    qcd_scale_error=0.,
+    qcd_data_scale=1.,
+    qcd_z_scale=1.,
+    qcd_others_scale=1.,
+    z_scale=ztt_scale,
+    z_scale_error=0.)
+
+# draw pre-fit plots
+analysis.normalize(category)
+
 hist_template = Hist(10, 0, 1.5, type='D')
-channels = make_var_channels(
+channels = analysis.make_var_channels(
     hist_template,
     'dEta_tau1_tau2',
     [category],
+    args.target_region,
     include_signal=False)
+
 draw_channel(channels[0], name='deta',
     category=category,
-    output_name='deta_prefit')
+    output_name='deta_prefit_{0}'.format(args.year % 1000))
+
+# create a workspace
 workspace, measurement = histfactory.make_workspace(
     'normalization_deta', channels,
     POI=None,
@@ -37,9 +67,11 @@ workspace, measurement = histfactory.make_workspace(
     lumi_rel_error=lumi_rel_error,
     const_params=CONST_PARAMS,
     silence=True)
+
 # fit workspace
 minim = workspace.fit(minimizer_type='Minuit', strategy=1)
 fit_result = minim.save()
+
 # get fitted norms and errors
 qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_QCD')
 ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_Ztt')
@@ -47,6 +79,8 @@ qcd_scale = qcd.getVal()
 qcd_scale_error = qcd.getError()
 ztt_scale = ztt.getVal()
 ztt_scale_error = ztt.getError()
+
+# update the cache
 cache.set_scales(
     args.year,
     category.name,
@@ -60,12 +94,17 @@ cache.set_scales(
     qcd_others_scale=1.,
     z_scale=analysis.ztautau.scale * ztt_scale,
     z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
+
+# draw post-fit plots
 analysis.normalize(category)
-channels = make_var_channels(
+
+channels = analysis.make_var_channels(
     hist_template,
     'dEta_tau1_tau2',
     [category],
+    args.target_region,
     include_signal=False)
+
 draw_channel(channels[0], name='deta',
     category=category,
-    output_name='deta_postfit')
+    output_name='deta_postfit_{0}'.format(args.year % 1000))
