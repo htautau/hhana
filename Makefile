@@ -206,6 +206,9 @@ png-bundle:
 	tar -vpczf ~/higgstautau-mva-plots.tar.gz plots/*.png 
 	@echo bundle at ~/higgstautau-mva-plots.tar.gz
 
+montage:
+	montage -tile 4x5 -geometry 400x400+3+3 plots/*.png montage.pdf
+
 test:
 	nosetests -s -v mva
 
