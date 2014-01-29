@@ -133,7 +133,6 @@ EMBEDDING_SYSTEMATICS = {
 
 
 def iter_systematics(include_nominal=False, year=2012, components=None):
-
     syst = get_systematics(year)
     if include_nominal:
         yield 'NOMINAL'
@@ -148,7 +147,6 @@ def iter_systematics(include_nominal=False, year=2012, components=None):
 
 
 def get_systematics(year=2012):
-
     if year == 2012:
         return SYSTEMATICS_2012
     elif year == 2011:
@@ -158,14 +156,12 @@ def get_systematics(year=2012):
 
 
 def systematic_name(systematic):
-
     if isinstance(systematic, basestring):
         return systematic
     return '_'.join(systematic)
 
 
 def parse_systematics(string):
-
     if not string:
         return None
     return [tuple(token.split('+')) for token in string.split(',')]

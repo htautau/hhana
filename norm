@@ -73,8 +73,8 @@ minim = workspace.fit(minimizer_type='Minuit', strategy=1)
 fit_result = minim.save()
 
 # get fitted norms and errors
-qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_QCD')
-ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_2012_Ztt')
+qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_QCD'.format(args.year))
+ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_Ztt'.format(args.year))
 qcd_scale = qcd.getVal()
 qcd_scale_error = qcd.getError()
 ztt_scale = ztt.getVal()

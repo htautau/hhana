@@ -95,7 +95,7 @@ class Embedded_Ztautau(Ztautau, MC):
                     weight_branches += variations['NOMINAL']
         else:
             weight_branches = []
-        if not no_cuts:
+        if not no_cuts and self.year == 2012:
             for term, variations in EMBEDDING_SYSTEMATICS.items():
                 if term == systerm:
                     if variations[variation]:
@@ -112,6 +112,8 @@ class Embedded_Ztautau(Ztautau, MC):
                     continue
                 term = ('%s_%s' % (type, variation),)
                 yield self.get_weight_branches(term), term
+        if self.year != 2012:
+            return
         for type, variations in EMBEDDING_SYSTEMATICS.items():
             for variation in variations:
                 if variation == 'NOMINAL':
@@ -122,10 +124,11 @@ class Embedded_Ztautau(Ztautau, MC):
     def cuts(self, category, region, systematic='NOMINAL', **kwargs):
         sys_cut = Cut()
         systerm, variation = Sample.get_sys_term_variation(systematic)
-        for term, variations in EMBEDDING_SYSTEMATICS.items():
-            if term == systerm:
-                sys_cut &= variations[variation]
-            else:
-                sys_cut &= variations['NOMINAL']
+        if self.year == 2012:
+            for term, variations in EMBEDDING_SYSTEMATICS.items():
+                if term == systerm:
+                    sys_cut &= variations[variation]
+                else:
+                    sys_cut &= variations['NOMINAL']
         return (category.get_cuts(self.year, **kwargs) &
                 REGIONS[region] & self._cuts & sys_cut)
