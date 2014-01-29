@@ -287,15 +287,15 @@ COMBINATION_MAPPING = {
     'ATLAS_TRIGGER_HH_2012_Emb': 'ATLAS_TRIGGER_EMB_HH_2012',
 }
 
-fit = root_open('fit.root')
-ws = fit.combined
-ws.loadSnapshot('unconditional')
-mc = ws.obj('ModelConfig')
-nps = mc.nuisance_parameters
-# hack names
-for np in nps:
-    if np.name in COMBINATION_MAPPING:
-        np.name = COMBINATION_MAPPING[np.name]
+#fit = root_open('fit.root')
+#ws = fit.combined
+#ws.loadSnapshot('unconditional')
+#mc = ws.obj('ModelConfig')
+#nps = mc.nuisance_parameters
+## hack names
+#for np in nps:
+#    if np.name in COMBINATION_MAPPING:
+#        np.name = COMBINATION_MAPPING[np.name]
 
 cat_defs = [args.categories]
 if args.categories != 'presel':
