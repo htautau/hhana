@@ -653,8 +653,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             unblind=args.unblind,
             systematics=SYSTEMATICS if args.systematics else None,
             output_formats=args.output_formats,
-            signal_scale=50,
-            fit=nps)
+            signal_scale=50,)
+            #fit=nps)
 
         #category_scores[category.name] = (bkg_scores, sig_scores)
 

@@ -45,7 +45,8 @@ def get_analysis(args):
         suffix=args.suffix,
         transform=not args.raw_scores,
         mmc=not args.no_mmc,
-        mpl=args.mpl)
+        mpl=args.mpl,
+        use2012clf=args.use_2012_clf)
     return analysis
 
 
@@ -66,7 +67,8 @@ class Analysis(object):
                  transform=True,
                  suffix=None,
                  mmc=True,
-                 mpl=False):
+                 mpl=False,
+                 use2012clf=False):
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
@@ -77,6 +79,7 @@ class Analysis(object):
         self.suffix = suffix
         self.mmc = mmc
         self.mpl = mpl
+        self.use2012clf = use2012clf
 
         if use_embedding:
             log.info("Using embedded Ztautau")
@@ -569,7 +572,13 @@ class Analysis(object):
     def get_clf(self, category, load=False, swap=False):
 
         output_suffix = self.get_suffix()
+        if self.use2012clf:
+            original_year = self.year
+            self.year = 2012
         clf_output_suffix = self.get_suffix(clf=True)
+        if self.use2012clf:
+            self.year = original_year
+
 
         clf = Classifier(
             fields=category.features,
