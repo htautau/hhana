@@ -601,7 +601,6 @@ class Classifier(object):
         region = self.region
 
 
-        """
         ##########################################################
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
@@ -661,8 +660,8 @@ class Classifier(object):
             systematics=systematics,
             output_formats=output_formats,
             fit=fit) #POSTFIT
-        """
 
+        """
         ###############################################################
         log.info("plotting mmc")
 
@@ -812,6 +811,7 @@ class Classifier(object):
             output_formats=output_formats,
             unblind=True,
             fit=fit)
+        """
         #return bkg_scores, sig_scores_125
 
 
