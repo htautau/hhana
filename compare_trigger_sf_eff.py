@@ -39,24 +39,26 @@ for category in analysis.iter_categories(
             scores, weights = sample.scores(
                 clf, category, target_region,
                 systematics=False)['NOMINAL']
-            hist = Hist(25, -1, 1, drawstyle='hist', linestyle='dashed', linewidth=3,
-                color='black' if trigger else 'red', title='trigger #times SF' if trigger else 'data efficiency')
+            hist = Hist(25, -1, 1, drawstyle='hist E0', markersize=0, linestyle='solid' if trigger else 'dashed', linewidth=3,
+                color='black' if trigger else 'red', title='trigger #times SF' if trigger else 'data efficiency w/o trigger',
+                legendstyle='L')
             fill_hist(hist, scores, weights)
             hists.append(hist)
-        draw(hists, pad=canvas, xtitle='BDT Score', ytitle='Events')
-        leg = Legend(hists, pad=canvas, leftmargin=0.05)
+        draw(hists, pad=canvas, xtitle='BDT Score', ytitle='Events', ypadding=(0.25, 0))
+        leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.02)
         leg.Draw()
-        canvas.SaveAs('trigger_sf_{0}_BDT_{1}.png'.format(name, category.name))
+        canvas.SaveAs('trigger_sf_{0}_BDT_{1}_{2}.png'.format(name, category.name, analysis.year))
 
         canvas = Canvas()
         hists = []
         for trigger in (True, False):
             sample.trigger = trigger
-            hist = Hist(25, 0, 250, drawstyle='hist', linestyle='dashed', linewidth=3,
-                color='black' if trigger else 'red', title='trigger #times SF' if trigger else 'data efficiency')
+            hist = Hist(25, 0, 250, drawstyle='hist E0', markersize=0, linestyle='solid' if trigger else 'dashed', linewidth=3,
+                color='black' if trigger else 'red', title='trigger #times SF' if trigger else 'data efficiency w/o trigger',
+                legendstyle='L')
             sample.draw_array({'mmc1_mass': hist}, category, target_region)
             hists.append(hist)
-        draw(hists, pad=canvas, xtitle='MMC [GeV]', ytitle='Events')
-        leg = Legend(hists, pad=canvas, leftmargin=0.05)
+        draw(hists, pad=canvas, xtitle='MMC [GeV]', ytitle='Events', ypadding=(0.25, 0))
+        leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.02)
         leg.Draw()
-        canvas.SaveAs('trigger_sf_{0}_MMC_{1}.png'.format(name, category.name))
+        canvas.SaveAs('trigger_sf_{0}_MMC_{1}_{2}.png'.format(name, category.name, analysis.year))
