@@ -87,6 +87,8 @@ class Sample(object):
         if 'fillstyle' not in hist_decor:
             self.hist_decor['fillstyle'] = 'solid'
 
+        self.trigger = True
+
     @property
     def label(self):
 
@@ -719,6 +721,11 @@ class Sample(object):
                     weight_branches += variations['NOMINAL']
         else:
             weight_branches = []
+        # HACK
+        if not self.trigger:
+            weight_branches.remove('tau1_trigger_sf')
+            weight_branches.remove('tau2_trigger_sf')
+            weight_branches.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         return weight_branches
 
     def iter_weight_branches(self):
@@ -737,6 +744,8 @@ class Sample(object):
             cuts &= category.get_cuts(self.year, **kwargs)
         if region is not None:
             cuts &= REGIONS[region]
+        if self.trigger:
+            cuts &= Cut('trigger')
         return cuts
 
     def draw(self, expr, category, region, bins, min, max,
