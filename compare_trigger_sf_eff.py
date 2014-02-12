@@ -39,6 +39,9 @@ for category in analysis.iter_categories(
             scores, weights = sample.scores(
                 clf, category, target_region,
                 systematics=False)['NOMINAL']
+
+            print category.name, name, trigger, len(scores)
+
             hist = Hist(25, -1, 1, drawstyle='hist E0', markersize=0, linestyle='solid' if trigger else 'dashed', linewidth=3,
                 color='black' if trigger else 'red', title='trigger #times SF' if trigger else 'data efficiency w/o trigger',
                 legendstyle='L')
