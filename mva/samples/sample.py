@@ -67,6 +67,7 @@ class Sample(object):
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
                  mpl=False,
+                 trigger=True,
                  **hist_decor):
 
         self.year = year
@@ -87,7 +88,7 @@ class Sample(object):
         if 'fillstyle' not in hist_decor:
             self.hist_decor['fillstyle'] = 'solid'
 
-        self.trigger = True
+        self.trigger = trigger
 
     @property
     def label(self):
