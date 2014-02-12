@@ -11,7 +11,7 @@ from mva.analysis import get_analysis
 
 analysis = get_analysis(args)
 
-from rootpy.plotting import Canvas, Hist, Legend
+from rootpy.plotting import Canvas, Hist, Legend, Latex
 from rootpy.plotting.utils import draw
 from root_numpy import fill_hist
 
@@ -45,8 +45,11 @@ for category in analysis.iter_categories(
             fill_hist(hist, scores, weights)
             hists.append(hist)
         draw(hists, pad=canvas, xtitle='BDT Score', ytitle='Events', ypadding=(0.25, 0))
-        leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.02)
+        leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.06)
         leg.Draw()
+        label = Latex(canvas.leftmargin + 0.02, 0.9, str(analysis.data.info), coord='NDC')
+        label.SetTextSize(20)
+        label.Draw()
         canvas.SaveAs('trigger_sf_{0}_BDT_{1}_{2}.png'.format(name, category.name, analysis.year))
 
         canvas = Canvas()
@@ -59,6 +62,9 @@ for category in analysis.iter_categories(
             sample.draw_array({'mmc1_mass': hist}, category, target_region)
             hists.append(hist)
         draw(hists, pad=canvas, xtitle='MMC [GeV]', ytitle='Events', ypadding=(0.25, 0))
-        leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.02)
+        leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.06)
         leg.Draw()
+        label = Latex(canvas.leftmargin + 0.02, 0.9, str(analysis.data.info), coord='NDC')
+        label.SetTextSize(20)
+        label.Draw()
         canvas.SaveAs('trigger_sf_{0}_MMC_{1}_{2}.png'.format(name, category.name, analysis.year))
