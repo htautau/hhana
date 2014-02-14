@@ -90,47 +90,6 @@ SYSTEMATICS_BY_WEIGHT = [
     ('TAUID_DOWN',),
 ]
 
-WEIGHT_SYSTEMATICS = {
-    'TRIGGER': {
-        'UP': [
-            'tau1_trigger_sf_high',
-            'tau2_trigger_sf_high'],
-        'DOWN': [
-            'tau1_trigger_sf_low',
-            'tau2_trigger_sf_low'],
-        'NOMINAL': [
-            'tau1_trigger_sf',
-            'tau2_trigger_sf']},
-    'FAKERATE': {
-        'UP': [
-            'tau1_fakerate_sf_high',
-            'tau2_fakerate_sf_high'],
-        'DOWN': [
-            'tau1_fakerate_sf_low',
-            'tau2_fakerate_sf_low'],
-        'NOMINAL': [
-            'tau1_fakerate_sf',
-            'tau2_fakerate_sf']},
-    'TAUID': {
-        'UP': [
-            'tau1_id_sf_high',
-            'tau2_id_sf_high'],
-        'DOWN': [
-            'tau1_id_sf_low',
-            'tau2_id_sf_low'],
-        'NOMINAL': [
-            'tau1_id_sf',
-            'tau2_id_sf']},
-}
-
-EMBEDDING_SYSTEMATICS = {
-    'ISOL': { # MUON ISOLATION
-        'UP': Cut('(embedding_isolation == 2)'),
-        'DOWN': Cut(),
-        'NOMINAL': Cut('(embedding_isolation >= 1)'),
-    }
-}
-
 
 def iter_systematics(include_nominal=False, year=2012, components=None):
     syst = get_systematics(year)

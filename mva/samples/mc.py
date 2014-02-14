@@ -51,6 +51,45 @@ class MC(Sample):
         'FAKERATE',
     ]
 
+    WEIGHTS = [
+        'mc_weight',
+        'pileup_weight',
+        'ggf_weight',
+    ]
+
+    WEIGHT_SYSTEMATICS = {
+        'TRIGGER': {
+            'UP': [
+                'tau1_trigger_sf_high',
+                'tau2_trigger_sf_high'],
+            'DOWN': [
+                'tau1_trigger_sf_low',
+                'tau2_trigger_sf_low'],
+            'NOMINAL': [
+                'tau1_trigger_sf',
+                'tau2_trigger_sf']},
+        'FAKERATE': {
+            'UP': [
+                'tau1_fakerate_sf_high',
+                'tau2_fakerate_sf_high'],
+            'DOWN': [
+                'tau1_fakerate_sf_low',
+                'tau2_fakerate_sf_low'],
+            'NOMINAL': [
+                'tau1_fakerate_sf',
+                'tau2_fakerate_sf']},
+        'TAUID': {
+            'UP': [
+                'tau1_id_sf_high',
+                'tau2_id_sf_high'],
+            'DOWN': [
+                'tau1_id_sf_low',
+                'tau2_id_sf_low'],
+            'NOMINAL': [
+                'tau1_id_sf',
+                'tau2_id_sf']},
+    }
+
     def __init__(self, year, db=DB, systematics=True, **kwargs):
 
         if isinstance(self, Background):

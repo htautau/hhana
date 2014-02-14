@@ -5,7 +5,6 @@ from rootpy.tree import Cut
 from .sample import Sample, Background
 from .mc import MC
 from . import log
-from ..systematics import EMBEDDING_SYSTEMATICS, WEIGHT_SYSTEMATICS
 from ..regions import REGIONS
 
 
@@ -70,6 +69,33 @@ class Embedded_Ztautau(Ztautau, MC):
         'FAKERATE',
     ]
 
+    WEIGHTS = MC.WEIGHTS + [
+        'embedding_reco_unfold',
+        'embedding_trigger_weight',
+        'embedding_spin_weight',
+    ]
+
+    EMBEDDING_SYSTEMATICS = {
+        'ISOL': { # MUON ISOLATION
+            'UP': Cut('(embedding_isolation == 2)'),
+            'DOWN': Cut(),
+            'NOMINAL': Cut('(embedding_isolation >= 1)'),
+        }
+    }
+
+    WEIGHT_SYSTEMATICS = MC.WEIGHT_SYSTEMATICS.copy()
+    WEIGHT_SYSTEMATICS['TRIGGER'] = {
+        'UP': [
+            'tau1_trigger_eff_high',
+            'tau2_trigger_eff_high'],
+        'DOWN': [
+            'tau1_trigger_eff_low',
+            'tau2_trigger_eff_low'],
+        'NOMINAL': [
+            'tau1_trigger_eff',
+            'tau2_trigger_eff']
+    }
+
     def xsec_kfact_effic(self, isample):
         return 1., 1., 1.
 
@@ -78,25 +104,11 @@ class Embedded_Ztautau(Ztautau, MC):
                             weighted=True):
         if not weighted:
             return ["1.0"]
+        weight_branches = super(Embedded_Ztautau, self).get_weight_branches(
+            systematic, no_cuts=no_cuts, only_cuts=only_cuts, weighted=weighted)
         systerm, variation = Sample.get_sys_term_variation(systematic)
-        if not only_cuts:
-            weight_branches = [
-                'mc_weight',
-                'pileup_weight',
-                'ggf_weight',
-                'embedding_reco_unfold',
-                'embedding_trigger_weight',
-                'embedding_spin_weight',
-            ]
-            for term, variations in WEIGHT_SYSTEMATICS.items():
-                if term == systerm:
-                    weight_branches += variations[variation]
-                else:
-                    weight_branches += variations['NOMINAL']
-        else:
-            weight_branches = []
         if not no_cuts and self.year == 2012:
-            for term, variations in EMBEDDING_SYSTEMATICS.items():
+            for term, variations in self.EMBEDDING_SYSTEMATICS.items():
                 if term == systerm:
                     if variations[variation]:
                         weight_branches.append(variations[variation])

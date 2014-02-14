@@ -24,7 +24,7 @@ from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
-from ..systematics import WEIGHT_SYSTEMATICS, get_systematics
+from ..systematics import get_systematics
 from ..lumi import get_lumi_uncert
 
 
@@ -63,6 +63,8 @@ def get_workspace_np_name(sample, syst, year):
 class Sample(object):
 
     WORKSPACE_SYSTEMATICS = []
+    WEIGHTS = []
+    WEIGHT_SYSTEMATICS = {}
 
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
@@ -710,28 +712,25 @@ class Sample(object):
             return ["1.0"]
         systerm, variation = Sample.get_sys_term_variation(systematic)
         if not only_cuts:
-            weight_branches = [
-                'mc_weight',
-                'pileup_weight',
-                'ggf_weight',
-            ]
-            for term, variations in WEIGHT_SYSTEMATICS.items():
+            weight_branches = self.WEIGHTS[:]
+            for term, variations in self.WEIGHT_SYSTEMATICS.items():
                 if term == systerm:
                     weight_branches += variations[variation]
                 else:
                     weight_branches += variations['NOMINAL']
         else:
             weight_branches = []
+        return weight_branches
+
         # HACK
         if not self.trigger:
             weight_branches.remove('tau1_trigger_sf')
             weight_branches.remove('tau2_trigger_sf')
             weight_branches.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
-        return weight_branches
 
     def iter_weight_branches(self):
 
-        for type, variations in WEIGHT_SYSTEMATICS.items():
+        for type, variations in self.WEIGHT_SYSTEMATICS.items():
             for variation in variations:
                 if variation == 'NOMINAL':
                     continue
