@@ -126,7 +126,7 @@ class Embedded_Ztautau(Ztautau, MC):
                 yield self.get_weight_branches(term), term
         if self.year != 2012:
             return
-        for type, variations in EMBEDDING_SYSTEMATICS.items():
+        for type, variations in self.EMBEDDING_SYSTEMATICS.items():
             for variation in variations:
                 if variation == 'NOMINAL':
                     continue
@@ -137,7 +137,7 @@ class Embedded_Ztautau(Ztautau, MC):
         sys_cut = Cut()
         systerm, variation = Sample.get_sys_term_variation(systematic)
         if self.year == 2012:
-            for term, variations in EMBEDDING_SYSTEMATICS.items():
+            for term, variations in self.EMBEDDING_SYSTEMATICS.items():
                 if term == systerm:
                     sys_cut &= variations[variation]
                 else:

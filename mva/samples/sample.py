@@ -720,13 +720,12 @@ class Sample(object):
                     weight_branches += variations['NOMINAL']
         else:
             weight_branches = []
-        return weight_branches
-
         # HACK
-        if not self.trigger:
+        if not self.trigger and 'tau1_trigger_sf' in weight_branches:
             weight_branches.remove('tau1_trigger_sf')
             weight_branches.remove('tau2_trigger_sf')
             weight_branches.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
+        return weight_branches
 
     def iter_weight_branches(self):
 
