@@ -1,5 +1,6 @@
 from .mva import *
 from .cuts import *
+from .mva_cuts_overlap import *
 
 CATEGORIES = {
     'cuts_presel': [
@@ -33,5 +34,12 @@ CATEGORIES = {
     ],
     'mva_workspace_controls': [
         Category_Rest,
+    ],
+    'overlap': [
+    Category_Overlap_VBF,
+    Category_Overlap_Boosted,
     ]
+
+
+
 }

@@ -35,14 +35,13 @@ from matplotlib import pyplot as plt
 
 # local imports
 from mva.stats import hypotests
-from mva.plotting import (
-    draw_scatter, draw_samples_array, draw_2d_hist,
-    draw_channel_array, draw_channel,
-    correlations, hist_scores)
+from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
+                           draw_channel_array, draw_channel,
+                           correlations, hist_scores )
 from mva.samples import Higgs, Data
 from mva.utils import make_multipage_pdf, braindump
-from mva.systematics import (get_systematics, iter_systematics,
-    parse_systematics, systematic_name)
+from mva.systematics import ( get_systematics, iter_systematics,
+                              parse_systematics, systematic_name )
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS

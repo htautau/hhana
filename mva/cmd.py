@@ -194,6 +194,7 @@ def get_parser(actions=True):
                 'ntup',
                 'ntuptruth',
                 'top10',
+                'overlap_study',
                 'massplot'],
             default=[],
             help='only perform these actions')

@@ -16,6 +16,7 @@ COMMON_CUTS_CUTBASED = (
     & Cut('0.6 < dR_tau1_tau2 < 2.8') # DIFFERENT THAN MVA (0.8 -> 0.6)
     & TAU_SAME_VERTEX
     & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
+    & Cut('trigger==1')
     )
 
 VBF_CUTS_CUTBASED = (
@@ -84,3 +85,14 @@ class Category_Cuts_Boosted_Loose(Category_Cuts_Preselection):
         & Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt < 140000')
         & Cut('dEta_tau1_tau2 < 1'))
     limitbins = [0,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,176,184,INF]
+
+# --------> Added by Quentin Buat quentin(dot)buat(at)cern(dot)ch
+class Category_Cuts_VBF(Category_Cuts_Preselection):
+    name = 'cuts_vbf'
+    label = '#tau_{had}#tau_{had} Cut-based VBF'
+    cuts  = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts | Category_Cuts_VBF_LowDR.cuts
+
+class Category_Cuts_Boosted(Category_Cuts_Preselection):
+    name = 'cuts_boosted'
+    label = '#tau_{had}#tau_{had} Cut-based Boosted'
+    cuts = Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts

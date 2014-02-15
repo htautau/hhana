@@ -3,7 +3,7 @@ import ROOT
 from rootpy.utils.lock import lock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-
+print HERE
 with lock(HERE):
     ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'AsymptoticsCLs.C'),
         'k',
