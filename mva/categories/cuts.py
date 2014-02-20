@@ -16,7 +16,7 @@ COMMON_CUTS_CUTBASED = (
     & Cut('0.6 < dR_tau1_tau2 < 2.8') # DIFFERENT THAN MVA (0.8 -> 0.6)
     & TAU_SAME_VERTEX
     & Cut('MET_bisecting || (dPhi_min_tau_MET < (0.2 * %f))' % math.pi)
-    & Cut('trigger==1')
+     & Cut('trigger==1')
     )
 
 VBF_CUTS_CUTBASED = (
