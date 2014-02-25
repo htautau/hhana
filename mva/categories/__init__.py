@@ -12,8 +12,8 @@ CATEGORIES = {
         Category_Cuts_VBF_HighDR_Loose,
         Category_Cuts_Boosted_Tight,
         Category_Cuts_Boosted_Loose,
-        Category_Cuts_Boosted,
-        Category_Cuts_VBF,
+#         Category_Cuts_Boosted,
+#         Category_Cuts_VBF,
         ],
     'presel': [
         Category_Preselection,
