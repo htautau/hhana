@@ -1,41 +1,30 @@
 #!/usr/bin/env python
+from rootpy.extern.argparse import ArgumentParser
+
+#parser = ArgumentParser()
+#parser.add_argument('file1')
+#parser.add_argument('file2')
+#parser.add_argument('tree')
+#args = parser.parse_args()
 
 from rootpy.io import root_open
+import os
 
-f = root_open('ntuples/embed.root')
-t = f.higgstautauhh
-lines = open('tables/daniele2.txt', 'r').readlines()[1:]
+file1 = root_open('ntuples/prod/hhskim/hhskim.root')
+file2 = root_open('ntuples/prod/hhskim_CONF_nov_2013/hhskim.root')
 
-fmt = "%d   %d   %.3f   %.3f   %.3f   %g   %g   %.6f   %.6f   %.6f   %d   %d   %.1f"
+for dirpath, dirs, treenames in file1.walk(class_pattern='TTree'):
+    for treename in treenames:
+        treepath = os.path.join(dirpath, treename)
+        if treepath not in file2:
+            continue
+        print treename
 
-for line in lines:
-    tokens = line.split()
-    run = tokens[0]
-    event = tokens[1]
+        tree1 = file1[treepath]
+        tree2 = file2[treepath]
 
-    token_floats = map(float, tokens)
-    token_floats = token_floats[:3] + token_floats[4:]
+        selection1 = '((((((dEta_jets>2.0)&&((jet1_pt>50000)&&(jet2_pt>30000)))&&(resonance_pt>40000))&&((((((((trigger)&&(tau1_pt>35000))&&(tau2_pt>25000))&&(MET_et>20000))&&(mmc1_mass>0))&&((0.8<dR_tau1_tau2)&&(dR_tau1_tau2<2.8)))&&(tau_same_vertex))&&(MET_bisecting||(dPhi_min_tau_MET<1.570796))))&&(dEta_tau1_tau2<1.5))&&(((tau1_charge*tau2_charge)==-1)&&(((tau1_numTrack_recounted==1)||(tau1_numTrack_recounted==3))&&((tau2_numTrack_recounted==1)||(tau2_numTrack_recounted==3)))))'
+        selection2 = '((((((dEta_jets>2.0)&&((jet1_pt>50000)&&(jet2_pt>30000)))&&(resonance_pt>40000))&&((((((((taus_pass)&&(tau1_pt>35000))&&(tau2_pt>25000))&&(MET_et>20000))&&(mmc1_mass>0))&&((0.8<dR_tau1_tau2)&&(dR_tau1_tau2<2.8)))&&(tau_same_vertex))&&(MET_bisecting||(dPhi_min_tau_MET<1.570796))))&&(dEta_tau1_tau2<1.5))&&(((tau1_charge*tau2_charge)==-1)&&(((tau1_numTrack_recounted==1)||(tau1_numTrack_recounted==3))&&((tau2_numTrack_recounted==1)||(tau2_numTrack_recounted==3)))))'
 
-    print fmt % tuple(token_floats)
-    
-    rec = t.to_array([
-        'RunNumber',
-        'EventNumber',
-        'mc_weight',
-        'tau1_efficiency_scale_factor',
-        'tau2_efficiency_scale_factor',
-        'tau1_fakerate_scale_factor',
-        'tau2_fakerate_scale_factor',
-        'tau1_trigger_scale_factor',
-        'tau2_trigger_scale_factor',
-        'mass_mmc_tau1_tau2',
-        'tau1_numTrack_recounted',
-        'tau2_numTrack_recounted',
-        'MET'],
-        selection='EventNumber==%s && RunNumber==%s' % (
-            event, run))
-    if rec.shape[0] > 0:
-        print fmt % tuple(rec[0])
-    else:
-        print "MISSING: run %s event %s" % (run, event)
-    print
+        print tree1.GetEntries(selection1)
+        print tree2.GetEntries(selection2)

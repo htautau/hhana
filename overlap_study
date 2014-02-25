@@ -1,0 +1,169 @@
+#!/usr/bin/env python
+
+# -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
+# create an ntuple containing trees for data events in the overlap between cutbased and mva
+# with classifier scores
+# and event weights
+
+from mva.cmd import get_parser
+
+# args = get_parser(actions=False).parse_args()
+args = get_parser().parse_args()
+
+
+from mva.analysis import get_analysis
+from mva.plotting import draw_channel_array
+from mva.variables import VARIABLES,WEIGHTS
+
+analysis = get_analysis(args)
+output_suffix = analysis.get_suffix()
+
+from rootpy.io import root_open
+from rootpy.tree import Cut
+from rootpy.plotting import Hist
+
+import numpy as np
+from numpy.lib import recfunctions
+from root_numpy import array2tree
+
+
+out = root_open('hhntup_overlap.root', 'recreate')
+fields = [ 'RunNumber','EventNumber','mmc1_mass','weight']
+
+target_region = args.target_region
+data    = analysis.data
+signals = analysis.signals
+backgrounds = analysis.backgrounds
+figures = {}
+
+# loop over the overlap categories (defined in mva/categories/__init__.py)
+for category in analysis.iter_categories(
+        args.categories, args.controls, names=args.category_names):
+
+    if category.analysis_control:
+        continue
+    
+    if 'plot' in args.actions:
+        figures[category.name] = {}
+        cuts = Cut(args.plot_cut)
+        
+        if args.plot_expr is not None:
+            VARS = {
+                tuple(args.plot_expr.split(',')): {
+                'title': args.plot_name,
+                'range': (args.plot_min, args.plot_max),
+                'bins': args.plot_bins,
+                'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
+        else:
+            VARS = VARIABLES
+            figs = draw_channel_array(
+                analysis,
+                vars=VARS,
+                mass=125,
+                mode='combined',
+                signal_scale=50 if category.analysis_control or 'preselection' in category.name else 20,
+                plot_label='Signal Region' if not category.analysis_control and not ('preselection' in category.name) else None,
+                category=category,
+                region=target_region,
+                systematics=SYSTEMATICS if args.systematics else None,
+                systematics_components=args.systematics_components,
+                mpl=args.mpl,
+                output_formats=args.output_formats,
+                weighted=not args.no_weight,
+                plots=args.plots,
+                output_suffix=output_suffix,
+                unblind=args.unblind or category.analysis_control,
+                cuts=cuts,
+                fit=None) # vars at pre-fit
+        figures[category.name] = figs
+
+
+#     if 'overlap' in args.categories:
+#         clf = analysis.get_clf(category.clf_category, load=True)
+#     else:
+#         clf = analysis.get_clf(category, load=True)
+
+
+#     if 'evaluate' in args.actions and not category.analysis_control:
+#         # create BDT validation plots
+#         clf.evaluate(
+#             analysis,
+#             signal_region=signal_region,
+#             control_region=control_region,
+#             unblind=args.unblind,
+#             systematics=SYSTEMATICS if args.systematics else None,
+#             output_formats=args.output_formats,
+#             signal_scale=50,)
+
+
+
+
+    # get the data record array
+    rec = data.merged_records(
+        category, target_region, fields=fields, include_weight=False)
+
+#     # get the data scores
+#     scores, _ = data.scores(
+#         clf, category, target_region,
+#         systematics=False)
+#     # append the scores field
+#     rec = recfunctions.rec_append_fields(rec,
+#                                          data=scores,
+#                                          names='score',
+#                                          dtypes='f4')
+
+    print category.name,'data',len(rec)
+#     out.cd()
+#     output_name = 'data_category_{0}'.format(
+#         category.name).replace('.', '_')
+#     outtree = array2tree(rec) 
+#     outtree.Write(output_name)
+#     # Iterate over all the signals+background samples
+#     for sample in signals+backgrounds:
+#         # get the sample record array
+#         rec_sample = sample.merged_records( category,
+#                                             target_region,
+#                                             fields=fields,
+#                                             include_weight=True )
+#         # get the sample scores
+#         scores_sample = sample.scores( clf,
+#                                        category,
+#                                        target_region,
+#                                        systematics=False )['NOMINAL'][0] 
+
+#         # append the scores field
+#         rec_sample = recfunctions.rec_append_fields(rec_sample,
+#                                                     data=scores_sample,
+#                                                     names='score',
+#                                                     dtypes='f4')
+
+#         # --> Fill the score in an histogram
+#         h_score = Hist(category.limitbins, -1, 1, type='D')        
+#         h_score.fill_array(scores_sample,rec_sample['weight'])
+#         h_score.name = 'score_'+category.name+'_'+sample.name
+
+#         # --> Fill the cumulative Number of events in an histogram
+#         h_score_cumul = Hist(category.limitbins, -1, 1, type='D')        
+#         h_score_cumul.name = 'score_cumul_'+category.name+'_'+sample.name
+#         for i in range(0,h_score_cumul.GetNbinsX() ):
+#             reduced_tab = rec_sample[rec_sample['score']<h_score_cumul.GetBinLowEdge(i+1)]
+#             h_score_cumul.SetBinContent(i+1, reduced_tab['weight'].sum() )
+#         h_score_cumul.Scale(1./rec_sample['weight'].sum())
+#         h_score_cumul.GetXaxis().SetTitle("BDT score cut")
+#         h_score_cumul.GetYaxis().SetTitle("Fraction of the selected events")
+        
+        
+                              
+#         print category.name,sample.name,rec_sample['weight'].sum()
+#         out.cd()
+#         output_name = '{0}_category_{1}'.format(sample.name,category.name).replace('.', '_')
+#         outtree = array2tree(rec_sample) 
+#         outtree.Write(output_name)
+#         h_score.Write()
+#         h_score_cumul.Write()
+
+
+out.Close()
+
+
+
