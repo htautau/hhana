@@ -1,80 +1,96 @@
 # ROOT/rootpy imports
 
 import ROOT
-from rootpy.plotting import Canvas, Pad, Legend, Hist
+from rootpy.plotting import Canvas, Pad, Legend, Hist, Graph, get_style
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.style.atlas.labels import ATLAS_label
-from rootpy.plotting.style import get_style,set_style
+from rootpy.plotting.utils import draw
 
-style = get_style('ATLAS')
-style.SetPadLeftMargin(0.20)
-style.SetPadRightMargin(0.05)
-set_style( style )
 # local imports
 from mva.lumi import LUMI
 
-def pvalue_plot(mass_points,exp_list):
-    # def pvalue_plot(h_exp,h_obs):
-
-    g_exp = ROOT.TGraph()
-    for mass in mass_points:
-        g_exp.SetPoint(g_exp.GetN(),mass,exp_list[mass])
-    g_exp.SetLineStyle(2)
-#     g_obs.SetLineStyle(1);
-#     g_obs.SetMarkerSize(0.8);
+gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 
 
-    haxis = ROOT.TH1D("axis","axis",1000,-500,500)
-    haxis.GetXaxis().SetRangeUser(100,150)
-    c = Canvas(500,500,name="pvalue",title="pvalue")
-    c.cd()
-    haxis.Draw("AXIS")
-    haxis.GetXaxis().SetRangeUser(100,150)
-    haxis.GetXaxis().SetRangeUser(100,150)
-    haxis.GetYaxis().SetRangeUser(10E-5,100)
-    haxis.GetYaxis().SetTitle("P_{0}")
-    haxis.GetXaxis().SetTitle("m_{H} [GeV]")
-  
-    g_exp.Draw("sameL")
-    
-    line = Line()
-    line.SetLineStyle(2)
-    line.SetLineColor(2)
-    line.DrawLine(100,ROOT.Math.gaussian_cdf_c(0), 150, ROOT.Math.gaussian_cdf_c(0)  )
-    line.DrawLine(100,ROOT.Math.gaussian_cdf_c(1), 150, ROOT.Math.gaussian_cdf_c(1)  )
-    line.DrawLine(100,ROOT.Math.gaussian_cdf_c(2), 150, ROOT.Math.gaussian_cdf_c(2)  )
-    line.DrawLine(100,ROOT.Math.gaussian_cdf_c(3), 150, ROOT.Math.gaussian_cdf_c(3)  )
-    # line.DrawLine(100,ROOT.Math.gaussian_cdf_c(4), 150, ROOT.Math.gaussian_cdf_c(4)  )
-    # line.DrawLine(100,ROOT.Math.gaussian_cdf_c(5), 150, ROOT.Math.gaussian_cdf_c(5)  )
+def pvalue_plot(mass_points, pvalues, name='pvalue_plot', format='png'):
+    """
+    Draw a pvalue plot
 
-    ATLAS_label(0.2, 0.9, text="Internal 2012", sqrts=8,pad=c)
+    Parameters
+    ----------
 
-    lumi = LUMI[2012]
-#     lumi_str= "#font[42]{ #int L dt = {:1.1f} fb^{-1}}".format(lumi/1000.)
-    lumi_str= '{:1.1f}'.format(lumi/1000.)
+    mass_points : list
+        List of mass points
 
-#     latex.SetNDC()
-#     latex.SetTextSize(0.03)
-#     latex.SetTextSize(0.027)
-#     #         latex.DrawLatex(0.8,0.9 ,"#tau_{h} + #tau_{h}"); 
-#     latex.SetTextSize(0.03)
-#     latex.DrawLatex(0.2,0.9 ,"#font[72]{ATLAS}#font[42]{  Internal} ")
-#     latex.DrawLatex(0.2,0.85 ,lumi_str)
-#     latex.DrawLatex(0.2,0.80 ,"#sqrt{#it{s}} = 8 TeV ")
-    
-    
-    latex = ROOT.TLatex(145,ROOT.Math.gaussian_cdf_c(1),"1#sigma")
-    latex.SetNDC(False)
-    latex.SetTextSize(0.02)
-    latex.SetTextColor(2)
-    latex.Draw()
-#     latex.DrawLatex(152,ROOT.Math.gaussian_cdf_c(1),"1#sigma")
-#     latex.DrawLatex(152,ROOT.Math.gaussian_cdf_c(2),"2#sigma")
-#     latex.DrawLatex(152,ROOT.Math.gaussian_cdf_c(3),"3#sigma")
-    #   latex.DrawLatex(152,ROOT.Math.gaussian_cdf_c(4),"4#sigma");
-    
-    c.SetLogy()
-    c.RedrawAxis()
-    c.Update()
-    c.Print('toto.png')
-#     return c
+    pvalues : list
+        List of p-values
+
+    name : str
+        Name of output file excluding extension
+
+    format : str or list
+        Image format or list of image formats
+
+    """
+    style = get_style('ATLAS', shape='rect')
+    # allow space for sigma labels on right
+    style.SetPadRightMargin(0.05)
+
+    with style:
+        c = Canvas()
+        c.SetLogy()
+        c.cd()
+
+        haxis = Hist(1000, -500, 500)
+        xaxis = haxis.xaxis
+        yaxis = haxis.yaxis
+        xaxis.SetRangeUser(100, 150)
+        haxis.Draw("AXIS")
+        #yaxis.title = "P_{0}"
+        #xaxis.title = "m_{H} [GeV]"
+
+        g_exp = Graph(len(mass_points), linestyle='dashed', drawstyle='L')
+        for idx, (mass, pvalue) in enumerate(zip(mass_points, pvalues)):
+            g_exp.SetPoint(idx, mass, pvalue)
+        g_exp.linestyle = 'dashed'
+
+        #g_obs.SetLineStyle(1);
+        #g_obs.SetMarkerSize(0.8);
+
+        # automatically handles axis limits
+        draw(g_exp, pad=c, same=True, logy=True,
+             xtitle="m_{H} [GeV]", ytitle="P_{0}",
+             xaxis=xaxis, yaxis=yaxis, ypadding=(0.2, 0.1))
+
+        ATLAS_label(0.57, 0.88, text="Internal 2012", sqrts=8, pad=c, sep=0.09)
+
+        # TODO:
+        lumi = LUMI[2012]
+        #lumi_str= "#font[42]{ #int L dt = {:1.1f} fb^{-1}}".format(lumi/1000.)
+        lumi_str= '{:1.1f}'.format(lumi/1000.)
+
+        line = Line()
+        line.SetLineStyle(2)
+        line.SetLineColor(2)
+        latex = ROOT.TLatex()
+        latex.SetNDC(False)
+        latex.SetTextSize(20)
+        latex.SetTextColor(2)
+
+        # draw sigma levels up to minimum of pvalues
+        min_pvalue = min(pvalues)
+        sigma = 0
+        while True:
+            pvalue = gaussian_cdf_c(sigma)
+            if pvalue < min_pvalue:
+                break
+            latex.DrawLatex(151, pvalue, "{0}#sigma".format(sigma))
+            line.DrawLine(100, pvalue, 150, pvalue)
+            sigma += 1
+
+        c.RedrawAxis()
+        c.Update()
+        if isinstance(format, basestring):
+            format = [format]
+        for fmt in format:
+            c.SaveAs('{0}.{1}'.format(name, fmt))
