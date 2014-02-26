@@ -26,6 +26,7 @@ class Category_Preselection(Category):
     label = '#tau_{had}#tau_{had} Preselection'
     common_cuts = COMMON_CUTS_MVA
     #cuts = Cut('theta_tau1_tau2 > 0.6')
+    #cuts = Cut('resonance_pt>10000')
 
 
 class Category_Preselection_DEta_Control(Category_Preselection):

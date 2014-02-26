@@ -786,6 +786,7 @@ class Sample(object):
                           weighted=True,
                           field_scale=None,
                           weight_hist=None,
+                          field_weight_hist=None,
                           scores=None,
                           clf=None,
                           min_score=None,
@@ -868,30 +869,46 @@ class Sample(object):
             # weights
             scores = scores[0]
 
-        if weight_hist is not None and scores is not None:
-            log.warning("applying a weight histogram")
-            edges = np.array(list(weight_hist.xedges()))
-            # handle strange cases
-            edges[0] -= 1E10
-            edges[-1] += 1E10
-            weights = np.array(list(weight_hist.y())).take(
-                edges.searchsorted(scores) - 1)
-            weights = rec['weight'] * weights
-        else:
-            weights = rec['weight']
+        weights = rec['weight']
 
         if scores is not None:
             if min_score is not None:
+                # cut below a minimum classifier score
                 idx = scores > min_score
                 rec = rec[idx]
                 weights = weights[idx]
                 scores = scores[idx]
-
             if max_score is not None:
+                # cut above a maximum classifier score
                 idx = scores < max_score
                 rec = rec[idx]
                 weights = weights[idx]
                 scores = scores[idx]
+
+        def get_weight(array, hist):
+            edges = np.array(list(hist.xedges()))
+            # handle overflow
+            edges[0] -= 1E100
+            edges[-1] += 1E100
+            return np.array(list(hist.y())).take(
+                edges.searchsorted(array) - 1)
+
+        if weight_hist is not None and scores is not None:
+            # apply weight according to the classifier score
+            log.warning("applying a score weight histogram")
+            weights *= get_weight(scores, weight_hist)
+
+        if field_weight_hist is not None:
+            # apply weight corrections according to certain fields
+            for field, hist in field_weight_hist.items():
+                log.warning(
+                    "applying a weight histogram with field {0}".format(field))
+                if field not in field_hist:
+                    raise ValueError(
+                        "attempting to apply a weight histogram using "
+                        "field {0} but that field is not present in the "
+                        "requested array")
+                weights *= get_weight(rec[field], hist)
 
         for fields, hist in field_hist.items():
             if isinstance(fields, Classifier):
@@ -943,4 +960,3 @@ class Signal(object):
 class Background(object):
     # mixin
     pass
-

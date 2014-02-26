@@ -8,6 +8,7 @@ from mva.analysis import get_analysis
 
 analysis = get_analysis(args)
 
+from rootpy.io import root_open
 from rootpy.plotting import Hist
 from rootpy.stats import histfactory
 from mva.plotting import draw_channel
@@ -15,6 +16,7 @@ from mva.categories import Category_Rest, Category_Preselection
 from mva.lumi import get_lumi_uncert
 from mva.norm import cache
 from mva import CONST_PARAMS
+import numpy as np
 
 lumi_rel_error = get_lumi_uncert(args.year)
 
@@ -44,56 +46,62 @@ cache.set_scales(
     z_scale=ztt_scale,
     z_scale_error=0.)
 
-# draw pre-fit plots
-analysis.normalize(category)
+qcd_scale_diff = 100.
+ztt_scale_diff = 100.
 
-hist_template = Hist(10, 0, 1.5, type='D')
-channels = analysis.make_var_channels(
-    hist_template,
-    'dEta_tau1_tau2',
-    [category],
-    args.target_region,
-    include_signal=False)
+while ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01:
+    # keep fitting until normalizations converge
+    
+    analysis.normalize(category)
 
-draw_channel(channels[0], name='deta',
-    category=category,
-    output_name='deta_prefit_{0}'.format(args.year % 1000))
+    hist_template = Hist(10, 0, 1.5, type='D')
+    channels = analysis.make_var_channels(
+        hist_template,
+        'dEta_tau1_tau2',
+        [category],
+        args.target_region,
+        include_signal=False)
 
-# create a workspace
-workspace, measurement = histfactory.make_workspace(
-    'normalization_deta', channels,
-    POI=None,
-    lumi=1.0,
-    lumi_rel_error=lumi_rel_error,
-    const_params=CONST_PARAMS,
-    silence=True)
+    # create a workspace
+    workspace, measurement = histfactory.make_workspace(
+        'normalization_deta', channels,
+        POI=None,
+        lumi=1.0,
+        lumi_rel_error=lumi_rel_error,
+        const_params=CONST_PARAMS,
+        silence=True)
 
-# fit workspace
-minim = workspace.fit(minimizer_type='Minuit', strategy=1)
-fit_result = minim.save()
+    # fit workspace
+    minim = workspace.fit(minimizer_type='Minuit', strategy=1)
+    fit_result = minim.save()
 
-# get fitted norms and errors
-qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_QCD'.format(args.year))
-ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_Ztt'.format(args.year))
-qcd_scale = qcd.getVal()
-qcd_scale_error = qcd.getError()
-ztt_scale = ztt.getVal()
-ztt_scale_error = ztt.getError()
+    # get fitted norms and errors
+    qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_QCD'.format(args.year))
+    ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_Ztt'.format(args.year))
+    qcd_scale_new = qcd.getVal()
+    qcd_scale_error = qcd.getError()
+    ztt_scale_new = ztt.getVal()
+    ztt_scale_error = ztt.getError()
 
-# update the cache
-cache.set_scales(
-    args.year,
-    category.name,
-    args.embedding,
-    'TRACK', #TODO: remove
-    args.qcd_shape_region,
-    qcd_scale=analysis.qcd.scale * qcd_scale,
-    qcd_scale_error=analysis.qcd.scale * qcd_scale_error / qcd_scale,
-    qcd_data_scale=1.,
-    qcd_z_scale=1.,
-    qcd_others_scale=1.,
-    z_scale=analysis.ztautau.scale * ztt_scale,
-    z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
+    qcd_scale_diff = abs(qcd_scale_new - qcd_scale) / qcd_scale
+    ztt_scale_diff = abs(ztt_scale_new - ztt_scale) / ztt_scale
+    qcd_scale = qcd_scale_new
+    ztt_scale = ztt_scale_new
+
+    # update the cache
+    cache.set_scales(
+        args.year,
+        category.name,
+        args.embedding,
+        'TRACK', #TODO: remove
+        args.qcd_shape_region,
+        qcd_scale=analysis.qcd.scale * qcd_scale,
+        qcd_scale_error=analysis.qcd.scale * qcd_scale_error / qcd_scale,
+        qcd_data_scale=1.,
+        qcd_z_scale=1.,
+        qcd_others_scale=1.,
+        z_scale=analysis.ztautau.scale * ztt_scale,
+        z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
 
 # draw post-fit plots
 analysis.normalize(category)
@@ -108,3 +116,8 @@ channels = analysis.make_var_channels(
 draw_channel(channels[0], name='deta',
     category=category,
     output_name='deta_postfit_{0}'.format(args.year % 1000))
+
+# determine resonance pt reweighting after normalization
+with root_open('weights.root', 'recreate') as weights_file:
+    resonance_pt_edges = list(np.linspace(0, 250000, 26)) + [1E100]
+    resonance_pt_weight_hist = Hist(resonance_pt_edges, name='resonance_pt_weight')

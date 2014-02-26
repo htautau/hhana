@@ -151,6 +151,7 @@ class QCD(Sample, Background):
                    weighted=True,
                    field_scale=None,
                    weight_hist=None,
+                   field_weight_hist=None,
                    clf=None,
                    scores=None,
                    min_score=None,
@@ -158,6 +159,7 @@ class QCD(Sample, Background):
                    systematics=True,
                    systematics_components=None,
                    bootstrap_data=False):
+        # TODO: support for field_weight_hist
         do_systematics = self.systematics and systematics
 
         field_hist_MC_bkg = dict([(expr, hist.Clone())
