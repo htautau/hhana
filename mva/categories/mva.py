@@ -5,12 +5,12 @@ from .features import *
 # preselection cuts
 COMMON_CUTS_MVA = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
-    & MET
+    #& MET
     & Cut('%s > 0' % MMC_MASS)
-    & Cut('0.8 < dR_tau1_tau2 < 2.8')
+    #& Cut('0.8 < dR_tau1_tau2 < 2.8')
     & TAU_SAME_VERTEX
     # looser MET centrality
-    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (math.pi / 2))
+    #& Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (math.pi / 2))
     )
 
 # additional cuts after preselection
