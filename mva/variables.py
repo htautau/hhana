@@ -82,9 +82,8 @@ VARIABLES = {
         'filename': 'MET',
         'bins': 20,
         'range': {
-            '0J_NONBOOSTED': (11, 15, 70),
-            'PRESELECTION': (11, 15, 70),
-            'REST': (11, 15, 70),
+            'PRESELECTION': (13, 15, 80),
+            'REST': (13, 15, 80),
             None: (17, 15, 100)},
         'scale': 1./1000,
         'units': 'GeV',
@@ -151,7 +150,6 @@ VARIABLES = {
         'filename': 'mass_vis',
         'bins': 20,
         'range': {
-            '0J_NONBOOSTED': (30, 150),
             'PRESELECTION': (30, 150),
             'REST': (30, 150),
             None: (0, 250)},
@@ -182,7 +180,6 @@ VARIABLES = {
         'filename': 'tau1_pt',
         'bins': 20,
         'range': {
-            '0J_NONBOOSTED': (35, 90),
             'PRESELECTION': (35, 90),
             'REST': (35, 90),
             None: (35, 160)},
@@ -195,7 +192,6 @@ VARIABLES = {
         'filename': 'tau2_pt',
         'bins': 20,
         'range': {
-            '0J_NONBOOSTED': (25, 60),
             'PRESELECTION': (25, 60),
             'REST': (25, 60),
             None: (25, 100)},
@@ -325,7 +321,7 @@ VARIABLES = {
     #    'filename': 'tau1_vertex_quality',
     #    'bins': 20,
     #    'range': (-0.0001, 1.0001),
-    #    'cats': ['0J', '1J', '2J',]
+    #    'cats': ['1J', '2J',]
     #},
     'cos_theta_tau1_tau2': {
         'title': r'$\cos[\alpha(\tau_{1},\/\tau_{2})]$',
@@ -345,8 +341,10 @@ VARIABLES = {
         'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dr_tau1_tau2',
-        'bins': 30,
-        'range': (0, math.pi),
+        'bins': 11,
+        'range': {
+            'PRESELECTION': (22, 0.6, 2.8),
+            None: (11, 0.6, 2.8)},
         'ypadding': (0.5, 0),
     },
     'dPhi_tau1_tau2': {
@@ -493,10 +491,10 @@ VARIABLES = {
         'filename': 'resonance_pt',
         'bins': 20,
         'range': {
-            'BOOSTED': (90, 250),
-            'VBF': (40, 250),
-            'REST': (0, 110),
-            None: (0, 200)},
+            'BOOSTED': (18, 70, 250),
+            'VBF': (25, 0, 250),
+            'REST': (11, 0, 110),
+            None: (20, 0, 200)},
         'scale': 0.001,
         'units': 'GeV',
     },

@@ -5,18 +5,15 @@ from .features import *
 # preselection cuts
 COMMON_CUTS_MVA = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
-    #& MET
+    & MET
     & Cut('%s > 0' % MMC_MASS)
-    #& Cut('0.8 < dR_tau1_tau2 < 2.8')
+    & Cut('0.6 < dR_tau1_tau2 < 2.8')
     & TAU_SAME_VERTEX
     # looser MET centrality
-    #& Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (math.pi / 2))
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.2 * math.pi))
     )
 
 # additional cuts after preselection
-#CATEGORY_CUTS_MVA = (
-#    Cut('%s > 80' % MMC_MASS)
-#    )
 CATEGORY_CUTS_MVA = Cut()
 
 # MVA preselection categories
@@ -25,8 +22,6 @@ class Category_Preselection(Category):
     name = 'preselection'
     label = '#tau_{had}#tau_{had} Preselection'
     common_cuts = COMMON_CUTS_MVA
-    #cuts = Cut('theta_tau1_tau2 > 0.6')
-    #cuts = Cut('resonance_pt>10000')
 
 
 class Category_Preselection_DEta_Control(Category_Preselection):
@@ -38,7 +33,11 @@ class Category_VBF(Category_Preselection):
     name = 'vbf'
     label = '#tau_{had}#tau_{had} VBF'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = CUTS_VBF & CUTS_2J & Cut('resonance_pt > 40000')
+    cuts = (
+        CUTS_2J
+        & Cut('dEta_jets > 2.0')
+        #& Cut('resonance_pt > 40000')
+        )
     #limitbins = 98
     limitbins = 40
     features = features_2j
@@ -59,7 +58,11 @@ class Category_Boosted(Category_Preselection):
     name = 'boosted'
     label = '#tau_{had}#tau_{had} Boosted'
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = CUTS_BOOSTED & (- Category_VBF.cuts)
+    cuts = (
+        (- Category_VBF.cuts)
+        & Cut('resonance_pt > 80000')
+        & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
+        )
     #limitbins = 86
     limitbins = 40
     # warning: some variables will be undefined for some events

@@ -28,8 +28,4 @@ CUTS_2J = LEAD_JET_50 & SUBLEAD_JET_30
 CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
-CUTS_VBF = Cut('dEta_jets > 2.0')
-CUTS_BOOSTED = Cut('resonance_pt > 100000') # MeV
-
-BAD_MASS = 75
 MET = Cut('MET_et > 20000')
