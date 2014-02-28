@@ -24,7 +24,7 @@ from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
-from rootpy.plotting.utils import get_limits, get_band
+import rootpy.plotting.utils as rootpy_utils
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.plotting.contrib.quantiles import qqgraph
 from rootpy.plotting.contrib import plot_corrcoef_matrix
@@ -991,8 +991,6 @@ def draw(name,
          signal_on_top=False,
          signal_linestyles=None,
          show_signal_error=False,
-         stacked_model=True,
-         stacked_signal=True,
          units=None,
          plot_label=None,
          ylabel='Events',
@@ -1001,6 +999,9 @@ def draw(name,
          fill_signal=False,
          blind=False,
          show_ratio=False,
+         ratio_range=None,
+         ratio_height=0.2,
+         ratio_margin=0.05,
          output_formats=None,
          systematics=None,
          systematics_components=None,
@@ -1013,71 +1014,77 @@ def draw(name,
          range=None):
 
     if model is None and data is None and signal is None:
+        # insufficient input
         raise ValueError(
-            'at least one of model, data, or signal must be specified')
+            "at least one of model, data, "
+            "or signal must be specified")
 
-    if show_ratio and model is None:
-        show_ratio = False
+    # objects will be populated with all histograms in the main pad
+    objects = []
+    legends = []
 
-    if output_formats is None:
-        output_formats = ('png',)
-    elif isinstance(output_formats, basestring):
-        output_formats = output_formats.split()
-    if data is None:
+    if show_ratio and (data is None or model is None):
+        # cannot show the ratio if data or model was not specified
         show_ratio=False
 
     if ypadding is None:
+        # select good defaults for log or linear scales
         if logy:
             ypadding = (.6, .0)
         else:
             ypadding = (.35, .0)
 
     if show_ratio:
-        ratio_range = (0, 2)
+        # define the pad setup for the ratio plot
+        if ratio_range is None:
+            ratio_range = (0, 2)
 
-        figheight = baseheight = 6.
-        figwidth = basewidth = width
+        # start with defaults in current gStyle
+        prev_style = ROOT.gStyle
+        style = prev_style.Clone()
 
-        vscale = 1.
-        left_margin = 0.16
-        bottom_margin = 0.16
-        top_margin = 0.05
+        # plot dimensions in pixels
+        figheight = baseheight = style.GetCanvasDefH()
+        figwidth = basewidth = style.GetCanvasDefW()
 
-        if signal is not None and plot_signal_significance:
-            right_margin = 0.10
-        else:
-            right_margin = 0.04
-        ratio_sep_margin = 0.030
+        # margins
+        left_margin = style.GetPadLeftMargin()
+        bottom_margin = style.GetPadBottomMargin()
+        top_margin = style.GetPadTopMargin()
+        right_margin = style.GetPadRightMargin()
 
-        width = 1. - right_margin - left_margin
-        height = 1. - top_margin - bottom_margin
+        figheight += (ratio_height + ratio_margin) * figheight
+        ratio_height += bottom_margin + ratio_margin / 2.
 
-        ratio_abs_height = 1.975
-        hist_abs_height = 6.
+        style.SetTitleYOffset(style.GetTitleYOffset() * figheight / baseheight)
+        style.cd()
 
-        figheight += ratio_abs_height + ratio_sep_margin
-        vscale = figheight / baseheight
-        bottom_margin /= vscale
-        top_margin /= vscale
-        ratio_height = ratio_abs_height / figheight
-        hist_height = (hist_abs_height / figheight
-                       - top_margin - bottom_margin)
-        rect_hist = [
-            left_margin, bottom_margin + ratio_height + ratio_sep_margin,
-            width, hist_height]
-        rect_ratio = [left_margin, bottom_margin, width, ratio_height]
-        fig = Canvas(width=int(figwidth * 100), height=int(figheight * 100))
-        fig.SetLeftMargin(0)
-        fig.SetBottomMargin(0)
-        fig.SetRightMargin(0)
-        fig.SetTopMargin(0)
-        hist_pad = Pad(0., rect_hist[1] * 0.9, 1., 1., name='top', title='top')
-        hist_pad.SetBottomMargin(0.03)
-        hist_pad.SetLeftMargin(rect_hist[0])
-        hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
-        hist_pad.SetTopMargin(1.01 - rect_hist[3] - rect_hist[1])
+        # main canvas
+        fig = Canvas(width=int(figwidth), height=int(figheight))
+        fig.SetMargin(0, 0, 0, 0)
+
+        # top pad for histograms
+        hist_pad = Pad(0., ratio_height, 1., 1.,
+                       name='top', title='top')
+        hist_pad.SetBottomMargin(ratio_margin / 2.)
+        hist_pad.SetTopMargin(top_margin)
+        hist_pad.SetLeftMargin(left_margin)
+        hist_pad.SetRightMargin(right_margin)
         hist_pad.Draw()
+
+        # bottom pad for ratio plot
+        fig.cd()
+        ratio_pad = Pad(0, 0, 1, ratio_height,
+                        name='ratio', title='ratio')
+        ratio_pad.SetBottomMargin(bottom_margin / ratio_height)
+        ratio_pad.SetTopMargin(ratio_margin / (2. * ratio_height))
+        ratio_pad.SetLeftMargin(left_margin)
+        ratio_pad.SetRightMargin(right_margin)
+        ratio_pad.Draw()
+        hist_pad.cd()
     else:
+        prev_style = None
+        # simple case without ratio plot
         fig = Canvas()
         hist_pad = fig
 
@@ -1119,11 +1126,8 @@ def draw(name,
                     s.linestyle = 'solid'
                 alpha = 1.
 
-    ymin, ymax = float('-inf'), float('inf')
-
     if model is not None:
-        # plot model stack with ROOT
-        hist_pad.cd()
+        # create the model stack
         model_stack = HistStack()
         for hist in model:
             hist.SetLineWidth(0)
@@ -1133,58 +1137,33 @@ def draw(name,
             for s in scaled_signal:
                 s.drawstyle = 'hist'
                 model_stack.Add(s)
-        model_stack.Draw()
-        _, _, ymin, ymax = get_limits(model_stack,
-                logy=logy,
-                ypadding=ypadding,
-                logy_crop_value=1E-1)
-        model_stack.SetMinimum(ymin)
-        model_stack.SetMaximum(ymax)
-        model_stack.Draw()
-        model_stack.yaxis.SetLimits(ymin, ymax)
-        model_stack.yaxis.SetRangeUser(ymin, ymax)
+        objects.append(model_stack)
 
     if signal is not None and not signal_on_top:
-        hist_pad.cd()
+        # create the signal stack
         signal_stack = HistStack()
         for hist in scaled_signal:
             hist.drawstyle = 'hist'
             signal_stack.Add(hist)
-        if stacked_signal:
-            signal_stack.Draw('SAME')
-            _, _, _ymin, _ymax = get_limits(signal_stack,
-                logy=logy,
-                ypadding=ypadding,
-                logy_crop_value=1E-1)
-            model_stack.SetMinimum(ymin)
-            model_stack.SetMaximum(ymax)
-            signal_stack.SetMinimum(ymin)
-            signal_stack.SetMaximum(ymax)
-            signal_stack.Draw('SAME')
-            signal_stack.yaxis.SetLimits(ymin, ymax)
-            signal_stack.yaxis.SetRangeUser(ymin, ymax)
-        else:
-            for h in signal_stack:
-                h.Draw('SAME')
+        objects.append(signal_stack)
 
     if systematics:
         if model is not None:
             # draw systematics band
             total_model, high_band_model, low_band_model = uncertainty_band(
-                    model, systematics, systematics_components)
+                model, systematics, systematics_components)
             high = total_model + high_band_model
             low = total_model - low_band_model
-            hist_pad.cd()
-            error_band_model = get_band(
-                low,
-                high,
+            error_band_model = rootpy_utils.get_band(
+                low, high,
                 middle_hist=total_model)
             error_band_model.fillstyle = '/'
             error_band_model.fillcolor = 13
             error_band_model.linecolor = 10
             error_band_model.markersize = 0
             error_band_model.markercolor = 10
-            error_band_model.Draw('same e2')
+            error_band_model.drawstyle = 'e2'
+            objects.append(error_band)
 
         if signal is not None and show_signal_error:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
@@ -1195,47 +1174,34 @@ def draw(name,
                 high += total_model
                 low += total_model
             hist_pad.cd()
-            error_band_signal = get_band(
-                low,
-                high,
+            error_band_signal = rootpy_utils.get_band(
+                low, high,
                 middle_hist=total_signal * signal_scale)
             error_band_signal.fillstyle = '\\'
             error_band_signal.fillcolor = 13
             error_band_signal.linecolor = 10
             error_band_signal.markersize = 0
             error_band_signal.markercolor = 10
-            error_band_signal.Draw('same e2')
-            signal_stack.Draw('SAME')
+            error_band_signal.drawstyle = 'e2'
+            objects.append(error_band_signal)
 
     if data is not None and blind is not True:
+        # create the data histogram
         if isinstance(blind, tuple):
             low, high = blind
             # zero out bins in blind region
             for bin in data.bins():
                 if (low < bin.x.high <= high or low <= bin.x.low < high):
                     data[bin.idx] = (0., 0.)
-        # draw data
-        hist_pad.cd()
-        _, _, _ymin, _ymax = get_limits(data,
-            logy=logy,
-            ypadding=ypadding,
-            logy_crop_value=1E-1)
-        if _ymin < ymin:
-            ymin = _ymin
-        if _ymax > ymax:
-            ymax = _ymax
-        #data.SetMinimum(ymin)
-        #data.SetMaximum(ymax)
-        #data.Draw('same E1')
-        data.markersize = 1.2
+        # convert data to TGraphAsymmErrors with Poisson errors
         data_poisson = data.poisson_errors()
         data_poisson.markersize = 1.2
-        data_poisson.Draw('PZ')
-        data.yaxis.SetLimits(ymin, ymax)
-        data.yaxis.SetRangeUser(ymin, ymax)
+        data_poisson.drawstyle = 'PZ'
+        objects.append(data_poisson)
 
         # draw ratio plot
         if model is not None and show_ratio:
+            ratio_pad.cd()
             total_model = sum(model)
             ratio_hist = Hist.divide(data, total_model, option='B')
             # remove bins where data is zero
@@ -1246,22 +1212,10 @@ def draw(name,
             ratio_hist.linewidth = 2
             ratio_hist.fillstyle = 'hollow'
 
-            fig.cd()
-            ratio_pad = Pad(
-                0, 0, 1, (rect_ratio[1] + rect_ratio[3]) * 0.9,
-                name='ratio', title='ratio')
-            ratio_pad.SetBottomMargin(rect_ratio[1] * 3)
-            ratio_pad.SetLeftMargin(rect_ratio[0])
-            ratio_pad.SetRightMargin(1. - rect_ratio[2] - rect_ratio[0])
-            ratio_pad.SetTopMargin(0.04)
-            ratio_pad.Draw()
-            ratio_pad.cd()
-
             # draw empty copy of ratio_hist first so lines will show
             ratio_hist_tmp = ratio_hist.Clone()
             ratio_hist_tmp.Reset()
             ratio_hist_tmp.Draw()
-
             ratio_hist_tmp.yaxis.SetLimits(*ratio_range)
             ratio_hist_tmp.yaxis.SetRangeUser(*ratio_range)
             ratio_hist_tmp.yaxis.SetTitle('Data / Model')
@@ -1270,20 +1224,24 @@ def draw(name,
             ratio_hist_tmp.xaxis.SetRangeUser(*ratio_hist.bounds())
             ratio_hist_tmp.xaxis.SetTickLength(
                 ratio_hist_tmp.xaxis.GetTickLength() * 2)
+            # not certain why the following is needed
+            ratio_hist_tmp.yaxis.SetTitleOffset(style.GetTitleYOffset())
 
-            # draw horizontal lines
+            # draw ratio=1 line
             line = Line(ratio_hist.lowerbound(), 1,
                         ratio_hist.upperbound(), 1)
             line.linestyle = 'dashed'
             line.linewidth = 2
             line.Draw()
 
+            # draw high ratio line
             line_up = Line(ratio_hist.lowerbound(), 1.50,
                             ratio_hist.upperbound(), 1.50)
             line_up.linestyle = 'dashed'
             line_up.linewidth = 2
             line_up.Draw()
 
+            # draw low ratio line
             line_dn = Line(ratio_hist.lowerbound(), 0.50,
                             ratio_hist.upperbound(), 0.50)
             line_dn.linestyle = 'dashed'
@@ -1297,21 +1255,18 @@ def draw(name,
                     total_model + high_band_model, total_model, option='B')
                 ratio_hist_low = Hist.divide(
                     total_model - low_band_model, total_model, option='B')
-
                 ratio_pad.cd()
-                error_band = get_band(ratio_hist_high,
-                                        ratio_hist_low)
+                error_band = rootpy_utils.get_band(
+                    ratio_hist_high, ratio_hist_low)
                 error_band.fillstyle = '/'
                 error_band.fillcolor = '#858585'
                 error_band.Draw('same E2')
 
             # draw points above band
-            ratio_pad.cd()
             ratio_hist.Draw('same E0')
 
     if separate_legends:
         if model is not None:
-            hist_pad.cd()
             n_entries = len(model)
             if systematics:
                 n_entries += 1
@@ -1333,9 +1288,7 @@ def draw(name,
                 model_err_band.fillcolor = '#858585'
                 model_err_band.title = 'Uncert.'
                 model_legend.AddEntry(model_err_band, style='F')
-            model_legend.Draw()
-
-        hist_pad.cd()
+            legends.append(model_legend)
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
             pad=hist_pad,
             leftmargin=0.02,
@@ -1349,9 +1302,8 @@ def draw(name,
         if signal is not None:
             for s in reversed(scaled_signal):
                 right_legend.AddEntry(s, style='F' if fill_signal else 'L')
-        right_legend.Draw()
+        legends.append(right_legend)
     else:
-        hist_pad.cd()
         n_entries = 1
         if signal is not None:
             n_entries += len(scaled_signal)
@@ -1369,7 +1321,6 @@ def draw(name,
                 entrysep=0.02,
                 entryheight=0.04,
                 topmargin=0.15)
-
         else:
             legend = Legend(n_entries,
                 pad=hist_pad,
@@ -1380,7 +1331,6 @@ def draw(name,
                 entrysep=0.02,
                 entryheight=0.04,
                 topmargin=0.15)
-
         legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -1395,8 +1345,22 @@ def draw(name,
                 model_err_band.fillcolor = '#858585'
                 model_err_band.title = 'Uncert.'
                 legend.AddEntry(model_err_band, style='F')
+        legends.append(legend)
+
+    # draw the objects
+    rootpy_utils.draw(
+        objects,
+        pad=hist_pad,
+        logy=logy,
+        ypadding=ypadding,
+        logy_crop_value=1E-1)
+
+    # draw the legends
+    hist_pad.cd()
+    for legend in legends:
         legend.Draw()
 
+    # set the axis labels
     if data is not None:
         binw = list(data.xwidth())
     elif model is not None:
@@ -1407,7 +1371,6 @@ def draw(name,
         else:
             binw = list(signal.xwidth())
     binwidths = list(set(['%.2g' % w for w in binw]))
-
     if units is not None:
         label = '%s [%s]' % (name, units)
         if len(binwidths) == 1 and binwidths[0] != '1':
@@ -1417,7 +1380,6 @@ def draw(name,
         label = name
         if len(binwidths) == 1 and binwidths[0] != '1':
             ylabel = '%s / %s' % (ylabel, binwidths[0])
-
     model_stack.yaxis.SetTitle(ylabel)
     base_hist = model_stack
     if show_ratio:
@@ -1430,16 +1392,7 @@ def draw(name,
             base_hist.xaxis.GetLabelOffset() * 4)
     base_hist.xaxis.SetTitle(label)
 
-    filename = os.path.join(PLOTS_DIR,
-        'var_%s_%s' %
-        (category.name,
-         output_name.lower().replace(' ', '_')))
-
-    if logy:
-        filename += '_logy'
-
-    filename += '_root'
-
+    # draw the category label
     hist_pad.cd()
     label = ROOT.TLatex(
         hist_pad.GetLeftMargin() + 0.03, 0.89,
@@ -1450,6 +1403,7 @@ def draw(name,
     label.Draw()
     keepalive(hist_pad, label)
 
+    # draw the luminosity label
     if data_info is not None:
         plabel = ROOT.TLatex(
             hist_pad.GetLeftMargin() + 0.03, 0.82,
@@ -1460,19 +1414,21 @@ def draw(name,
         plabel.Draw()
         keepalive(hist_pad, plabel)
 
+    # draw the ATLAS label
     ATLAS_label(0.62, 0.89,
         sep=0.132, pad=hist_pad, sqrts=None,
         text="Preliminary", textsize=textsize)
 
+    # draw the user-specified label
     if plot_label is not None:
-        label = ROOT.TLatex(
-            0.7, 0.82, plot_label)
+        label = ROOT.TLatex(0.7, 0.82, plot_label)
         label.SetNDC()
         label.SetTextFont(43)
         label.SetTextSize(textsize)
         label.Draw()
         keepalive(hist_pad, label)
 
+    # HACK
     if 'BDT' not in name:
         if integer:
             model_stack.xaxis.SetNdivisions(7)
@@ -1483,6 +1439,7 @@ def draw(name,
     hist_pad.Modified()
     hist_pad.RedrawAxis()
 
+    # HACK
     if 'BDT' in name:
         log.warning("using BDT axes ranges")
         model_stack.xaxis.SetLimits(-1, 1.3)
@@ -1492,710 +1449,28 @@ def draw(name,
         model_stack.xaxis.SetLimits(*range)
         #model_stack.xaxis.SetRangeUser(*range)
 
-    for format in output_formats:
-        output_filename = '%s.%s' % (filename, format)
-        fig.SaveAs(output_filename)
-
-    return fig
-
-
-def draw_tmp(name,
-         output_name,
-         category,
-         data=None,
-         data_info=None,
-         model=None,
-         signal=None,
-         signal_scale=1.,
-         signal_on_top=False,
-         show_signal_error=False,
-         stacked_model=True,
-         stacked_signal=True,
-         plot_signal_significance=True,
-         units=None,
-         range=None,
-         plot_label=None,
-         ylabel='Events',
-         model_colour_map=None,
-         signal_colour_map=None,
-         fill_signal=False,
-         blind=False,
-         show_ratio=False,
-         show_qq=False,
-         output_formats=None,
-         systematics=None,
-         systematics_components=None,
-         mpl=False,
-         width=8.,
-         integer=False,
-         logy=False,
-         xtick_formatter=None,
-         xtick_locator=None,
-         xtick_rotation=None):
-
-    if model is None and data is None and signal is None:
-        raise ValueError(
-            'at least one of model, data, or signal must be specified')
-
-    range = model[0].bounds()
-
-    root = not mpl
-
-    if root:
-        # not supported for now
-        plot_signal_significance = False
-
-    if show_ratio and model is None:
-        show_ratio = False
-
-    if show_qq and model is None:
-        show_qq = False
-
-    if output_formats is None:
-        output_formats = ('png',)
-    elif isinstance(output_formats, str):
-        output_formats = output_formats.split(',')
-    if data is None:
-        show_ratio=False
-        show_qq=False
-
-    ratio_range = (0, 2)
-
-    figheight = baseheight = 6.
-    figwidth = basewidth = width
-
-    vscale = 1.
-    left_margin = 0.16
-    bottom_margin = 0.16
-    top_margin = 0.05
-
-    if signal is not None and plot_signal_significance:
-        right_margin = 0.10
-    else:
-        right_margin = 0.04
-    ratio_sep_margin = 0.030
-
-    ypadding = (.5, .05)
-
-    width = 1. - right_margin - left_margin
-    height = 1. - top_margin - bottom_margin
-
-    ratio_abs_height = 1.975
-    qq_abs_height = 6.
-    hist_abs_height = 6.
-
-    if show_ratio and not show_qq:
-        figheight += ratio_abs_height + ratio_sep_margin
-
-        vscale = figheight / baseheight
-        bottom_margin /= vscale
-        top_margin /= vscale
-
-        ratio_height = ratio_abs_height / figheight
-        hist_height = (hist_abs_height / figheight
-                       - top_margin - bottom_margin)
-
-        rect_hist = [left_margin,
-                     bottom_margin + ratio_height + ratio_sep_margin,
-                     width, hist_height]
-        rect_ratio = [left_margin, bottom_margin, width, ratio_height]
-
-    elif show_qq and not show_ratio:
-        figheight += qq_abs_height
-
-        vscale = figheight / baseheight
-        bottom_margin /= vscale
-        top_margin /= vscale
-
-        gap = bottom_margin
-        qq_height = qq_abs_height / figheight - gap - top_margin
-        hist_height = hist_abs_height / figheight - bottom_margin
-
-        rect_qq = [left_margin, bottom_margin + hist_height + gap, width, qq_height]
-        rect_hist = [left_margin, bottom_margin, width, hist_height]
-
-    elif show_ratio and show_qq:
-        figheight += ratio_abs_height + qq_abs_height
-
-        vscale = figheight / baseheight
-        bottom_margin /= vscale
-        top_margin /= vscale
-
-        ratio_height = ratio_abs_height / figheight
-
-        gap = bottom_margin
-        qq_height = qq_abs_height / figheight - gap - top_margin
-        hist_height = hist_abs_height / figheight - bottom_margin
-
-        rect_qq = [left_margin, bottom_margin + ratio_height + hist_height + gap, width, qq_height]
-        rect_hist = [left_margin, bottom_margin + ratio_height, width, hist_height]
-        rect_ratio = [left_margin, bottom_margin, width, ratio_height]
-
-    else:
-        rect_hist = [left_margin, bottom_margin, width, height]
-
-    if root:
-        fig = Canvas(width=int(figwidth * 100), height=int(figheight * 100))
-        fig.SetLeftMargin(0)
-        fig.SetBottomMargin(0)
-        fig.SetRightMargin(0)
-        fig.SetTopMargin(0)
-        hist_pad = Pad(0., rect_hist[1] * 0.9, 1., 1., name='top', title='top')
-        hist_pad.SetBottomMargin(0.03)
-        hist_pad.SetLeftMargin(rect_hist[0])
-        hist_pad.SetRightMargin(1. - rect_hist[2] - rect_hist[0])
-        hist_pad.SetTopMargin(1.01 - rect_hist[3] - rect_hist[1])
-        if logy:
-            hist_pad.SetLogy()
-        hist_pad.Draw()
-    else:
-        fig = plt.figure(figsize=(figwidth, figheight), dpi=100)
-        prop = fm.FontProperties(size=14)
-        hist_ax = plt.axes(rect_hist)
-        if logy:
-            hist_ax.set_yscale('log', nonposy='clip')
-            bottom = 1E-1
-        else:
-            bottom = 0
-
-    if model is not None and model_colour_map is not None:
-        set_colours(model, model_colour_map)
-
-    if signal is not None:
-        # always make signal a list
-        if not isinstance(signal, (list, tuple)):
-            signal = [signal]
-        if signal_scale != 1.:
-            scaled_signal = []
-            for sig in signal:
-                scaled_h = sig * signal_scale
-                if root:
-                    scaled_h.SetTitle(r'%s (#times %g)' % (
-                        sig.GetTitle(),
-                        signal_scale))
-                else:
-                    scaled_h.SetTitle(r'%s ($\times\/%g$)' % (
-                        sig.GetTitle(),
-                        signal_scale))
-                scaled_signal.append(scaled_h)
-        else:
-            scaled_signal = signal
-        if signal_colour_map is not None:
-            set_colours(scaled_signal, signal_colour_map)
-        for s in scaled_signal:
-            if fill_signal:
-                s.fillstyle = 'solid'
-                s.fillcolor = s.linecolor
-                s.linewidth = 0
-                s.linestyle = 'solid'
-                alpha = .75
-            else:
-                s.fillstyle = 'hollow'
-                s.linewidth = 2
-                s.linestyle = 'dashed'
-                alpha = 1.
-
-    ymin, ymax = float('-inf'), float('inf')
-
-    if model is not None:
-        if root:
-            # plot model stack with ROOT
-            hist_pad.cd()
-            model_stack = HistStack()
-            for hist in model:
-                hist.SetLineWidth(0)
-                hist.drawstyle = 'hist'
-                model_stack.Add(hist)
-            if signal is not None and signal_on_top:
-                for s in scaled_signal:
-                    s.drawstyle = 'hist'
-                    model_stack.Add(s)
-            model_stack.Draw()
-            _, _, ymin, ymax = get_limits(model_stack,
-                    logy=logy,
-                    ypadding=ypadding)
-            model_stack.SetMinimum(ymin)
-            model_stack.SetMaximum(ymax)
-            model_stack.Draw()
-            ratio_abs_height / figheight
-            model_stack.GetXaxis().SetTickLength(
-                model_stack.GetXaxis().GetTickLength() * figheight / hist_abs_height)
-            model_stack.yaxis.SetLimits(ymin, ymax)
-            model_stack.yaxis.SetRangeUser(ymin, ymax)
-        else:
-            model_bars = rplt.bar(
-                model + scaled_signal if (
-                    signal is not None and signal_on_top)
-                else model,
-                linewidth=0,
-                stacked=True,
-                yerr='quadratic' if not systematics else False,
-                axes=hist_ax,
-                ypadding=ypadding)
-
-            if signal is not None and signal_on_top:
-                signal_bars = model_bars[len(model):]
-                model_bars = model_bars[:len(model)]
-
-    if signal is not None and not signal_on_top:
-        if root:
-            hist_pad.cd()
-            signal_stack = HistStack()
-            for hist in scaled_signal:
-                hist.drawstyle = 'hist'
-                hist.fillstyle = 'hollow'
-                hist.linewidth = 3
-                signal_stack.Add(hist)
-
-            if stacked_signal:
-                signal_stack.Draw('SAME')
-                _, _, _ymin, _ymax = get_limits(signal_stack,
-                    logy=logy,
-                    ypadding=ypadding)
-                model_stack.SetMinimum(ymin)
-                model_stack.SetMaximum(ymax)
-                signal_stack.SetMinimum(ymin)
-                signal_stack.SetMaximum(ymax)
-                signal_stack.Draw('SAME')
-                signal_stack.yaxis.SetLimits(ymin, ymax)
-                signal_stack.yaxis.SetRangeUser(ymin, ymax)
-
-            else:
-                for h in signal_stack:
-                    h.Draw('SAME')
-
-        else:
-            if fill_signal:
-                signal_bars = rplt.bar(
-                    scaled_signal,
-                    stacked=True, #yerr='quadratic',
-                    axes=hist_ax,
-                    alpha=alpha,
-                    ypadding=ypadding)
-            else:
-                signal_bars = rplt.hist(
-                    scaled_signal,
-                    stacked=True,
-                    alpha=alpha,
-                    axes=hist_ax,
-                    ypadding=ypadding,
-                    zorder=1000)
-            if plot_signal_significance:
-                plot_significance(signal, model, ax=hist_ax)
-
-    if model is not None and show_qq:
-        qq_ax = plt.axes(rect_qq)
-        gg_graph = qqgraph(data, sum(model))
-        gg_graph.SetTitle('QQ plot')
-        y = np.array(list(gg_graph.y()))
-        y_up = y + np.array(list(gg_graph.yerrh()))
-        y_low = y - np.array(list(gg_graph.yerrl()))
-        f = qq_ax.fill_between(
-            list(gg_graph.x()),
-            y_low,
-            y_up,
-            interpolate=True,
-            facecolor='green',
-            linewidth=0,
-            label='68% CL band')
-        #l = qq_ax.plot(xrange(-10, 10), xrange(-10, 10), 'b--')[0]
-        diag = [max(gg_graph.xedgesl(0), min(y)),
-                max(gg_graph.xedgesh(-1), max(y))]
-        l = Line2D(diag, diag, color='b', linestyle='--')
-        qq_ax.add_line(l)
-        p, _, _ = rplt.errorbar(gg_graph, axes=qq_ax, snap_zero=False,
-                                xerr=False, yerr=False)
-        qq_ax.set_ylabel('Model', position=(0., 1.), va='top')
-        qq_ax.set_xlabel('Data', position=(1., 0.), ha='right')
-        leg = qq_ax.legend([p, Patch(facecolor='green', linewidth=0), l],
-                           ['QQ plot', '68% CL band', 'Diagonal'],
-                           loc='lower right', prop=prop)
-        frame = leg.get_frame()
-        frame.set_linewidth(0)
-        qq_ax.set_xlim((gg_graph.xedgesl(0), gg_graph.xedgesh(-1)))
-        qq_ax.set_ylim((min(y_low), max(y_up)))
-
-    if systematics:
-        if model is not None:
-            # draw systematics band
-            total_model, high_band_model, low_band_model = uncertainty_band(
-                    model, systematics, systematics_components)
-            high = total_model + high_band_model
-            low = total_model - low_band_model
-            if root:
-                hist_pad.cd()
-                error_band_model = get_band(
-                    low,
-                    high,
-                    middle_hist=total_model)
-                error_band_model.fillstyle = '/'
-                error_band_model.fillcolor = '#cccccc'
-                error_band_model.Draw('same e2')
-
-            else:
-                # draw band as hatched histogram with base of model - low_band
-                # and height of high_band + low_band
-                rplt.fill_between(
-                    high,
-                    low,
-                    edgecolor='0.75',
-                    linewidth=0,
-                    facecolor=(0,0,0,0),
-                    hatch='////',
-                    axes=hist_ax,
-                    zorder=3000)
-
-        if signal is not None and show_signal_error:
-            total_signal, high_band_signal, low_band_signal = uncertainty_band(
-                signal, systematics, systematics_components)
-            high = (total_signal + high_band_signal) * signal_scale
-            low = (total_signal - low_band_signal) * signal_scale
-            if signal_on_top:
-                high += total_model
-                low += total_model
-            if root:
-                hist_pad.cd()
-                error_band_signal = get_band(
-                    low,
-                    high,
-                    middle_hist=total_signal * signal_scale)
-                error_band_signal.fillstyle = '\\'
-                error_band_signal.fillcolor = '#cccccc'
-                error_band_signal.Draw('same e2')
-                signal_stack.Draw('SAME')
-            else:
-                rplt.fill_between(
-                    high,
-                    low,
-                    edgecolor='0.75',
-                    linewidth=0,
-                    facecolor=(0,0,0,0),
-                    hatch=r'\\\\',
-                    axes=hist_ax,
-                    zorder=4000)
-
-    if data is not None and blind is not True:
-        if isinstance(blind, tuple):
-            low, high = blind
-            # zero out bins in blind region
-            for bin in data.bins():
-                if (low < bin.x.high <= high or low <= bin.x.low < high):
-                    data[bin.idx] = (0., 0.)
-        # draw data
-        if root:
-            hist_pad.cd()
-            _, _, _ymin, _ymax = get_limits(data,
-                    logy=logy,
-                    ypadding=ypadding)
-            if _ymin < ymin:
-                ymin = _ymin
-            if _ymax > ymax:
-                ymax = _ymax
-            data.SetMinimum(ymin)
-            data.SetMaximum(ymax)
-            data.linewidth = 2
-            data.Draw('same E1')
-            data.yaxis.SetLimits(ymin, ymax)
-            data.yaxis.SetRangeUser(ymin, ymax)
-
-        else:
-            data_bars = rplt.errorbar(data,
-                fmt='o', axes=hist_ax,
-                ypadding=ypadding,
-                emptybins=False,
-                barsabove=True,
-                zorder=5000)
-
-        # draw ratio plot
-        if model is not None and show_ratio:
-            total_model = sum(model)
-            ratio_hist = Hist.divide(data, total_model, option='B')
-            # remove bins where data is zero
-            for bin in data.bins():
-                if bin.value == 0:
-                    ratio_hist[bin.idx] = (-1, 0)
-            ratio_hist.linecolor = 'black'
-            ratio_hist.linewidth = 2
-            ratio_hist.fillstyle = 'hollow'
-
-            if root:
-                fig.cd()
-                ratio_pad = Pad(
-                    0, 0, 1, (rect_ratio[1] + rect_ratio[3]) * 0.9,
-                    name='ratio', title='ratio')
-                ratio_pad.SetBottomMargin(rect_ratio[1] * 3)
-                ratio_pad.SetLeftMargin(rect_ratio[0])
-                ratio_pad.SetRightMargin(1. - rect_ratio[2] - rect_ratio[0])
-                ratio_pad.SetTopMargin(0.04)
-                ratio_pad.Draw()
-                ratio_pad.cd()
-
-                # draw empty copy of ratio_hist first so lines will show
-                ratio_hist_tmp = ratio_hist.Clone()
-                ratio_hist_tmp.Reset()
-                ratio_hist_tmp.Draw()
-
-                ratio_hist_tmp.yaxis.SetLimits(*ratio_range)
-                ratio_hist_tmp.yaxis.SetRangeUser(*ratio_range)
-                ratio_hist_tmp.yaxis.SetTitle('Data / Model')
-                ratio_hist_tmp.yaxis.SetNdivisions(4)
-                ratio_hist_tmp.xaxis.SetLimits(*ratio_hist.bounds())
-                ratio_hist_tmp.xaxis.SetRangeUser(*ratio_hist.bounds())
-                ratio_hist_tmp.xaxis.SetTickLength(
-                    ratio_hist_tmp.xaxis.GetTickLength() * 2)
-
-                # draw horizontal lines
-                line = Line(ratio_hist.lowerbound(), 1,
-                            ratio_hist.upperbound(), 1)
-                line.linestyle = 'dashed'
-                line.linewidth = 2
-                line.Draw()
-
-                line_up = Line(ratio_hist.lowerbound(), 1.50,
-                               ratio_hist.upperbound(), 1.50)
-                line_up.linestyle = 'dashed'
-                line_up.linewidth = 2
-                line_up.Draw()
-
-                line_dn = Line(ratio_hist.lowerbound(), 0.50,
-                               ratio_hist.upperbound(), 0.50)
-                line_dn.linestyle = 'dashed'
-                line_dn.linewidth = 2
-                line_dn.Draw()
-
-            else:
-                ratio_ax = plt.axes(rect_ratio)
-                ratio_ax.axhline(y=1, color='black', linestyle=':',
-                                 linewidth=1.5)
-                ratio_ax.axhline(y=1.5, color='black', linestyle=':',
-                                 linewidth=1.5)
-                ratio_ax.axhline(y=0.5, color='black', linestyle=':',
-                                 linewidth=1.5)
-                ratio_ax.set_ylim(ratio_range)
-                ratio_ax.set_xlim(hist_ax.get_xlim())
-                #ratio_ax.yaxis.tick_right()
-                ratio_ax.set_ylabel(r'Data / Model',
-                        position=(0., 1.), va='center', ha='right')
-
-            # draw band below points
-            if systematics:
-                # plot band on ratio plot
-                ratio_hist_high = Hist.divide(
-                    total_model + high_band_model, total_model, option='B')
-                ratio_hist_low = Hist.divide(
-                    total_model - low_band_model, total_model, option='B')
-
-                if root:
-                    ratio_pad.cd()
-                    error_band = get_band(ratio_hist_high,
-                                          ratio_hist_low)
-                    error_band.fillstyle = '/'
-                    error_band.fillcolor = '#7a7a7a'
-                    error_band.Draw('same E2')
-
-                else:
-                    rplt.fill_between(
-                        ratio_hist_high,
-                        ratio_hist_low,
-                        edgecolor='0.75',
-                        linewidth=0,
-                        facecolor=(0,0,0,0),
-                        hatch='////',
-                        axes=ratio_ax)
-
-            # draw points above band
-            if root:
-                ratio_pad.cd()
-                ratio_hist.Draw('same E0')
-
-            else:
-                rplt.step(ratio_hist, axes=ratio_ax)
-
-    if model is not None:
-        if root:
-            hist_pad.cd()
-            n_entries = len(model)
-            if systematics:
-                n_entries += 1
-            model_legend = Legend(n_entries,
-                pad=hist_pad,
-                leftmargin=0.02,
-                rightmargin=0.5,
-                margin=0.3,
-                textsize=20,
-                entrysep=0.02,
-                entryheight=0.045,
-                topmargin=0.18 if data_info else 0.1)
-            for hist in reversed(model):
-                model_legend.AddEntry(hist, style='F')
-            if systematics:
-                model_err_band = error_band_model.Clone()
-                model_err_band.linewidth = 0
-                #model_err_band.linecolor = 'white'
-                model_err_band.fillcolor = 'black'
-                model_err_band.title = 'Uncert.'
-                model_legend.AddEntry(model_err_band, style='F')
-            model_legend.Draw()
-        else:
-            model_legend = hist_ax.legend(
-                reversed(model_bars), [h.title for h in reversed(model)],
-                prop=prop,
-                title=(category.label + '\n' + plot_label
-                    if plot_label else category.label),
-                loc='upper left')
-            format_legend(model_legend)
-
-    if root:
-        hist_pad.cd()
-        right_legend = Legend(len(signal) + 1 if signal is not None else 1,
-            pad=hist_pad,
-            leftmargin=0.4,
-            rightmargin=0.12,
-            margin=0.3,
-            textsize=20,
-            entrysep=0.02,
-            entryheight=0.045,
-            topmargin=0.1)
-        right_legend.AddEntry(data, style='lep')
-        if signal is not None:
-            for s in reversed(scaled_signal):
-                right_legend.AddEntry(s, style='F')
-        right_legend.Draw()
-    else:
-        right_legend_bars = []
-        right_legend_titles =[]
-
-        if signal is not None:
-            right_legend_bars += signal_bars
-            right_legend_titles += [s.title for s in scaled_signal]
-
-        if data is not None:
-            right_legend_bars.append(data_bars)
-            right_legend_titles.append(data.title)
-
-        if right_legend_bars:
-            right_legend = hist_ax.legend(
-                right_legend_bars[::-1],
-                right_legend_titles[::-1],
-                prop=prop,
-                loc='upper right')
-            format_legend(right_legend)
-            if model is not None:
-                # re-add model legend
-                hist_ax.add_artist(model_legend)
-
-    if units is not None:
-        label = '%s [%s]' % (name, units)
-        if data is not None:
-            binw = list(data.xwidth())
-        elif model is not None:
-            binw = list(model[0].xwidth())
-        else:
-            if isinstance(signal, (list, tuple)):
-                binw = list(signal[0].xwidth())
-            else:
-                binw = list(signal.xwidth())
-        binwidths = list(set(['%.3g' % w for w in binw]))
-        if len(binwidths) == 1:
-            # constant width bins
-            ylabel = '%s / %s [%s]' % (ylabel, binwidths[0], units)
-    else:
-        label = name
-
-    if root:
-        model_stack.yaxis.SetTitle(ylabel)
-        base_hist = model_stack
-        if show_ratio:
-            # hide x labels on top hist
-            model_stack.xaxis.SetLabelOffset(100)
-            base_hist = ratio_hist_tmp
-            base_hist.xaxis.SetTitleOffset(
-                base_hist.xaxis.GetTitleOffset() * 3)
-            base_hist.xaxis.SetLabelOffset(
-                base_hist.xaxis.GetLabelOffset() * 4)
-        base_hist.xaxis.SetTitle(label)
-
-    else:
-        hist_ax.set_ylabel(ylabel, position=(0., 1.), va='center', ha='right')
-        base_ax = hist_ax
-        if show_ratio:
-            base_ax = ratio_ax
-        base_ax.set_xlabel(label, position=(1., 0.), ha='right')
-        root_axes(hist_ax,
-                  xtick_formatter=xtick_formatter,
-                  logy=logy,
-                  integer=integer,
-                  no_xlabels=show_ratio,
-                  vscale=1.5 if not (show_ratio or show_qq) else 1.,
-                  xtick_rotation=xtick_rotation)
-        if show_ratio:
-            root_axes(ratio_ax,
-                      xtick_formatter=xtick_formatter,
-                      integer=integer,
-                      vscale=1 if show_qq else vscale * .4,
-                      xtick_rotation=xtick_rotation)
-        if show_qq:
-            root_axes(qq_ax,
-                      vscale=vscale)
-
-    if range is not None:
-        if root:
-            model_stack.xaxis.SetLimits(*range)
-            model_stack.xaxis.SetRangeUser(*range)
-        else:
-            hist_ax.set_xlim(range)
-        if show_ratio:
-            if root:
-                pass
-            else:
-                ratio_ax.set_xlim(range)
-
+    # create the output filename
     filename = os.path.join(PLOTS_DIR,
         'var_%s_%s' %
         (category.name,
          output_name.lower().replace(' ', '_')))
-
     if logy:
         filename += '_logy'
+    filename += '_root'
 
-    if mpl:
-        filename += '_mpl'
-    else:
-        filename += '_root'
+    # generate list of requested output formats
+    if output_formats is None:
+        output_formats = ('png',)
+    elif isinstance(output_formats, basestring):
+        output_formats = output_formats.split()
 
-    if root:
-        hist_pad.cd()
-        label = ROOT.TLatex(rect_hist[0] + 0.03, 0.9, category.label)
-        label.SetNDC()
-        label.SetTextFont(43)
-        label.SetTextSize(20)
-        label.Draw()
-        keepalive(hist_pad, label)
-
-        if data_info is not None:
-            plabel = ROOT.TLatex(rect_hist[0] + 0.03, 0.83, data_info)
-            plabel.SetNDC()
-            plabel.SetTextFont(43)
-            plabel.SetTextSize(20)
-            plabel.Draw()
-            keepalive(hist_pad, plabel)
-
-        ATLAS_label(0.75, 0.9, sep=0.09, pad=hist_pad, sqrts=None, text="Internal")
-
-        hist_pad.Update()
-        hist_pad.Modified()
-        hist_pad.RedrawAxis()
-
+    # save the figure
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)
-        if root:
-            fig.SaveAs(output_filename)
-        else:
-            log.info("writing %s" % output_filename)
-            plt.savefig(output_filename)
+        fig.SaveAs(output_filename)
 
-    if mpl:
-        plt.close(fig)
+    if prev_style is not None:
+        prev_style.cd()
     return fig
 
 
@@ -2343,7 +1618,6 @@ def plot_clf(background_scores,
              min_score=0,
              max_score=1,
              signal_colour_map=cm.spring,
-             plot_signal_significance=True,
              systematics=None,
              unblind=False,
              **kwargs):
@@ -2421,7 +1695,6 @@ def plot_clf(background_scores,
                  model=bkg_hists,
                  signal=sig_hists,
                  signal_scale=signal_scale,
-                 plot_signal_significance=plot_signal_significance,
                  category=category,
                  name="BDT Score",
                  output_name=output_name,

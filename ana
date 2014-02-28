@@ -361,6 +361,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             output_suffix=output_suffix,
             unblind=args.unblind or is_control,
             cuts=cuts,
+            show_ratio=True,
             fit=None) # vars at pre-fit
         figures[category.name] = figs
 
