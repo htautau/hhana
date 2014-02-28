@@ -402,22 +402,15 @@ class Classifier(object):
                     (cv_nfold - 1.) / cv_nfold)
                 min_leaf_low = max(10, int(min_leaf_high / 100.))
 
-                min_leaf_step = max((min_leaf_high - min_leaf_low) / 50, 1)
-                max_n_estimators = 200
+                min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
+                max_n_estimators = 100
                 min_n_estimators = 1
-                n_estimators_step = 50
 
                 min_samples_leaf = range(
                     min_leaf_low, min_leaf_high, min_leaf_step)
 
-                #n_estimators = range(
-                #    min_n_estimators, max_n_estimators, n_estimators_step)
-
-                n_estimators = np.power(2, np.arange(0, 8))
-
                 grid_params = {
                     'base_estimator__min_samples_leaf': min_samples_leaf,
-                    #'n_estimators': n_estimators
                 }
 
                 #AdaBoostClassifier.staged_score = staged_score
@@ -432,7 +425,6 @@ class Classifier(object):
                     clf, grid_params,
                     max_n_estimators=max_n_estimators,
                     min_n_estimators=min_n_estimators,
-                    #n_estimators_step=1,
                     # can use default ClassifierMixin score
                     #score_func=precision_score,
                     cv = StratifiedKFold(labels_train, cv_nfold),
