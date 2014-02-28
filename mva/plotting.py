@@ -1019,6 +1019,11 @@ def draw(name,
             "at least one of model, data, "
             "or signal must be specified")
 
+    if 'BDT' in name:
+        # HACK
+        log.warning("using BDT axes ranges")
+        range = (-1, 1.3)
+
     # objects will be populated with all histograms in the main pad
     objects = []
     legends = []
@@ -1220,30 +1225,34 @@ def draw(name,
             ratio_hist_tmp.yaxis.SetRangeUser(*ratio_range)
             ratio_hist_tmp.yaxis.SetTitle('Data / Model')
             ratio_hist_tmp.yaxis.SetNdivisions(4)
-            ratio_hist_tmp.xaxis.SetLimits(*ratio_hist.bounds())
-            ratio_hist_tmp.xaxis.SetRangeUser(*ratio_hist.bounds())
-            ratio_hist_tmp.xaxis.SetTickLength(
-                ratio_hist_tmp.xaxis.GetTickLength() * 2)
             # not certain why the following is needed
             ratio_hist_tmp.yaxis.SetTitleOffset(style.GetTitleYOffset())
 
+            ratio_xrange = range or ratio_hist.bounds()
+
+            ratio_hist_tmp.xaxis.SetLimits(*ratio_xrange)
+            #ratio_hist_tmp.xaxis.SetRangeUser(*ratio_xrange)
+
+            ratio_hist_tmp.xaxis.SetTickLength(
+                ratio_hist_tmp.xaxis.GetTickLength() * 2)
+
             # draw ratio=1 line
-            line = Line(ratio_hist.lowerbound(), 1,
-                        ratio_hist.upperbound(), 1)
+            line = Line(ratio_xrange[0], 1,
+                        ratio_xrange[1], 1)
             line.linestyle = 'dashed'
             line.linewidth = 2
             line.Draw()
 
             # draw high ratio line
-            line_up = Line(ratio_hist.lowerbound(), 1.50,
-                            ratio_hist.upperbound(), 1.50)
+            line_up = Line(ratio_xrange[0], 1.50,
+                           ratio_xrange[1], 1.50)
             line_up.linestyle = 'dashed'
             line_up.linewidth = 2
             line_up.Draw()
 
             # draw low ratio line
-            line_dn = Line(ratio_hist.lowerbound(), 0.50,
-                            ratio_hist.upperbound(), 0.50)
+            line_dn = Line(ratio_xrange[0], 0.50,
+                           ratio_xrange[1], 0.50)
             line_dn.linestyle = 'dashed'
             line_dn.linewidth = 2
             line_dn.Draw()
@@ -1439,15 +1448,9 @@ def draw(name,
     hist_pad.Modified()
     hist_pad.RedrawAxis()
 
-    # HACK
-    if 'BDT' in name:
-        log.warning("using BDT axes ranges")
-        model_stack.xaxis.SetLimits(-1, 1.3)
-        #model_stack.xaxis.SetRangeUser(-1, 1.3)
-    elif range is not None:
+    if range is None:
         range = model[0].bounds()
-        model_stack.xaxis.SetLimits(*range)
-        #model_stack.xaxis.SetRangeUser(*range)
+    model_stack.xaxis.SetLimits(*range)
 
     # create the output filename
     filename = os.path.join(PLOTS_DIR,

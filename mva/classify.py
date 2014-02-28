@@ -618,7 +618,8 @@ class Classifier(object):
             output_formats=output_formats,
             ypadding=(0.4, 0.),
             signal_scale=signal_scale,
-            signal_on_top=False)
+            signal_on_top=False,
+            show_ratio=True)
 
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -651,6 +652,7 @@ class Classifier(object):
             name='BDT score',
             systematics=systematics,
             output_formats=output_formats,
+            show_ratio=True,
             fit=fit) #POSTFIT
 
         """
