@@ -1,6 +1,3 @@
-
-from array import array
-
 # root/rootpy imports
 import rootpy
 import ROOT
@@ -18,6 +15,8 @@ def UncertGraph( hnom, curve_uncert ):
         The histogram of nominal values
     curve_uncert: RooCurve
         The uncertainty band around the nominal value
+    curve_uncert: RooCurve
+    TODO: Improve the handling of the underflow and overflow bins
     """
 
     graph = Graph( hnom.GetNbinsX() )
@@ -28,13 +27,11 @@ def UncertGraph( hnom, curve_uncert ):
             x,y = ROOT.Double(0.),ROOT.Double(0.)
             curve_uncert.GetPoint(ip,x,y)
             if int(x)==int(hnom.GetBinLowEdge(ibin)):
-                #                 print ip,int(x),y
                 uncerts.append(y)
         uncerts.sort()
         for val in uncerts:
             if val in uncerts:
                 uncerts.remove(val)
-        print uncerts
         if len(uncerts)!=2:
             raise RuntimeError( 'Need exactly two error values and got '+len(uncerts) )
 
@@ -50,56 +47,34 @@ def UncertGraph( hnom, curve_uncert ):
     return graph
 
 
-
-# ------------------------------
-def Fit_WS(workspace):
+# ----------------------------------------------------
+def getPostFitPlottingObjects(mc,obsData,simPdf,fit_res):
     """
-    Fit the WS and compute the histograms and TGraphAssymErrors
-    for the final plot drawing
+    Return a list of histograms and frames
+    containing the output plotting objects
+    from the workspace post-fit
 
-    Parameters
-    ----------
+    parameters:
 
-    workspace : RooWorkspace
-        HSG4 like workspace
+    mc: ModelConfig
+    obsData: RooDataHist object (either real data or asimov or PE)
+    simPdf: RooSimultaneousPdf
+    fit_res: RooFitResult
     """
 
-    # --> Get the Model Config object
-    mc = workspace.obj("ModelConfig")
-    if not mc:
-        raise RuntimeError('Could not retrieve the ModelConfig object')
-    mc.GetParametersOfInterest().first().setVal(1)
-#     fit_res = 0
-    roo_min = workspace.fit()
-    fit_res = roo_min.save()
-    fit_res.Print()
-
-
-    out_file = ROOT.TFile('frames.root','RECREATE')
-
-    # --> Get the data distribution
-    obsData = workspace.data('obsData')
-    if not obsData:
-        raise RuntimeError('Could not retrieve the data histograms')
-    # --> Get the simultaneous PDF
-    simPdf = mc.GetPdf()
-    if not simPdf:
-        raise RuntimeError('Could not retrieve the simultaneous pdf')
-        
+    plotting_objects = []
     # --> get the list of categories and iterate over (VBF,Boosted and Rest for HSG4 hadhad)
     catIter = simPdf.indexCat().typeIterator()
     while True:
         cat = catIter.Next()
-        if not cat: break
+        if not cat:
+            break
+        print 'retrieve plotting objects of ', cat.GetName()
         frame,hlist = getFrame(cat,obsData,simPdf,mc,fit_res)
-        frame.Write( cat.GetName() )
-        for h in hlist:
-            h.Write()
-    out_file.Close()
+        plotting_objects += [frame]+hlist
+    return plotting_objects
 
-
-
-
+# ------------------------------------------------------------------------------
 def getFrame(cat,obsData,simPdf,mc,fit_res,error_band_strategy=1,verbose=False):
     """
     Build a frame with the different fit components and their uncertainties
@@ -118,10 +93,12 @@ def getFrame(cat,obsData,simPdf,mc,fit_res,error_band_strategy=1,verbose=False):
         False: Use a sampling method
         See http://root.cern.ch/root/html/RooAbsReal.html#RooAbsReal:plotOnWithErrorBand
     verbose: True/False
-    """
-    
-    hlist = []
 
+    TODO: implement a more generic way to retrieve the binning.
+    Currently it has to be put in the workspace with the name binWidth_obs_x_{channel}_0
+    """
+
+    hlist = []
     # --> Get the total (signal+bkg) model pdf
     pdftmp = simPdf.getPdf( cat.GetName() )
     if not pdftmp:
@@ -142,10 +119,13 @@ def getFrame(cat,obsData,simPdf,mc,fit_res,error_band_strategy=1,verbose=False):
             
     # --> Create the data histogram
     hist_data = datatmp.createHistogram("hdata_"+cat.GetName(),obs)
+    hist_data.SetName( "hdata_"+cat.GetName() )
+    hist_data.SetTitle( "" )
     hlist.append(hist_data)
 
     # --> Create the frame structure from the observable
     frame = obs.frame()
+    frame.SetName( cat.GetName() )
     datatmp.plotOn( frame,
                     ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),
                     ROOT.RooFit.Name("Data"),
@@ -160,27 +140,13 @@ def getFrame(cat,obsData,simPdf,mc,fit_res,error_band_strategy=1,verbose=False):
         if not comp:
             break
         hist_comp = comp.createHistogram( cat.GetName()+"_"+comp.GetName(), obs, ROOT.RooFit.Extended(False) )
+        hist_comp.SetName("hcomp_"+comp.GetName()+"_"+cat.GetName())
+        hist_comp.SetTitle( "" )
         hlist.append(hist_comp)
 
         Integral_comp = comp.createIntegral(ROOT.RooArgSet(obs))
         Yield_comp = Integral_comp.getVal() * binWidth.getVal()
 
-        # ------------------------------------------------
-        # ------------------------------------------------
-#         components_set = comp.components()
-#         components_set.Print('v')
-#         components_set_it = components_set.createIterator()
-#         while True:
-#             current = components_set_it.Next()
-#             if not components_set_it:
-#                 break
-#             if isinstance(current,ROOT.RooProduct): 
-#                 current.Print('v')
-        #         comp.Print('v')
-        # ------------------------------------------------
-        # ------------------------------------------------
-        print comp.GetName()
-        print 'YIELD=',Yield_comp,Integral_comp.getVal(),binWidth.getVal()
         if Yield_comp==0:
             raise RuntimeError( 'Yield integral is wrong !!')
 
@@ -211,11 +177,16 @@ def getFrame(cat,obsData,simPdf,mc,fit_res,error_band_strategy=1,verbose=False):
     # --> parameter of interest (mu=sigma/sigma_sm)
     poi =  mc.GetParametersOfInterest().first()
 
-    # --> bkg+signal PDF error
-    hist_bkg_plus_sig = pdftmp.createHistogram("hbkg_plus_sig_"+cat.GetName(),obs,ROOT.RooFit.Extended(False))
-    hlist.append(hist_bkg_plus_sig)
-    Integral_total = pdftmp.createIntegral(ROOT.RooArgSet(obs))
+    # --> bkg+signal PDF central value and error
+    Integral_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
     Yield_total = Integral_total.getVal() * binWidth.getVal()
+
+    hist_bkg_plus_sig = pdfmodel.createHistogram("hbkg_plus_sig_"+cat.GetName(),obs,ROOT.RooFit.Extended(False))
+    hist_bkg_plus_sig.SetName("hbkg_plus_sig_"+cat.GetName())
+    hist_bkg_plus_sig.SetTitle( "" )
+    hist_bkg_plus_sig.Scale(Yield_total)
+    hlist.append(hist_bkg_plus_sig)
+
     # --> Add the components to the frame but in an invisible way
     pdftmp.plotOn( frame,
                    ROOT.RooFit.Normalization(Yield_total,ROOT.RooAbsReal.NumEvent),
@@ -232,12 +203,16 @@ def getFrame(cat,obsData,simPdf,mc,fit_res,error_band_strategy=1,verbose=False):
                        ROOT.RooFit.LineColor(ROOT.kBlue)
                        )
 
-    # --> bkg only PDF error
+    # --> bkg only PDF central value and error
     poi.setVal(0.)
-    hist_bkg = pdftmp.createHistogram("hbkg_"+cat.GetName(),obs,ROOT.RooFit.Extended(False))
-    hlist.append(hist_bkg)
-    Integral_bkg_total = pdftmp.createIntegral(ROOT.RooArgSet(obs))
+    Integral_bkg_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
     Yield_bkg_total = Integral_bkg_total.getVal() * binWidth.getVal()
+
+    hist_bkg = pdfmodel.createHistogram("hbkg_"+cat.GetName(),obs,ROOT.RooFit.Extended(False))
+    hist_bkg.Scale(Yield_bkg_total)
+    hist_bkg.SetName("hbkg_"+cat.GetName())
+    hist_bkg.SetTitle( "" )
+    hlist.append(hist_bkg)
     pdftmp.plotOn( frame,
                    ROOT.RooFit.Normalization(Yield_bkg_total,ROOT.RooAbsReal.NumEvent),
                    ROOT.RooFit.Name("Bkg"),
