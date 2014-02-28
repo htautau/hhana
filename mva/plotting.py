@@ -1152,43 +1152,42 @@ def draw(name,
             signal_stack.Add(hist)
         objects.append(signal_stack)
 
-    if systematics:
-        if model is not None:
-            # draw systematics band
-            total_model, high_band_model, low_band_model = uncertainty_band(
-                model, systematics, systematics_components)
-            high = total_model + high_band_model
-            low = total_model - low_band_model
-            error_band_model = rootpy_utils.get_band(
-                low, high,
-                middle_hist=total_model)
-            error_band_model.fillstyle = '/'
-            error_band_model.fillcolor = 13
-            error_band_model.linecolor = 10
-            error_band_model.markersize = 0
-            error_band_model.markercolor = 10
-            error_band_model.drawstyle = 'e2'
-            objects.append(error_band_model)
+    if model is not None:
+        # draw uncertainty band
+        total_model, high_band_model, low_band_model = uncertainty_band(
+            model, systematics, systematics_components)
+        high = total_model + high_band_model
+        low = total_model - low_band_model
+        error_band_model = rootpy_utils.get_band(
+            low, high,
+            middle_hist=total_model)
+        error_band_model.fillstyle = '/'
+        error_band_model.fillcolor = 13
+        error_band_model.linecolor = 10
+        error_band_model.markersize = 0
+        error_band_model.markercolor = 10
+        error_band_model.drawstyle = 'e2'
+        objects.append(error_band_model)
 
-        if signal is not None and show_signal_error:
-            total_signal, high_band_signal, low_band_signal = uncertainty_band(
-                signal, systematics, systematics_components)
-            high = (total_signal + high_band_signal) * signal_scale
-            low = (total_signal - low_band_signal) * signal_scale
-            if signal_on_top:
-                high += total_model
-                low += total_model
-            hist_pad.cd()
-            error_band_signal = rootpy_utils.get_band(
-                low, high,
-                middle_hist=total_signal * signal_scale)
-            error_band_signal.fillstyle = '\\'
-            error_band_signal.fillcolor = 13
-            error_band_signal.linecolor = 10
-            error_band_signal.markersize = 0
-            error_band_signal.markercolor = 10
-            error_band_signal.drawstyle = 'e2'
-            objects.append(error_band_signal)
+    if signal is not None and show_signal_error:
+        total_signal, high_band_signal, low_band_signal = uncertainty_band(
+            signal, systematics, systematics_components)
+        high = (total_signal + high_band_signal) * signal_scale
+        low = (total_signal - low_band_signal) * signal_scale
+        if signal_on_top:
+            high += total_model
+            low += total_model
+        hist_pad.cd()
+        error_band_signal = rootpy_utils.get_band(
+            low, high,
+            middle_hist=total_signal * signal_scale)
+        error_band_signal.fillstyle = '\\'
+        error_band_signal.fillcolor = 13
+        error_band_signal.linecolor = 10
+        error_band_signal.markersize = 0
+        error_band_signal.markercolor = 10
+        error_band_signal.drawstyle = 'e2'
+        objects.append(error_band_signal)
 
     if data is not None and blind is not True:
         # create the data histogram
@@ -1257,19 +1256,17 @@ def draw(name,
             line_dn.linewidth = 2
             line_dn.Draw()
 
-            # draw band below points
-            if systematics:
-                # plot band on ratio plot
-                ratio_hist_high = Hist.divide(
-                    total_model + high_band_model, total_model, option='B')
-                ratio_hist_low = Hist.divide(
-                    total_model - low_band_model, total_model, option='B')
-                ratio_pad.cd()
-                error_band = rootpy_utils.get_band(
-                    ratio_hist_high, ratio_hist_low)
-                error_band.fillstyle = '/'
-                error_band.fillcolor = '#858585'
-                error_band.Draw('same E2')
+            # draw band below points on ratio plot
+            ratio_hist_high = Hist.divide(
+                total_model + high_band_model, total_model, option='B')
+            ratio_hist_low = Hist.divide(
+                total_model - low_band_model, total_model, option='B')
+            ratio_pad.cd()
+            error_band = rootpy_utils.get_band(
+                ratio_hist_high, ratio_hist_low)
+            error_band.fillstyle = '/'
+            error_band.fillcolor = '#858585'
+            error_band.Draw('same E2')
 
             # draw points above band
             ratio_hist.Draw('same E0')
@@ -1347,13 +1344,12 @@ def draw(name,
         if model:
             for hist in reversed(model):
                 legend.AddEntry(hist, style='F')
-            if systematics:
-                model_err_band = error_band_model.Clone()
-                model_err_band.linewidth = 0
-                model_err_band.linecolor = 'white'
-                model_err_band.fillcolor = '#858585'
-                model_err_band.title = 'Uncert.'
-                legend.AddEntry(model_err_band, style='F')
+            model_err_band = error_band_model.Clone()
+            model_err_band.linewidth = 0
+            model_err_band.linecolor = 'white'
+            model_err_band.fillcolor = '#858585'
+            model_err_band.title = 'Uncert.'
+            legend.AddEntry(model_err_band, style='F')
         legends.append(legend)
 
     # draw the objects
