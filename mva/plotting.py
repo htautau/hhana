@@ -1168,7 +1168,7 @@ def draw(name,
             error_band_model.markersize = 0
             error_band_model.markercolor = 10
             error_band_model.drawstyle = 'e2'
-            objects.append(error_band)
+            objects.append(error_band_model)
 
         if signal is not None and show_signal_error:
             total_signal, high_band_signal, low_band_signal = uncertainty_band(
