@@ -28,7 +28,7 @@ category = Category_Preselection
 field = 'dEta_tau1_tau2'
 field_min = 0.
 field_max = 1.5
-field_bins = 10
+field_bins = 5
 
 # initialize QCD and Ztautau normalizations to 50/50 of data yield
 data_yield = analysis.data.events(category, args.target_region)[1].value
@@ -106,6 +106,8 @@ while ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01:
         qcd_others_scale=1.,
         z_scale=analysis.ztautau.scale * ztt_scale,
         z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
+
+    #break
 
 # draw post-fit plots
 analysis.normalize(category)

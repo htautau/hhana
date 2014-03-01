@@ -377,8 +377,8 @@ VARIABLES = {
         'filename': 'dr_tau1_tau2',
         'bins': 11,
         'range': {
-            'PRESELECTION': (22, 0.6, 2.8),
-            None: (11, 0.6, 2.8)},
+            'PRESELECTION': (22, 0.8, 2.6),
+            None: (11, 0.8, 2.6)},
         'ypadding': (0.5, 0),
     },
     'dPhi_tau1_tau2': {
