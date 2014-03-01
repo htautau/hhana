@@ -113,19 +113,25 @@ class Sample(object):
                     title=self.label, **self.hist_decor)
                 continue
 
-            _range = var_info['range']
-            if isinstance(_range, dict):
-                _range = _range.get(category.name.upper(), _range[None])
-            if len(_range) == 3:
-                bins, min, max = _range
+            bins = var_info['bins']
+            if isinstance(bins, (list, tuple)):
+                hist = Hist(bins,
+                    title=self.label,
+                    type='D',
+                    **self.hist_decor)
             else:
-                min, max = _range
-                bins = var_info['bins']
+                _range = var_info['range']
+                if isinstance(_range, dict):
+                    _range = _range.get(category.name.upper(), _range[None])
+                if len(_range) == 3:
+                    bins, min, max = _range
+                else:
+                    min, max = _range
+                hist = Hist(bins, min, max,
+                    title=self.label,
+                    type='D',
+                    **self.hist_decor)
 
-            hist = Hist(bins, min, max,
-                title=self.label,
-                type='D',
-                **self.hist_decor)
             field_hist[field] = hist
         return field_hist
 

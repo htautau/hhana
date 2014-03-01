@@ -44,7 +44,7 @@ from mva.systematics import ( get_systematics, iter_systematics,
                               parse_systematics, systematic_name )
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
-from mva.variables import VARIABLES, WEIGHTS
+from mva.variables import VARIABLES, WEIGHTS, YEAR_VARIABLES
 from mva.analysis import get_analysis, Analysis
 from mva.lumi import get_lumi_uncert
 from mva import log, variables, samples, MMC_MASS, CONST_PARAMS
@@ -342,6 +342,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
                     'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
         else:
             VARS = VARIABLES
+            VARS.update(YEAR_VARIABLES[args.year])
 
         figs = draw_channel_array(
             analysis,

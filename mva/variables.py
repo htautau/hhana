@@ -10,6 +10,40 @@ WEIGHTS = {
     },
 }
 
+YEAR_VARIABLES = {
+    2011: {
+        'RunNumber' : {
+            'title': r'RunNumber',
+            'root': 'Run Number',
+            'filename': 'runnumber',
+            'bins': (
+                177531,
+                177986,
+                178163,
+                179710,
+                180614,
+                182013,
+                182726,
+                183544,
+                185353,
+                186516,
+                186873,
+                188902,
+                190503),
+        }
+    },
+    2012: {
+        'RunNumber' : {
+            'title': r'RunNumber',
+            'root': 'Run Number',
+            'filename': 'runnumber',
+            'bins': (
+                200804, 202660, 206248, 207447, 209074, 210184, 211522,
+                212619, 213431, 213900, 214281, 215414, 216399),
+        }
+    }
+}
+
 VARIABLES = {
     #'ntrack_pv': {
     #    'title': r'Number of Tracks from the Primary Vertex',
