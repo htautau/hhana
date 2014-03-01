@@ -1259,9 +1259,9 @@ def draw(name,
 
             # draw band below points on ratio plot
             ratio_hist_high = Hist.divide(
-                total_model + high_band_model, total_model, option='B')
+                total_model + high_band_model, total_model)
             ratio_hist_low = Hist.divide(
-                total_model - low_band_model, total_model, option='B')
+                total_model - low_band_model, total_model)
             ratio_pad.cd()
             error_band = rootpy_utils.get_band(
                 ratio_hist_high, ratio_hist_low)
