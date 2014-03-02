@@ -3,7 +3,6 @@
 import ROOT
 from rootpy.plotting import Canvas, Legend, Hist, Graph
 from rootpy.plotting.shapes import Line
-from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.plotting.utils import draw
 from rootpy.memory import keepalive
 from rootpy.context import preserve_current_canvas
@@ -38,6 +37,8 @@ def pvalue_plot(poi, pvalues, pad=None,
     -------
     pad : Canvas
         The pad.
+    graphs : list of Graph
+        The p-value graphs
 
     """
     if not pvalues:
@@ -102,22 +103,31 @@ def pvalue_plot(poi, pvalues, pad=None,
 
         pad.RedrawAxis()
         pad.Update()
-    return pad
+    return pad, graphs
 
 
 if __name__ == '__main__':
-    from rootpy.plotting import Canvas, Pad, Legend, Hist, Graph, get_style
+    from rootpy.plotting import Canvas, Legend, get_style
+    from rootpy.plotting.style.atlas.labels import ATLAS_label
+
     mass_points = [100,105,120,125,130,135,140,145,150]
     pvalues = [
         [0.5, 0.25, 0.15, 0.05, 0.03, 0.01, 0.03, 0.05, 0.15, 0.25, 0.5],
         [0.4, 0.3, 0.17, 0.02, 0.01, 0.008, 0.08, 0.06, 0.14, 0.2, 0.2],
     ]
+    names = ['A', 'B']
     style = get_style('ATLAS', shape='rect')
     # allow space for sigma labels on right
     style.SetPadRightMargin(0.05)
     with style:
         c = Canvas()
-        pvalue_plot(mass_points, pvalues, pad=c, xtitle='m_{H} [GeV]',
-                    linestyle=['dashed', 'solid'])
+        _, graphs = pvalue_plot(
+            mass_points, pvalues, pad=c, xtitle='m_{H} [GeV]',
+            linestyle=['dashed', 'solid'])
+        for name, graph in zip(names, graphs):
+            graph.title = name
+            graph.legendstyle = 'L'
+        leg = Legend(graphs, leftmargin=0.4, topmargin=0.2)
+        leg.Draw()
         ATLAS_label(0.57, 0.88, text="Internal 2012", sqrts=8, pad=c, sep=0.09)
         c.SaveAs('pvalue_plot.png')
