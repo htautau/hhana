@@ -46,7 +46,7 @@ class Category_Cuts_Preselection(Category):
 
 class Category_Cuts_VBF_LowDR(Category_Cuts_Preselection):
     name = 'cuts_vbf_lowdr'
-    label = '#tau_{had}#tau_{had} Cut-based VBF Low #delta R'
+    label = '#tau_{had}#tau_{had} Cut-based VBF Low dR'
     cuts = (VBF_CUTS_CUTBASED
         & Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt > 140000'))
     limitbins = [0,64,80,92,104,116,132,176,INF]
@@ -54,7 +54,7 @@ class Category_Cuts_VBF_LowDR(Category_Cuts_Preselection):
 
 class Category_Cuts_VBF_HighDR_Tight(Category_Cuts_Preselection):
     name = 'cuts_vbf_highdr_tight'
-    label = '#tau_{had}#tau_{had} Cut-based VBF High #delta R Tight'
+    label = '#tau_{had}#tau_{had} Cut-based VBF High dR Tight'
     cuts = (VBF_CUTS_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
@@ -63,7 +63,7 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Cuts_Preselection):
 
 class Category_Cuts_VBF_HighDR_Loose(Category_Cuts_Preselection):
     name = 'cuts_vbf_highdr_loose'
-    label = '#tau_{had}#tau_{had} Cut-based VBF High #delta R Loose'
+    label = '#tau_{had}#tau_{had} Cut-based VBF High dR Loose'
     cuts = (VBF_CUTS_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)'))

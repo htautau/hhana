@@ -1207,7 +1207,7 @@ def draw(name,
         if model is not None and show_ratio:
             ratio_pad.cd()
             total_model = sum(model)
-            ratio_hist = Hist.divide(data, total_model, option='B')
+            ratio_hist = Hist.divide(data, total_model)
             # remove bins where data is zero
             for bin in data.bins():
                 if bin.value == 0:
@@ -1215,6 +1215,7 @@ def draw(name,
             ratio_hist.linecolor = 'black'
             ratio_hist.linewidth = 2
             ratio_hist.fillstyle = 'hollow'
+
 
             # draw empty copy of ratio_hist first so lines will show
             ratio_hist_tmp = ratio_hist.Clone()
@@ -1420,9 +1421,9 @@ def draw(name,
         keepalive(hist_pad, plabel)
 
     # draw the ATLAS label
-    ATLAS_label(0.62, 0.89,
-        sep=0.132, pad=hist_pad, sqrts=None,
-        text="Preliminary", textsize=textsize)
+#     ATLAS_label(0.62, 0.89,
+#         sep=0.132, pad=hist_pad, sqrts=None,
+#         text="Preliminary", textsize=textsize)
 
     # draw the user-specified label
     if plot_label is not None:
