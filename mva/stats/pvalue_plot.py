@@ -5,6 +5,7 @@ from rootpy.plotting import Canvas, Legend, Hist, Graph
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.plotting.utils import draw
+from rootpy.memory import keepalive
 from rootpy.context import preserve_current_canvas
 
 gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
@@ -61,6 +62,7 @@ def pvalue_plot(poi, pvalues, pad=None,
         xaxis.SetRangeUser(min_poi, max_poi)
         haxis.Draw('AXIS')
 
+        min_pvalue = float('inf')
         graphs = []
         for ipv, pv in enumerate(pvalues):
             graph = Graph(len(poi), linestyle='dashed', drawstyle='L')
@@ -72,6 +74,9 @@ def pvalue_plot(poi, pvalues, pad=None,
                 else:
                     graph.linestyle = linestyle[ipv]
             graphs.append(graph)
+            curr_min_pvalue = min(pv)
+            if curr_min_pvalue < min_pvalue:
+                min_pvalue = curr_min_pvalue
 
         # automatically handles axis limits
         draw(graphs, pad=pad, same=True, logy=True,
@@ -86,14 +91,13 @@ def pvalue_plot(poi, pvalues, pad=None,
         latex.SetNDC(False)
         latex.SetTextSize(20)
         latex.SetTextColor(2)
-        min_pvalue = min(pvalues)
         sigma = 0
         while True:
             pvalue = gaussian_cdf_c(sigma)
             if pvalue < min_pvalue:
                 break
-            latex.DrawLatex(max_poi, pvalue, " {0}#sigma".format(sigma))
-            line.DrawLine(min_poi, pvalue, max_poi, pvalue)
+            keepalive(pad, latex.DrawLatex(max_poi, pvalue, " {0}#sigma".format(sigma)))
+            keepalive(pad, line.DrawLine(min_poi, pvalue, max_poi, pvalue))
             sigma += 1
 
         pad.RedrawAxis()
