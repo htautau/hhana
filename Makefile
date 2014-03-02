@@ -236,6 +236,13 @@ plots:
 	nohup ./ana plot --unblind --category-names rest --output-formats eps png > var_plots_rest.log &
 	nohup ./ana plot --unblind --categories presel --output-formats eps png > var_plots_presel.log &
 
+.PHONY: stats-bdt-plots
+stats-bdt-plots:
+	nohup ./ana train evaluate --year 2011 --use-2012-clf --no-systematics --output-formats eps png --category-names vbf > bdt_plots_vbf_11.log &
+	nohup ./ana train evaluate --year 2011 --use-2012-clf --no-systematics --output-formats eps png --category-names boosted > bdt_plots_boosted_11.log &
+	nohup ./ana train evaluate --year 2012 --no-systematics --output-formats eps png --category-names vbf > bdt_plots_vbf_12.log &
+	nohup ./ana train evaluate --year 2012 --no-systematics --output-formats eps png --category-names boosted > bdt_plots_boosted_12.log &
+
 .PHONY: bdt-plots
 bdt-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf > bdt_plots_vbf.log &
