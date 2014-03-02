@@ -631,7 +631,7 @@ class Classifier(object):
             mode='combined',
             systematics=systematics,
             bins=category.limitbins / 2,
-            unblind=unblind or 0.3,
+            unblind=unblind or 0.6,
             no_signal_fixes=True)
 
         bkg_scores = scores.bkg_scores
