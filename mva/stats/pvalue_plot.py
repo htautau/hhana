@@ -82,7 +82,8 @@ def pvalue_plot(poi, pvalues, pad=None,
         # automatically handles axis limits
         draw(graphs, pad=pad, same=True, logy=True,
              xtitle=xtitle, ytitle=ytitle,
-             xaxis=xaxis, yaxis=yaxis, ypadding=(0.2, 0.1))
+             xaxis=xaxis, yaxis=yaxis, ypadding=(0.2, 0.1),
+             logy_crop_value=1E-300)
 
         # draw sigma levels up to minimum of pvalues
         line = Line()
