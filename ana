@@ -668,11 +668,12 @@ if 'workspace' in args.actions:
         controls = []
     else:
         hist_template = Hist(10, 0, 1.5, type='D')
-        controls = make_var_channels(
+        controls = analysis.make_var_channels(
             hist_template,
             'dEta_tau1_tau2',
             CATEGORIES['mva_workspace_controls'],
-            include_signal=True)
+            target_region,
+            include_signal=True, mass_points=args.mass_points)
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 

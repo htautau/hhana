@@ -665,10 +665,10 @@ class Analysis(object):
             for category in categories:
                 parent_category = category.get_parent()
                 # apply normalization
-                analysis.normalize(parent_category)
+                self.normalize(parent_category)
                 # clf = analysis.get_clf(parent_category, load=True)
                 for mass in mass_points:
-                    contr = analysis.get_channel(hist_template, expr,
+                    contr = self.get_channel(hist_template, expr,
                         category=category,
                         region=region,
                         #clf=clf,
