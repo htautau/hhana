@@ -375,10 +375,8 @@ VARIABLES = {
         'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dr_tau1_tau2',
-        'bins': 11,
-        'range': {
-            'PRESELECTION': (22, 0.8, 2.6),
-            None: (11, 0.8, 2.6)},
+        'bins': 9,
+        'range': (0.8, 2.6),
         'ypadding': (0.5, 0),
     },
     'dPhi_tau1_tau2': {
