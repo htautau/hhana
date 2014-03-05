@@ -63,14 +63,12 @@ rc('text.latex', preamble=LATEX_PREAMBLE)
 
 
 def set_colours(hists, colour_map=cm.jet):
-
     for i, h in enumerate(hists):
         colour = colour_map((i + 1) / float(len(hists) + 1))
         h.SetColor(colour)
 
 
 def format_legend(l):
-
     #frame = l.get_frame()
     #frame.set_alpha(.8)
     #frame.set_fill(False) # eps does not support alpha values
@@ -88,7 +86,6 @@ def root_axes(ax,
               logy=False, integer=False, no_xlabels=False,
               vscale=1.,
               bottom=None):
-
     #ax.patch.set_linewidth(2)
     if integer:
         ax.xaxis.set_major_locator(
@@ -116,7 +113,6 @@ def root_axes(ax,
 def correlations(signal, signal_weight,
                  background, background_weight,
                  fields, category, output_suffix=''):
-
     names = [
         VARIABLES[field]['title'] if field in VARIABLES else field
             for field in fields]
@@ -148,7 +144,6 @@ def draw_scatter(fields,
                  classifier=None,
                  cuts=None,
                  unblind=False):
-
     nplots = 1
     figheight = 6.
     figwidth = 6.
@@ -390,7 +385,6 @@ def draw_scatter(fields,
 
 
 def get_2d_field_hist(var):
-
     var_info = VARIABLES[var]
     bins = var_info['bins']
     min, max = var_info['range']
@@ -408,7 +402,6 @@ def draw_2d_hist(classifier,
                  cuts=None,
                  y=MMC_MASS,
                  output_suffix=''):
-
     fields = [y]
     background_arrays = []
     background_clf_arrays = []
@@ -523,7 +516,6 @@ def draw_2d_hist(classifier,
 
 
 def uncertainty_band(model, systematics, systematics_components):
-
     # TODO determine systematics from model itself
     if not isinstance(model, (list, tuple)):
         model = [model]
@@ -858,7 +850,6 @@ def draw_channel_array(
         unblind=False,
         bootstrap_data=False,
         **kwargs):
-
     # filter out plots that will not be made
     used_vars = {}
     field_scale = {}
