@@ -92,6 +92,19 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root:
 		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-DN_*.root; \
 	fi
 
+$(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_TES_TRUE_FINAL_UP.root:
+	test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
+	
+	for TES_TERM in TES_TRUE_FINAL TES_FAKE_FINAL; do \
+		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_1.root ]; then \
+			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
+		fi; \
+		if [ -f $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_1.root ]; then \
+			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP.root $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_*.root; \
+			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_DOWN.root $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_DOWN_*.root; \
+		fi; \
+	done
+
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root:
 	test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
 	
@@ -112,17 +125,6 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root:
 			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_[0-9]*.root; \
 		fi; \
 	done
-	
-	for TES_TERM in TES_TRUE TES_FAKE_FINAL; do \
-		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_1.root ]; then \
-			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
-		fi; \
-		if [ -f $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_1.root ]; then \
-			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP.root $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_*.root; \
-			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_DOWN.root $(HHNTUP_RUNNING)/embed_tes/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_DOWN_*.root; \
-		fi; \
-	done
-
 
 .PHONY: embed-log
 embed-log:
@@ -131,9 +133,13 @@ embed-log:
 	-mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed1[1-2]-*.o[0-9]* $(HHNTUP_RUNNING)/embed_log/
 	-mv $(HHNTUP_RUNNING)/supervisor-$(HHSTUDENT)-$(HHSTUDENT).embed1[1-2]-*.log $(HHNTUP_RUNNING)/embed_log/
 
-init-embed-11: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root
+init-embed-11-nominal: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root
 
-init-embed-12-sys: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_EOP_UP.root
+init-embed-11-sys: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_TES_TRUE_FINAL_UP.root
+
+init-embed-11: init-embed-11-nominal init-embed-11-sys
+
+init-embed-12-sys: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_FAKE_TOTAL_UP.root
 
 init-embed-12-nominal: $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root
 
