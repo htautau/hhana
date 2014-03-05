@@ -53,9 +53,9 @@ def plots_dir(script):
 import numpy as np
 # for reproducibilty
 # especially for test/train set selection
-np.random.seed(1987) # my birth year ;) (and mine too ;-) !)
+np.random.seed(1987)
 
-MMC_VERSION = 0
+MMC_VERSION = 1
 MMC_MASS = 'mmc%d_mass' % MMC_VERSION
 MMC_PT = 'mmc%d_resonance_pt' % MMC_VERSION
 
