@@ -41,11 +41,9 @@ SYSTEMATICS_2011 = {
 }
 
 SYSTEMATICS_2012 = {
-
     'MET_RESOSOFTTERMS': (('MET_RESOSOFTTERMS_UP',), ('MET_RESOSOFTTERMS_DOWN',)),
     'MET_SCALESOFTTERMS': (('MET_SCALESOFTTERMS_UP',), ('MET_SCALESOFTTERMS_DOWN',)),
 
-    #'JES': (('JES_UP',), ('JES_DOWN',)),
     'JES_Modelling': (('JES_Modelling_UP',), ('JES_Modelling_DOWN',)),
     'JES_Detector': (('JES_Detector_UP',), ('JES_Detector_DOWN',)),
     'JES_EtaModelling': (('JES_EtaModelling_UP',), ('JES_EtaModelling_DOWN',)),
@@ -54,19 +52,11 @@ SYSTEMATICS_2012 = {
     'JES_FlavComp': (('JES_FlavComp_UP',), ('JES_FlavComp_DOWN',)),
     'JES_FlavResp': (('JES_FlavResp_UP',), ('JES_FlavResp_DOWN',)),
 
-    'JVF': (('JVF_UP',), ('JVF_DOWN',)),
+    #'JVF': (('JVF_UP',), ('JVF_DOWN',)),
     'JER': (('JER_UP',),),
 
-    #'TES': (('TES_UP',), ('TES_DOWN',)),
     'TES_TRUE': (('TES_TRUE_UP',), ('TES_TRUE_DOWN',)),
     'TES_FAKE': (('TES_FAKE_UP',), ('TES_FAKE_DOWN',)),
-    #'TES_EOP': (('TES_EOP_UP',), ('TES_EOP_DOWN',)),
-    #'TES_CTB': (('TES_CTB_UP',), ('TES_CTB_DOWN',)),
-    #'TES_Bias': (('TES_Bias_UP',), ('TES_Bias_DOWN',)),
-    #'TES_EM': (('TES_EM_UP',), ('TES_EM_DOWN',)),
-    #'TES_LCW': (('TES_LCW_UP',), ('TES_LCW_DOWN',)),
-    #'TES_PU': (('TES_PU_UP',), ('TES_PU_DOWN',)),
-    #'TES_OTHERS': (('TES_OTHERS_UP',), ('TES_OTHERS_DOWN',)),
 
     'MFS': (('MFS_UP',), ('MFS_DOWN',)),
     'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),

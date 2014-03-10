@@ -42,6 +42,10 @@ with ropen(args.output, 'UPDATE') as outfile:
             with ropen(filename, 'READ') as infile:
                 intree = infile.tau
                 intree.deactivate("jet_*_original")
+                intree.deactivate("mc_*")
+                intree.activate("mc_event_weight")
+                intree.activate("mc_weight")
+                intree.deactivate("jet_antikt4truth*")
                 outfile.cd()
                 outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
                 outtree.OptimizeBaskets()
