@@ -60,7 +60,7 @@ class Category_Boosted(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
     cuts = (
         (- Category_VBF.cuts)
-        & Cut('resonance_pt > 80000')
+        & Cut('resonance_pt > 100000')
         & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
         )
     #limitbins = 86
