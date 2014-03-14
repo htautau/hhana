@@ -13,9 +13,13 @@ from rootpy.plotting import Hist, Hist2D, Canvas, HistStack
 from rootpy.plotting.hist import _HistBase
 from rootpy.tree import Tree, Cut
 from rootpy.stats import histfactory
+from rootpy import asrootpy
 
 # root_numpy imports
 from root_numpy import rec2array, stack
+
+# higgstautau imports
+from higgstautau import samples as samples_db
 
 # local imports
 from . import log
@@ -24,8 +28,12 @@ from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
-from ..systematics import get_systematics
-from ..lumi import get_lumi_uncert
+from ..systematics import (
+    get_systematics, SYSTEMATICS_BY_WEIGHT,
+    iter_systematics, systematic_name)
+from ..lumi import LUMI, get_lumi_uncert
+from .db import DB, TEMPFILE, get_file
+from ..cachedtable import CachedTable
 
 
 def get_workspace_np_name(sample, syst, year):
@@ -62,48 +70,32 @@ def get_workspace_np_name(sample, syst, year):
 
 class Sample(object):
 
-    WORKSPACE_SYSTEMATICS = []
-    WEIGHTS = []
-    WEIGHT_SYSTEMATICS = {}
+    def weight_fields(self):
+        return []
 
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
-                 mpl=False,
                  trigger=True,
                  **hist_decor):
-
         self.year = year
         if year == 2011:
             self.energy = 7
         else:
             self.energy = 8
-
         self.scale = scale
         if cuts is None:
             self._cuts = Cut()
         else:
             self._cuts = cuts
-
-        self.mpl = mpl
         self.student = student
         self.hist_decor = hist_decor
         if 'fillstyle' not in hist_decor:
             self.hist_decor['fillstyle'] = 'solid'
-
         self.trigger = trigger
 
-    @property
-    def label(self):
-
-        if self.mpl:
-            return self._label
-        return self._label_root
-
     def get_field_hist(self, vars, category, templates=None):
-
         field_hist = {}
         for field, var_info in vars.items():
-
             if templates is not None and field in templates:
                 field_hist[field] = templates[field].Clone(
                     title=self.label, **self.hist_decor)
@@ -112,7 +104,6 @@ class Sample(object):
                 field_hist[field] = var_info.Clone(
                     title=self.label, **self.hist_decor)
                 continue
-
             bins = var_info['bins']
             if isinstance(bins, (list, tuple)):
                 hist = Hist(bins,
@@ -131,7 +122,6 @@ class Sample(object):
                     title=self.label,
                     type='D',
                     **self.hist_decor)
-
             field_hist[field] = hist
         return field_hist
 
@@ -151,11 +141,11 @@ class Sample(object):
             weighted=True,
             bootstrap_data=False):
 
-        from .data import Data
-
-        do_systematics = (not isinstance(self, Data)
+        do_systematics = (isinstance(self, SystematicsSample)
                           and self.systematics
                           and systematics)
+        if do_systematics and systematics_components is None:
+            systematics_components = self.systematics_components()
 
         if min_score is None:
             min_score = getattr(category, 'workspace_min_clf', None)
@@ -202,11 +192,11 @@ class Sample(object):
             weight_hist=None,
             weighted=True):
 
-        from .data import Data
-
-        do_systematics = (not isinstance(self, Data)
+        do_systematics = (isinstance(self, SystematicsSample)
                           and self.systematics
                           and systematics)
+        if do_systematics and systematics_components is None:
+            systematics_components = self.systematics_components()
 
         if min_score is None:
             min_score = getattr(category, 'workspace_min_clf', None)
@@ -288,7 +278,6 @@ class Sample(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
-            systematics_components=self.WORKSPACE_SYSTEMATICS,
             suffix=suffix,
             field_scale=field_scale,
             weight_hist=weight_hist,
@@ -435,9 +424,7 @@ class Sample(object):
         from .data import Data
         from .qcd import QCD
         from .others import Others
-
         log.info("creating histfactory samples for {0}".format(self.name))
-
         field_hist = self.get_hist_array(
             field_hist_template,
             category, region,
@@ -447,17 +434,14 @@ class Sample(object):
             min_score=min_score,
             max_score=max_score,
             systematics=systematics,
-            systematics_components=self.WORKSPACE_SYSTEMATICS,
             suffix=suffix,
             field_scale=field_scale,
             weight_hist=weight_hist,
             weighted=weighted,
             bootstrap_data=bootstrap_data)
-
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
                           and systematics)
-
         if isinstance(self, QCD) and do_systematics:
             qcd_shapes = self.get_shape_systematic_array(
                 field_hist,
@@ -470,56 +454,42 @@ class Sample(object):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
-
         field_samples = {}
-
         for field, hist in field_hist.items():
-
             if isinstance(self, Data):
                 sample = histfactory.Data(self.name)
             else:
                 sample = histfactory.Sample(self.name)
-
             # copy of unaltered nominal hist required by QCD shape
             nominal_hist = hist.Clone()
-
             if ravel:
                 # convert to 1D if 2D (also handles systematics if present)
                 hist = ravel_hist(hist)
             if uniform:
                 hist = uniform_hist(hist)
-
             #print_hist(hist)
-
             # set the nominal histogram
             sample.hist = hist
-
             # add systematics samples
             if do_systematics:
-
                 SYSTEMATICS = get_systematics(self.year)
-
                 for sys_component in self.WORKSPACE_SYSTEMATICS:
-
                     terms = SYSTEMATICS[sys_component]
                     if len(terms) == 1:
                         up_term = terms[0]
                         hist_up = hist.systematics[up_term]
                         # use nominal hist for "down" side
                         hist_down = hist
-
                     else:
                         up_term, down_term = terms
                         hist_up = hist.systematics[up_term]
                         hist_down = hist.systematics[down_term]
-
                     if sys_component == 'JES_FlavComp':
                         if ((isinstance(self, Signal) and self.mode == 'gg') or
                              isinstance(self, Others)):
                             sys_component += '_TAU_G'
                         else:
                             sys_component += '_TAU_Q'
-
                     elif sys_component == 'JES_PURho':
                         if isinstance(self, Others):
                             sys_component += '_TAU_QG'
@@ -528,45 +498,34 @@ class Sample(object):
                                 sys_component += '_TAU_GG'
                             else:
                                 sys_component += '_TAU_QQ'
-
                     npname = get_workspace_np_name(self, sys_component, self.year)
-
                     histsys = histfactory.HistoSys(
                         npname,
                         low=hist_down,
                         high=hist_up)
-
                     sample.AddHistoSys(histsys)
-
                 if isinstance(self, QCD):
-
                     high, low = qcd_shapes[field]
-
                     if ravel:
                         low = ravel_hist(low)
                         high = ravel_hist(high)
                     if uniform:
                         low = uniform_hist(low)
                         high = uniform_hist(high)
-
                     #log.info("QCD low shape")
                     #print_hist(low)
                     #log.info("QCD high shape")
                     #print_hist(high)
-
                     npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                     if category.analysis_control and self.decouple_shape:
                         npname += '_CR'
                     histsys = histfactory.HistoSys(npname, low=low, high=high)
                     sample.AddHistoSys(histsys)
-
             if isinstance(self, Signal):
                 sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
-
             elif isinstance(self, Background):
                 # only activate stat error on background samples
                 sample.ActivateStatError()
-
             if not isinstance(self, Data):
                 norm_by_theory = getattr(self, 'NORM_BY_THEORY', True)
                 sample.SetNormalizeByTheory(norm_by_theory)
@@ -577,7 +536,6 @@ class Sample(object):
                         high=1. + lumi_uncert,
                         low=1. - lumi_uncert)
                     sample.AddOverallSys(lumi_sys)
-
             # HACK: disable calling this on signal for now since while plotting
             # we only want to show the combined signal but in the histfactory
             # method we require only a single mode
@@ -585,9 +543,7 @@ class Sample(object):
                     isinstance(self, Signal) and no_signal_fixes):
                 # perform sample-specific items
                 self.histfactory(sample, category, systematics=do_systematics)
-
             field_samples[field] = sample
-
         return field_samples
 
     def partitioned_records(self,
@@ -634,12 +590,10 @@ class Sample(object):
                     cuts=partition_cut & cuts,
                     systematic=systematic,
                     return_idx=return_idx)
-
             if return_idx:
                 partitions.append(recs)
             else:
                 partitions.append(np.hstack(recs))
-
         return partitions
 
     def merged_records(self,
@@ -651,7 +605,6 @@ class Sample(object):
               clf_name='classifier',
               include_weight=True,
               systematic='NOMINAL'):
-
         recs = self.records(
             category=category,
             region=region,
@@ -659,12 +612,10 @@ class Sample(object):
             include_weight=include_weight,
             cuts=cuts,
             systematic=systematic)
-
         if include_weight and fields is not None:
             if 'weight' not in fields:
                 fields = list(fields) + ['weight']
         rec = stack(recs, fields=fields)
-
         if clf is not None:
             scores, _ = clf.classify(
                 self, category, region,
@@ -673,7 +624,6 @@ class Sample(object):
                 names=clf_name,
                 data=scores,
                 dtypes='f4')
-
         return rec
 
     def array(self,
@@ -685,7 +635,6 @@ class Sample(object):
               clf_name='classifer',
               include_weight=True,
               systematic='NOMINAL'):
-
         return rec2array(self.merged_records(
             category=category,
             region=region,
@@ -696,54 +645,24 @@ class Sample(object):
             include_weight=include_weight,
             systematic=systematic))
 
-    @classmethod
-    def get_sys_term_variation(cls, systematic):
-
-        if systematic == 'NOMINAL':
-            systerm = None
-            variation = 'NOMINAL'
-        elif len(systematic) > 1:
-            # no support for this yet...
-            systerm = None
-            variation = 'NOMINAL'
-        else:
-            systerm, variation = systematic[0].rsplit('_', 1)
-        return systerm, variation
-
-    def get_weight_branches(self, systematic,
-                            no_cuts=False, only_cuts=False,
-                            weighted=True):
-
-        if not weighted:
-            return ["1.0"]
-        systerm, variation = Sample.get_sys_term_variation(systematic)
-        if not only_cuts:
-            weight_branches = self.WEIGHTS[:]
-            for term, variations in self.WEIGHT_SYSTEMATICS.items():
+    def weights(self, systematic='NOMINAL'):
+        weight_fields = self.weight_fields()
+        if isinstance(self, SystematicsSample):
+            systerm, variation = SystematicsSample.get_sys_term_variation(
+                systematic)
+            for term, variations in self.weight_systematics().items():
                 if term == systerm:
-                    weight_branches += variations[variation]
+                    weight_fields += variations[variation]
                 else:
-                    weight_branches += variations['NOMINAL']
-        else:
-            weight_branches = []
+                    weight_fields += variations['NOMINAL']
         # HACK
-        if not self.trigger and 'tau1_trigger_sf' in weight_branches:
-            weight_branches.remove('tau1_trigger_sf')
-            weight_branches.remove('tau2_trigger_sf')
-            weight_branches.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
-        return weight_branches
-
-    def iter_weight_branches(self):
-
-        for type, variations in self.WEIGHT_SYSTEMATICS.items():
-            for variation in variations:
-                if variation == 'NOMINAL':
-                    continue
-                term = ('%s_%s' % (type, variation),)
-                yield self.get_weight_branches(term), term
+        if not self.trigger and 'tau1_trigger_sf' in weight_fields:
+            weight_fields.remove('tau1_trigger_sf')
+            weight_fields.remove('tau2_trigger_sf')
+            weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
+        return weight_fields
 
     def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
-
         cuts = Cut(self._cuts)
         if category is not None:
             cuts &= category.get_cuts(self.year, **kwargs)
@@ -751,6 +670,14 @@ class Sample(object):
             cuts &= REGIONS[region]
         if self.trigger:
             cuts &= Cut('trigger')
+        if isinstance(self, SystematicsSample):
+            systerm, variation = SystematicsSample.get_sys_term_variation(
+                systematic)
+            for term, variations in self.cut_systematics().items():
+                if term == systerm:
+                    cuts &= variations[variation]
+                else:
+                    cuts &= variations['NOMINAL']
         return cuts
 
     def draw(self, expr, category, region, bins, min, max,
@@ -966,3 +893,579 @@ class Signal(object):
 class Background(object):
     # mixin
     pass
+
+
+class SystematicsSample(Sample):
+
+    @classmethod
+    def get_sys_term_variation(cls, systematic):
+        if systematic == 'NOMINAL':
+            systerm = None
+            variation = 'NOMINAL'
+        elif len(systematic) > 1:
+            # no support for this yet...
+            systerm = None
+            variation = 'NOMINAL'
+        else:
+            systerm, variation = systematic[0].rsplit('_', 1)
+        return systerm, variation
+
+    def systematics_components(self):
+        common = [
+            'MET_RESOSOFTTERMS',
+            'MET_SCALESOFTTERMS',
+            'TAUID',
+            'TRIGGER',
+            'FAKERATE',
+        ]
+        if self.year == 2011:
+            return common + [
+                'TES_TRUE_FINAL',
+                'TES_FAKE_FINAL',
+            ]
+        else:
+            return common + [
+                'TES_TRUE_INSITUINTERPOL',
+                'TES_TRUE_SINGLEPARTICLEINTERPOL',
+                'TES_TRUE_MODELING',
+                'TES_FAKE_TOTAL',
+            ]
+
+    def weight_systematics(self):
+        return {
+            'FAKERATE': {
+                'UP': [
+                    'tau1_fakerate_sf_high',
+                    'tau2_fakerate_sf_high'],
+                'DOWN': [
+                    'tau1_fakerate_sf_low',
+                    'tau2_fakerate_sf_low'],
+                'NOMINAL': [
+                    'tau1_fakerate_sf',
+                    'tau2_fakerate_sf']},
+            'TAUID': {
+                'UP': [
+                    'tau1_id_sf_high',
+                    'tau2_id_sf_high'],
+                'DOWN': [
+                    'tau1_id_sf_low',
+                    'tau2_id_sf_low'],
+                'NOMINAL': [
+                    'tau1_id_sf',
+                    'tau2_id_sf']},
+        }
+
+    def cut_systematics(self):
+        return {}
+
+    def __init__(self, year, db=DB, systematics=True, **kwargs):
+
+        if isinstance(self, Background):
+            sample_key = self.__class__.__name__.lower()
+            sample_info = samples_db.get_sample(
+                'hadhad', year, 'background', sample_key)
+            self.name = sample_info['name']
+            self.label = sample_info['root']
+            if 'color' in sample_info and 'color' not in kwargs:
+                kwargs['color'] = sample_info['color']
+            self.samples = sample_info['samples']
+
+        elif isinstance(self, Signal):
+            # samples already defined in Signal subclass
+            # see Higgs class below
+            assert len(self.samples) > 0
+
+        else:
+            raise TypeError(
+                'MC sample %s does not inherit from Signal or Background' %
+                self.__class__.__name__)
+
+        super(SystematicsSample, self).__init__(year=year, **kwargs)
+
+        self.db = db
+        self.datasets = []
+        self.systematics = systematics
+        rfile = get_file(self.student)
+        h5file = get_file(self.student, hdf=True)
+
+        from .ztautau import Embedded_Ztautau
+
+        for i, name in enumerate(self.samples):
+
+            ds = self.db[name]
+            treename = name.replace('.', '_')
+            treename = treename.replace('-', '_')
+
+            trees = {}
+            tables = {}
+            weighted_events = {}
+
+            if isinstance(self, Embedded_Ztautau):
+                events_bin = 1
+            else:
+                # use mc_weighted second bin
+                events_bin = 2
+            events_hist_suffix = '_cutflow'
+
+            trees['NOMINAL'] = rfile.Get(treename)
+            tables['NOMINAL'] =  CachedTable.hook(getattr(
+                h5file.root, treename))
+
+            weighted_events['NOMINAL'] = rfile.Get(
+                treename + events_hist_suffix)[events_bin].value
+
+            if self.systematics:
+
+                systematics_terms, systematics_samples = \
+                    samples_db.get_systematics('hadhad', self.year, name)
+
+                if systematics_terms:
+                    for sys_term in systematics_terms:
+                        sys_name = treename + '_' + '_'.join(sys_term)
+                        trees[sys_term] = rfile.Get(sys_name)
+                        tables[sys_term] = CachedTable.hook(getattr(
+                            h5file.root, sys_name))
+                        weighted_events[sys_term] = rfile.Get(
+                            sys_name + events_hist_suffix)[events_bin].value
+
+                if systematics_samples:
+                    for sample_name, sys_term in systematics_samples.items():
+                        log.info("%s -> %s %s" % (name, sample_name, sys_term))
+                        sys_term = tuple(sys_term.split(','))
+                        sys_ds = self.db[sample_name]
+                        sample_name = sample_name.replace('.', '_')
+                        sample_name = sample_name.replace('-', '_')
+                        trees[sys_term] = rfile.Get(sample_name)
+                        tables[sys_term] = CachedTable.hook(getattr(
+                            h5file.root, sample_name))
+                        weighted_events[sys_term] = getattr(rfile,
+                            sample_name + events_hist_suffix)[events_bin].value
+
+            if hasattr(self, 'xsec_kfact_effic'):
+                xs, kfact, effic = self.xsec_kfact_effic(i)
+            else:
+                xs, kfact, effic = ds.xsec_kfact_effic
+
+            log.debug("{0} {1} {2} {3}".format(ds.name, xs, kfact, effic))
+            self.datasets.append(
+                    (ds, trees, tables, weighted_events, xs, kfact, effic))
+
+    def draw_into(self, hist, expr, category, region,
+                  cuts=None,
+                  weighted=True,
+                  systematics=True,
+                  systematics_components=None,
+                  scale=1.):
+
+        from .ztautau import Ztautau
+
+        if isinstance(expr, (list, tuple)):
+            exprs = expr
+        else:
+            exprs = (expr,)
+
+        do_systematics = self.systematics and systematics
+
+        if do_systematics:
+            if hasattr(hist, 'systematics'):
+                sys_hists = hist.systematics
+            else:
+                sys_hists = {}
+
+        selection = self.cuts(category, region) & cuts
+
+        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
+            log.debug(ds.name)
+            nominal_tree = sys_trees['NOMINAL']
+            nominal_events = sys_events['NOMINAL']
+            nominal_weight = (
+                LUMI[self.year] *
+                scale * self.scale *
+                xs * kfact * effic / nominal_events)
+            nominal_weighted_selection = (
+                '%f * %s * (%s)' %
+                (nominal_weight,
+                 '*'.join(map(str,
+                     self.get_weight_branches('NOMINAL', weighted=weighted))),
+                 selection))
+            log.debug(nominal_weighted_selection)
+            current_hist = hist.Clone()
+            current_hist.Reset()
+            # fill nominal histogram
+            for expr in exprs:
+                nominal_tree.Draw(expr, nominal_weighted_selection,
+                                  hist=current_hist)
+            hist += current_hist
+            if not do_systematics:
+                continue
+            # iterate over systematic variations skipping the nominal
+            for sys_term in iter_systematics(False,
+                    components=systematics_components):
+                sys_hist = current_hist.Clone()
+                if sys_term in sys_trees:
+                    sys_tree = sys_trees[sys_term]
+                    sys_event = sys_events[sys_term]
+                    sys_hist.Reset()
+                    sys_weight = (
+                        LUMI[self.year] *
+                        scale * self.scale *
+                        xs * kfact * effic / sys_event)
+                    sys_weighted_selection = (
+                        '%f * %s * (%s)' %
+                        (sys_weight,
+                         ' * '.join(map(str,
+                             self.get_weight_branches('NOMINAL',
+                                 weighted=weighted))),
+                         selection))
+                    log.debug(sys_weighted_selection)
+                    for expr in exprs:
+                        sys_tree.Draw(expr, sys_weighted_selection, hist=sys_hist)
+                else:
+                    log.debug(
+                        "tree for %s not present for %s "
+                        "using NOMINAL" % (sys_term, ds.name))
+                    # QCD + Ztautau fit error
+                    if isinstance(self, Ztautau):
+                        if sys_term == ('ZFIT_UP',):
+                            sys_hist *= (
+                                    (self.scale + self.scale_error) /
+                                    self.scale)
+                        elif sys_term == ('ZFIT_DOWN',):
+                            sys_hist *= (
+                                    (self.scale - self.scale_error) /
+                                    self.scale)
+                if sys_term not in sys_hists:
+                    sys_hists[sys_term] = sys_hist
+                else:
+                    sys_hists[sys_term] += sys_hist
+            # iterate over weight systematics on the nominal tree
+            for weight_branches, sys_term in self.iter_weight_branches():
+                sys_hist = current_hist.Clone()
+                sys_hist.Reset()
+                weighted_selection = (
+                    '%f * %s * (%s)' %
+                    (nominal_weight,
+                     ' * '.join(map(str, weight_branches)),
+                     selection))
+                log.debug(weighted_selection)
+                for expr in exprs:
+                    nominal_tree.Draw(expr, weighted_selection, hist=sys_hist)
+                if sys_term not in sys_hists:
+                    sys_hists[sys_term] = sys_hist
+                else:
+                    sys_hists[sys_term] += sys_hist
+        if do_systematics:
+            # set the systematics
+            hist.systematics = sys_hists
+
+    def draw_array(self, field_hist, category, region,
+                   cuts=None,
+                   weighted=True,
+                   field_scale=None,
+                   weight_hist=None,
+                   field_weight_hist=None,
+                   clf=None,
+                   scores=None,
+                   min_score=None,
+                   max_score=None,
+                   systematics=True,
+                   systematics_components=None,
+                   scale=1.,
+                   bootstrap_data=False):
+
+        do_systematics = self.systematics and systematics
+
+        if scores is None and clf is not None:
+            scores = self.scores(
+                clf, category, region, cuts=cuts,
+                systematics=systematics,
+                systematics_components=systematics_components)
+
+        self.draw_array_helper(field_hist, category, region,
+            cuts=cuts,
+            weighted=weighted,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            field_weight_hist=field_weight_hist,
+            scores=scores['NOMINAL'] if scores else None,
+            min_score=min_score,
+            max_score=max_score,
+            systematic='NOMINAL')
+
+        if not do_systematics:
+            return
+
+        all_sys_hists = {}
+
+        for field, hist in field_hist.items():
+            if not hasattr(hist, 'systematics'):
+                hist.systematics = {}
+            all_sys_hists[field] = hist.systematics
+
+        for systematic in iter_systematics(False,
+                components=systematics_components):
+
+            sys_field_hist = {}
+            for field, hist in field_hist.items():
+                if systematic in all_sys_hists[field]:
+                    sys_hist = all_sys_hists[field][systematic]
+                else:
+                    sys_hist = hist.Clone(
+                        name=hist.name + '_' + systematic_name(systematic))
+                    sys_hist.Reset()
+                    all_sys_hists[field][systematic] = sys_hist
+                sys_field_hist[field] = sys_hist
+
+            self.draw_array_helper(sys_field_hist, category, region,
+                cuts=cuts,
+                weighted=weighted,
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                field_weight_hist=field_weight_hist,
+                scores=scores[systematic] if scores else None,
+                min_score=min_score,
+                max_score=max_score,
+                systematic=systematic)
+
+    def scores(self, clf, category, region,
+               cuts=None, scores_dict=None,
+               systematics=True,
+               systematics_components=None,
+               scale=1.):
+
+        # TODO check that weight systematics are included
+        do_systematics = self.systematics and systematics
+        if scores_dict is None:
+            scores_dict = {}
+        for systematic in iter_systematics(True,
+                components=systematics_components):
+            if not do_systematics and systematic != 'NOMINAL':
+                continue
+            scores, weights = clf.classify(self,
+                category=category,
+                region=region,
+                cuts=cuts,
+                systematic=systematic)
+            weights *= scale
+            if systematic not in scores_dict:
+                scores_dict[systematic] = (scores, weights)
+            else:
+                prev_scores, prev_weights = scores_dict[systematic]
+                scores_dict[systematic] = (
+                    np.concatenate((prev_scores, scores)),
+                    np.concatenate((prev_weights, weights)))
+        return scores_dict
+
+    def trees(self, category, region,
+              cuts=None, systematic='NOMINAL',
+              scale=1.):
+
+        from .ztautau import Ztautau
+
+        TEMPFILE.cd()
+        selection = self.cuts(category, region) & cuts
+        weight_branches = self.get_weight_branches(systematic)
+        if systematic in SYSTEMATICS_BY_WEIGHT:
+            systematic = 'NOMINAL'
+
+        trees = []
+        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
+
+            try:
+                tree = sys_trees[systematic]
+                events = sys_events[systematic]
+            except KeyError:
+                log.debug(
+                    "tree for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds.name))
+                tree = sys_trees['NOMINAL']
+                events = sys_events['NOMINAL']
+
+            actual_scale = self.scale
+            if isinstance(self, Ztautau):
+                if systematic == ('ZFIT_UP',):
+                    actual_scale = self.scale + self.scale_error
+                elif systematic == ('ZFIT_DOWN',):
+                    actual_scale = self.scale - self.scale_error
+
+            weight = (
+                scale * actual_scale *
+                LUMI[self.year] *
+                xs * kfact * effic / events)
+
+            selected_tree = asrootpy(tree.CopyTree(selection))
+            log.debug("{0} {1}".format(selected_tree.GetEntries(), weight))
+            selected_tree.SetWeight(weight)
+            selected_tree.userdata.weight_branches = weight_branches
+            log.debug("{0} {1} {2}".format(
+                self.name, selected_tree.GetEntries(),
+                selected_tree.GetWeight()))
+            trees.append(selected_tree)
+        return trees
+
+    def records(self,
+                category=None,
+                region=None,
+                fields=None,
+                cuts=None,
+                include_weight=True,
+                systematic='NOMINAL',
+                scale=1.,
+                return_idx=False,
+                **kwargs):
+
+        from .ztautau import Ztautau
+        if include_weight and fields is not None:
+            if 'weight' not in fields:
+                fields = list(fields) + ['weight']
+        selection = self.cuts(category, region, systematic) & cuts
+        table_selection = selection.where()
+        if systematic == 'NOMINAL':
+            log.info("requesting table from %s" %
+                     (self.__class__.__name__))
+        else:
+            log.info("requesting table from %s for systematic %s " %
+                     (self.__class__.__name__, systematic_name(systematic)))
+        log.debug("using selection: %s" % selection)
+        weight_branches = self.weights(systematic)
+        if systematic in SYSTEMATICS_BY_WEIGHT:
+            systematic = 'NOMINAL'
+        recs = []
+        if return_idx:
+            idxs = []
+        for ds, _, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+            try:
+                table = sys_tables[systematic]
+                events = sys_events[systematic]
+            except KeyError:
+                log.debug(
+                    "table for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds.name))
+                table = sys_tables['NOMINAL']
+                events = sys_events['NOMINAL']
+            actual_scale = self.scale
+            if isinstance(self, Ztautau):
+                if systematic == ('ZFIT_UP',):
+                    log.debug("scaling up for ZFIT_UP")
+                    actual_scale += self.scale_error
+                elif systematic == ('ZFIT_DOWN',):
+                    log.debug("scaling down for ZFIT_DOWN")
+                    actual_scale -= self.scale_error
+            weight = (
+                scale * actual_scale *
+                LUMI[self.year] *
+                xs * kfact * effic / events)
+            # read the table with a selection
+            try:
+                if table_selection:
+                    rec = table.read_where(table_selection, **kwargs)
+                else:
+                    rec = table.read(**kwargs)
+            except Exception as e:
+                print table
+                print e
+                continue
+                #raise
+            if return_idx:
+                # only valid if table_selection is non-empty
+                idx = table.get_where_list(table_selection, **kwargs)
+                idxs.append(idx)
+            # add weight field
+            if include_weight:
+                weights = np.empty(rec.shape[0], dtype='f8')
+                weights.fill(weight)
+                # merge the weight fields
+                weights *= reduce(np.multiply,
+                    [rec[br] for br in weight_branches])
+                # drop other weight fields
+                rec = recfunctions.rec_drop_fields(rec, weight_branches)
+                # add the combined weight
+                rec = recfunctions.rec_append_fields(rec,
+                    names='weight',
+                    data=weights,
+                    dtypes='f8')
+                if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
+                    log.warning("{0}: weights sum to zero!".format(table.name))
+            if fields is not None:
+                try:
+                    rec = rec[fields]
+                except Exception as e:
+                    print table
+                    print rec.shape
+                    print rec.dtype
+                    print e
+                    raise
+            recs.append(rec)
+        if return_idx:
+            return zip(recs, idxs)
+        return recs
+
+    def events(self, category=None, region=None,
+               cuts=None,
+               systematic='NOMINAL',
+               weighted=True,
+               hist=None,
+               scale=1.):
+        if hist is None:
+            hist = Hist(1, -100, 100)
+        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
+            try:
+                tree = sys_trees[systematic]
+                events = sys_events[systematic]
+            except KeyError:
+                log.debug(
+                    "tree for %s not present for %s "
+                    "using NOMINAL" % (systematic, ds.name))
+                tree = sys_trees['NOMINAL']
+                events = sys_events['NOMINAL']
+            if weighted:
+                weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
+                selection = Cut(' * '.join(map(str,
+                    self.weights(systematic))))
+                selection = Cut(str(weight * scale)) * selection * (
+                    self.cuts(category, region, systematic=systematic) & cuts)
+            else:
+                selection = self.cuts(category, region, systematic=systematic) & cuts
+            log.debug("requesing number of events from %s using cuts: %s"
+                % (tree.GetName(), selection))
+            tree.Draw('1', selection, hist=hist)
+        return hist
+
+
+class MC(SystematicsSample):
+
+    def systematics_components(self):
+        components = super(MC, self).systematics_components()
+        return components + [
+            'JES_Modelling',
+            'JES_Detector',
+            'JES_EtaModelling',
+            'JES_EtaMethod',
+            'JES_PURho',
+            'JES_FlavComp',
+            'JES_FlavResp',
+            #'JVF',
+            'JER',
+        ]
+
+    def weight_fields(self):
+        return super(MC, self).weight_fields() + [
+            'mc_weight',
+            'pileup_weight',
+            'ggf_weight',
+        ]
+
+    def weight_systematics(self):
+        systematics = super(MC, self).weight_systematics()
+        systematics.update({
+            'TRIGGER': {
+                'UP': [
+                    'tau1_trigger_sf_high',
+                    'tau2_trigger_sf_high'],
+                'DOWN': [
+                    'tau1_trigger_sf_low',
+                    'tau2_trigger_sf_low'],
+                'NOMINAL': [
+                    'tau1_trigger_sf',
+                    'tau2_trigger_sf']}})
+        return systematics

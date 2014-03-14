@@ -45,7 +45,6 @@ def get_analysis(args):
         suffix=args.suffix,
         transform=not args.raw_scores,
         mmc=not args.no_mmc,
-        mpl=args.mpl,
         use2012clf=args.use_2012_clf)
     return analysis
 
@@ -67,7 +66,6 @@ class Analysis(object):
                  transform=True,
                  suffix=None,
                  mmc=True,
-                 mpl=False,
                  use2012clf=False):
         self.year = year
         self.systematics = systematics
@@ -78,7 +76,6 @@ class Analysis(object):
         self.transform = transform
         self.suffix = suffix
         self.mmc = mmc
-        self.mpl = mpl
         self.use2012clf = use2012clf
 
         if use_embedding:
@@ -88,8 +85,7 @@ class Analysis(object):
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
                 constrain_norm=constrain_norms,
-                color='#00A3FF',
-                mpl=mpl)
+                color='#00A3FF')
         else:
             log.info("Using ALPGEN Ztautau")
             self.ztautau = samples.MC_Ztautau(
@@ -97,14 +93,12 @@ class Analysis(object):
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
                 constrain_norm=constrain_norms,
-                color='#00A3FF',
-                mpl=mpl)
+                color='#00A3FF')
 
         self.others = samples.Others(
             year=year,
             systematics=systematics,
-            color='#8A0F0F',
-            mpl=mpl)
+            color='#8A0F0F')
 
         if random_mu:
             log.info("using a random mu (signal strength)")
@@ -115,8 +109,7 @@ class Analysis(object):
 
         self.data = samples.Data(year=year,
             markersize=1.2,
-            linewidth=1,
-            mpl=mpl)
+            linewidth=1)
 
         self.higgs_125 = samples.Higgs(
             year=year,
@@ -125,7 +118,6 @@ class Analysis(object):
             linecolor='red',
             linewidth=2,
             linestyle='dashed',
-            mpl=mpl,
             scale=self.mu)
 
         # QCD shape region SS or !OS
@@ -136,8 +128,7 @@ class Analysis(object):
             decouple_shape=decouple_qcd_shape,
             workspace_norm=qcd_workspace_norm,
             constrain_norm=constrain_norms,
-            color='#00FF00',
-            mpl=mpl)
+            color='#00FF00')
 
         self.qcd.scale = 1.
         self.ztautau.scale = 1.
@@ -162,7 +153,6 @@ class Analysis(object):
                     year=self.year,
                     mass=m,
                     systematics=self.systematics,
-                    mpl=self.mpl,
                     scale=self.mu,
                     linecolor='red',
                     linewidth=2,
@@ -192,7 +182,6 @@ class Analysis(object):
                         mode=mode,
                         mass=m,
                         systematics=self.systematics,
-                        mpl=self.mpl,
                         scale=self.mu)
                     if m != 125 and scale_125:
                         log.warning("SCALING SIGNAL TO 125")
@@ -207,7 +196,6 @@ class Analysis(object):
                         modes=modes,
                         mass=m,
                         systematics=self.systematics,
-                        mpl=self.mpl,
                         scale=self.mu))
         else:
             for m in mass:
@@ -216,7 +204,6 @@ class Analysis(object):
                     mass=m,
                     mode=mode,
                     systematics=self.systematics,
-                    mpl=self.mpl,
                     scale=self.mu))
         return signals
 
@@ -238,7 +225,7 @@ class Analysis(object):
                 log.info("%s category" % category.name)
                 log.info("=" * 40)
                 log.info("Cuts: %s" % self.ztautau.cuts(category, self.target_region))
-                log.info("Weights: %s" % (', '.join(map(str, self.ztautau.get_weight_branches('NOMINAL')))))
+                log.info("Weights: %s" % (', '.join(map(str, self.ztautau.weights('NOMINAL')))))
                 self.normalize(category)
                 yield category
 

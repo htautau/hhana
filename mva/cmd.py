@@ -153,8 +153,6 @@ def plotting_parser(parser=None):
             help='maximum of expr')
     parser.add_argument('--plot-bins', type=int, default=20, nargs='?',
             help='number of bins to plot expr in')
-    parser.add_argument('--mpl', action='store_true', default=False,
-            help='draw plots with matplotlib. Default is ROOT')
     parser.add_argument('--no-weight', action='store_true', default=False,
             help='do not apply correction weights')
     parser.add_argument('--output-formats', default=['png'], nargs='+',

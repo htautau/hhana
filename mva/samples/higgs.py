@@ -11,8 +11,7 @@ import yellowhiggs
 # local imports
 from . import log
 from .. import ETC_DIR
-from .sample import Signal
-from .mc import MC
+from .sample import MC, Signal
 
 
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
@@ -193,10 +192,7 @@ class Higgs(MC, Signal):
             str_mass = '%d' % masses[0]
             self.name += '_%s' % str_mass
 
-        #self._label = r'%s$H%s\rightarrow\tau_{\mathrm{had}}\tau_{\mathrm{had}}$' % (
-        #        str_mode, str_mass)
-        self._label = r'%sH(%s)$\rightarrow\tau\tau$' % (str_mode, str_mass)
-        self._label_root = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (str_mode, str_mass)
+        self.label = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (str_mode, str_mass)
 
         if year == 2011:
             suffix = 'mc11c'

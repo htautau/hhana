@@ -1,6 +1,5 @@
 # local imports
-from .sample import Background
-from .mc import MC
+from .sample import MC, Background
 from . import log
 
 

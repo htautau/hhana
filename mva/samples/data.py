@@ -61,8 +61,7 @@ class Data(Sample):
         self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
-        self._label = 'Data'
-        self._label_root = 'Data'
+        self.label = 'Data'
         self.name = 'Data'
 
     def events(self, category=None, region=None, cuts=None, hist=None):

@@ -60,19 +60,16 @@ class QCD(Sample, Background):
                  workspace_norm=None,
                  constrain_norm=False,
                  cuts=None,
-                 mpl=False,
                  **kwargs):
         QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(
             year=data.year,
             scale=scale,
-            mpl=mpl,
             **kwargs)
         self.data = data
         self.mc = mc
         self.name = 'QCD'
-        self._label = 'Multijet'
-        self._label_root = self._label
+        self.label = 'Multijet'
         self.scale = 1.
         self.data_scale = data_scale
         if mc_scales is not None:

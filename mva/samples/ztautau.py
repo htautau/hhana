@@ -2,9 +2,8 @@
 from rootpy.tree import Cut
 
 # local imports
-from .sample import Sample, Background
-from .mc import MC
 from . import log
+from .sample import SystematicsSample, Background, MC
 from ..regions import REGIONS
 
 
@@ -43,104 +42,53 @@ class Ztautau(Background):
 
 
 class MC_Ztautau(Ztautau, MC):
-    WORKSPACE_SYSTEMATICS = MC.WORKSPACE_SYSTEMATICS
-
+    pass
 
 class MC_Ztautau_DY(MC_Ztautau):
     pass
 
 
-class Embedded_Ztautau(Ztautau, MC):
-    WORKSPACE_SYSTEMATICS = Sample.WORKSPACE_SYSTEMATICS + [
-        'MFS',
-        'ISOL',
-        #'TES',
-        'TES_TRUE',
-        'TES_FAKE',
-        #'TES_EOP',
-        #'TES_CTB',
-        #'TES_Bias',
-        #'TES_EM',
-        #'TES_LCW',
-        #'TES_PU',
-        #'TES_OTHERS',
-        'TAUID',
-        'TRIGGER',
-        'FAKERATE',
-    ]
+class Embedded_Ztautau(Ztautau, SystematicsSample):
 
-    WEIGHTS = MC.WEIGHTS + [
-        'embedding_reco_unfold',
-        'embedding_trigger_weight',
-        'embedding_spin_weight',
-    ]
+    def systematics_components(self):
+        return super(Embedded_Ztautau, self).systematics_components() + [
+            'MFS',
+            'ISOL',
+        ]
 
-    EMBEDDING_SYSTEMATICS = {
-        'ISOL': { # MUON ISOLATION
-            'UP': Cut('(embedding_isolation == 2)'),
-            'DOWN': Cut(),
-            'NOMINAL': Cut('(embedding_isolation >= 1)'),
-        }
-    }
+    def weight_fields(self):
+        return super(Embedded_Ztautau, self).weight_fields() + [
+            'mc_weight',
+            'embedding_reco_unfold',
+            'embedding_trigger_weight',
+            'embedding_spin_weight',
+        ]
 
-    WEIGHT_SYSTEMATICS = MC.WEIGHT_SYSTEMATICS.copy()
-    WEIGHT_SYSTEMATICS['TRIGGER'] = {
-        'UP': [
-            'tau1_trigger_eff_high',
-            'tau2_trigger_eff_high'],
-        'DOWN': [
-            'tau1_trigger_eff_low',
-            'tau2_trigger_eff_low'],
-        'NOMINAL': [
-            'tau1_trigger_eff',
-            'tau2_trigger_eff']
-    }
+    def weight_systematics(self):
+        systematics = super(Embedded_Ztautau, self).weight_systematics()
+        systematics.update({
+            'TRIGGER': {
+                'UP': [
+                    'tau1_trigger_eff_high',
+                    'tau2_trigger_eff_high'],
+                'DOWN': [
+                    'tau1_trigger_eff_low',
+                    'tau2_trigger_eff_low'],
+                'NOMINAL': [
+                    'tau1_trigger_eff',
+                    'tau2_trigger_eff']},
+        })
+        return systematics
+
+    def cut_systematics(self):
+        systematics = super(Embedded_Ztautau, self).cut_systematics()
+        systematics.update({
+            'ISOL': { # MUON ISOLATION
+                'UP': Cut('(embedding_isolation == 2)'),
+                'DOWN': Cut(),
+                'NOMINAL': Cut('(embedding_isolation >= 1)')},
+        })
+        return systematics
 
     def xsec_kfact_effic(self, isample):
         return 1., 1., 1.
-
-    def get_weight_branches(self, systematic,
-                            no_cuts=False, only_cuts=False,
-                            weighted=True):
-        if not weighted:
-            return ["1.0"]
-        weight_branches = super(Embedded_Ztautau, self).get_weight_branches(
-            systematic, no_cuts=no_cuts, only_cuts=only_cuts, weighted=weighted)
-        systerm, variation = Sample.get_sys_term_variation(systematic)
-        if not no_cuts and self.year == 2012:
-            for term, variations in self.EMBEDDING_SYSTEMATICS.items():
-                if term == systerm:
-                    if variations[variation]:
-                        weight_branches.append(variations[variation])
-                else:
-                    if variations['NOMINAL']:
-                        weight_branches.append(variations['NOMINAL'])
-        return weight_branches
-
-    def iter_weight_branches(self):
-        for type, variations in WEIGHT_SYSTEMATICS.items():
-            for variation in variations:
-                if variation == 'NOMINAL':
-                    continue
-                term = ('%s_%s' % (type, variation),)
-                yield self.get_weight_branches(term), term
-        if self.year != 2012:
-            return
-        for type, variations in self.EMBEDDING_SYSTEMATICS.items():
-            for variation in variations:
-                if variation == 'NOMINAL':
-                    continue
-                term = ('%s_%s' % (type, variation),)
-                yield self.get_weight_branches(term), term
-
-    def cuts(self, category, region, systematic='NOMINAL', **kwargs):
-        sys_cut = Cut()
-        systerm, variation = Sample.get_sys_term_variation(systematic)
-        if self.year == 2012:
-            for term, variations in self.EMBEDDING_SYSTEMATICS.items():
-                if term == systerm:
-                    sys_cut &= variations[variation]
-                else:
-                    sys_cut &= variations['NOMINAL']
-        return (category.get_cuts(self.year, **kwargs) &
-                REGIONS[region] & self._cuts & sys_cut)
