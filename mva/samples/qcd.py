@@ -16,6 +16,9 @@ class QCD(Sample, Background):
     WORKSPACE_SYSTEMATICS = [] #MC.WORKSPACE_SYSTEMATICS
     NORM_BY_THEORY = False
 
+    def systematics_components(self):
+        return []
+
     def histfactory(self, sample, category, systematics=True):
         if self.workspace_norm is not None:
             sample.AddNormFactor(

@@ -257,12 +257,10 @@ class Sample(object):
         from .others import Others
 
         log.info("creating histfactory sample for {0}".format(self.name))
-
         if isinstance(self, Data):
             sample = histfactory.Data(self.name)
         else:
             sample = histfactory.Sample(self.name)
-
         hist = self.get_hist(
             hist_template,
             expr_or_clf,
@@ -277,52 +275,40 @@ class Sample(object):
             field_scale=field_scale,
             weight_hist=weight_hist,
             weighted=weighted)
-
         # copy of unaltered nominal hist required by QCD shape
         nominal_hist = hist.Clone()
-
         if ravel:
             # convert to 1D if 2D (also handles systematics if present)
             hist = ravel_hist(hist)
         if uniform:
             # convert to uniform binning
             hist = uniform_hist(hist)
-
         #print_hist(hist)
-
         # set the nominal histogram
         sample.hist = hist
-
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
                           and systematics)
-
         # add systematics samples
         if do_systematics:
-
             SYSTEMATICS = get_systematics(self.year)
-
-            for sys_component in self.WORKSPACE_SYSTEMATICS:
-
+            for sys_component in self.systematics_components():
                 terms = SYSTEMATICS[sys_component]
                 if len(terms) == 1:
                     up_term = terms[0]
                     hist_up = hist.systematics[up_term]
                     # use nominal hist for "down" side
                     hist_down = hist
-
                 else:
                     up_term, down_term = terms
                     hist_up = hist.systematics[up_term]
                     hist_down = hist.systematics[down_term]
-
                 if sys_component == 'JES_FlavComp':
                     if ((isinstance(self, Signal) and self.mode == 'gg') or
                          isinstance(self, Others)):
                         sys_component += '_TAU_G'
                     else:
                         sys_component += '_TAU_Q'
-
                 elif sys_component == 'JES_PURho':
                     if isinstance(self, Others):
                         sys_component += '_TAU_QG'
@@ -331,16 +317,12 @@ class Sample(object):
                             sys_component += '_TAU_GG'
                         else:
                             sys_component += '_TAU_QQ'
-
                 npname = get_workspace_np_name(self, sys_component, self.year)
-
                 histsys = histfactory.HistoSys(
                     npname,
                     low=hist_down,
                     high=hist_up)
-
                 sample.AddHistoSys(histsys)
-
             if isinstance(self, QCD):
                 high, low = self.get_shape_systematic(
                      nominal_hist,
@@ -354,32 +336,26 @@ class Sample(object):
                      field_scale=field_scale,
                      weight_hist=weight_hist,
                      weighted=weighted)
-
                 if ravel:
                     low = ravel_hist(low)
                     high = ravel_hist(high)
                 if uniform:
                     low = uniform_hist(low)
                     high = uniform_hist(high)
-
                 #log.info("QCD low shape")
                 #print_hist(low)
                 #log.info("QCD high shape")
                 #print_hist(high)
-
                 npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                 if category.analysis_control and self.decouple_shape:
                     npname += '_CR'
                 histsys = histfactory.HistoSys(npname, low=low, high=high)
                 sample.AddHistoSys(histsys)
-
         if isinstance(self, Signal):
             sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
-
         elif isinstance(self, Background):
             # only activate stat error on background samples
             sample.ActivateStatError()
-
         if not isinstance(self, Data):
             norm_by_theory = getattr(self, 'NORM_BY_THEORY', True)
             sample.SetNormalizeByTheory(norm_by_theory)
@@ -390,12 +366,10 @@ class Sample(object):
                     high=1. + lumi_uncert,
                     low=1. - lumi_uncert)
                 sample.AddOverallSys(lumi_sys)
-
         if hasattr(self, 'histfactory') and not (
                 isinstance(self, Signal) and no_signal_fixes):
             # perform sample-specific items
             self.histfactory(sample, category, systematics=do_systematics)
-
         return sample
 
     def get_histfactory_sample_array(self,
@@ -468,7 +442,7 @@ class Sample(object):
             # add systematics samples
             if do_systematics:
                 SYSTEMATICS = get_systematics(self.year)
-                for sys_component in self.WORKSPACE_SYSTEMATICS:
+                for sys_component in self.systematics_components():
                     terms = SYSTEMATICS[sys_component]
                     if len(terms) == 1:
                         up_term = terms[0]
@@ -1002,12 +976,12 @@ class SystematicsSample(Sample):
                 events_bin = 2
             events_hist_suffix = '_cutflow'
 
-            trees['NOMINAL'] = rfile.Get(treename)
+            trees['NOMINAL'] = rfile[treename]
             tables['NOMINAL'] =  CachedTable.hook(getattr(
                 h5file.root, treename))
-
-            weighted_events['NOMINAL'] = rfile.Get(
-                treename + events_hist_suffix)[events_bin].value
+            cutflow_hist = rfile[treename + events_hist_suffix]
+            weighted_events['NOMINAL'] = cutflow_hist[events_bin].value
+            del cutflow_hist
 
             if self.systematics:
 
@@ -1017,11 +991,12 @@ class SystematicsSample(Sample):
                 if systematics_terms:
                     for sys_term in systematics_terms:
                         sys_name = treename + '_' + '_'.join(sys_term)
-                        trees[sys_term] = rfile.Get(sys_name)
+                        trees[sys_term] = rfile[sys_name]
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sys_name))
-                        weighted_events[sys_term] = rfile.Get(
-                            sys_name + events_hist_suffix)[events_bin].value
+                        cutflow_hist = rfile[sys_name + events_hist_suffix]
+                        weighted_events[sys_term] = cutflow_hist[events_bin].value
+                        del cutflow_hist
 
                 if systematics_samples:
                     for sample_name, sys_term in systematics_samples.items():
@@ -1030,11 +1005,12 @@ class SystematicsSample(Sample):
                         sys_ds = self.db[sample_name]
                         sample_name = sample_name.replace('.', '_')
                         sample_name = sample_name.replace('-', '_')
-                        trees[sys_term] = rfile.Get(sample_name)
+                        trees[sys_term] = rfile[sample_name]
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sample_name))
-                        weighted_events[sys_term] = getattr(rfile,
-                            sample_name + events_hist_suffix)[events_bin].value
+                        cutflow_hist = rfile[sample_name + events_hist_suffix]
+                        weighted_events[sys_term] = cutflow_hist[events_bin].value
+                        del cutflow_hist
 
             if hasattr(self, 'xsec_kfact_effic'):
                 xs, kfact, effic = self.xsec_kfact_effic(i)
@@ -1043,7 +1019,7 @@ class SystematicsSample(Sample):
 
             log.debug("{0} {1} {2} {3}".format(ds.name, xs, kfact, effic))
             self.datasets.append(
-                    (ds, trees, tables, weighted_events, xs, kfact, effic))
+                (ds, trees, tables, weighted_events, xs, kfact, effic))
 
     def draw_into(self, hist, expr, category, region,
                   cuts=None,
