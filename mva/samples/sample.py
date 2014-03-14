@@ -37,10 +37,8 @@ from ..cachedtable import CachedTable
 
 
 def get_workspace_np_name(sample, syst, year):
-
-    npname = 'ATLAS_{0}_{1:d}'.format(syst, year)
-
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
+    npname = 'ATLAS_{0}_{1:d}'.format(syst, year)
     npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
     npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
     npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
@@ -57,14 +55,11 @@ def get_workspace_np_name(sample, syst, year):
     npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
     npname = npname.replace('MET_RESOSOFTTERMS_2012', 'MET_RESOSOFT')
     npname = npname.replace('MET_SCALESOFTTERMS_2012', 'MET_SCALESOFT')
-
     from .ztautau import Embedded_Ztautau
-
     if isinstance(sample, Embedded_Ztautau):
         npname = npname.replace('TRIGGER', 'TRIGGER_EMB_HH')
     else:
         npname = npname.replace('TRIGGER', 'TRIGGER_HH')
-
     return npname
 
 
