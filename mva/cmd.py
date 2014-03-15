@@ -53,7 +53,7 @@ def general_parser(parser=None):
     parser.add_argument('--optimize-limits', default=False, action='store_true')
     parser.add_argument('--mass-points', default='125')
     parser.add_argument('--target-region', choices=TARGET_REGIONS,
-            default='OS_TRK',
+            default='OS',
             help='target signal region')
     parser.add_argument('--suffix', default=None, nargs='?',
             help='suffix to add to any output files or plots')
