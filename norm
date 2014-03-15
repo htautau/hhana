@@ -42,7 +42,7 @@ cache.set_scales(
     args.year,
     category.name,
     args.embedding,
-    'TRACK', #TODO: remove
+    field,
     args.qcd_shape_region,
     qcd_scale=qcd_scale,
     qcd_scale_error=0.,
@@ -97,7 +97,7 @@ while ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01:
         args.year,
         category.name,
         args.embedding,
-        'TRACK', #TODO: remove
+        field,
         args.qcd_shape_region,
         qcd_scale=analysis.qcd.scale * qcd_scale,
         qcd_scale_error=analysis.qcd.scale * qcd_scale_error / qcd_scale,

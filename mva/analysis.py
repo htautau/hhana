@@ -66,7 +66,8 @@ class Analysis(object):
                  transform=True,
                  suffix=None,
                  mmc=True,
-                 use2012clf=False):
+                 use2012clf=False,
+                 norm_field='dEta_tau1_tau2'):
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
@@ -77,6 +78,7 @@ class Analysis(object):
         self.suffix = suffix
         self.mmc = mmc
         self.use2012clf = use2012clf
+        self.norm_field = norm_field
 
         if use_embedding:
             log.info("Using embedded Ztautau")
@@ -212,7 +214,7 @@ class Analysis(object):
             ztautau=self.ztautau,
             qcd=self.qcd,
             category=category,
-            param='TRACK')
+            param=self.norm_field)
 
     def iter_categories(self, *definitions, **kwargs):
         names = kwargs.pop('names', None)
@@ -231,18 +233,18 @@ class Analysis(object):
 
     def get_suffix(self, clf=False):
         # "track" here only for historical reasons
-        output_suffix = '_trackfit_%s' % self.qcd_shape_region
+        output_suffix = '_%s' % self.qcd_shape_region
         if self.use_embedding:
-            output_suffix += '_embedding'
+            output_suffix += '_ebz'
         else:
-            output_suffix += '_alpgen'
+            output_suffix += '_mcz'
         if not self.mmc:
             output_suffix += '_no_mmc'
         if self.suffix:
             output_suffix += '_%s' % self.suffix
         output_suffix += '_%d' % (self.year % 1E3)
         if not clf and not self.systematics:
-            output_suffix += '_statsonly'
+            output_suffix += '_stat'
         return  output_suffix
 
     def get_channel(self, hist_template, expr_or_clf, category, region,
