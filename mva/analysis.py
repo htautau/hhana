@@ -385,7 +385,7 @@ class Analysis(object):
                 region=region,
                 cuts=cuts,
                 systematics=systematics,
-                systematics_components=bkg.WORKSPACE_SYSTEMATICS)
+                systematics_components=bkg.systematics_components())
 
             for sys_term, (scores, weights) in scores_dict.items():
                 if len(scores) == 0:
@@ -415,7 +415,7 @@ class Analysis(object):
                         region=region,
                         cuts=cuts,
                         systematics=systematics,
-                        systematics_components=sig.WORKSPACE_SYSTEMATICS)
+                        systematics_components=sig.systematics_components())
 
                     for sys_term, (scores, weights) in scores_dict.items():
                         if len(scores) == 0:
