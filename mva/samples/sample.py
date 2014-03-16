@@ -71,6 +71,8 @@ class Sample(object):
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
                  trigger=True,
+                 name='Sample',
+                 label='Sample',
                  **hist_decor):
         self.year = year
         if year == 2011:
@@ -83,6 +85,8 @@ class Sample(object):
         else:
             self._cuts = cuts
         self.student = student
+        self.name = name
+        self.label = label
         self.hist_decor = hist_decor
         if 'fillstyle' not in hist_decor:
             self.hist_decor['fillstyle'] = 'solid'
@@ -128,7 +132,7 @@ class Sample(object):
             scores=None,
             min_score=None,
             max_score=None,
-            systematics=True,
+            systematics=False,
             systematics_components=None,
             suffix=None,
             field_scale=None,
@@ -180,7 +184,7 @@ class Sample(object):
             scores=None,
             min_score=None,
             max_score=None,
-            systematics=True,
+            systematics=False,
             systematics_components=None,
             suffix=None,
             field_scale=None,
@@ -243,7 +247,7 @@ class Sample(object):
             scores=None,
             min_score=None,
             max_score=None,
-            systematics=True,
+            systematics=False,
             suffix=None,
             field_scale=None,
             weight_hist=None,
@@ -380,7 +384,7 @@ class Sample(object):
             scores=None,
             min_score=None,
             max_score=None,
-            systematics=True,
+            systematics=False,
             suffix=None,
             field_scale=None,
             weight_hist=None,
@@ -650,7 +654,7 @@ class Sample(object):
         return cuts
 
     def draw(self, expr, category, region, bins, min, max,
-             cuts=None, weighted=True, systematics=True):
+             cuts=None, weighted=True, systematics=False):
 
         hist = Hist(bins, min, max,
             title=self.label,
@@ -665,7 +669,7 @@ class Sample(object):
                xbins, xmin, xmax,
                ybins, ymin, ymax,
                cuts=None,
-               systematics=True,
+               systematics=False,
                ravel=False):
 
         hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
@@ -927,14 +931,14 @@ class SystematicsSample(Sample):
     def cut_systematics(self):
         return {}
 
-    def __init__(self, year, db=DB, systematics=True, **kwargs):
+    def __init__(self, year, db=DB, systematics=False, **kwargs):
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
             sample_info = samples_db.get_sample(
                 'hadhad', year, 'background', sample_key)
-            self.name = sample_info['name']
-            self.label = sample_info['root']
+            kwargs.setdefault('name', sample_info['name'])
+            kwargs.setdefault('label', sample_info['root'])
             if 'color' in sample_info and 'color' not in kwargs:
                 kwargs['color'] = sample_info['color']
             self.samples = sample_info['samples']
@@ -1024,7 +1028,7 @@ class SystematicsSample(Sample):
     def draw_into(self, hist, expr, category, region,
                   cuts=None,
                   weighted=True,
-                  systematics=True,
+                  systematics=False,
                   systematics_components=None,
                   scale=1.):
 
@@ -1139,7 +1143,7 @@ class SystematicsSample(Sample):
                    scores=None,
                    min_score=None,
                    max_score=None,
-                   systematics=True,
+                   systematics=False,
                    systematics_components=None,
                    scale=1.,
                    bootstrap_data=False):
@@ -1200,7 +1204,7 @@ class SystematicsSample(Sample):
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
-               systematics=True,
+               systematics=False,
                systematics_components=None,
                scale=1.):
 

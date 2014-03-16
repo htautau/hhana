@@ -63,16 +63,18 @@ class QCD(Sample, Background):
                  workspace_norm=None,
                  constrain_norm=False,
                  cuts=None,
+                 name='QCD',
+                 label='Multijet',
                  **kwargs):
         QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(
             year=data.year,
             scale=scale,
+            name=name,
+            label=label,
             **kwargs)
         self.data = data
         self.mc = mc
-        self.name = 'QCD'
-        self.label = 'Multijet'
         self.scale = 1.
         self.data_scale = data_scale
         if mc_scales is not None:
@@ -89,7 +91,7 @@ class QCD(Sample, Background):
         self.constrain_norm = constrain_norm
         self.systematics = mc[0].systematics
 
-    def events(self, category, region, cuts=None,
+    def events(self, category=None, region=None, cuts=None,
                systematic='NOMINAL'):
         data = Hist(1, -100, 100)
         mc_subtract = data.Clone()

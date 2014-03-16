@@ -919,7 +919,7 @@ def draw_channel_array(
     return field_channel, figs
 
 
-def draw_channel(channel, systematics=True, fit=None, **kwargs):
+def draw_channel(channel, fit=None, **kwargs):
     """
     Draw a HistFactory::Channel only include OverallSys systematics
     in resulting band as an illustration of the level of uncertainty
@@ -939,19 +939,18 @@ def draw_channel(channel, systematics=True, fit=None, **kwargs):
     sys_names = channel.sys_names()
     for sample in channel.samples:
         nominal_hist = sample.hist
-        if systematics:
-            _systematics = {}
-            for sys_name in sys_names:
-                systematics_terms[sys_name] = (
-                    sys_name + '_UP',
-                    sys_name + '_DOWN')
-                dn_hist, up_hist = sample.sys_hist(sys_name)
-                hsys = HistoSys(sys_name, low=dn_hist, high=up_hist)
-                norm, shape = split_norm_shape(hsys, nominal_hist)
-                # include only overallsys component
-                _systematics[sys_name + '_DOWN'] = nominal_hist * norm.low
-                _systematics[sys_name + '_UP'] = nominal_hist * norm.high
-            nominal_hist.systematics = _systematics
+        _systematics = {}
+        for sys_name in sys_names:
+            systematics_terms[sys_name] = (
+                sys_name + '_UP',
+                sys_name + '_DOWN')
+            dn_hist, up_hist = sample.sys_hist(sys_name)
+            hsys = HistoSys(sys_name, low=dn_hist, high=up_hist)
+            norm, shape = split_norm_shape(hsys, nominal_hist)
+            # include only overallsys component
+            _systematics[sys_name + '_DOWN'] = nominal_hist * norm.low
+            _systematics[sys_name + '_UP'] = nominal_hist * norm.high
+        nominal_hist.systematics = _systematics
         if sample.GetNormFactor('SigXsecOverSM') is not None:
             signal_hists.append(nominal_hist)
         else:
@@ -1375,6 +1374,7 @@ def draw(name,
         if len(binwidths) == 1 and binwidths[0] != '1':
             ylabel = '%s / %s' % (ylabel, binwidths[0])
     model_stack.yaxis.SetTitle(ylabel)
+
     base_hist = model_stack
     if show_ratio:
         # hide x labels on top hist

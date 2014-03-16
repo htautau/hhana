@@ -10,7 +10,7 @@ from ..regions import REGIONS
 class Ztautau(Background):
     NORM_BY_THEORY = False
 
-    def histfactory(self, sample, category, systematics=True):
+    def histfactory(self, sample, category, systematics=False):
         if self.workspace_norm is not None:
             sample.AddNormFactor(
                 'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year),

@@ -58,7 +58,7 @@ class Higgs(MC, Signal):
         os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
     NORM_BY_THEORY = True
 
-    def histfactory(self, sample, category, systematics=True):
+    def histfactory(self, sample, category, systematics=False):
         if not systematics:
             return
         if len(self.modes) != 1:
@@ -192,7 +192,7 @@ class Higgs(MC, Signal):
             str_mass = '%d' % masses[0]
             self.name += '_%s' % str_mass
 
-        self.label = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (str_mode, str_mass)
+        label = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (str_mode, str_mass)
 
         if year == 2011:
             suffix = 'mc11c'
@@ -231,7 +231,7 @@ class Higgs(MC, Signal):
         else:
             self.mass = None
 
-        super(Higgs, self).__init__(year=year, **kwargs)
+        super(Higgs, self).__init__(year=year, label=label, **kwargs)
 
     def xsec_kfact_effic(self, isample):
         # use yellowhiggs for cross sections

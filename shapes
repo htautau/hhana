@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+# create an ntuple containing trees for data with classifier scores
+# and event weights
+
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+
+from mva.samples import Data, Others, QCD, Embedded_Ztautau, MC_Ztautau
+from mva.categories import CATEGORIES
+from mva.variables import VARIABLES
+
+from rootpy.plotting import Hist, Graph
+from rootpy.plotting.templates import RatioPlot
+
+# list of fields to plot
+fields = [
+    'mmc1_mass',
+]
+field_dict = dict([(field, VARIABLES[field]) for field in fields])
+
+# create samples
+data = Data(year=args.year)
+ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded')
+ztt_mc = MC_Ztautau(year=args.year, label='POWHEG')
+others = Others(year=args.year)
+qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='nOS',
+    drawstyle='hist E0', markersize=0, color='red', linewidth=2, fillstyle='hollow') 
+qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='SS',
+    drawstyle='hist E0', markersize=0, color='black', linewidth=2, fillstyle='hollow', linestyle='dashed')
+
+for category in CATEGORIES[args.categories]:
+    # compare QCD shapes
+    qcd_nos_hists = qcd_nos.get_field_hist(field_dict, category)
+    qcd_ss_hists = qcd_ss.get_field_hist(field_dict, category)
+    qcd_nos.draw_array(qcd_nos_hists, category, 'OS')
+    qcd_ss.draw_array(qcd_ss_hists, category, 'OS')
+
+    for field in fields:
+        # draw ratio plot
+        plot = RatioPlot(
+            xtitle=field_dict[field]['root'],
+            ytitle='Normalized Events',
+            ratio_title='nOS / SS',
+            ratio_range=(0, 2),
+            ratio_line_values=[0.5, 1, 1.5])
+        nos = qcd_nos_hists[field]
+        ss = qcd_ss_hists[field]
+        nos /= nos.integral()
+        ss /= ss.integral()
+        plot.draw('main', [nos, ss])
+        ratio = Hist.divide(nos, ss, fill_value=-1)
+        ratio.drawstyle = 'hist'
+        ratio.color = 'black'
+        ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
+        ratio_band.drawstyle = '20'
+        plot.draw('ratio', [ratio_band, ratio])
+        plot.SaveAs('shape_qcd_{0}.png'.format(args.year % 1000))
+
+    # compare Ztt shapes

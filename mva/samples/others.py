@@ -22,7 +22,7 @@ class Others(MC, Background):
     NO_KYLEFIX = True
     NORM_BY_THEORY = True
 
-    def histfactory(self, sample, category, systematics=True):
+    def histfactory(self, sample, category, systematics=False):
         if not systematics:
             return
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties

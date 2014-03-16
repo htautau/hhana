@@ -51,9 +51,10 @@ class DataInfo():
 
 class Data(Sample):
 
-    def __init__(self, year, **kwargs):
+    def __init__(self, year, name='Data', label='Data', **kwargs):
         super(Data, self).__init__(
             year=year, scale=1.,
+            name=name, label=label,
             **kwargs)
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
@@ -61,8 +62,6 @@ class Data(Sample):
         self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
-        self.label = 'Data'
-        self.name = 'Data'
 
     def events(self, category=None, region=None, cuts=None, hist=None):
         if hist is None:
