@@ -11,7 +11,7 @@ from mva.samples import Data, Others, QCD, Embedded_Ztautau, MC_Ztautau
 from mva.categories import CATEGORIES
 from mva.variables import VARIABLES
 
-from rootpy.plotting import Hist, Graph
+from rootpy.plotting import Hist, Graph, Legend
 from rootpy.plotting.templates import RatioPlot
 
 # list of fields to plot
@@ -25,10 +25,12 @@ data = Data(year=args.year)
 ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded')
 ztt_mc = MC_Ztautau(year=args.year, label='POWHEG')
 others = Others(year=args.year)
-qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='nOS',
-    drawstyle='hist E0', markersize=0, color='red', linewidth=2, fillstyle='hollow') 
-qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='SS',
-    drawstyle='hist E0', markersize=0, color='black', linewidth=2, fillstyle='hollow', linestyle='dashed')
+qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='Multijet nOS',
+    drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L') 
+qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
+    drawstyle='hist E0', markersize=0, color='black',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 for category in CATEGORIES[args.categories]:
     # compare QCD shapes
@@ -56,6 +58,10 @@ for category in CATEGORIES[args.categories]:
         ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
         ratio_band.drawstyle = '20'
         plot.draw('ratio', [ratio_band, ratio])
+        # legend
+        with plot.pad('main'):
+            leg = Legend([nos, ss], leftmargin=0.35)
+            leg.Draw()
         plot.SaveAs('shape_qcd_{0}.png'.format(args.year % 1000))
 
     # compare Ztt shapes
