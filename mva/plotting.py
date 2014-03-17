@@ -955,6 +955,7 @@ def draw_channel(channel, fit=None, **kwargs):
             signal_hists.append(nominal_hist)
         else:
             model_hists.append(nominal_hist)
+    kwargs.pop('systematics')
     figs = []
     for logy in (False, True):
         figs.append(draw(
