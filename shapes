@@ -13,6 +13,7 @@ from mva.variables import VARIABLES
 
 from rootpy.plotting import Hist, Graph, Legend
 from rootpy.plotting.templates import RatioPlot
+from ROOT import TLatex
 
 # list of fields to plot
 fields = [
@@ -28,9 +29,17 @@ field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
 # create samples
 data = Data(year=args.year)
-ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded')
-ztt_mc = MC_Ztautau(year=args.year, label='POWHEG')
 others = Others(year=args.year)
+
+# ztt
+ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded Data',
+    drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L') 
+ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC',
+    drawstyle='hist E0', markersize=0, color='black',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+
+# qcd
 qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='Multijet nOS',
     drawstyle='hist E0', markersize=0, color='red',
     linewidth=2, fillstyle='hollow', legendstyle='L') 
@@ -38,40 +47,64 @@ qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
     drawstyle='hist E0', markersize=0, color='black',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
+
+def draw_ratio(a, b, ratio_title='ratio'):
+    plot = RatioPlot(
+        xtitle=field_dict[field]['root'],
+        ytitle='Normalized Events',
+        ratio_title=ratio_title,
+        ratio_range=(0, 2),
+        ratio_line_values=[0.5, 1, 1.5])
+    a_integral = a.integral()
+    if a_integral != 0:
+        a /= a_integral
+    b_integral = b.integral()
+    if b_integral != 0:
+        b /= b_integral
+    plot.draw('main', [a, b], ypadding=(0.3, 0.))
+    ratio = Hist.divide(a, b, fill_value=-1)
+    ratio.drawstyle = 'hist'
+    ratio.color = 'black'
+    ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
+    ratio_band.drawstyle = '20'
+    plot.draw('ratio', [ratio_band, ratio])
+    # legend
+    with plot.pad('main'):
+        leg = Legend([a, b], leftmargin=0.3, margin=0.2)
+        leg.Draw()
+    # show KS and Chi^2
+    ks = a.KolmogorovTest(b)
+    ks_label = TLatex(0.2, 0.9, "KS={0:.2f}".format(ks))
+    ks_label.SetNDC(True)
+    ks_label.Draw()
+    chi2 = a.Chi2Test(b, 'WW CHI2/NDF')
+    chi2_label = TLatex(0.2, 0.85, "#chi^{{2}}={0:.2f}".format(chi2))
+    chi2_label.SetNDC(True)
+    chi2_label.Draw()
+    return plot
+
+
 for category in CATEGORIES[args.categories]:
     # compare QCD shapes
     qcd_nos_hists, field_scale = qcd_nos.get_field_hist(field_dict, category)
     qcd_ss_hists, _ = qcd_ss.get_field_hist(field_dict, category)
     qcd_nos.draw_array(qcd_nos_hists, category, 'OS', field_scale=field_scale)
     qcd_ss.draw_array(qcd_ss_hists, category, 'OS', field_scale=field_scale)
-
     for field in fields:
         # draw ratio plot
-        plot = RatioPlot(
-            xtitle=field_dict[field]['root'],
-            ytitle='Normalized Events',
-            ratio_title='nOS / SS',
-            ratio_range=(0, 2),
-            ratio_line_values=[0.5, 1, 1.5])
         nos = qcd_nos_hists[field]
         ss = qcd_ss_hists[field]
-        nos_integral = nos.integral()
-        if nos_integral != 0:
-            nos /= nos_integral
-        ss_integral = ss.integral()
-        if ss_integral != 0:
-            ss /= ss_integral
-        plot.draw('main', [nos, ss], ypadding=(0.3, 0.))
-        ratio = Hist.divide(nos, ss, fill_value=-1)
-        ratio.drawstyle = 'hist'
-        ratio.color = 'black'
-        ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
-        ratio_band.drawstyle = '20'
-        plot.draw('ratio', [ratio_band, ratio])
-        # legend
-        with plot.pad('main'):
-            leg = Legend([nos, ss], leftmargin=0.35)
-            leg.Draw()
+        plot = draw_ratio(nos, ss, ratio_title='nOS / SS')
         plot.SaveAs('plots/shapes/shape_qcd_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
 
     # compare Ztt shapes
+    ztt_eb_hists, field_scale = ztt_eb.get_field_hist(field_dict, category)
+    ztt_mc_hists, _ = ztt_mc.get_field_hist(field_dict, category)
+    ztt_eb.draw_array(ztt_eb_hists, category, 'OS', field_scale=field_scale)
+    ztt_mc.draw_array(ztt_mc_hists, category, 'OS', field_scale=field_scale)
+    for field in fields:
+        # draw ratio plot
+        eb = ztt_eb_hists[field]
+        mc = ztt_mc_hists[field]
+        plot = draw_ratio(eb, mc, ratio_title='Emb / MC')
+        plot.SaveAs('plots/shapes/shape_ztt_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
