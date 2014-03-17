@@ -751,7 +751,7 @@ def draw_samples_array(
 
     model_hists = []
     for sample in model:
-        field_hist = sample.get_field_hist(vars)
+        field_hist, _ = sample.get_field_hist(vars)
         sample.draw_array(field_hist,
             category, region, cuts,
             weighted=weighted,
@@ -765,7 +765,7 @@ def draw_samples_array(
     if signal is not None:
         signal_hists = []
         for sample in signal:
-            field_hist = sample.get_field_hist(vars)
+            field_hist, _ = sample.get_field_hist(vars)
             sample.draw_array(field_hist,
                 category, region, cuts,
                 weighted=weighted,
@@ -779,7 +779,7 @@ def draw_samples_array(
         signal_hists = None
 
     if data is not None:
-        data_field_hist = data.get_field_hist(vars)
+        data_field_hist, _ = data.get_field_hist(vars)
         data.draw_array(data_field_hist, category, region, cuts,
             weighted=weighted,
             field_scale=field_scale,

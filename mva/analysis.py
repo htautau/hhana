@@ -325,7 +325,7 @@ class Analysis(object):
         # create HistFactory samples
         histfactory_samples = []
         for s in samples:
-            field_hist = s.get_field_hist(vars, category, templates=templates)
+            field_hist, _ = s.get_field_hist(vars, category, templates=templates)
             field_sample = s.get_histfactory_sample_array(
                 field_hist,
                 category, region,

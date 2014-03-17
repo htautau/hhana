@@ -119,7 +119,7 @@ VARIABLES = {
             'PRESELECTION': (13, 15, 80),
             'REST': (13, 15, 80),
             None: (17, 15, 100)},
-        'scale': 1./1000,
+        'scale': 0.001,
         'units': 'GeV',
     },
     'MET_etx': {
@@ -128,7 +128,7 @@ VARIABLES = {
         'filename': 'MET_x',
         'bins': 20,
         'range': (-75, 75),
-        'scale': 1./1000,
+        'scale': 0.001,
         'units': 'GeV',
     },
     'MET_ety': {
@@ -137,7 +137,7 @@ VARIABLES = {
         'filename': 'MET_y',
         'bins': 20,
         'range': (-75, 75),
-        'scale': 1./1000,
+        'scale': 0.001,
         'units': 'GeV',
     },
     'MET_phi': {

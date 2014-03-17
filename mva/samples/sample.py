@@ -94,6 +94,7 @@ class Sample(object):
 
     def get_field_hist(self, vars, category, templates=None):
         field_hist = {}
+        field_scale = {}
         for field, var_info in vars.items():
             if templates is not None and field in templates:
                 field_hist[field] = templates[field].Clone(
@@ -122,7 +123,9 @@ class Sample(object):
                     type='D',
                     **self.hist_decor)
             field_hist[field] = hist
-        return field_hist
+            if 'scale' in var_info and var_info['scale'] != 1.:
+                field_scale[field] = var_info['scale']
+        return field_hist, field_scale
 
     def get_hist_array(self,
             field_hist_template,

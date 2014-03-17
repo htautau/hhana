@@ -17,6 +17,12 @@ from rootpy.plotting.templates import RatioPlot
 # list of fields to plot
 fields = [
     'mmc1_mass',
+    'MET_et',
+    'MET_centrality',
+    'resonance_pt',
+    'dEta_tau1_tau2',
+    'dR_tau1_tau2',
+    'dPhi_tau1_tau2',
 ]
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
@@ -34,10 +40,10 @@ qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
 
 for category in CATEGORIES[args.categories]:
     # compare QCD shapes
-    qcd_nos_hists = qcd_nos.get_field_hist(field_dict, category)
-    qcd_ss_hists = qcd_ss.get_field_hist(field_dict, category)
-    qcd_nos.draw_array(qcd_nos_hists, category, 'OS')
-    qcd_ss.draw_array(qcd_ss_hists, category, 'OS')
+    qcd_nos_hists, field_scale = qcd_nos.get_field_hist(field_dict, category)
+    qcd_ss_hists, _ = qcd_ss.get_field_hist(field_dict, category)
+    qcd_nos.draw_array(qcd_nos_hists, category, 'OS', field_scale=field_scale)
+    qcd_ss.draw_array(qcd_ss_hists, category, 'OS', field_scale=field_scale)
 
     for field in fields:
         # draw ratio plot
@@ -49,9 +55,13 @@ for category in CATEGORIES[args.categories]:
             ratio_line_values=[0.5, 1, 1.5])
         nos = qcd_nos_hists[field]
         ss = qcd_ss_hists[field]
-        nos /= nos.integral()
-        ss /= ss.integral()
-        plot.draw('main', [nos, ss])
+        nos_integral = nos.integral()
+        if nos_integral != 0:
+            nos /= nos_integral
+        ss_integral = ss.integral()
+        if ss_integral != 0:
+            ss /= ss_integral
+        plot.draw('main', [nos, ss], ypadding=(0.3, 0.))
         ratio = Hist.divide(nos, ss, fill_value=-1)
         ratio.drawstyle = 'hist'
         ratio.color = 'black'
@@ -62,6 +72,6 @@ for category in CATEGORIES[args.categories]:
         with plot.pad('main'):
             leg = Legend([nos, ss], leftmargin=0.35)
             leg.Draw()
-        plot.SaveAs('shape_qcd_{0}.png'.format(args.year % 1000))
+        plot.SaveAs('plots/shapes/shape_qcd_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
 
     # compare Ztt shapes
