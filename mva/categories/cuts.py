@@ -48,7 +48,7 @@ class Category_Cuts_VBF_LowDR(Category_Cuts_Preselection):
     name = 'cuts_vbf_lowdr'
     label = '#tau_{had}#tau_{had} Cut-based VBF Low dR'
     cuts = (VBF_CUTS_CUTBASED
-        & Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt > 140000'))
+            & Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt > 140000'))
     limitbins = [0,64,80,92,104,116,132,176,INF]
 
 
@@ -74,7 +74,8 @@ class Category_Cuts_Boosted_Tight(Category_Cuts_Preselection):
     name = 'cuts_boosted_tight'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Tight'
     cuts = ((- VBF_CUTS_CUTBASED) & BOOSTED_CUTS_CUTBASED
-        & ((Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt > 140000')) | Cut('resonance_pt > 200000')))
+            & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
+    #         & ((Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt > 140000')) | Cut('resonance_pt > 200000')))
     limitbins = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
 
 
@@ -82,8 +83,9 @@ class Category_Cuts_Boosted_Loose(Category_Cuts_Preselection):
     name = 'cuts_boosted_loose'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Loose'
     cuts = ((- VBF_CUTS_CUTBASED) & BOOSTED_CUTS_CUTBASED
-        & Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt < 140000')
-        & Cut('dEta_tau1_tau2 < 1'))
+            & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))
+#         & Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt < 140000')
+#         & Cut('dEta_tau1_tau2 < 1'))
     limitbins = [0,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,176,184,INF]
 
 # --------> Added by Quentin Buat quentin(dot)buat(at)cern(dot)ch
