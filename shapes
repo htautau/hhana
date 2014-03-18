@@ -26,6 +26,10 @@ fields = [
     'dEta_tau1_tau2',
     'dR_tau1_tau2',
     'dPhi_tau1_tau2',
+    'tau1_pt',
+    'tau2_pt',
+    'tau1_eta',
+    'tau2_eta',
 ]
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
