@@ -1410,9 +1410,9 @@ def draw(name,
         keepalive(hist_pad, plabel)
 
     # draw the ATLAS label
-#     ATLAS_label(0.62, 0.89,
-#         sep=0.132, pad=hist_pad, sqrts=None,
-#         text="Preliminary", textsize=textsize)
+    #ATLAS_label(0.62, 0.89,
+    #    sep=0.132, pad=hist_pad, sqrts=None,
+    #    text="Preliminary", textsize=textsize)
 
     # draw the user-specified label
     if plot_label is not None:

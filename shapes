@@ -35,30 +35,30 @@ others = Others(year=args.year)
 
 # ztt
 ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded Data',
-    drawstyle='hist E0', markersize=0, color='red',
+    drawstyle='hist E0', markersize=0, color='black',
     linewidth=2, fillstyle='hollow', legendstyle='L') 
 ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC',
-    drawstyle='hist E0', markersize=0, color='black',
+    drawstyle='hist E0', markersize=0, color='red',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 # qcd
 qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='Multijet nOS',
-    drawstyle='hist E0', markersize=0, color='red',
+    drawstyle='hist E0', markersize=0, color='black',
     linewidth=2, fillstyle='hollow', legendstyle='L') 
 qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
-    drawstyle='hist E0', markersize=0, color='black',
+    drawstyle='hist E0', markersize=0, color='red',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 # MC Ztt and MC embedded Ztt
 ztt_pyth = Pythia_Ztautau(year=2012, label='Pythia',
-    drawstyle='hist E0', markersize=0, color='red',
+    drawstyle='hist E0', markersize=0, color='black',
     linewidth=2, fillstyle='hollow', legendstyle='L')
 ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia',
-    drawstyle='hist E0', markersize=0, color='black',
+    drawstyle='hist E0', markersize=0, color='red',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 
-def draw_ratio(a, b, ratio_title='ratio'):
+def draw_ratio(a, b, category, ratio_title='ratio', textsize=22):
     plot = RatioPlot(
         xtitle=field_dict[field]['root'],
         ytitle='Normalized Events',
@@ -78,19 +78,35 @@ def draw_ratio(a, b, ratio_title='ratio'):
     ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
     ratio_band.drawstyle = '20'
     plot.draw('ratio', [ratio_band, ratio])
-    # legend
-    with plot.pad('main'):
-        leg = Legend([a, b], leftmargin=0.3, margin=0.2)
+    with plot.pad('main') as pad:
+        # legend
+        leg = Legend([a, b], leftmargin=0.3, topmargin=0.1, margin=0.2, textsize=textsize)
         leg.Draw()
-    # show KS and Chi^2
-    ks = a.KolmogorovTest(b)
-    ks_label = TLatex(0.2, 0.9, "KS={0:.2f}".format(ks))
-    ks_label.SetNDC(True)
-    ks_label.Draw()
-    chi2 = a.Chi2Test(b, 'WW CHI2/NDF')
-    chi2_label = TLatex(0.2, 0.85, "#chi^{{2}}={0:.2f}".format(chi2))
-    chi2_label.SetNDC(True)
-    chi2_label.Draw()
+        # draw the category label
+        label = TLatex(
+            pad.GetLeftMargin() + 0.04, 0.87,
+            category.label)
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        label.Draw()
+        # show KS and Chi^2
+        ks = a.KolmogorovTest(b)
+        ks_label = TLatex(
+            pad.GetLeftMargin() + 0.04, 0.8,
+            "KS={0:.2f}".format(ks))
+        ks_label.SetNDC(True)
+        ks_label.SetTextFont(43)
+        ks_label.SetTextSize(textsize)
+        ks_label.Draw()
+        chi2 = a.Chi2Test(b, 'WW CHI2/NDF')
+        chi2_label = TLatex(
+            pad.GetLeftMargin() + 0.04, 0.75,
+            "#chi^{{2}}={0:.2f}".format(chi2))
+        chi2_label.SetNDC(True)
+        chi2_label.SetTextFont(43)
+        chi2_label.SetTextSize(textsize)
+        chi2_label.Draw()
     return plot
 
 
@@ -104,7 +120,7 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
         # draw ratio plot
         nos = qcd_nos_hists[field]
         ss = qcd_ss_hists[field]
-        plot = draw_ratio(nos, ss, ratio_title='nOS / SS')
+        plot = draw_ratio(nos, ss, category, ratio_title='nOS / SS')
         plot.SaveAs('plots/shapes/shape_qcd_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
 
     # compare Ztt shapes
@@ -116,7 +132,7 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
         # draw ratio plot
         eb = ztt_eb_hists[field]
         mc = ztt_mc_hists[field]
-        plot = draw_ratio(eb, mc, ratio_title='Emb / MC')
+        plot = draw_ratio(eb, mc, category, ratio_title='Emb / MC')
         plot.SaveAs('plots/shapes/shape_ztt_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
 
     # Compare MC Ztautau with embedded MC Zmumu
@@ -128,5 +144,5 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
         # draw ratio plot
         pyth = ztt_pyth_hists[field]
         mceb = ztt_mceb_hists[field]
-        plot = draw_ratio(pyth, mceb, ratio_title='MC / Emb')
+        plot = draw_ratio(pyth, mceb, category, ratio_title='MC / Emb')
         plot.SaveAs('plots/shapes/shape_ebztt_{0}_{1}_12.png'.format(field, category.name))
