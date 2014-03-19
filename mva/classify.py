@@ -181,8 +181,8 @@ class Classifier(object):
 
             category_name = self.category.get_parent().name
             clf_filename = os.path.join(CACHE_DIR, 'classify',
-                    'clf_%s%s_%d.pickle' % (
-                    category_name, self.clf_output_suffix, partition_idx))
+                'clf_%s%s_%d.pickle' % (
+                category_name, self.clf_output_suffix, partition_idx))
 
             log.info("attempting to open %s ..." % clf_filename)
             if os.path.isfile(clf_filename):
@@ -298,16 +298,19 @@ class Classifier(object):
                 background_train = background_train[background_weight_train >= 0]
                 signal_weight_train = signal_weight_train[signal_weight_train >= 0]
                 background_weight_train = background_weight_train[background_weight_train >= 0]
+                log.info("removing events with negative weights")
 
             if max_sig is not None and max_sig < len(signal_train):
                 subsample = np.random.permutation(len(signal_train))[:max_sig_train]
                 signal_train = signal_train[subsample]
                 signal_weight_train = signal_weight_train[subsample]
+                log.info("signal stats reduced to user-specified maximum")
 
             if max_bkg is not None and max_bkg < len(background_train):
                 subsample = np.random.permutation(len(background_train))[:max_bkg_train]
                 background_train = background_train[subsample]
                 background_weight_train = background_weight_train[subsample]
+                log.info("background stats reduced to user-specified maximum")
 
             if same_size_sig_bkg:
                 if len(background_train) > len(signal_train):
@@ -316,17 +319,22 @@ class Classifier(object):
                         len(background_train))[:len(signal_train)]
                     background_train = background_train[subsample]
                     background_weight_train = background_weight_train[subsample]
+                    log.info("number of background events reduced "
+                             "to match number of signal events")
                 elif len(background_train) < len(signal_train):
                     # random subsample of signal so it's the same size as background
                     subsample = np.random.permutation(
                         len(signal_train))[:len(background_train)]
                     signal_train = signal_train[subsample]
                     signal_weight_train = signal_weight_train[subsample]
+                    log.info("number of signal events reduced "
+                             "to match number of background events")
 
             if norm_sig_to_bkg:
                 # normalize signal to background
                 signal_weight_train *= (
                     background_weight_train.sum() / signal_weight_train.sum())
+                log.info("normalizing signal to match background")
 
             log.info("Training Samples:")
             log.info("Signal: %d events, %s features" % signal_train.shape)

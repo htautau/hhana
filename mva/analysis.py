@@ -30,11 +30,11 @@ Scores = namedtuple('Scores', [
     'max_score',])
 
 
-def get_analysis(args):
+def get_analysis(args, **kwargs):
     analysis = Analysis(
         year=args.year,
-        systematics=args.systematics,
-        use_embedding=args.embedding,
+        systematics=kwargs.get('systematics', args.systematics),
+        use_embedding=kwargs.get('embedding', args.embedding),
         target_region=args.target_region,
         qcd_shape_region=args.qcd_shape_region,
         decouple_qcd_shape=args.decouple_qcd_shape,
@@ -567,7 +567,6 @@ class Analysis(object):
         clf_output_suffix = self.get_suffix(clf=True)
         if self.use2012clf:
             self.year = original_year
-
 
         clf = Classifier(
             fields=category.features,

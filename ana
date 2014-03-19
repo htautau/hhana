@@ -477,20 +477,36 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             cuts=cuts)
 
     if 'train' in args.actions and not is_control:
-        # all modes, all masses
+        # combine embedded and MC Ztt for training
+        analysis_eb = get_analysis(args, embedding=True)
+        analysis_mc = get_analysis(args, embedding=False)
+        analysis_eb.normalize(category)
+        analysis_mc.normalize(category)
+        analysis_eb.ztautau.scale *= 0.5
+        analysis_mc.ztautau.scale *= 0.5
+
         signals_train = [
             Higgs(
                 year=year,
                 mass=125,
                 modes=category.train_signal_modes,
-                systematics=args.systematics),
+                trigger=False),
+            # larger stats by using data trigger efficiency instead of
+            # requiring that the trigger fired (trigger=False).
+        ]
+
+        backgrounds_train = [
+            analysis_eb.ztautau,
+            analysis_mc.ztautau,
+            analysis.others,
+            analysis.qcd,
         ]
 
         clf = analysis.get_clf(category, load=False)
         
         clf.train(
             signals=signals_train,
-            backgrounds=analysis.backgrounds,
+            backgrounds=backgrounds_train,
             cuts=train_region,
             grid_search=args.grid_search,
             cv_nfold=args.nfold,
