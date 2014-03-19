@@ -336,12 +336,12 @@ class Classifier(object):
                     background_weight_train.sum() / signal_weight_train.sum())
                 log.info("normalizing signal to match background")
 
-            log.info("Training Samples:")
-            log.info("Signal: %d events, %s features" % signal_train.shape)
-            log.info("Sum(signal weights): %f" % signal_weight_train.sum())
-            log.info("Background: %d events, %s features" % background_train.shape)
-            log.info("Sum(background weight): %f" % background_weight_train.sum())
-            log.info("Total: %d events" % (
+            log.info("training Samples:")
+            log.info("signal: %d events, %s features" % signal_train.shape)
+            log.info("sum(signal weights): %f" % signal_weight_train.sum())
+            log.info("background: %d events, %s features" % background_train.shape)
+            log.info("sum(background weights): %f" % background_weight_train.sum())
+            log.info("total: %d events" % (
                 signal_train.shape[0] +
                 background_train.shape[0]))
 
