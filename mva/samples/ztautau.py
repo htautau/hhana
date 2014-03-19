@@ -86,6 +86,8 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def cut_systematics(self):
         systematics = super(Embedded_Ztautau, self).cut_systematics()
+        if self.year == 2011:
+            return systematics
         systematics.update({
             'ISOL': { # MUON ISOLATION
                 'UP': Cut('(embedding_isolation == 2)'),
