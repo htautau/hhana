@@ -234,36 +234,23 @@ dump:
 	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
 	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
 
-
-.PHONY: stats-plots
-stats-plots:
-	nohup ./ana plot --year 2012 --no-systematics --category-names vbf --output-formats eps png > var_plots_vbf_12.log &
-	nohup ./ana plot --year 2012 --no-systematics --category-names boosted --output-formats eps png > var_plots_boosted_12.log &
-	nohup ./ana plot --year 2012 --no-systematics --category-names rest --output-formats eps png > var_plots_rest_12.log &
-	nohup ./ana plot --year 2012 --no-systematics --categories presel --output-formats eps png > var_plots_presel_12.log &
-	nohup ./ana plot --year 2011 --no-systematics --category-names vbf --output-formats eps png > var_plots_vbf_11.log &
-	nohup ./ana plot --year 2011 --no-systematics --category-names boosted --output-formats eps png > var_plots_boosted_11.log &
-	nohup ./ana plot --year 2011 --no-systematics --category-names rest --output-formats eps png > var_plots_rest_11.log &
-	nohup ./ana plot --year 2011 --no-systematics --categories presel --output-formats eps png > var_plots_presel_11.log &
-
 .PHONY: plots
 plots:
-	nohup ./ana plot --unblind --category-names vbf --output-formats eps png > var_plots_vbf.log &
-	nohup ./ana plot --unblind --category-names boosted --output-formats eps png > var_plots_boosted.log &
-	nohup ./ana plot --unblind --category-names rest --output-formats eps png > var_plots_rest.log &
-	nohup ./ana plot --unblind --categories presel --output-formats eps png > var_plots_presel.log &
-
-.PHONY: stats-bdt-plots
-stats-bdt-plots:
-	nohup ./ana train evaluate --year 2011 --use-2012-clf --no-systematics --output-formats eps png --category-names vbf > bdt_plots_vbf_11.log &
-	nohup ./ana train evaluate --year 2011 --use-2012-clf --no-systematics --output-formats eps png --category-names boosted > bdt_plots_boosted_11.log &
-	nohup ./ana train evaluate --year 2012 --no-systematics --output-formats eps png --category-names vbf > bdt_plots_vbf_12.log &
-	nohup ./ana train evaluate --year 2012 --no-systematics --output-formats eps png --category-names boosted > bdt_plots_boosted_12.log &
+	nohup ./ana plot --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12.log &
+	nohup ./ana plot --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12.log &
+	nohup ./ana plot --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12.log &
+	nohup ./ana plot --year 2012 --categories presel --output-formats eps png > var_plots_presel_12.log &
+	nohup ./ana plot --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11.log &
+	nohup ./ana plot --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11.log &
+	nohup ./ana plot --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11.log &
+	nohup ./ana plot --year 2011 --categories presel --output-formats eps png > var_plots_presel_11.log &
 
 .PHONY: bdt-plots
 bdt-plots:
-	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf > bdt_plots_vbf.log &
-	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted > bdt_plots_boosted.log &
+	nohup ./ana train evaluate --year 2011 --use-2012-clf --output-formats eps png --category-names vbf > bdt_plots_vbf_11.log &
+	nohup ./ana train evaluate --year 2011 --use-2012-clf --output-formats eps png --category-names boosted > bdt_plots_boosted_11.log &
+	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names vbf > bdt_plots_vbf_12.log &
+	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names boosted > bdt_plots_boosted_12.log &
 
 .PHONY: bdt-control-plots
 bdt-control-plots:
