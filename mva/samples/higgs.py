@@ -177,20 +177,20 @@ class Higgs(MC, Signal):
                 assert mode in Higgs.MODES
             assert len(set(modes)) == len(modes)
 
-        self.name = 'Signal'
+        name = 'Signal'
 
         str_mode = ''
         if len(modes) == 1:
             str_mode = modes[0]
-            self.name += '_%s' % str_mode
+            name += '_%s' % str_mode
         elif len(modes) == 2 and set(modes) == set(['W', 'Z']):
             str_mode = 'V'
-            self.name += '_%s' % str_mode
+            name += '_%s' % str_mode
 
         str_mass = ''
         if len(masses) == 1:
             str_mass = '%d' % masses[0]
-            self.name += '_%s' % str_mass
+            name += '_%s' % str_mass
 
         label = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (str_mode, str_mass)
 
@@ -231,7 +231,8 @@ class Higgs(MC, Signal):
         else:
             self.mass = None
 
-        super(Higgs, self).__init__(year=year, label=label, **kwargs)
+        super(Higgs, self).__init__(
+            year=year, label=label, name=name, **kwargs)
 
     def xsec_kfact_effic(self, isample):
         # use yellowhiggs for cross sections

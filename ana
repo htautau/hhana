@@ -155,6 +155,7 @@ def write_workspaces(mass_category_channel, controls=None):
     os.mkdir(workspace_output_dir)
     for mass, category_channel in mass_category_channel.items():
         channels = []
+
         # make workspace for each category, including the control region in each
         for category, channel in category_channel.items():
             name = "hh_category_%s_%d" % (category, mass)
@@ -178,9 +179,11 @@ def write_workspaces(mass_category_channel, controls=None):
                     xml_path=os.path.join(workspace_output_dir, name),
                     silence=silence)
             channels.append(channel)
+
         # make combined workspace
         name = "hh_combination_%d" % mass
         log.info("writing {0} ...".format(name))
+
         workspace, measurement = histfactory.make_workspace(
             name, channels + (
                 controls[mass].values() if isinstance(controls, dict) else controls),
@@ -189,6 +192,7 @@ def write_workspaces(mass_category_channel, controls=None):
             lumi_rel_error=lumi_rel_error,
             const_params=CONST_PARAMS,
             silence=silence)
+
         with root_open(os.path.join(workspace_output_dir,
             '{0}.root'.format(name)), 'recreate') as workspace_file:
             workspace.Write()
