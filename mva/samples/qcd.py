@@ -445,9 +445,9 @@ class QCD(Sample, Background):
             shape_sys *= nominal_events / float(OSFF_events)
 
         elif curr_model == 'nOS':
-            # SS_TRK model elsewhere
-            self.shape_region = 'SS_TRK'
-            log.info("getting QCD shape for SS_TRK")
+            # SS model elsewhere
+            self.shape_region = 'SS'
+            log.info("getting QCD shape for SS")
             shape_sys = self.get_hist(
                 hist_template,
                 expr_or_clf,
@@ -458,14 +458,14 @@ class QCD(Sample, Background):
                 min_score=min_score,
                 max_score=max_score,
                 systematics=False,
-                suffix=(suffix or '') + '_SS_TRK',
+                suffix=(suffix or '') + '_SS',
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
-            SS_TRK_events = self.events(Category_Preselection, None)[1].value
+            SS_events = self.events(Category_Preselection, None)[1].value
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
-            shape_sys *= nominal_events / float(SS_TRK_events)
+            shape_sys *= nominal_events / float(SS_events)
 
         else:
             raise ValueError(
@@ -541,9 +541,9 @@ class QCD(Sample, Background):
                 field_shape_sys[field] = shape_sys
 
         elif curr_model == 'nOS':
-            # SS_TRK model elsewhere
-            self.shape_region = 'SS_TRK'
-            log.info("getting QCD shape for SS_TRK")
+            # SS model elsewhere
+            self.shape_region = 'SS'
+            log.info("getting QCD shape for SS")
             field_shape_sys = self.get_hist_array(
                 field_hist_template,
                 category, region,
@@ -553,7 +553,7 @@ class QCD(Sample, Background):
                 min_score=min_score,
                 max_score=max_score,
                 systematics=False,
-                suffix=(suffix or '') + '_SS_TRK',
+                suffix=(suffix or '') + '_SS',
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
