@@ -51,7 +51,7 @@ class DataInfo():
 
 class Data(Sample):
 
-    def __init__(self, year, name='Data', label='Data', **kwargs):
+    def __init__(self, year, name='Data', label='Data', tes_shift=True, **kwargs):
         super(Data, self).__init__(
             year=year, scale=1.,
             name=name, label=label,
@@ -59,6 +59,8 @@ class Data(Sample):
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
+        if not tes_shift:
+            dataname += '_origtes'
         self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)

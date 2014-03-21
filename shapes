@@ -34,7 +34,13 @@ fields = [
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
 # create samples
-data = Data(year=args.year)
+data = Data(year=args.year, label='TES-shifted Data',
+    drawstyle='hist E0', markersize=0, color='black',
+    linewidth=2, fillstyle='hollow', legendstyle='L')
+data_orig = Data(year=args.year, tes_shift=False, label='Original Data',
+    drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+
 others = Others(year=args.year)
 
 # ztt
@@ -115,6 +121,19 @@ def draw_ratio(a, b, category, ratio_title='ratio', textsize=22):
 
 
 for category in CATEGORIES[args.categories] + [Category_Preselection]:
+
+    # compare tes-shifted data with original data
+    data_hists, field_scale = data.get_field_hist(field_dict, category)
+    data_orig_hists, _ = data_orig.get_field_hist(field_dict, category)
+    data.draw_array(data_hists, category, 'OS', field_scale=field_scale)
+    data_orig.draw_array(data_orig_hists, category, 'OS', field_scale=field_scale)
+    for field in fields:
+        # draw ratio plot
+        d = data_hists[field]
+        d_orig = data_orig_hists[field]
+        plot = draw_ratio(d, d_orig, category, ratio_title='TES Shift / Orig.')
+        plot.SaveAs('plots/shapes/shape_datates_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+
     # compare QCD shapes
     qcd_nos_hists, field_scale = qcd_nos.get_field_hist(field_dict, category)
     qcd_ss_hists, _ = qcd_ss.get_field_hist(field_dict, category)
