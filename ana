@@ -481,30 +481,36 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             cuts=cuts)
 
     if 'train' in args.actions and not is_control:
-        # combine embedded and MC Ztt for training
-        analysis_eb = get_analysis(args, embedding=True)
-        analysis_mc = get_analysis(args, embedding=False)
-        analysis_eb.normalize(category)
-        analysis_mc.normalize(category)
-        analysis_eb.ztautau.scale *= 0.5
-        analysis_mc.ztautau.scale *= 0.5
-
+        
         signals_train = [
             Higgs(
                 year=year,
                 mass=125,
                 modes=category.train_signal_modes,
-                trigger=False),
-            # larger stats by using data trigger efficiency instead of
-            # requiring that the trigger fired (trigger=False).
+                trigger=True),
+            # NOTE: used trigger=False, but this adds too many events with
+            # small weights and when the signal is cropped to the size of the
+            # background sample you are possibly left with many low-weight
+            # events vs a few high-weight events, therefore spiky
+            # distributions...
         ]
+        
+        # combine embedded and MC Ztt for training
+        # TODO: account for the fact that N(MC) != N(EMB)
+        #analysis_eb = get_analysis(args, embedding=True)
+        #analysis_mc = get_analysis(args, embedding=False)
+        #analysis_eb.normalize(category)
+        #analysis_mc.normalize(category)
+        #analysis_eb.ztautau.scale *= 0.5
+        #analysis_mc.ztautau.scale *= 0.5
+        #backgrounds_train = [
+        #    analysis_eb.ztautau,
+        #    analysis_mc.ztautau,
+        #    analysis.others,
+        #    analysis.qcd,
+        #]
 
-        backgrounds_train = [
-            analysis_eb.ztautau,
-            analysis_mc.ztautau,
-            analysis.others,
-            analysis.qcd,
-        ]
+        backgrounds_train = analysis.backgrounds
 
         clf = analysis.get_clf(category, load=False)
         
