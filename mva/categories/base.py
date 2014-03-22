@@ -7,7 +7,6 @@ class CategoryMeta(type):
     """
     CATEGORY_REGISTRY = {}
     def __new__(cls, name, bases, dct):
-
         if name in CategoryMeta.CATEGORY_REGISTRY:
             raise ValueError("Multiple categories with the same name: %s" % name)
         cat = type.__new__(cls, name, bases, dct)
@@ -46,11 +45,6 @@ class Category(object):
             cuts &= Cut('dEta_tau1_tau2 >= 1.5')
         elif deta_cut:
             cuts &= Cut('dEta_tau1_tau2 < 1.5')
-        # TODO
-        #if 'ID_Control' in cls.__name__ or 'FF' in region:
-        #    cuts &= TAUS_FAIL
-        #else:
-        #    cuts &= TAUS_PASS
         return cuts
 
     @classmethod

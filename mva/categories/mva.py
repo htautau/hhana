@@ -1,40 +1,15 @@
-from .base import Category
-from .selections import *
-from .features import *
-
-# preselection cuts
-COMMON_CUTS_MVA = (
-    LEAD_TAU_35 & SUBLEAD_TAU_25
-    & MET
-    & Cut('%s > 0' % MMC_MASS)
-    & Cut('0.8 < dR_tau1_tau2 < 2.6')
-    & TAU_SAME_VERTEX
-    # looser MET centrality
-    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.2 * math.pi))
-    )
-
-# additional cuts after preselection
-CATEGORY_CUTS_MVA = Cut()
-
-# MVA preselection categories
-
-class Category_Preselection(Category):
-    name = 'preselection'
-    label = '#tau_{had}#tau_{had} Preselection'
-    common_cuts = COMMON_CUTS_MVA
-
-
-class Category_Preselection_DEta_Control(Category_Preselection):
-    is_control = True
-    name = 'preselection_deta_control'
+from rootpy.tree import Cut
+from .common import Category_Preselection, Category_Preselection_DEta_Control
+from .selections import CUTS_VBF, CUTS_BOOSTED
+from .features import features_2j, features_boosted, features_0j
 
 
 class Category_VBF(Category_Preselection):
     name = 'vbf'
     label = '#tau_{had}#tau_{had} VBF'
-    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    common_cuts = Category_Preselection.common_cuts
     cuts = (
-        CUTS_2J
+        CUTS_VBF
         & Cut('dEta_jets > 2.0')
         #& Cut('resonance_pt > 40000')
         )
@@ -57,11 +32,10 @@ class Category_VBF_DEta_Control(Category_VBF):
 class Category_Boosted(Category_Preselection):
     name = 'boosted'
     label = '#tau_{had}#tau_{had} Boosted'
-    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    common_cuts = Category_Preselection.common_cuts
     cuts = (
         (- Category_VBF.cuts)
-        & Cut('resonance_pt > 100000')
-        & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
+        & CUTS_BOOSTED
         )
     #limitbins = 86
     limitbins = 40
@@ -84,18 +58,10 @@ class Category_Rest(Category_Preselection):
     analysis_control = True
     name = 'rest'
     label = '#tau_{had}#tau_{had} Rest'
-    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
+    common_cuts = Category_Preselection.common_cuts
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts)
     limitbins = 10
     features = features_0j
     # train with all modes
     norm_category = Category_Preselection
     #workspace_min_clf = 0.
-
-
-class Category_1J_Inclusive(Category_Preselection):
-    name = '1j_inclusive'
-    label = '#tau_{had}#tau_{had} Inclusive 1-Jet'
-    common_cuts = Category_Preselection.common_cuts & CATEGORY_CUTS_MVA
-    cuts = AT_LEAST_1JET
-    norm_category = Category_Preselection

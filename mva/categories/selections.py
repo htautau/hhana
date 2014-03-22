@@ -2,7 +2,7 @@ from rootpy.tree import Cut
 import math
 from .. import MMC_MASS
 
-# All basic cut definitions
+# All basic cut definitions are here
 
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
 TAU2_MEDIUM = Cut('tau2_JetBDTSigMedium==1')
@@ -29,3 +29,21 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 MET = Cut('MET_et > 20000')
+
+# common preselection cuts
+PRESELECTION = (
+    LEAD_TAU_35 & SUBLEAD_TAU_25
+    & MET
+    & Cut('%s > 0' % MMC_MASS)
+    & Cut('0.8 < dR_tau1_tau2 < 2.6')
+    & TAU_SAME_VERTEX
+    # looser MET centrality
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.2 * math.pi))
+    )
+
+CUTS_VBF = CUTS_2J
+
+CUTS_BOOSTED = (
+    # tighter MET centrality
+    Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
+    & Cut('resonance_pt > 80000'))
