@@ -4,10 +4,11 @@ from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('--verbose', default=False, action='store_true')
+parser.add_argument('--suffix', default='fixed')
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
 from statstools.fixups import fix
 
 for path in args.paths:
-    fix(path, verbose=args.verbose)
+    fix(path, suffix=args.suffix, verbose=args.verbose)

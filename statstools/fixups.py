@@ -51,8 +51,9 @@ def fix_measurement(meas):
         drop_np_samples=['Others'],
         prune_overallsys=True,
         prune_overallsys_threshold=1.,
-        uniform_binning=True)
-    #--fill-empties --fill-empties-samples QCD Ztautau \
+        uniform_binning=True,
+        fill_empties=True,
+        fill_empties_samples=['QCD', 'Ztautau'])
     #--prune-histosys --prune-histosys-method chi2 --prune-histosys-threshold 0.99 \
     #--prune-histosys-blacklist QCDscale_ggH3in \
     #--rebin-channels channel_vbf_${mass} channel_boosted_${mass} \
