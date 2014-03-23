@@ -34,7 +34,7 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 
 # local imports
-from mva.stats import hypotests
+from mva import hypotests
 from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
                            draw_channel_array, draw_channel,
                            correlations, hist_scores )

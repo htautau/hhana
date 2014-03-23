@@ -10,12 +10,11 @@ from rootpy import asrootpy
 from rootpy.plotting import Hist
 from rootpy.stats import histfactory
 
-from .asymptotics import AsymptoticsCLs
-from .significance import runSig
-from ..samples import Higgs
-from ..classify import histogram_scores
-from .utils import efficiency_cut, get_safe_template
-from ..utils import hist_to_dict
+from .samples import Higgs
+from .classify import histogram_scores
+from .utils import hist_to_dict
+
+from statstools.utils import efficiency_cut, get_safe_template
 
 
 def get_stat_w2(hist, x, y=0, z=0):
@@ -534,33 +533,3 @@ def optimized_channels(clf, category, region, backgrounds,
 
         channels[mass] = channel
     return channels
-
-
-def get_limit(channels,
-          unblind=False,
-          lumi=1.,
-          lumi_rel_error=0.,
-          POI='SigXsecOverSM'):
-
-    workspace, _ = histfactory.make_workspace('higgs', channels,
-        lumi=lumi,
-        lumi_rel_error=lumi_rel_error,
-        POI=POI,
-        #silence=True
-        )
-    return get_limit_workspace(workspace, unblind=unblind)
-
-
-def get_limit_workspace(workspace, unblind=False, verbose=False):
-
-    calculator = AsymptoticsCLs(workspace, verbose)
-    hist = asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
-    hist.SetName('%s_limit' % workspace.GetName())
-    return hist
-
-
-def get_significance_workspace(workspace, blind=True, verbose=False):
-
-    hist = asrootpy(runSig(workspace, blind))
-    hist.SetName('%s_significance' % workspace.GetName())
-    return hist

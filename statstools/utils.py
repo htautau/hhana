@@ -6,7 +6,6 @@ from math import sqrt
 
 
 def efficiency_cut(hist, effic):
-
     integral = hist.Integral()
     cumsum = 0.
     for bin in hist:
@@ -17,7 +16,6 @@ def efficiency_cut(hist, effic):
 
 
 def significance(signal, background, min_bkg=0, highstat=True):
-
     if isinstance(signal, (list, tuple)):
         signal = sum(signal)
     if isinstance(background, (list, tuple)):
@@ -44,10 +42,8 @@ def significance(signal, background, min_bkg=0, highstat=True):
 
 
 def get_safe_template(binning, bins, bkg_scores, sig_scores, data_scores=None):
-
     # TODO: use full score range, not just min and max signal score
     # TODO: account for range of data scores
-
     llog = log['get_safe_template']
     # determine min and max scores
     """

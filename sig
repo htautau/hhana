@@ -9,12 +9,13 @@ parser.add_argument('file')
 parser.add_argument('workspace')
 args = parser.parse_args()
 
-from mva.stats import hypotests
+from statstools import get_significance_workspace
 from rootpy.io import root_open
 
 with root_open(args.file) as f:
     if args.workspace not in f:
         f.ls()
     else:
-        h = hypotests.get_significance_workspace(f[args.workspace], verbose=True, blind=args.blind)
+        h = get_significance_workspace(
+            f[args.workspace], verbose=True, blind=args.blind)
         print list(h.y())

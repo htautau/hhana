@@ -8,12 +8,13 @@ parser.add_argument('file')
 parser.add_argument('workspace')
 args = parser.parse_args()
 
-from mva.stats import hypotests
+from statstools import get_limit_workspace
 from rootpy.io import root_open
 
 with root_open(args.file) as f:
     if args.workspace not in f:
         f.ls()
     else:
-        h = hypotests.get_limit_workspace(f[args.workspace], verbose=args.verbose)
+        h = get_limit_workspace(
+            f[args.workspace], verbose=args.verbose)
         print list(h)

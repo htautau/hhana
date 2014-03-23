@@ -1,0 +1,372 @@
+#!/usr/bin/env python
+# Author: Noel Dawe noel@dawe.me
+# License: GPLv3
+
+import os
+import math
+from math import sqrt
+from itertools import izip
+from fnmatch import fnmatch
+
+import ROOT
+from rootpy.io import root_open
+from rootpy.plotting import Hist, Hist2D, Hist3D
+from rootpy.utils.silence import silence_sout
+from rootpy.context import do_nothing
+from rootpy.extern import argparse
+
+import logging; log = logging.getLogger(os.path.basename(__file__))
+
+from statstools.histfactory import process_measurement, yields, diff_measurements
+
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    add_help=False,
+    description="""
+A script for common operations on HistFactory workspaces.
+
+This script can:
+
+* print LaTeX yields tables
+* patch HistFactory XML files by cleaning up the formatting and fixing known
+issues that trigger HistFactory bugs
+* list the differences between two workspaces (including differences at the
+histogram level)
+* convert histograms to uniform binning
+* rebin histograms
+* merge specific bins in histograms
+* smooth shape (HistoSys) systematics
+* prune normalization (OverallSys) systematics
+* prune shape (HistoSys) systematics by three separate methods: maximum
+deviation relative to total background statistical uncertainty, Chi2, and KS
+* fill empty background bins with the average sample weights
+
+A new ROOT file and new set of XML files will be written out alongside the
+input files with one or more of the above modifications.""")
+
+parser.add_argument('-h', '--help', action='help',
+    help="Show this help message and exit")
+parser.add_argument('--verbose', action='store_true', default=False,
+    help="Show all HistFactory/RooStats output")
+
+subparsers = parser.add_subparsers()
+
+parser_yields = subparsers.add_parser('yields',
+    description="Print a tables of yields for all samples and channels",
+    add_help=False)
+
+parser_yields.add_argument('-h', '--help', action='help',
+    help="Show this help message and exit")
+
+parser_yields.add_argument('--channels', nargs='*',
+    help="Only include these channels in the yields table")
+
+parser_yields.add_argument('--sample-names', nargs='*',
+    help="Sample names in the order you want them to appear in the table "
+            "rows. Rename samples with input_name::output_name")
+parser_yields.add_argument('--channel-names', nargs='*',
+    help="Channel names in the order you want them to appear in the table "
+            "columns. Rename channels with input_name::output_name")
+
+parser_yields.add_argument('--xbin1', type=int, default=1,
+    help="Bin index along the x-axis to begin integrals (default: 1)")
+parser_yields.add_argument('--xbin2', type=int, default=-2,
+    help="Bin index along the x-axis to end integrals (default: -2)")
+
+parser_yields.add_argument('--unblind', default=False, action='store_true',
+    help="Include observed data yields in the tables")
+
+parser_yields.add_argument('--explode', default=False, action='store_true',
+    help="Show yields for each bin in separate columns")
+
+parser_yields.add_argument('xmlfile', metavar='TOP_LEVEL_MEASUREMENT_XML')
+parser_yields.set_defaults(op='yields')
+
+parser_diff = subparsers.add_parser('diff',
+    description="List the differences between two workspaces",
+    add_help=False)
+
+parser_diff.add_argument('-h', '--help', action='help',
+    help="Show this help message and exit")
+
+parser_diff.add_argument('-p', '--precision', type=float, default=1E-7,
+    metavar='float',
+    help="Precision for comparing if two floats are equal (default: 1E-7)")
+
+parser_diff.add_argument('left', metavar='TOP_LEVEL_MEASUREMENT_XML_A')
+parser_diff.add_argument('right', metavar='TOP_LEVEL_MEASUREMENT_XML_B')
+parser_diff.set_defaults(op='diff')
+
+
+parser_patch = subparsers.add_parser('patch',
+    description="Patch HistFactory XML files",
+    add_help=False)
+
+parser_patch.add_argument('-h', '--help', action='help',
+    help="Show this help message and exit")
+
+parser_patch.add_argument('-p', '--precision', type=int, default=3,
+    metavar='float',
+    help="Number of decimal places to keep in all floats (default: 3)")
+
+parser_patch.add_argument('files', nargs='+',
+    metavar='XML_FILE',
+    help="HistFactory XML files")
+
+parser_patch.set_defaults(op='patch')
+
+
+parser_ws = subparsers.add_parser('ws',
+    description="Create a new workspace with optional modifications",
+    add_help=False)
+
+parser_ws.add_argument('-h', '--help', action='help',
+    help="Show this help message and exit")
+
+parser_ws.add_argument('--split-norm-shape', action='store_true', default=False,
+    help="Split HistoSys into OverallSys and HistoSys components")
+
+parser_ws.add_argument('--fill-empties', action='store_true', default=False,
+    help="Fill empty background bins per sample with the average weight and set "
+            "the errors of these bins to sqrt(<w^2>)")
+parser_ws.add_argument('--fill-empties-samples', nargs='*',
+    metavar='SAMPLE_NAME',
+    help="Restrict application of --fill-empties to these samples (default: all samples)")
+parser_ws.add_argument('--fill-empties-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="Restrict application of --fill-empties to these channels (default: all channels)")
+
+parser_ws.add_argument('--rebin', type=int, default=1,
+    metavar='int',
+    help="Rebin histograms by grouping each N bins. "
+            "Use --rebin 2 to merge every group of 2 bins (default: no rebinning)")
+parser_ws.add_argument('--rebin-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="Restrict the rebinning to these channels (default: all channels)")
+
+parser_ws.add_argument('--merge-bins', nargs='*',
+    metavar='LOW:HIGH',
+    help="Merge bins by ranges of bin indices. "
+            "For example, use 1:-12 to merge left bins such that 10 bins on the right "
+            "are untouched. Use 1:5 6:10 to merge bins 1 to 5 into one bin and 6 to 10 into one bin. "
+            "Note that overflow bin indices are included in the indexing and "
+            "that bin index ranges are inclusive of the low and high indices. (default: do not merge bins)")
+parser_ws.add_argument('--merge-bins-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="Restrict bin merging to these channels (default: all channels)")
+
+parser_ws.add_argument('--flat-signal', type=int, default=None,
+    metavar='int',
+    help="Rebin all histograms such that signal is flat. "
+            "Specify the number of quantiles to use as bin edges in the "
+            "rebinned histogram.")
+
+parser_ws.add_argument('--drop-np-names', nargs='*',
+    metavar='NP_NAME',
+    help="Remove specific NPs by name")
+parser_ws.add_argument('--drop-np-types', nargs='*',
+    metavar='NP_TYPE',
+    help="If --drop-np-names is used, restrict the removal to NPs of this type (histosys, overallsys)")
+parser_ws.add_argument('--drop-np-samples', nargs='*',
+    metavar='SAMPLE_NAME',
+    help="If --drop-np-names is used, restrict the removal to NPs of these samples")
+parser_ws.add_argument('--drop-np-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="If --drop-np-names is used, restrict the removal to NPs of these channels")
+
+parser_ws.add_argument('--symmetrize-names', nargs='*',
+    metavar='NP_NAME',
+    help="Symmetrize specific NPs by name")
+parser_ws.add_argument('--symmetrize-types', nargs='*',
+    metavar='NP_TYPE',
+    help="If --symmetrize-names is used, restrict the symmetrization to NPs of this type (histosys, overallsys)")
+parser_ws.add_argument('--symmetrize-samples', nargs='*',
+    metavar='SAMPLE_NAME',
+    help="If --symmetrize-names is used, restrict the symmetrization to NPs of these samples")
+parser_ws.add_argument('--symmetrize-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="If --symmetrize-names is used, restrict the symmetrization to NPs of these channels")
+
+parser_ws.add_argument('--smooth-histosys', action='store_true', default=False,
+    help="Smooth HistoSys histograms (default: False)")
+parser_ws.add_argument('--smooth-histosys-iterations', type=int, default=1,
+    metavar='int',
+    help="Number of smoothing iterations in TH1::Smooth(N) to use when "
+            "smoothing HistoSys (default: 1)")
+parser_ws.add_argument('--smooth-histosys-samples', nargs='*',
+    metavar='SAMPLE_NAME',
+    help="Restrict HistoSys smoothing to these samples (default: all samples)")
+parser_ws.add_argument('--smooth-histosys-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="Restrict HistoSys smoothing to these channels (default: all channels)")
+
+parser_ws.add_argument('--prune-histosys', action='store_true', default=False,
+    help="Enable HistoSys pruning")
+parser_ws.add_argument('--prune-histosys-samples', nargs='*',
+    metavar='SAMPLE_NAME',
+    help="Restrict HistoSys pruning to these samples (default: all samples)")
+parser_ws.add_argument('--prune-histosys-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="Restrict HistoSys pruning to these channels (default: all channels)")
+parser_ws.add_argument('--prune-histosys-blacklist', nargs='*',
+    metavar='NP_NAME',
+    help="Do not allow pruning of these HistoSys (default: none)")
+parser_ws.add_argument('--prune-histosys-method', choices=('max', 'chi2', 'ks'), default='max',
+    help="HistoSys pruning method. Choices: max, chi2, ks (default: max)")
+parser_ws.add_argument('--prune-histosys-threshold', type=float, default=0.1,
+    metavar='float',
+    help="Threshold on HistoSys pruning method to determine if shape is significant (default: 0.1)")
+
+parser_ws.add_argument('--prune-overallsys', action='store_true', default=False,
+    help="Enable OverallSys pruning")
+parser_ws.add_argument('--prune-overallsys-samples', nargs='*',
+    metavar='SAMPLE_NAME',
+    help="Restrict OverallSys pruning to these samples (default: all samples)")
+parser_ws.add_argument('--prune-overallsys-channels', nargs='*',
+    metavar='CHANNEL_NAME',
+    help="Restrict OverallSys pruning to these channels (default: all channels)")
+parser_ws.add_argument('--prune-overallsys-blacklist', nargs='*',
+    metavar='NP_NAME',
+    help="Do not allow pruning of these OverallSys (default: none)")
+parser_ws.add_argument('--prune-overallsys-threshold', type=float, default=0.5,
+    metavar='float',
+    help="Threshold [%%] below which OverallSys components are dropped (default: 0.5)")
+
+parser_ws.add_argument('--uniform-binning', action='store_true', default=False,
+    help="Convert all histograms to uniform binning")
+
+parser_ws.add_argument('--output-suffix', default=None,
+    metavar='string',
+    help="The output ROOT file and directory containing the XML "
+            "will have the same names as the measurement names. You "
+            "may optionally add a suffix to these names with this option.")
+
+parser_ws.add_argument('--data-is-partially-blind', action='store_true', default=False,
+    help="If data is a 1D histogram and is partially blinded from the "
+            "highest bin down to some intermediate bin, then properly blind "
+            "the resulting histogram after rebinning and only construct "
+            "hybrid data in the blinded region. After rebinning, data is "
+            "blinded from the first bin that would contain the edge of the "
+            "first blind bin before rebinning. The low edge of the first "
+            "blinded bin before rebinning is determined by the last bin with "
+            "zero entries moving from right to left.")
+
+parser_ws.add_argument('--hybrid-data', action='store_true', default=False,
+    help="Replace data with the sum of background and signal or if "
+            "--data-is-partially-blind then only set the blinded bins to the "
+            "sum of background and signal")
+parser_ws.add_argument('--hybrid-data-mu', type=float, default=1.0,
+    metavar='float',
+    help="The signal strength used to construct the hybrid data (default: 1.0)")
+
+parser_ws.add_argument('--output-path', default=None,
+    metavar='PATH',
+    help="Write output under this path (default: current directory)")
+
+parser_ws.add_argument('xmlfile', metavar='TOP_LEVEL_MEASUREMENT_XML')
+parser_ws.set_defaults(op='ws')
+args = parser.parse_args()
+
+context = do_nothing if args.verbose else silence_sout
+log.info("loading RooStats ...")
+with context():
+    from rootpy.stats.histfactory import measurements_from_xml, write_measurement, patch_xml
+
+if args.op == 'patch':
+
+    patch_xml(args.files, float_precision=args.precision)
+
+elif args.op == 'yields':
+
+    meas = measurements_from_xml(
+        args.xmlfile, cd_parent=True,
+        collect_histograms=True, silence=not args.verbose)
+    for m in meas:
+        yields(m,
+            channels=args.channels,
+            sample_names=args.sample_names,
+            channel_names=args.channel_names,
+            unblind=args.unblind,
+            explode=args.explode,
+            xbin1=args.xbin1,
+            xbin2=args.xbin2)
+
+elif args.op == 'diff':
+
+    left = measurements_from_xml(
+        args.left, cd_parent=True,
+        collect_histograms=True, silence=not args.verbose)
+    right = measurements_from_xml(
+        args.right, cd_parent=True,
+        collect_histograms=True, silence=not args.verbose)
+    _diff_sequence_helper(left, right,
+        diff_func=diff_measurements, parent=None, precision=args.precision)
+
+elif args.op == 'ws':
+
+    if args.merge_bins:
+        args.merge_bins = [
+            map(int, token.split(':')) for token in args.merge_bins]
+
+    meas = measurements_from_xml(
+        args.xmlfile, cd_parent=True,
+        collect_histograms=True, silence=not args.verbose)
+
+    for m in meas:
+        process_measurement(m,
+            split_norm_shape=args.split_norm_shape,
+
+            fill_empties=args.fill_empties,
+            fill_empties_samples=args.fill_empties_samples,
+            fill_empties_channels=args.fill_empties_channels,
+
+            rebin=args.rebin,
+            rebin_channels=args.rebin_channels,
+
+            merge_bins=args.merge_bins,
+            merge_bins_channels=args.merge_bins_channels,
+
+            flat_signal=args.flat_signal,
+
+            drop_np_names=args.drop_np_names,
+            drop_np_types=args.drop_np_types,
+            drop_np_samples=args.drop_np_samples,
+            drop_np_channels=args.drop_np_channels,
+
+            symmetrize_names=args.symmetrize_names,
+            symmetrize_types=args.symmetrize_types,
+            symmetrize_samples=args.symmetrize_samples,
+            symmetrize_channels=args.symmetrize_channels,
+
+            smooth_histosys=args.smooth_histosys,
+            smooth_histosys_iterations=args.smooth_histosys_iterations,
+            smooth_histosys_samples=args.smooth_histosys_samples,
+            smooth_histosys_channels=args.smooth_histosys_channels,
+
+            prune_histosys=args.prune_histosys,
+            prune_histosys_samples=args.prune_histosys_samples,
+            prune_histosys_channels=args.prune_histosys_channels,
+            prune_histosys_blacklist=args.prune_histosys_blacklist,
+            prune_histosys_method=args.prune_histosys_method,
+            prune_histosys_threshold=args.prune_histosys_threshold,
+
+            prune_overallsys=args.prune_overallsys,
+            prune_overallsys_samples=args.prune_overallsys_samples,
+            prune_overallsys_channels=args.prune_overallsys_channels,
+            prune_overallsys_blacklist=args.prune_overallsys_blacklist,
+            prune_overallsys_threshold=args.prune_overallsys_threshold,
+
+            uniform_binning=args.uniform_binning,
+
+            data_is_partially_blind=args.data_is_partially_blind,
+
+            hybrid_data=args.hybrid_data,
+            hybrid_data_mu=args.hybrid_data_mu)
+
+        write_measurement(m,
+            output_path=args.output_path,
+            output_suffix=args.output_suffix,
+            write_workspaces=True,
+            silence=not args.verbose)
+    log.info("done")
