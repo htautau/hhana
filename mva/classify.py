@@ -43,9 +43,10 @@ from .plotting import (
     efficiency_cut)
 from . import variables
 from . import PLOTS_DIR
-from .stats.utils import get_safe_template
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
+
+from statstools.utils import get_safe_template
 
 
 def std(X):

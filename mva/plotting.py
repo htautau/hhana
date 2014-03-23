@@ -35,8 +35,9 @@ from rootpy.stats.histfactory import HistoSys, split_norm_shape
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS
 from .systematics import iter_systematics, systematic_name
-from .stats.utils import efficiency_cut, significance
 from . import log; log = log[__name__]
+
+from statstools.utils import efficiency_cut, significance
 
 
 def package_path(name):

@@ -17,8 +17,9 @@ from . import samples, log; log = log[__name__]
 from .samples import Higgs, Data
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
-from .stats.utils import efficiency_cut
 from .classify import histogram_scores, Classifier
+
+from statstools.utils import efficiency_cut
 
 
 Scores = namedtuple('Scores', [
