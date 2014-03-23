@@ -18,8 +18,8 @@ from matplotlib import cm
 import sklearn
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
-from sklearn.metrics import classification_report
-from sklearn.metrics import precision_score
+from sklearn.metrics import (
+    classification_report, precision_score, accuracy_score, roc_auc_score)
 from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
@@ -410,8 +410,8 @@ class Classifier(object):
                     (cv_nfold - 1.) / cv_nfold)
                 min_leaf_low = max(10, int(min_leaf_high / 100.))
 
-                min_leaf_step = max((min_leaf_high - min_leaf_low) / 10, 1)
-                max_n_estimators = 100
+                min_leaf_step = max((min_leaf_high - min_leaf_low) / 50, 1)
+                max_n_estimators = 200
                 min_n_estimators = 1
 
                 min_samples_leaf = range(
@@ -433,15 +433,14 @@ class Classifier(object):
                     clf, grid_params,
                     max_n_estimators=max_n_estimators,
                     min_n_estimators=min_n_estimators,
-                    # can use default ClassifierMixin score
-                    #score_func=precision_score,
+                    #score_func=accuracy_score,
+                    score_func=roc_auc_score,
                     cv = StratifiedKFold(labels_train, cv_nfold),
                     n_jobs=20)
 
                 #grid_clf = GridSearchCV(
                 #    clf, grid_params,
-                #    # can use default ClassifierMixin score
-                #    #score_func=precision_score,
+                #    score_func=accuracy_score,
                 #    cv = StratifiedKFold(labels_train, cv_nfold),
                 #    n_jobs=20)
 
@@ -479,15 +478,21 @@ class Classifier(object):
                         'min leaf',
                         'n_estimators':
                         'trees'},
-                    name=self.category.name + self.output_suffix + "_%d" % partition_idx)
+                    name=(self.category.name +
+                          self.output_suffix +
+                          "_%d" % partition_idx))
+
+                # save grid scores
+                with open('{0}_grid_scores.pickle'.format(clf_filename), 'w') as f:
+                    pickle.dump(grid_scores, f)
 
                 # scale up the min-leaf and retrain on the whole set
                 min_samples_leaf = clf.base_estimator.min_samples_leaf
 
                 clf = sklearn.clone(clf)
                 clf.base_estimator.min_samples_leaf = int(
-                        min_samples_leaf *
-                            cv_nfold / float(cv_nfold - 1))
+                    min_samples_leaf *
+                        cv_nfold / float(cv_nfold - 1))
 
                 clf.fit(sample_train, labels_train,
                         sample_weight=sample_weight_train)
@@ -518,7 +523,6 @@ class Classifier(object):
                 if os.path.isdir(clf_filename):
                     shutil.rmtree(clf_filename)
                 os.mkdir(clf_filename)
-
                 for itree, tree in enumerate(clf):
                     export_graphviz(tree,
                         out_file=os.path.join(
