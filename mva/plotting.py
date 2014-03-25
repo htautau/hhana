@@ -570,9 +570,9 @@ def uncertainty_band(model, systematics, systematics_components):
         if total_high.Integral() <= 0:
             log.warning("{0}_UP is non-positive".format(term))
 
-        for i in xrange(len(total_high)):
-            total_max[i] = max(total_high[i], total_low[i], total_model[i])
-            total_min[i] = min(total_high[i], total_low[i], total_model[i])
+        for i in total_high.bins_range():
+            total_max[i].value = max(total_high[i].value, total_low[i].value, total_model[i].value)
+            total_min[i].value = min(total_high[i].value, total_low[i].value, total_model[i].value)
 
         if total_min.Integral() <= 0:
             log.warning("{0}: lower bound is non-positive".format(term))
@@ -582,6 +582,10 @@ def uncertainty_band(model, systematics, systematics_components):
         var_high.append(total_max)
         var_low.append(total_min)
 
+        log.warning("{0}, {1}".format(str(term), str(variations)))
+        log.warning("{0} {1}".format(total_max.integral(), total_min.integral()))
+
+    log.info(str(systematics_components))
     if systematics_components is None:
         # include stat error variation
         total_model_stat_high = total_model.Clone()
