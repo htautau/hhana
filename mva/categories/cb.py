@@ -31,6 +31,7 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
     norm_category = Category_Preselection
 
 
+# -----------> Main Categories used in the CB Signal Region
 class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
     name = 'cuts_vbf_highdr_tight'
     label = '#tau_{had}#tau_{had} Cut-based VBF High dR Tight'
@@ -72,6 +73,17 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
 #         & Cut('dEta_tau1_tau2 < 1'))
     limitbins = [0,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,176,184,INF]
     norm_category = Category_Preselection
+
+
+# ------------> Categories designed for analysis control plots
+class Category_Cuts_Boosted_Tight_NoDRCut(Category_Preselection):
+    name = 'cuts_boosted_tight_nodrcut'
+    label = '#tau_{had}#tau_{had} Cut-based Boosted Tight No dR Cut'
+    cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
+            & Cut('resonance_pt>140000') )
+    limitbins = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
+    norm_category = Category_Preselection
+
 
 
 # --------> Added by Quentin Buat quentin(dot)buat(at)cern(dot)ch

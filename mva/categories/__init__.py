@@ -26,6 +26,7 @@ CATEGORIES = {
     ],
     'cuts_studies' : [
         Category_Cuts_Boosted_Tight,
+        Category_Cuts_Boosted_Tight_NoDRCut,
         ],    
 
 
