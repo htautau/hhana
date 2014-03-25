@@ -29,8 +29,6 @@ analysis.normalize(Category_VBF)
 clf = analysis.get_clf(Category_VBF)
 
 
-
-
 def search(f, a, b, tol=1.0e-9):
     """
     Golden section method for determining x that minimizes

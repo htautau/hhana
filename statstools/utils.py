@@ -5,40 +5,6 @@ from rootpy.plotting import Hist, Hist2D, Hist3D
 from math import sqrt
 
 
-class ufloat(object):
-    def __init__(self, value, stat, syst=None):
-        self.value = value
-        self.stat = stat
-        self.syst = syst
-
-    def __str__(self):
-        return repr(self)
-
-    def __repr__(self):
-        if self.stat == 0:
-            pos = 1
-        else:
-            pos = int(math.floor(math.log10(abs(self.stat))))
-            pos = abs(pos) if pos < 0 else 1
-        if self.syst is None:
-            fmt = '${0:.'+str(pos)+'f} \pm {1:.'+str(pos)+'f}$'
-            return fmt.format(self.value, self.stat)
-        if self.syst[0] == 0:
-            spos_up = 1
-        else:
-            spos_up = int(math.floor(math.log10(abs(self.syst[0]))))
-            spos_up = abs(spos_up) if spos_up < 0 else 1
-        if self.syst[1] == 0:
-            spos_dn = 1
-        else:
-            spos_dn = int(math.floor(math.log10(abs(self.syst[1]))))
-            spos_dn = abs(spos_dn) if spos_dn < 0 else 1
-        pos = max(pos, spos_up, spos_dn)
-        fmt = ('${0:.'+str(pos)+'f} \pm {1:.'+str(pos)+'f}$ '
-                '${{}}^{{+{2:.'+str(pos)+'f}}}_{{-{3:.'+str(pos)+'f}}}$')
-        return fmt.format(self.value, self.stat, self.syst[0], self.syst[1])
-
-
 def efficiency_cut(hist, effic):
     integral = hist.Integral()
     cumsum = 0.
