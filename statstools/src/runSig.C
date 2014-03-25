@@ -111,7 +111,6 @@ TH1D* runSig(RooWorkspace* ws,
     RooDataSet* asimovData1 = (RooDataSet*)ws->data(asimov1DataName);
     if (!asimovData1)
     {
-        cout << "Asimov data doesn't exist! Please, allow me to build one for you..." << endl;
         string mu_str, mu_prof_str;
 
         asimovData1 = makeAsimovData(mc, doConditional, ws, obs_nll, 1, &mu_str, &mu_prof_str, mu_profile_value, true);
@@ -146,14 +145,12 @@ TH1D* runSig(RooWorkspace* ws,
         mu->setVal(0);
         mu->setConstant(1);
         status = minimize(asimov_nll, ws);
-        if (status >= 0) cout << "Success!" << endl;
 
         if (status < 0) 
         {
             cout << "Retrying with conditional snapshot at mu=1" << endl;
             ws->loadSnapshot("conditionalNuis_0");
             status = minimize(asimov_nll, ws);
-            if (status >= 0) cout << "Success!" << endl;
         }
         double asimov_nll_cond = asimov_nll->getVal();
 
@@ -162,14 +159,12 @@ TH1D* runSig(RooWorkspace* ws,
         else ws->loadSnapshot("conditionalNuis_1");
         if (doInj) mu->setConstant(0);
         status = minimize(asimov_nll, ws);
-        if (status >= 0) cout << "Success!" << endl;
 
         if (status < 0) 
         {
             cout << "Retrying with conditional snapshot at mu=1" << endl;
             ws->loadSnapshot("conditionalNuis_0");
             status = minimize(asimov_nll, ws);
-            if (status >= 0) cout << "Success!" << endl;
         }
 
         double asimov_nll_min = asimov_nll->getVal();
@@ -193,7 +188,6 @@ TH1D* runSig(RooWorkspace* ws,
             cout << "Retrying with conditional snapshot at mu=1" << endl;
             ws->loadSnapshot("conditionalNuis_0");
             status = minimize(obs_nll, ws);
-            if (status >= 0) cout << "Success!" << endl;
         }
         double obs_nll_cond = obs_nll->getVal();
 
@@ -205,7 +199,6 @@ TH1D* runSig(RooWorkspace* ws,
             cout << "Retrying with conditional snapshot at mu=1" << endl;
             ws->loadSnapshot("conditionalNuis_0");
             status = minimize(obs_nll, ws);
-            if (status >= 0) cout << "Success!" << endl;
         }
 
         double obs_nll_min = obs_nll->getVal();
@@ -217,10 +210,9 @@ TH1D* runSig(RooWorkspace* ws,
         if (!doUncap && ((obs_q0 < 0 && obs_q0 > -0.1) || mu->getVal() < 0.001)) obs_sig = 0; 
         else obs_sig = sign*sqrt(fabs(obs_q0));
     }
-
-    cout << "obs: " << obs_sig << endl;
-    cout << "Observed significance: " << obs_sig << endl;
-
+    
+    if (doObs)
+        cout << "Observed significance: " << obs_sig << endl;
     if (med_sig)
     {
         cout << "Median test stat val: " << asimov_q0 << endl;
@@ -320,11 +312,9 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS)
         ROOT::Math::MinimizerOptions::SetDefaultMinimizer(minType.c_str());
     }
 
-
-    if (status == 0)
-        cout<<"Successful fit! "<<endl;
-    cout<<"Fit exists with status:"<<status<<endl;
-
+    //if (status == 0)
+    //    cout<<"Successful fit! "<<endl;
+    //cout<<"Fit exists with status:"<<status<<endl;
     //   if (status != 0 && status != 1)
     //   {
     //     cout << "Fit failed for mu = " << mu->getVal() << " with status " << status << ". Retrying with pdf->fitTo()" << endl;
@@ -387,7 +377,7 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     if (mu_val_profile == -999) mu_val_profile = mu_val;
 
 
-    cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
+    //cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
 
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
     //int strat = ROOT::Math::MinimizerOptions::SetDefaultStrategy(0);
@@ -534,13 +524,13 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     w->saveSnapshot("tmpNuis",*mc->GetNuisanceParameters());
     if (!w->loadSnapshot("nominalGlobs"))
     {
-        cout << "nominalGlobs doesn't exist. Saving snapshot." << endl;
+        //cout << "nominalGlobs doesn't exist. Saving snapshot." << endl;
         w->saveSnapshot("nominalGlobs",*mc->GetGlobalObservables());
     }
     else w->loadSnapshot("tmpGlobs");
     if (!w->loadSnapshot("nominalNuis"))
     {
-        cout << "nominalNuis doesn't exist. Saving snapshot." << endl;
+        //cout << "nominalNuis doesn't exist. Saving snapshot." << endl;
         w->saveSnapshot("nominalNuis",*mc->GetNuisanceParameters());
     }
     else w->loadSnapshot("tmpNuis");
@@ -595,9 +585,9 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     }
 
     //save the snapshots of conditional parameters
-    cout << "Saving conditional snapshots" << endl;
-    cout << "Glob snapshot name = " << "conditionalGlobs"+muStrProf.str() << endl;
-    cout << "Nuis snapshot name = " << "conditionalNuis"+muStrProf.str() << endl;
+    //cout << "Saving conditional snapshots" << endl;
+    //cout << "Glob snapshot name = " << "conditionalGlobs"+muStrProf.str() << endl;
+    //cout << "Nuis snapshot name = " << "conditionalNuis"+muStrProf.str() << endl;
     w->saveSnapshot(("conditionalGlobs"+muStrProf.str()).c_str(),*mc->GetGlobalObservables());
     w->saveSnapshot(("conditionalNuis" +muStrProf.str()).c_str(),*mc->GetNuisanceParameters());
 
