@@ -24,6 +24,10 @@ CATEGORIES = {
         Category_Cuts_VBF,
         Category_Cuts_Boosted,
     ],
+    'cuts_studies' : [
+        Category_Cuts_Boosted_Tight,
+        ],    
+
 
     # MVA Categories
     'mva': [

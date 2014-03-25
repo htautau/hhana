@@ -906,21 +906,21 @@ def draw_channel_array(
         ypadding = kwargs.pop('ypadding', var_info.get('ypadding', None))
         legend_position = kwargs.pop('legend_position', var_info.get('legend', 'right'))
         fig = draw_channel(field_channel[field],
-             data_info=str(analysis.data.info),
-             category=category,
-             name=var_info['root'],
-             units=var_info.get('units', None),
-             output_name=output_name,
-             blind=blind,
-             integer=var_info.get('integer', False),
-             ypadding=ypadding,
-             legend_position=legend_position,
-             **kwargs)
+                           data_info=str(analysis.data.info),
+                           category=category,
+                           name=var_info['root'],
+                           units=var_info.get('units', None),
+                           output_name=output_name,
+                           blind=blind,
+                           integer=var_info.get('integer', False),
+                           ypadding=ypadding,
+                           legend_position=legend_position,
+                           **kwargs)
         figs[field] = fig
     return field_channel, figs
 
 
-def draw_channel(channel, fit=None, **kwargs):
+def draw_channel(channel, fit=None, no_data=False, **kwargs):
     """
     Draw a HistFactory::Channel only include OverallSys systematics
     in resulting band as an illustration of the level of uncertainty
@@ -930,7 +930,7 @@ def draw_channel(channel, fit=None, **kwargs):
     if fit is not None:
         log.warning("applying snapshot on channel {0}".format(channel.name))
         channel = channel.apply_snapshot(fit)
-    if channel.data and channel.data.hist:
+    if channel.data and channel.data.hist and not no_data:
         data_hist = channel.data.hist
     else:
         data_hist = None
@@ -1328,7 +1328,8 @@ def draw(name,
                 entrysep=0.02,
                 entryheight=0.04,
                 topmargin=0.15)
-        legend.AddEntry(data, style='lep')
+        if data is not None:
+            legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
                 legend.AddEntry(s, style='F' if fill_signal else 'L')

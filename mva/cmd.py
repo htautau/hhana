@@ -158,7 +158,8 @@ def plotting_parser(parser=None):
     parser.add_argument('--output-formats', default=['png'], nargs='+',
             choices=('png', 'eps', 'pdf'),
             help='output formats')
-
+    parser.add_argument('--no-data',action='store_true',default=False,
+                        help='do not display data on the plot')
     return parser
 
 
