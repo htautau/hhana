@@ -9,6 +9,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from math import log
 
+"""
 def transform(x, c=1.):
     if c == 0:
         return x
@@ -17,16 +18,28 @@ def transform(x, c=1.):
 b = transform(np.random.normal(-0.2, .2, 5000), 7)
 s = transform(np.random.normal(0.2, .2, 100), 7)
 
-min_x = min(np.min(s), np.min(b)) - 1E-8
-max_x = max(np.max(s), np.max(b)) + 1E-8
-
+"""
 
 from mva.categories import Category_VBF
 from mva.analysis import Analysis
 
-analysis = Analysis(2012)
-analysis.normalize(Category_VBF)
-clf = analysis.get_clf(Category_VBF)
+category = Category_VBF
+analysis = Analysis(2012, transform=True)
+analysis.normalize(category)
+clf = analysis.get_clf(category, load=True)
+scores = analysis.get_scores(
+    clf, category, 'OS', mode='workspace', mass_points=[125])
+
+b = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.bkg_scores])
+bw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.bkg_scores])
+s = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.all_sig_scores[125]])
+sw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.all_sig_scores[125]])
+
+min_x = min(np.min(s), np.min(b)) - 1E-8
+max_x = max(np.max(s), np.max(b)) + 1E-8
+
+s = (s, sw)
+b = (b, bw)
 
 
 def search(f, a, b, tol=1.0e-9):
@@ -60,11 +73,11 @@ def search(f, a, b, tol=1.0e-9):
 
 def workspace(s, b, binning, fix=True):
     signal_hist = Hist(binning)
-    fill_hist(signal_hist, s)
+    fill_hist(signal_hist, *s)
     signal = Sample('Signal', signal_hist.uniform_binned())
     signal.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
     background_hist = Hist(binning)
-    fill_hist(background_hist, b)
+    fill_hist(background_hist, *b)
     if fix:
         for bin in background_hist.bins(overflow=False):
             if bin.value <= 0:
@@ -121,8 +134,8 @@ def optimize():
     canvas = Canvas()
     signal = Hist(binning, color='red', drawstyle='hist')
     background = Hist(binning, color='blue', drawstyle='hist')
-    fill_hist(signal, s)
-    fill_hist(background, b)
+    fill_hist(signal, *s)
+    fill_hist(background, *b)
     signal.Draw()
     background.Draw('same')
     canvas.SaveAs('test2.png')
@@ -151,7 +164,7 @@ def get_best_bin(s, b, left, right, iter=50):
     return probe_edges, sigs, best_edge, best_sig
 
 
-nfixed_bins = range(1, 31)
+nfixed_bins = range(1, 41)
 fixed_sigs = []
 for bins in nfixed_bins:
     fixed_sigs.append(get_sig(s, b, np.linspace(min_x, max_x, bins + 1)))
@@ -198,7 +211,7 @@ if True:
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     ax1.set_ylabel('Significance')
-    ax1.set_xlabel('Toy BDT Score')
+    ax1.set_xlabel('BDT Score')
     ax2 = ax1.twiny()
     ax2.set_xlabel('Number of Fixed-width Bins')
     ax3 = ax1.twinx()
@@ -209,8 +222,8 @@ if True:
     # plot the distributions
     b_hist = Hist(20, min_x, max_x, color='blue', linewidth=3, linestyle='dashed')
     s_hist = b_hist.Clone(color='red')
-    fill_hist(b_hist, b)
-    fill_hist(s_hist, s)
+    fill_hist(b_hist, *b)
+    fill_hist(s_hist, *s)
     rplt.hist(b_hist, axes=ax3, label='Background')
     rplt.hist(s_hist, axes=ax3, label='Signal')
 
@@ -220,7 +233,7 @@ if True:
 
     # show significance vs middle bin edge location
     binning = [min_x, max_x]
-    for nbins in xrange(10):
+    for nbins in xrange(5):
         edges, sigs, best_edge, best_sig = get_best_edge(s, b, binning)
         ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
         binning.insert(1, best_edge)

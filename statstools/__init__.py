@@ -1,3 +1,4 @@
+import rootpy
 import os
 import logging
 
