@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+
+# -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
+# Compute the yields for each components (Table 8 and 9 of the internal CB note)
+
+# from array import array
+# rootpy imports
+from rootpy.tree import Cut
+
+# local import
+from mva.cmd import get_parser
+args = get_parser(actions=False).parse_args()
+
+from mva import log
+from mva.norm import cache as norm_cache
+
+from mva.analysis import get_analysis
+from mva.categories.selections import CUTS_VBF,CUTS_BOOSTED
+from mva.categories.cb import DETA_JETS,MASS_JETS,TAUS_CENTR
+from mva.categories.mva  import Category_Preselection
+from statstools.ufloat import ufloat
+
+analysis = get_analysis(args)
+output_suffix = analysis.get_suffix()
+
+
+
+target_region = args.target_region
+data    = analysis.data
+signals = analysis.signals
+backgrounds = analysis.backgrounds
+
+
+# hist = s.events( Category_Preselection, 'OS', mycuts)
+# hist[1].value
+# hist[1].error
+#'\\pm'
+
+def get_yield( sample, cut ):
+    hist = sample.events( Category_Preselection, 'OS', cut )
+    val, err = hist[1].value,hist[1].error 
+    return ufloat(val,err)
+
+norm_cache.qcd_ztautau_norm( ztautau = analysis.ztautau,
+                             qcd = analysis.qcd,
+                             category=Category_Preselection,
+                             param=analysis.norm_field)
+
+cuts = [ '', CUTS_VBF, DETA_JETS, MASS_JETS, TAUS_CENTR ]
+
+
+for cut in cuts:
+    latex_line = str(int(get_yield(data,cut).value)) + ' &\t'
+
+    total_signal = ufloat(0,0)
+    for signal in signals:
+        log.info( signal.name )
+        total_signal += get_yield(signal,cut)
+    latex_line += str(total_signal) + ' &\t'
+    for signal in signals:
+        latex_line+= str(get_yield(signal,cut)) + ' &\t' 
+
+    latex_line+= str(get_yield(analysis.ztautau,cut)) + ' &\t' 
+    latex_line+= str(get_yield(analysis.qcd,cut)) + ' &\t' 
+    latex_line+= str(get_yield(analysis.others,cut) )
+
+
+    log.info( cut + ':\t' + latex_line )
+    
+
+
+
+
+
+
+
+
+# for cat in yields_info_master:
+#     log.info( cat + '\t&\t' +
+#               str(yields_info_master[cat]['data'])      +'\t&\t'+
+#               str(yields_info_master[cat]['Signal_all'])+'\t&\t'+
+#               str(yields_info_master[cat]['Signal_gg_125'])+'\t&\t'+
+#               str(yields_info_master[cat]['Signal_VBF_125'])+'\t&\t'+
+#               str(yields_info_master[cat]['Signal_V_125'])+'\t&\t'+
+#               str(yields_info_master[cat]['Ztautau'])+'\t&\t'+
+#               str(yields_info_master[cat]['QCD'])+'\t&\t'+
+#               str(yields_info_master[cat]['Others'])
+#               )
+
+
+    
+
+
+

@@ -32,3 +32,15 @@ class ufloat(object):
         fmt = ('${0:.'+str(pos)+'f} \pm {1:.'+str(pos)+'f}$ '
                 '${{}}^{{+{2:.'+str(pos)+'f}}}_{{-{3:.'+str(pos)+'f}}}$')
         return fmt.format(self.value, self.stat, self.syst[0], self.syst[1])
+
+    def __iadd__(self,other):
+        self.value += other.value
+        self.stat = math.sqrt( self.stat+self.stat + other.stat*other.stat )
+        if self.syst is not None and other.syst is not None:
+            self.syst = math.sqrt( self.stat+self.stat + other.stat*other.stat )
+        return self
+
+    def __add__(self,other):
+        summed_ufloat = ufloat(self.value,self.stat,self.syst)
+        summed_ufloat += other
+        return summed_ufloat

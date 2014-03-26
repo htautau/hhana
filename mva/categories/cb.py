@@ -5,16 +5,25 @@ from .selections import CUTS_VBF, CUTS_BOOSTED
 
 # https://cds.cern.ch/record/1629891/files/ATL-COM-PHYS-2013-1558.pdf
 
+
+DETA_JETS = Cut('dEta_jets > 2.6')
+MASS_JETS = Cut('mass_jet1_jet2 > 250000')
+
+TAU1_CENTR = Cut('tau1_centrality > %f' % (1. / math.e))
+TAU2_CENTR = Cut('tau2_centrality > %f' % (1. / math.e))
+TAUS_CENTR = TAU1_CENTR & TAU2_CENTR
+
 CUTS_VBF_CUTBASED = (
     CUTS_VBF
-    & Cut('dEta_jets > 2.6')
-    & Cut('mass_jet1_jet2 > 250000')
-    & Cut('tau1_centrality > %f' % (1. / math.e))
-    & Cut('tau2_centrality > %f' % (1. / math.e)))
+    & DETA_JETS
+    & MASS_JETS 
+    & TAUS_CENTR
+    )
 
 CUTS_BOOSTED_CUTBASED = (
     CUTS_BOOSTED
-    & Cut('dR_tau1_tau2 < 2.5'))
+    #     & Cut('dR_tau1_tau2 < 2.5')
+    )
 
 INF = 1E100
 
