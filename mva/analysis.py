@@ -483,7 +483,8 @@ class Analysis(object):
             sample = s.get_histfactory_sample(
                 hist_template, clf,
                 category, region,
-                cuts=cuts, scores=scores)
+                cuts=cuts, scores=scores,
+                systematics=systematics)
             bkg_samples.append(sample)
 
         data_sample = None
@@ -547,7 +548,8 @@ class Analysis(object):
                     hist_template, clf,
                     category, region,
                     cuts=cuts, scores=scores,
-                    no_signal_fixes=no_signal_fixes)
+                    no_signal_fixes=no_signal_fixes,
+                    systematics=systematics)
                 sig_samples.append(sample)
 
             # create channel for this mass point
