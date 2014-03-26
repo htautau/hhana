@@ -29,9 +29,11 @@ INF = 1E100
 
 # Cut-based categories
 
+# -----------> Main Categories used in the CB Signal Region
 class Category_Cuts_VBF_LowDR(Category_Preselection):
     name = 'cuts_vbf_lowdr'
     label = '#tau_{had}#tau_{had} Cut-based VBF Low dR'
+    latex = 'VBF High-$p_T^{H}$'
     cuts = (
         CUTS_VBF_CUTBASED
         & Cut('dR_tau1_tau2 < 1.5')
@@ -40,10 +42,10 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
     norm_category = Category_Preselection
 
 
-# -----------> Main Categories used in the CB Signal Region
 class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
     name = 'cuts_vbf_highdr_tight'
     label = '#tau_{had}#tau_{had} Cut-based VBF High dR Tight'
+    latex = 'VBF Low-$p_T^{H}$ Tight'
     cuts = (
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
@@ -55,6 +57,7 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
 class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
     name = 'cuts_vbf_highdr_loose'
     label = '#tau_{had}#tau_{had} Cut-based VBF High dR Loose'
+    latex = 'VBF Low-$p_T^{H}$ Loose'
     cuts = (
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
@@ -62,10 +65,18 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
     limitbins = [0,64,80,92,104,116,132,152,176,INF]
     norm_category = Category_Preselection
 
+class Category_Cuts_VBF_HighDR(Category_Preselection):
+    name = 'cuts_vbf_highdr'
+    label = '#tau_{had}#tau_{had} Cut-based VBF High dR Loose'
+    latex = 'VBF Low-$p_T^{H}$'
+    cuts = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts
+    limitbins = [0,64,80,92,104,116,132,152,176,INF]
+    norm_category = Category_Preselection
 
 class Category_Cuts_Boosted_Tight(Category_Preselection):
     name = 'cuts_boosted_tight'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Tight'
+    latex = 'Boosted High-$p_T^{H}$'
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
     #         & ((Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt > 140000')) | Cut('resonance_pt > 200000')))
@@ -76,6 +87,7 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
 class Category_Cuts_Boosted_Loose(Category_Preselection):
     name = 'cuts_boosted_loose'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Loose'
+    latex = 'Boosted Low-$p_T^{H}$'
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))
 #         & Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt < 140000')

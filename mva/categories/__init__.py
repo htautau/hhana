@@ -20,6 +20,12 @@ CATEGORIES = {
         Category_Cuts_Boosted_Tight,
         Category_Cuts_Boosted_Loose,
         ],
+    'cuts_2011' : [
+        Category_Cuts_VBF_LowDR,
+        Category_Cuts_VBF_HighDR,
+        Category_Cuts_Boosted_Tight,
+        Category_Cuts_Boosted_Loose,
+        ],
     'cuts_merged' : [
         Category_Cuts_VBF,
         Category_Cuts_Boosted,

@@ -43,7 +43,11 @@ PRESELECTION = (
 
 CUTS_VBF = CUTS_2J
 
+MET_CENTR = Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
+RES_PT = Cut('resonance_pt > 80000')
+
 CUTS_BOOSTED = (
     # tighter MET centrality
-    Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
-    & Cut('resonance_pt > 80000'))
+    MET_CENTR 
+    & RES_PT
+    )

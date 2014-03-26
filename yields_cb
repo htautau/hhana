@@ -1,0 +1,142 @@
+#!/usr/bin/env python
+
+# -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
+# Compute the yields for each components (Table 8 and 9 of the internal CB note)
+
+# from array import array
+# rootpy imports
+from collections import OrderedDict
+
+from rootpy.tree import Cut
+
+# local import
+from mva.cmd import get_parser
+args = get_parser(actions=False).parse_args()
+
+from mva import log
+from mva.norm import cache as norm_cache
+
+from mva.analysis import get_analysis
+from mva.categories.mva  import Category_Preselection
+from mva.categories.selections import CUTS_VBF,CUTS_BOOSTED
+from mva.categories.selections import MET_CENTR,RES_PT
+
+from mva.categories.cb import DETA_JETS,MASS_JETS,TAUS_CENTR
+from mva.categories.cb import ( Category_Cuts_VBF_HighDR_Tight,
+                                Category_Cuts_VBF_HighDR_Loose,
+                                Category_Cuts_VBF_HighDR,
+                                Category_Cuts_VBF_LowDR,
+                                Category_Cuts_VBF )
+from mva.categories.cb import ( Category_Cuts_Boosted_Tight,
+                                Category_Cuts_Boosted_Loose )
+from statstools.ufloat import ufloat
+
+analysis = get_analysis(args)
+output_suffix = analysis.get_suffix()
+
+# -------------------------------------
+def get_yield( sample, Category=Category_Preselection, cut='' ):
+    """ Retrieve the (weigthed) yield and its stat error for a sample t
+    pass a given cut after the preselection
+    """
+    hist = sample.events( Category, 'OS', cut )
+    val, err = hist[1].value,hist[1].error 
+    return ufloat(val,err)
+# -------------------------------------
+
+# -------------------------------------
+def get_yield_latexline( analysis,Category=Category_Preselection, cut='' ):
+    """
+    Retrieve a str line with the (weighted) yields and their stats error in a given category
+    and with a given set of cuts
+    """
+    # ---> data
+    latex_line = str(int(get_yield(analysis.data,Category,cut).value)) + '  &  '
+    # ---> total signal
+    total_signal = ufloat(0,0)
+    for signal in analysis.signals:
+        total_signal += get_yield(signal,Category,cut)
+    latex_line += str(total_signal) + '  &  '
+    # --> signals (VH,ggH,VBF)
+    for signal in analysis.signals:
+        latex_line+= str(get_yield(signal,Category,cut)) + '  &  ' 
+    # --> Ztautau 
+    latex_line+= str(get_yield(analysis.ztautau,Category,cut)) + '  &  ' 
+    # --> Multi-jets 
+    latex_line+= str(get_yield(analysis.qcd,Category,cut)) + '  &  ' 
+    # --> Others
+    latex_line+= str(get_yield(analysis.others,Category,cut) ) +'\\\\'
+    return latex_line
+
+
+# -------------------------------------
+# ----- MAIN DRIVER
+# -------------------------------------
+
+norm_cache.qcd_ztautau_norm( ztautau = analysis.ztautau,
+                             qcd = analysis.qcd,
+                             category=Category_Preselection,
+                             param=analysis.norm_field)
+
+vbf_cuts = OrderedDict( )
+vbf_cuts['2jets sel.'] = CUTS_VBF
+vbf_cuts['$\\Delta_{\\eta}$'] = CUTS_VBF & DETA_JETS
+vbf_cuts['$M_{jj}$'] = CUTS_VBF & DETA_JETS & MASS_JETS
+vbf_cuts['$\\eta_{min,j}<\\tau_1,\\tau_2<\\eta_{max,j}$'] = CUTS_VBF & DETA_JETS & MASS_JETS & TAUS_CENTR
+
+vbf_cats = []
+if args.year==2012:
+    vbf_cats = [ Category_Cuts_VBF_LowDR,
+                 Category_Cuts_VBF_HighDR_Tight,
+                 Category_Cuts_VBF_HighDR_Loose,
+                 ]
+
+elif args.year==2011:
+    vbf_cats = [ Category_Cuts_VBF_LowDR,
+                 Category_Cuts_VBF_HighDR
+                 ]
+    
+f_latex = open('cutbased_yields'+output_suffix+'.txt','w')
+f_latex.write( 'Data \t H(125) \t VH \t ggH \t VBF \t Ztautau \t QCD \t Others \n' )
+f_latex.write( 'Preselection & '+get_yield_latexline( analysis, Category=Category_Preselection,cut='') +'\n' )
+f_latex.write( '\\hline \\hline \n')
+for name,current_cut in vbf_cuts.iteritems():
+    latex_line = get_yield_latexline( analysis, cut=current_cut )
+    f_latex.write( name+' & '+latex_line+'\n' )
+    log.info( name )
+
+for cat in vbf_cats:
+    latex_line = get_yield_latexline( analysis, Category=cat )
+    f_latex.write( cat.latex+' & '+latex_line+'\n' )
+    log.info( cat.name )
+
+f_latex.write( '\\hline\n' )
+
+boosted_cuts = OrderedDict()
+boosted_cuts['Preselection'] = (-Category_Cuts_VBF.cuts)
+boosted_cuts['$\\Delta\\phi_{min}(\\tau,E_T^{miss)}$'] = MET_CENTR&(-Category_Cuts_VBF.cuts)
+boosted_cuts['$p_T^{H}$'] = CUTS_BOOSTED &(-Category_Cuts_VBF.cuts)
+
+boosted_cats = [ Category_Cuts_Boosted_Tight,
+                 Category_Cuts_Boosted_Loose
+                 ]
+
+for name,current_cut in boosted_cuts.iteritems():
+    latex_line = get_yield_latexline( analysis, cut=current_cut )
+    f_latex.write( name+' & '+latex_line+'\n' )
+    log.info( name )
+
+for cat in boosted_cats:
+    latex_line = get_yield_latexline( analysis, Category=cat )
+    f_latex.write( cat.latex+' & '+latex_line+'\n' )
+    log.info( cat.latex )
+
+
+
+
+
+
+    
+
+
+
