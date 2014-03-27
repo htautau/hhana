@@ -455,7 +455,8 @@ class Analysis(object):
                      systematics=True,
                      unblind=False,
                      hybrid_data=False,
-                     no_signal_fixes=False):
+                     no_signal_fixes=False,
+                     uniform=False):
         """
         Return a HistFactory Channel for each mass hypothesis
         """
@@ -488,7 +489,8 @@ class Analysis(object):
                 hist_template, clf,
                 category, region,
                 cuts=cuts, scores=scores,
-                systematics=systematics)
+                systematics=systematics,
+                uniform=uniform)
             bkg_samples.append(sample)
 
         data_sample = None
@@ -512,7 +514,8 @@ class Analysis(object):
                 hist_template, clf,
                 category, region,
                 cuts=cuts, scores=data_scores,
-                max_score=max_unblind_score)
+                max_score=max_unblind_score,
+                uniform=uniform)
             if not unblind and hybrid_data:
                 # blinded bins filled with S+B, for limit/p0 plots
                 # Swagato:
@@ -549,7 +552,8 @@ class Analysis(object):
                     category, region,
                     cuts=cuts, scores=scores,
                     no_signal_fixes=no_signal_fixes,
-                    systematics=systematics)
+                    systematics=systematics,
+                    uniform=uniform)
                 sig_samples.append(sample)
 
             # create channel for this mass point

@@ -280,7 +280,8 @@ def make_clf_channels(categories):
             mass_points=args.mass_points,
             mode='workspace',
             systematics=args.systematics,
-            unblind=args.unblind or 0.3)
+            unblind=args.unblind or 0.3,
+            uniform=True)
         for mass, channel in channels.items():
             if mass not in all_channels:
                 all_channels[mass] = {}
