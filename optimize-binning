@@ -5,6 +5,7 @@ parser = ArgumentParser()
 parser.add_argument('--year', type=int, choices=(2011, 2012), default=2012)
 args = parser.parse_args()
 
+import os
 from math import log
 import pickle
 
