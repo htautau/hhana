@@ -109,7 +109,7 @@ def search(f, a, b, tol=1.0e-9, **kwargs):
         return x2, f2
 
 
-def get_workspace(scores, binning, fix=False):
+def get_workspace(scores, binning, fix=True):
     hist_template = Hist(binning)
     background = []
     for sample, scores_dict in scores.bkg_scores:
@@ -208,7 +208,7 @@ for nbins in xrange(5):
     best_edge, best_sig = search(optimize_func, binning[0], binning[1],
         scores=scores, binning=binning)
     binning.insert(1, best_edge)
-    ax1.plot((best_edge, best_edge), (0, best_sig),
+    ax1.plot((best_edge, best_edge), (0, - best_sig),
         color='black', linestyle='-', linewidth=2)
 
 # show significance vs number of equal width bins
