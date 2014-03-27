@@ -249,8 +249,8 @@ plots:
 bdt-plots:
 	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names vbf > bdt_plots_vbf_12.log &
 	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names boosted > bdt_plots_boosted_12.log &
-	#nohup ./ana train evaluate --year 2011 --use-2012-clf --output-formats eps png --category-names vbf > bdt_plots_vbf_11.log &
-	#nohup ./ana train evaluate --year 2011 --use-2012-clf --output-formats eps png --category-names boosted > bdt_plots_boosted_11.log &
+	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names vbf > bdt_plots_vbf_11.log &
+	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names boosted > bdt_plots_boosted_11.log &
 
 .PHONY: bdt-control-plots
 bdt-control-plots:
