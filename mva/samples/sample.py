@@ -1064,7 +1064,7 @@ class SystematicsSample(Sample):
                 '%f * %s * (%s)' %
                 (nominal_weight,
                  '*'.join(map(str,
-                     self.get_weight_branches('NOMINAL', weighted=weighted))),
+                     self.weights('NOMINAL'))),
                  selection))
             log.debug(nominal_weighted_selection)
             current_hist = hist.Clone()
@@ -1092,8 +1092,7 @@ class SystematicsSample(Sample):
                         '%f * %s * (%s)' %
                         (sys_weight,
                          ' * '.join(map(str,
-                             self.get_weight_branches('NOMINAL',
-                                 weighted=weighted))),
+                             self.weights('NOMINAL'))),
                          selection))
                     log.debug(sys_weighted_selection)
                     for expr in exprs:
@@ -1242,7 +1241,7 @@ class SystematicsSample(Sample):
 
         TEMPFILE.cd()
         selection = self.cuts(category, region) & cuts
-        weight_branches = self.get_weight_branches(systematic)
+        weight_branches = self.weights(systematic)
         if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
 

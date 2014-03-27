@@ -56,7 +56,7 @@ def plot_mass(ztt, higgs, category):
 
 
 args = get_parser(actions=False).parse_args()
-analysis = get_analysis(args)
+analysis = get_analysis(args, systematics=False)
 region = 'OS'
 template = Hist(40, 0, 200, linewidth=3, drawstyle='hist')
 
