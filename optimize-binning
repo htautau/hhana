@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from statstools import get_significance_workspace
 from rootpy.plotting import Hist, Canvas
 from rootpy.plotting import root2matplotlib as rplt
@@ -9,7 +10,7 @@ import matplotlib.pyplot as plt
 from math import log
 
 from mva import CONST_PARAMS
-from mva.categories import Category_VBF
+from mva.categories import Category_VBF, Category_Boosted
 from mva.analysis import Analysis
 
 from statstools.fixups import fix_measurement
@@ -149,7 +150,7 @@ def optimize_func(edge, scores, binning):
 systematics = False
 transform = False
 
-category = Category_VBF
+category = Category_Boosted
 analysis = Analysis(2012, transform=transform, systematics=systematics)
 analysis.normalize(category)
 clf = analysis.get_clf(category, load=True)
@@ -184,7 +185,7 @@ ax2 = ax1.twiny()
 ax2.set_xlabel('Number of Fixed-width Bins')
 ax3 = ax1.twinx()
 ax3.set_ylabel('Events')
-ax3.set_yscale('log')
+#ax3.set_yscale('log')
 #ax3.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 
 # plot the distributions
@@ -202,7 +203,7 @@ linecycler = cycle(lines)
 
 # show significance vs middle bin edge location
 binning = [min_score, max_score]
-for nbins in xrange(5):
+for nbins in xrange(3):
     #edges, sigs, best_edge, best_sig = get_best_edge(s, b, binning)
     #ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
     best_edge, best_sig = search(optimize_func, binning[0], binning[1],
@@ -220,6 +221,8 @@ ax2.plot(nfixed_bins, fixed_sigs, label='Fixed-width Bins', color='green', lines
 #ax2.legend(handles1+handles2+handles3, labels1+labels2+labels3)
 plt.tight_layout()
 fig.savefig('test3.png')
+
+print binning
 
 """
 if False:
