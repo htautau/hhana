@@ -45,8 +45,7 @@ def get_analysis(args, **kwargs):
         partition_key='EventNumber', # 'MET_phi_original * 100', or None
         suffix=args.suffix,
         transform=not args.raw_scores,
-        mmc=not args.no_mmc,
-        use2012clf=args.use_2012_clf)
+        mmc=not args.no_mmc)
     return analysis
 
 
@@ -67,7 +66,6 @@ class Analysis(object):
                  transform=True,
                  suffix=None,
                  mmc=True,
-                 use2012clf=False,
                  norm_field='dEta_tau1_tau2'):
         self.year = year
         self.systematics = systematics
@@ -78,7 +76,6 @@ class Analysis(object):
         self.transform = transform
         self.suffix = suffix
         self.mmc = mmc
-        self.use2012clf = use2012clf
         self.norm_field = norm_field
 
         if use_embedding:
@@ -243,7 +240,11 @@ class Analysis(object):
             output_suffix += '_no_mmc'
         if self.suffix:
             output_suffix += '_%s' % self.suffix
-        output_suffix += '_%d' % (self.year % 1E3)
+        if self.year % 1E3 == 11 and clf:
+            # force the use of 2012 clf on 2011
+            output_suffix += '_12'
+        else:
+            output_suffix += '_%d' % (self.year % 1E3)
         if not clf and not self.systematics:
             output_suffix += '_stat'
         return  output_suffix
@@ -564,12 +565,7 @@ class Analysis(object):
     def get_clf(self, category, load=False, swap=False):
 
         output_suffix = self.get_suffix()
-        if self.use2012clf:
-            original_year = self.year
-            self.year = 2012
         clf_output_suffix = self.get_suffix(clf=True)
-        if self.use2012clf:
-            self.year = original_year
 
         clf = Classifier(
             fields=category.features,

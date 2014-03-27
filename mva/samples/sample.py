@@ -1078,6 +1078,7 @@ class SystematicsSample(Sample):
                 continue
             # iterate over systematic variations skipping the nominal
             for sys_term in iter_systematics(False,
+                    year=self.year,
                     components=systematics_components):
                 sys_hist = current_hist.Clone()
                 if sys_term in sys_trees:
@@ -1180,6 +1181,7 @@ class SystematicsSample(Sample):
             all_sys_hists[field] = hist.systematics
 
         for systematic in iter_systematics(False,
+                year=self.year,
                 components=systematics_components):
 
             sys_field_hist = {}
@@ -1215,6 +1217,7 @@ class SystematicsSample(Sample):
         if scores_dict is None:
             scores_dict = {}
         for systematic in iter_systematics(True,
+                year=self.year,
                 components=systematics_components):
             if not do_systematics and systematic != 'NOMINAL':
                 continue

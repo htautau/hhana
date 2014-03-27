@@ -126,8 +126,6 @@ def training_parser(parser=None):
             default=False,
             help='use raw classifier scores instead of applying '
                  'a logistic transformation')
-    parser.add_argument('--use-2012-clf',
-            action='store_true', default=False)
     return parser
 
 
