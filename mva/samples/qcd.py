@@ -20,6 +20,8 @@ class QCD(Sample, Background):
         return []
 
     def histfactory(self, sample, category, systematics=True):
+        if self.workspace_norm is False:
+            return
         if self.workspace_norm is not None:
             sample.AddNormFactor(
                 'ATLAS_norm_HH_{0:d}_QCD'.format(self.year),
