@@ -474,12 +474,15 @@ class Analysis(object):
         min_score = scores_obj.min_score
         max_score = scores_obj.max_score
 
+        if isinstance(bins, (list, tuple)):
+            binning = Hist(bins, type='D')
+        else:
+            binning = Hist(bins, min_score, max_score, type='D')
+
         bkg_samples = []
         for s, scores in bkg_scores:
-            hist_template = Hist(
-                bins, min_score, max_score,
+            hist_template = binning.Clone(
                 title=s.label,
-                type='D',
                 **s.hist_decor)
             sample = s.get_histfactory_sample(
                 hist_template, clf,
@@ -502,10 +505,8 @@ class Analysis(object):
                 max_unblind_score = efficiency_cut(
                     sum([histogram_scores(hist_template, scores)
                          for s, scores in all_sig_scores[125]]), unblind)
-            hist_template = Hist(
-                bins, min_score, max_score,
+            hist_template = binning.Clone(
                 title=self.data.label,
-                type='D',
                 **self.data.hist_decor)
             data_sample = self.data.get_histfactory_sample(
                 hist_template, clf,
@@ -540,10 +541,8 @@ class Analysis(object):
             # create HistFactory samples
             sig_samples = []
             for s, scores in all_sig_scores[mass]:
-                hist_template = Hist(
-                    bins, min_score, max_score,
+                hist_template = binning.Clone(
                     title=s.label,
-                    type='D',
                     **s.hist_decor)
                 sample = s.get_histfactory_sample(
                     hist_template, clf,

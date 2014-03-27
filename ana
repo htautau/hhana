@@ -13,6 +13,7 @@ year = args.year
 import os, sys
 import shutil
 import math
+import pickle
 
 # rootpy imports
 from rootpy.tree import Cut
@@ -34,7 +35,7 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 
 # local imports
-from mva import hypotests
+from mva import hypotests, CACHE_DIR
 from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
                            draw_channel_array, draw_channel,
                            correlations, hist_scores )
@@ -267,11 +268,15 @@ def make_clf_channels(categories):
         # apply normalization
         analysis.normalize(category)
         clf = analysis.get_clf(category, load=True)
+        # get the binning (see the optimize-binning script)
+        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
+                category.name, args.year % 1000))) as f:
+            binning = pickle.load(f)
         # construct a "channel" for each mass point
         scores, channels = analysis.clf_channels(
             clf, category, target_region,
             cuts=signal_region,
-            bins=category.limitbins,
+            bins=binning,
             mass_points=args.mass_points,
             mode='workspace',
             systematics=args.systematics,
