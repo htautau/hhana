@@ -433,8 +433,8 @@ class Analysis(object):
                     sig_scores.append((sig, scores_dict))
                 all_sig_scores[mass] = sig_scores
 
-        min_score -= 1e-5
-        max_score += 1e-5
+        min_score -= 1e-8
+        max_score += 1e-8
 
         log.info("min score: {0} max score: {1}".format(min_score, max_score))
         return Scores(
