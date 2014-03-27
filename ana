@@ -161,14 +161,14 @@ def write_workspaces(mass_category_channel, controls=None):
             name = "hh_category_%s_%d" % (category, mass)
             log.info("writing {0} ...".format(name))
             # make workspace
-            workspace, measurement = histfactory.make_workspace(
+            measurement = histfactory.make_measurement(
                 name, [channel] + (
                     controls[mass].values() if isinstance(controls, dict) else controls),
                 POI='SigXsecOverSM',
                 lumi=1.0,
                 lumi_rel_error=lumi_rel_error,
-                const_params=CONST_PARAMS,
-                silence=silence)
+                const_params=CONST_PARAMS)
+            workspace = histfactory.make_workspace(measurement, name=name, silence=silence)
             with root_open(os.path.join(workspace_output_dir,
                 '{0}.root'.format(name)), 'recreate') as workspace_file:
                 workspace.Write()
@@ -184,14 +184,15 @@ def write_workspaces(mass_category_channel, controls=None):
         name = "hh_combination_%d" % mass
         log.info("writing {0} ...".format(name))
 
-        workspace, measurement = histfactory.make_workspace(
+        measurement = histfactory.make_measurement(
             name, channels + (
                 controls[mass].values() if isinstance(controls, dict) else controls),
             POI='SigXsecOverSM',
             lumi=1.0,
             lumi_rel_error=lumi_rel_error,
-            const_params=CONST_PARAMS,
-            silence=silence)
+            const_params=CONST_PARAMS)
+
+        workspace = histfactory.make_workspace(measurement, name=name, silence=silence)
 
         with root_open(os.path.join(workspace_output_dir,
             '{0}.root'.format(name)), 'recreate') as workspace_file:

@@ -189,6 +189,7 @@ for category in (Category_VBF, Category_Boosted):
     print binning
 
     # save the binning
-    with open(os.path.join(
-        CACHE_DIR, 'binning_{0}_{1}.pickle'.format(category.name, args.year))) as f:
+    with open(os.path.join(CACHE_DIR,
+                           'binning_{0}_{1}.pickle'.format(
+                               category.name, args.year)), 'w') as f:
         pickle.dump(binning, f)
