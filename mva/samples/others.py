@@ -2,6 +2,8 @@
 from .sample import MC, Background
 from . import log
 
+from rootpy.tree import Cut
+
 
 class EWK(MC, Background):
     NO_KYLEFIX = True
@@ -30,3 +32,9 @@ class Others(MC, Background):
         sample.AddOverallSys('pdf_qq', 0.96, 1.04)
         # QCD scale uncertainty
         sample.AddOverallSys('QCDscale_V', 0.99, 1.01)
+
+    def cuts(self, *args, **kwargs):
+        cut = super(Others, self).cuts(*args, **kwargs)
+        # require that at least one tau matches truth
+        cut &= Cut('tau1_matched || tau2_matched')
+        return cut

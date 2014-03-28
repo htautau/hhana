@@ -60,13 +60,13 @@ class QCD(Sample, Background):
                  scale_error=0.,
                  data_scale=1.,
                  mc_scales=None,
-                 shape_region='SS',
+                 shape_region='nOS',
                  decouple_shape=True,
                  workspace_norm=None,
                  constrain_norm=False,
                  cuts=None,
-                 name='QCD',
-                 label='Multijet',
+                 name='Fakes',
+                 label='Fakes',
                  **kwargs):
         QCD.sample_compatibility(data, mc)
         super(QCD, self).__init__(

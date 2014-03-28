@@ -53,7 +53,7 @@ def fix_measurement(meas):
         prune_overallsys_threshold=1., # percent
         uniform_binning=True,
         #fill_empties=True,
-        #fill_empties_samples=['QCD', 'Ztautau']
+        #fill_empties_samples=['Fakes', 'Ztautau']
         )
     #--prune-histosys --prune-histosys-method chi2 --prune-histosys-threshold 0.99 \
     #--prune-histosys-blacklist QCDscale_ggH3in \
@@ -68,6 +68,6 @@ def fix_measurement(meas):
         #symmetrize_types=["overallsys", "histosys"]
         )
     #--smooth-histosys --smooth-histosys-iterations 1 \
-    #--smooth-histosys-samples QCD Ztautau Others "Signal_VBF_*" "Signal_gg_*" \
-    #--prune-histosys --prune-histosys-samples QCD Others Ztautau \
+    #--smooth-histosys-samples Fakes Ztautau Others "Signal_VBF_*" "Signal_gg_*" \
+    #--prune-histosys --prune-histosys-samples Fakes Others Ztautau \
     #--prune-histosys-method max --prune-histosys-threshold 0.1

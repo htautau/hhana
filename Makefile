@@ -237,12 +237,11 @@ dump:
 
 .PHONY: norms
 norms:
-	nohup ./norm --no-systematics --qcd-shape-region nOS --year 2012 > norm_nos_12.log &
-	nohup ./norm --no-systematics --qcd-shape-region SS --year 2012 > norm_ss_12.log & 
-	nohup ./norm --no-systematics --qcd-shape-region NONISOL --year 2012 > norm_nonisol_12.log &
-	nohup ./norm --no-systematics --qcd-shape-region nOS --year 2011 > norm_nos_11.log & 
-	nohup ./norm --no-systematics --qcd-shape-region SS --year 2011 > norm_ss_11.log &
-	nohup ./norm --no-systematics --qcd-shape-region NONISOL --year 2011 > norm_nonisol_11.log &
+	for year in 2011 2012; do \
+		for model in nOS SS NONISOL nOS_NONISOL SS_NONISOL OS_NONISOL; do \
+			nohup ./norm --no-systematics --qcd-shape-region $${model} --year $${year} > norm_$${model}_$${year}.log & \
+		done; \
+	done
 
 .PHONY: stats-plots
 stats-plots:
