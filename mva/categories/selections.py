@@ -29,7 +29,7 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 MET = Cut('MET_et > 20000')
-DR = Cut('0.8 < dR_tau1_tau2 < 2.6')
+DR = Cut('0.8 < dR_tau1_tau2 < 2.4')
 DETA = Cut('dEta_tau1_tau2 < 1.5')
 RES_PT = Cut('resonance_pt > 80000')
 
