@@ -58,6 +58,9 @@ qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='Multijet nOS',
 qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
     drawstyle='hist E0', markersize=0, color='red',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+qcd_nonisol = QCD(data, [ztt_eb, others], shape_region='NONISOL', label='Multijet NONISOL',
+    drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 # MC Ztt and MC embedded Ztt
 ztt_pyth = Pythia_Ztautau(year=2012, label='Pythia',
@@ -132,9 +135,9 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
         d = data_hists[field]
         d_orig = data_orig_hists[field]
         plot = draw_ratio(d, d_orig, category, ratio_title='TES Shift / Orig.')
-        plot.SaveAs('plots/shapes/shape_datates_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+        plot.SaveAs('plots/shapes/shape_data_tes_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
 
-    # compare QCD shapes
+    # compare SS and nOS QCD shapes
     qcd_nos_hists, field_scale = qcd_nos.get_field_hist(field_dict, category)
     qcd_ss_hists, _ = qcd_ss.get_field_hist(field_dict, category)
     qcd_nos.draw_array(qcd_nos_hists, category, 'OS', field_scale=field_scale)
@@ -144,7 +147,17 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
         nos = qcd_nos_hists[field]
         ss = qcd_ss_hists[field]
         plot = draw_ratio(nos, ss, category, ratio_title='nOS / SS')
-        plot.SaveAs('plots/shapes/shape_qcd_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+        plot.SaveAs('plots/shapes/shape_qcd_ss_nos_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+    
+    # compare NONISOL and nOS QCD shapes
+    qcd_nonisol_hists, _ = qcd_nonisol.get_field_hist(field_dict, category)
+    qcd_nonisol.draw_array(qcd_nonisol_hists, category, 'OS', field_scale=field_scale)
+    for field in fields:
+        # draw ratio plot
+        nos = qcd_nos_hists[field]
+        nonisol = qcd_nonisol_hists[field]
+        plot = draw_ratio(nos, nonisol, category, ratio_title='nOS / NONISOL')
+        plot.SaveAs('plots/shapes/shape_qcd_nonisol_nos_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
 
     # compare Ztt shapes
     ztt_eb_hists, field_scale = ztt_eb.get_field_hist(field_dict, category)
