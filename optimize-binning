@@ -102,7 +102,7 @@ def optimize_func(edge, scores, binning):
     return - get_sig(scores, binning, edge, 1)
 
 
-systematics = False
+systematics = True
 transform = False
 
 analysis = Analysis(args.year,
@@ -117,6 +117,7 @@ for category in (Category_VBF, Category_Boosted):
     scores = analysis.get_scores(
         clf, category, 'OS', mode='workspace',
         mass_points=[125], systematics=systematics)
+    min_score, max_score = scores.min_score, scores.max_score
 
     # nominal scores for convenience
     b = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.bkg_scores])
@@ -147,7 +148,6 @@ for category in (Category_VBF, Category_Boosted):
     ax3 = ax1.twinx()
     ax3.set_ylabel('Events')
     ax3.set_yscale('log')
-    #ax3.ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 
     # plot the distributions
     b_hist = Hist(20, min_score, max_score, color='blue',
@@ -168,7 +168,7 @@ for category in (Category_VBF, Category_Boosted):
         # linear scan
         edges, sigs, best_edge, best_sig = get_best_edge(scores, binning)
         ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
-        # golden section search
+        # golden section search (doesn't work well in general)
         #best_edge, best_sig = search(optimize_func, binning[0], binning[1],
         #    scores=scores, binning=binning)
         binning.insert(1, best_edge)

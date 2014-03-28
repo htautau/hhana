@@ -50,10 +50,11 @@ def fix_measurement(meas):
         drop_np_types=['histosys'],
         drop_np_samples=['Others'],
         prune_overallsys=True,
-        prune_overallsys_threshold=1.,
+        prune_overallsys_threshold=1., # percent
         uniform_binning=True,
-        fill_empties=True,
-        fill_empties_samples=['QCD', 'Ztautau'])
+        #fill_empties=True,
+        #fill_empties_samples=['QCD', 'Ztautau']
+        )
     #--prune-histosys --prune-histosys-method chi2 --prune-histosys-threshold 0.99 \
     #--prune-histosys-blacklist QCDscale_ggH3in \
     #--rebin-channels channel_vbf_${mass} channel_boosted_${mass} \
@@ -63,8 +64,9 @@ def fix_measurement(meas):
         drop_np_names=["*TAU_ID*"],
         drop_np_types=["OverallSys"],
         drop_np_samples=['Ztautau'],
-        symmetrize_names=["*JVF*", "*TES_TRUE*", "*EMB_MFS*"],
-        symmetrize_types=["overallsys", "histosys"])
+        #symmetrize_names=["*JVF*", "*TES_TRUE*", "*EMB_MFS*"],
+        #symmetrize_types=["overallsys", "histosys"]
+        )
     #--smooth-histosys --smooth-histosys-iterations 1 \
     #--smooth-histosys-samples QCD Ztautau Others "Signal_VBF_*" "Signal_gg_*" \
     #--prune-histosys --prune-histosys-samples QCD Others Ztautau \

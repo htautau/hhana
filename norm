@@ -67,13 +67,13 @@ while ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01:
         include_signal=False)
 
     # create a workspace
-    workspace, measurement = histfactory.make_workspace(
+    measurement = histfactory.make_measurement(
         'normalization_{0}'.format(field), channels,
         POI=None,
         lumi=1.0,
         lumi_rel_error=lumi_rel_error,
-        const_params=CONST_PARAMS,
-        silence=True)
+        const_params=CONST_PARAMS)
+    workspace = histfactory.make_workspace(measurement, silence=True)
 
     # fit workspace
     minim = workspace.fit(minimizer_type='Minuit', strategy=1)
