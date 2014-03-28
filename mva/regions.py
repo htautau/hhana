@@ -21,14 +21,25 @@ TRACK_NONISOLATION = (
     |
     Cut('tau2_numTrack_recounted > tau2_numTrack'))
 
-
 REGIONS = {
     'ALL': Cut(),
+    # SR
     'OS': OS & P1P3 & TRACK_ISOLATION,
-    'nOS': NOT_OS & TRACK_ISOLATION,
+    # QCD CR OPTIONS
     'SS': SS & P1P3 & TRACK_ISOLATION,
+    'nOS': NOT_OS & TRACK_ISOLATION,
     'NONISOL': TRACK_NONISOLATION,
+    'OS_NONISOL': OS & P1P3 & TRACK_NONISOLATION,
+    'SS_NONISOL': SS & P1P3 & TRACK_NONISOLATION,
+    'nOS_NONISOL': NOT_OS & TRACK_NONISOLATION,
 }
 
 TARGET_REGIONS = ['OS',]
-QCD_SHAPE_REGIONS = ['nOS', 'SS', 'NONISOL',]
+QCD_SHAPE_REGIONS = [
+    'nOS',
+    'SS',
+    'NONISOL',
+    'OS_NONISOL',
+    'SS_NONISOL',
+    'nOS_NONISOL',
+]
