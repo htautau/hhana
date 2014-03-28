@@ -391,7 +391,10 @@ VARIABLES = {
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau}_{had},#font[152]{#tau}_{had})',
         'filename': 'deta_tau1_tau2',
         'bins': 10,
-        'range': (0., 1.5),
+        'range': {
+            'BOOSTED': (10, 0, 1.5),
+            'VBF': (10, 0, 1.5),
+            None: (10, 0, 2.5)},
         'ypadding': (0.5, 0),
     },
     #'tau1_charge': {

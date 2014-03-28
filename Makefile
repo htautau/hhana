@@ -234,6 +234,34 @@ dump:
 	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp4.mc12a.root
 	@./dump -t higgstautauhh -e 50 -s "taus_pass" -o EventNumber $(HHNTUP)/$(HHSTUDENT).AlpgenJimmy_AUET2CTEQ6L1_ZtautauNp0.mc12a.root
 
+
+.PHONY: norms
+norms:
+	nohup ./norm --no-systematics --qcd-shape-region nOS --year 2012 > norm_nos_12.log &
+	nohup ./norm --no-systematics --qcd-shape-region SS --year 2012 > norm_ss_12.log & 
+	nohup ./norm --no-systematics --qcd-shape-region NONISOL --year 2012 > norm_nonisol_12.log &
+	nohup ./norm --no-systematics --qcd-shape-region nOS --year 2011 > norm_nos_11.log & 
+	nohup ./norm --no-systematics --qcd-shape-region SS --year 2011 > norm_ss_11.log &
+	nohup ./norm --no-systematics --qcd-shape-region NONISOL --year 2011 > norm_nonisol_11.log &
+
+.PHONY: stats-plots
+stats-plots:
+	# nOS
+	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12_nos.log &
+	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12_nos.log &
+	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12_nos.log &
+	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --categories presel --output-formats eps png > var_plots_presel_12_nos.log &
+	# SS
+	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12_ss.log &
+	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12_ss.log &
+	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12_ss.log &
+	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --categories presel --output-formats eps png > var_plots_presel_12_ss.log &
+	# NONISOL
+	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12_nonisol.log &
+	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12_nonisol.log &
+	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12_nonisol.log &
+	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --categories presel --output-formats eps png > var_plots_presel_12_nonisol.log &
+
 .PHONY: plots
 plots:
 	nohup ./ana plot --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12.log &
