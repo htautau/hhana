@@ -15,6 +15,7 @@ from mva.plotting import draw_channel
 from mva.categories import Category_Rest, Category_Preselection
 from mva.lumi import get_lumi_uncert
 from mva.norm import cache
+from mva.variables import VARIABLES
 from mva import CONST_PARAMS
 import numpy as np
 
@@ -27,7 +28,7 @@ category = Category_Preselection
 # distribution to fit
 field = 'dEta_tau1_tau2'
 field_min = 0.
-field_max = 1.5
+field_max = 2.5
 field_bins = 5
 
 # initialize QCD and Ztautau normalizations to 50/50 of data yield
@@ -107,8 +108,6 @@ while ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01:
         z_scale=analysis.ztautau.scale * ztt_scale,
         z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
 
-    #break
-
 # draw post-fit plots
 analysis.normalize(category)
 
@@ -117,7 +116,7 @@ channels = analysis.make_var_channels(
     args.target_region,
     include_signal=False)
 
-draw_channel(channels[0], name=field,
+draw_channel(channels[0], name=VARIABLES[field]['root'],
     category=category,
     output_name='{0}_postfit_{1}'.format(field, args.year % 1000))
 

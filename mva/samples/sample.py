@@ -208,7 +208,9 @@ class Sample(object):
         histname = 'hh_category_{0}_{1}'.format(category.name, self.name)
         if suffix is not None:
             histname += suffix
-        hist = hist_template.Clone(name=histname)
+        hist = hist_template.Clone(name=histname,
+                                   title=self.label,
+                                   **self.hist_decor)
         hist.Reset()
 
         if isinstance(expr_or_clf, (basestring, tuple, list)):
