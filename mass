@@ -4,6 +4,7 @@ from rootpy.io import root_open
 from rootpy.plotting import Hist, Canvas, Legend, Graph
 from rootpy.plotting.utils import get_limits,draw
 from rootpy.plotting.style.atlas import ATLAS_label
+
 from mva.cmd import get_parser
 from mva.analysis import get_analysis
 from mva.categories import Category_1J_Inclusive, Category_Cuts_Boosted, Category_Cuts_VBF
@@ -54,7 +55,7 @@ def plot_mass(ztt, higgs, category):
                 sep=0.14, pad=plot, sqrts=sqrts,
                 text="Internal", textsize=22)
     label = ROOT.TLatex(
-        plot.GetLeftMargin() + 0.03, 0.79,
+        plot.GetLeftMargin() + 0.03, 0.83,
         category.label)
     label.SetNDC()
     label.SetTextFont(43)
@@ -107,10 +108,10 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     else:
         sqrts= None
 
-    ATLAS_label(0.62, 0.89,
+    ATLAS_label(0.42, 0.89,
                 sep=0.14, pad=plot, sqrts=sqrts,
                 text="Internal", textsize=22)
-    label = ROOT.TLatex( plot.GetLeftMargin() + 0.03, 0.79,
+    label = ROOT.TLatex( plot.GetLeftMargin() + 0.03, 0.83,
                          category.label )
     label.SetNDC()
     label.SetTextFont(43)
@@ -119,7 +120,16 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     for fmt in ('eps', 'png'):
         plot.SaveAs('plots/mmc_col_masses_%s%s.%s' % (category.name, output_suffix, fmt))
 
-def mmc_resolution_graph(category):
+def mmc_resolution_graph(category,x_shift=0):
+    """
+    Return a Graph() of fitted mmc mass as a
+    function of m_H. The error correspond to the gaussian fit
+    sigma value.
+    -- parameters
+    category: analysis Category where the Higgs samples are taken
+    x_shift: Shift to apply on the position of the graph points (to overlay several graphs)
+    TODO: Implement a protection against silly values
+    """
     mass_list = range(100,155,5)
     gr_res = Graph(len(mass_list))
     gr_res.name = 'graph_res_'+category.name
@@ -130,8 +140,8 @@ def mmc_resolution_graph(category):
         higgs_sample[0].draw_into( higgs_mmc, MMC_MASS, category, 'OS')
         
         higgs_fit = higgs_mmc.Fit('gaus', 'S')
-        gr_res.SetPoint(im,mass,higgs_fit.Parameter(1))
-        gr_res.SetPointError(im,2.5,2.5,higgs_fit.Parameter(2),higgs_fit.Parameter(2))
+        gr_res.SetPoint(im,mass+x_shift,higgs_fit.Parameter(1))
+        gr_res.SetPointError(im,2.5+x_shift,2.5-x_shift,higgs_fit.Parameter(2),higgs_fit.Parameter(2))
     return gr_res
 
 
@@ -140,13 +150,13 @@ def plot_resolution():
     colors = ( 'black','blue', 'red')
     styles = ('circle','square','triangle')
     categories = (Category_1J_Inclusive, Category_Cuts_Boosted, Category_Cuts_VBF)
-        
+    x_shifts = ( 0,-1.,1.)
 
     graphs = []
 
-    for category,linecolor,markerstyle in zip(categories,colors,styles):
-        log.info( category ) 
-        graph_cat = mmc_resolution_graph( category )
+    for category,linecolor,markerstyle,x_shift in zip(categories,colors,styles,x_shifts):
+        log.info( 'Fit MMC in '+category.name ) 
+        graph_cat = mmc_resolution_graph( category, x_shift )
         graph_cat.linecolor = linecolor
         graph_cat.markerstyle = markerstyle
         graph_cat.markercolor = linecolor
@@ -184,7 +194,7 @@ def plot_resolution():
         sqrts = 8
     else:
         sqrts= None
-    ATLAS_label(0.62, 0.89,
+    ATLAS_label(0.42, 0.89,
                 sep=0.14, pad=plot, sqrts=sqrts,
                 text="Internal", textsize=22)
 
@@ -224,20 +234,9 @@ with root_open('mmc_hadhad_histos.root', 'recreate') as out:
         ztt_col /= ztt_col.integral()
         higgs_col /= higgs_col.integral()
 
-        # fit and get resolutions
-        #ztt_fit = ztt.Fit('gaus', 'S')
-        #higgs_fit = higgs.Fit('gaus', 'S')
-        #ztt_sigma = ztt_fit.Parameter(2)
-        #higgs_sigma = higgs_fit.Parameter(2)
-        #ztt_fwhm = 2.355 * ztt_sigma
-        #higgs_fwhm = 2.355 * higgs_sigma
-
         # plot the mass distributions
         plot_mass(ztt_mmc, higgs_mmc, category)
         plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category)
-
-        
-        
 
         ztt_mmc.Write()
         higgs_mmc.Write()
