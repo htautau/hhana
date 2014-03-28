@@ -1,13 +1,54 @@
 from . import log; log = log[__name__]
 from .. import samples, CACHE_DIR
+
 import os
 import cPickle as pickle
 import atexit
 
+from rootpy.utils.lock import lock
+
 
 MODIFIED = False
-SCALES = {}
+UPDATED = set()
 SCALES_FILE = os.path.join(CACHE_DIR, 'norm.cache')
+
+
+def read_scales():
+    scales = {}
+    if os.path.isfile(SCALES_FILE):
+        log.info("reading background scale factors from %s" % SCALES_FILE)
+        with lock(SCALES_FILE):
+            with open(SCALES_FILE) as cache:
+                scales = pickle.load(cache)
+    return scales
+
+
+SCALES = read_scales()
+
+
+@atexit.register
+def write_scales():
+    if not MODIFIED:
+        return
+    with lock(SCALES_FILE):
+        # merge with possible changes made by another process
+        scales = {}
+        if os.path.isfile(SCALES_FILE):
+            with open(SCALES_FILE) as cache:
+                scales = pickle.load(cache)
+        for year, category, embedded, param, shape_region in UPDATED:
+            if year not in scales:
+                scales[year] = {}
+            if category not in scales[year]:
+                scales[year][category] = {}
+            if embedded not in scales[year][category]:
+                scales[year][category][embedded] = {}
+            if param not in scales[year][category][embedded]:
+                scales[year][category][embedded][param] = {}
+            scales[year][category][embedded][param][shape_region] = \
+                SCALES[year][category][embedded][param][shape_region]
+        with open(SCALES_FILE, 'w') as cache:
+            pickle.dump(scales, cache)
 
 
 def print_scales():
@@ -28,20 +69,6 @@ def print_scales():
                             (qcd_scale, qcd_scale_error))
                         log.info("    ztautau scale: %.3f +/- %.4f" %
                             (ztautau_scale, ztautau_scale_error))
-
-
-if os.path.isfile(SCALES_FILE):
-    log.info("reading background scale factors from %s" % SCALES_FILE)
-    with open(SCALES_FILE) as cache:
-        SCALES = pickle.load(cache)
-
-
-@atexit.register
-def write_scales():
-
-    if MODIFIED:
-        with open(SCALES_FILE, 'w') as cache:
-            pickle.dump(SCALES, cache)
 
 
 def qcd_ztautau_norm(ztautau,
@@ -162,4 +189,5 @@ def set_scales(year, category, embedded, param, shape_region,
         'z_scale': z_scale,
         'z_scale_error': z_scale_error,
         }
+    UPDATED.add((year, category, embedded, param, shape_region))
     MODIFIED = True

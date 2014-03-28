@@ -121,6 +121,6 @@ draw_channel(channels[0], name=VARIABLES[field]['root'],
     output_name='{0}_postfit{1}'.format(field, analysis.get_suffix()))
 
 # determine resonance pt reweighting after normalization
-with root_open('weights.root', 'recreate') as weights_file:
-    resonance_pt_edges = list(np.linspace(0, 250000, 26)) + [1E100]
-    resonance_pt_weight_hist = Hist(resonance_pt_edges, name='resonance_pt_weight')
+#with root_open('weights.root', 'recreate') as weights_file:
+#    resonance_pt_edges = list(np.linspace(0, 250000, 26)) + [1E100]
+#    resonance_pt_weight_hist = Hist(resonance_pt_edges, name='resonance_pt_weight')
