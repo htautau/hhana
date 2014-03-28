@@ -29,25 +29,26 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 MET = Cut('MET_et > 20000')
+DR = Cut('0.8 < dR_tau1_tau2 < 2.6')
+DETA = Cut('dEta_tau1_tau2 < 1.5')
+RES_PT = Cut('resonance_pt > 80000')
 
 # common preselection cuts
 PRESELECTION = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
     & MET
     & Cut('%s > 0' % MMC_MASS)
-    & Cut('0.8 < dR_tau1_tau2 < 2.6')
+    & DR
     & TAU_SAME_VERTEX
     # looser MET centrality
     & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.2 * math.pi))
     )
 
-CUTS_VBF = CUTS_2J
-
-MET_CENTR = Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
-RES_PT = Cut('resonance_pt > 80000')
+CUTS_VBF = CUTS_2J & DETA
 
 CUTS_BOOSTED = (
+    RES_PT
     # tighter MET centrality
-    MET_CENTR 
-    & RES_PT
+    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
+    & DETA
     )

@@ -41,10 +41,6 @@ class Category(object):
         cuts = cls.cuts & cls.common_cuts
         if hasattr(cls, 'year_cuts') and year in cls.year_cuts:
             cuts &= cls.year_cuts[year]
-        if 'DEta_Control' in cls.__name__:
-            cuts &= Cut('dEta_tau1_tau2 >= 1.5')
-        elif deta_cut:
-            cuts &= Cut('dEta_tau1_tau2 < 1.5')
         return cuts
 
     @classmethod
