@@ -13,7 +13,6 @@ from mva import MMC_MASS,log
 
 import ROOT
 
-
 def fwhm(h1):
     bin1 = h1.FindFirstBinAbove(h1.max() / 2)
     bin2 = h1.FindLastBinAbove(h1.max() / 2)
@@ -61,7 +60,7 @@ def plot_mass(ztt, higgs, category):
     label.SetTextFont(43)
     label.SetTextSize(22)
     label.Draw()
-    for fmt in ('eps', 'png'):
+    for fmt in args.output_formats:
         plot.SaveAs('plots/mass_%s%s.%s' % (category.name, output_suffix, fmt))
 
 
@@ -117,9 +116,9 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     label.SetTextFont(43)
     label.SetTextSize(22)
     label.Draw()
-    for fmt in ('eps', 'png'):
+    for fmt in args.output_formats:
         plot.SaveAs('plots/mmc_col_masses_%s%s.%s' % (category.name, output_suffix, fmt))
-
+        
 def mmc_resolution_graph(category,x_shift=0):
     """
     Return a Graph() of fitted mmc mass as a
@@ -140,10 +139,68 @@ def mmc_resolution_graph(category,x_shift=0):
         higgs_sample[0].draw_into( higgs_mmc, MMC_MASS, category, 'OS')
         
         higgs_fit = higgs_mmc.Fit('gaus', 'S')
+        if mass==125:
+            plot_mmc_fit(higgs_mmc,higgs_fit,higgs_sample[0],category)
         gr_res.SetPoint(im,mass+x_shift,higgs_fit.Parameter(1))
         gr_res.SetPointError(im,2.5+x_shift,2.5-x_shift,higgs_fit.Parameter(2),higgs_fit.Parameter(2))
     return gr_res
 
+def plot_mmc_fit( higgs_mmc, higgs_fit, sample=None, category=None ):
+    _, _, _, ymax = get_limits([higgs_mmc], ypadding=(0.1, 0)) 
+    plot = Canvas()
+    higgs_mmc.xaxis.title = '%s [GeV]' % VARIABLES[MMC_MASS]["root"]
+    higgs_mmc.yaxis.title = 'Fraction of Events / 5 GeV'
+    higgs_mmc.yaxis.SetRangeUser(0, ymax)
+
+    higgs_mmc.Draw('HIST')
+    gaus_fit = ROOT.TF1( "fit", "gaus(0)",
+                         higgs_fit.Parameter(1)-1.5*higgs_fit.Parameter(2),
+                         higgs_fit.Parameter(1)+1.5*higgs_fit.Parameter(2) )
+    gaus_fit.SetParameters( higgs_fit.Parameter(0),
+                            higgs_fit.Parameter(1),
+                            higgs_fit.Parameter(2) )
+    gaus_fit.Draw('same')
+
+    sample_name = None
+    sample_label = None
+    if sample is not None:
+        sample_name = sample.name
+        sample_label = sample.label
+
+    category_name = None
+    category_label = None
+    if category is not None:
+        category_name  = category.name
+        category_label = category.label
+
+    if args.year == 2011:
+        sqrts = 7
+    elif args.year == 2012:
+        sqrts = 8
+    else:
+        sqrts= None
+
+    ATLAS_label(plot.GetLeftMargin()+0.03, 0.89,
+                sep=0.14, pad=plot, sqrts=sqrts,
+                text="Internal", textsize=22)
+    label = ROOT.TLatex( plot.GetLeftMargin() + 0.03, 0.83,
+                         category_label )
+    label.SetNDC()
+    label.SetTextFont(43)
+    label.SetTextSize(22)
+    label.Draw()
+    label_1 = ROOT.TLatex( plot.GetLeftMargin() + 0.03, 0.77,
+                           sample_label )
+    label_1.SetNDC()
+    label_1.SetTextFont(43)
+    label_1.SetTextSize(22)
+    label_1.Draw()
+
+
+    for fmt in args.output_formats:
+        plot.SaveAs('./plots/mmc_fit_%s_%s%s.%s' % (sample_name,category_name,output_suffix,fmt) )
+
+    
 
 def plot_resolution():
 
@@ -199,17 +256,17 @@ def plot_resolution():
                 text="Internal", textsize=22)
 
     
-    for fmt in ('eps', 'png'):
+    for fmt in args.output_formats:
         plot.SaveAs('plots/resolution%s.%s' % (output_suffix, fmt))
 
-            
-    
+# --------------------------------            
+# --- MAIN DRIVER    
+# --------------------------------            
 
 args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args, systematics=False)
 region = 'OS'
 output_suffix = analysis.get_suffix()
-
 plot_resolution()
 
 
