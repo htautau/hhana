@@ -118,7 +118,7 @@ channels = analysis.make_var_channels(
 
 draw_channel(channels[0], name=VARIABLES[field]['root'],
     category=category,
-    output_name='{0}_postfit_{1}'.format(field, args.year % 1000))
+    output_name='{0}_postfit{1}'.format(field, analysis.get_suffix()))
 
 # determine resonance pt reweighting after normalization
 with root_open('weights.root', 'recreate') as weights_file:
