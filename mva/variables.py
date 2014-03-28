@@ -385,6 +385,7 @@ VARIABLES = {
         'filename': 'dphi_tau1_tau2',
         'bins': 12,
         'range': (0., 2.4),
+        'legend': 'left',
     },
     'dEta_tau1_tau2': {
         'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
