@@ -29,26 +29,32 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 MET = Cut('MET_et > 20000')
-DR = Cut('0.8 < dR_tau1_tau2 < 2.4')
-DETA = Cut('dEta_tau1_tau2 < 1.5')
-RES_PT = Cut('resonance_pt > 80000')
+DR_TAUS = Cut('0.8 < dR_tau1_tau2 < 2.4')
+DETA_TAUS = Cut('dEta_tau1_tau2 < 1.5')
+RESONANCE_PT = Cut('resonance_pt > 80000')
+
+MET_CENTRALITY_LOOSE = Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.2 * math.pi))
+MET_CENTRALITY_TIGHT = Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
 
 # common preselection cuts
 PRESELECTION = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
     & MET
     & Cut('%s > 0' % MMC_MASS)
-    & DR
+    & DR_TAUS
     & TAU_SAME_VERTEX
-    # looser MET centrality
-    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.2 * math.pi))
+    & MET_CENTRALITY_LOOSE
     )
 
-CUTS_VBF = CUTS_2J & DETA
+# VBF category cuts
+CUTS_VBF = (
+    CUTS_2J
+    & DETA_TAUS
+    )
 
+# Boosted category cuts
 CUTS_BOOSTED = (
-    RES_PT
-    # tighter MET centrality
-    & Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * math.pi))
-    & DETA
+    RESONANCE_PT
+    & MET_CENTRALITY_TIGHT
+    & DETA_TAUS
     )
