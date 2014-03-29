@@ -245,33 +245,12 @@ norms:
 
 .PHONY: stats-plots
 stats-plots:
-	# nOS
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2012 --categories presel --output-formats eps png > var_plots_presel_12_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11_nos.log &
-	nohup ./ana plot --qcd-shape-region nOS --no-systematics --year 2011 --categories presel --output-formats eps png > var_plots_presel_11_nos.log &
-	# SS
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2012 --categories presel --output-formats eps png > var_plots_presel_12_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11_ss.log &
-	nohup ./ana plot --qcd-shape-region SS --no-systematics --year 2011 --categories presel --output-formats eps png > var_plots_presel_11_ss.log &
-	# NONISOL
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2012 --categories presel --output-formats eps png > var_plots_presel_12_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11_nonisol.log &
-	nohup ./ana plot --qcd-shape-region NONISOL --no-systematics --year 2011 --categories presel --output-formats eps png > var_plots_presel_11_nonisol.log &
+	for year in 2011 2012; do \
+		for model in nOS SS NONISOL nOS_NONISOL; do \
+			nohup ./ana plot --qcd-shape-region $${model} --no-systematics --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
+			nohup ./ana plot --qcd-shape-region $${model} --no-systematics --year $${year} --categories presel --output-formats eps png > var_plots_presel_$${year}_$${model}.log & \
+		done; \
+	done
 
 .PHONY: plots
 plots:
