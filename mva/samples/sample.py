@@ -1360,7 +1360,7 @@ class SystematicsSample(Sample):
                 weights *= reduce(np.multiply,
                     [rec[br] for br in weight_branches])
                 # drop other weight fields
-                rec = recfunctions.rec_drop_fields(rec, weight_branches)
+                #rec = recfunctions.rec_drop_fields(rec, weight_branches)
                 # add the combined weight
                 rec = recfunctions.rec_append_fields(rec,
                     names='weight',
