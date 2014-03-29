@@ -1025,8 +1025,12 @@ class SystematicsSample(Sample):
                 xs, kfact, effic = self.xsec_kfact_effic(i)
             else:
                 xs, kfact, effic = ds.xsec_kfact_effic
-
-            log.debug("{0} {1} {2} {3}".format(ds.name, xs, kfact, effic))
+            log.debug(
+                "dataset: {0}  cross section: {1} [pb] "
+                "k-factor: {2} "
+                "filtering efficiency: {3} "
+                "events {4}".format(
+                    ds.name, xs, kfact, effic, weighted_events['NOMINAL']))
             self.datasets.append(
                 (ds, trees, tables, weighted_events, xs, kfact, effic))
 
@@ -1325,6 +1329,12 @@ class SystematicsSample(Sample):
                     "using NOMINAL" % (systematic, ds.name))
                 table = sys_tables['NOMINAL']
                 events = sys_events['NOMINAL']
+            log.debug(
+                "dataset: {0}  cross section: {1} [pb] "
+                "k-factor: {2} "
+                "filtering efficiency: {3} "
+                "events {4}".format(
+                    ds.name, xs, kfact, effic, events))
             actual_scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
