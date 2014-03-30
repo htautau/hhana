@@ -33,49 +33,27 @@ fields = [
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
 # create samples
-data = Data(year=args.year, label='TES-shifted Data',
-    drawstyle='hist E0', markersize=0, color='black',
-    linewidth=2, fillstyle='hollow', legendstyle='L')
-data_orig = Data(year=args.year, tes_shift=False, label='Original Data',
-    drawstyle='hist E0', markersize=0, color='red',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+data = Data(year=args.year, label='TES-shifted Data')
+data_orig = Data(year=args.year, tes_shift=False, label='Original Data')
 
 others = Others(year=args.year)
 
 # ztt
-ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded Data',
-    drawstyle='hist E0', markersize=0, color='black',
-    linewidth=2, fillstyle='hollow', legendstyle='L') 
-ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC',
-    drawstyle='hist E0', markersize=0, color='red',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded Data')
+ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC')
 
 # MC Ztt and MC embedded Ztt
-ztt_pyth = Pythia_Ztautau(year=2012, label='Pythia',
-    drawstyle='hist E0', markersize=0, color='black',
-    linewidth=2, fillstyle='hollow', legendstyle='L')
-ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia',
-    drawstyle='hist E0', markersize=0, color='red',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+ztt_pyth = Pythia_Ztautau(year=2012, label='Pythia')
+ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia')
 
 # fakes
-qcd_nos = Analysis(args.year, qcd_shape_region='nOS').normalize(Category_Preselection).qcd.decorate(
-    label='Isolated nOS Fakes', drawstyle='hist E0', markersize=0, color='black',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed') 
-qcd_nos_nonisol = Analysis(args.year, qcd_shape_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(
-    label='Non-isolated nOS Fakes', drawstyle='hist E0', markersize=0, color='red',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+qcd_nos = Analysis(args.year, qcd_shape_region='nOS').normalize(Category_Preselection).qcd.decorate(label='Isolated nOS Fakes')
+qcd_nos_nonisol = Analysis(args.year, qcd_shape_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated nOS Fakes')
 
-qcd_ss = Analysis(args.year, qcd_shape_region='SS').normalize(Category_Preselection).qcd.decorate(
-    label='Isolated SS Fakes', drawstyle='hist E0', markersize=0, color='green',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
-qcd_ss_nonisol = Analysis(args.year, qcd_shape_region='SS_NONISOL').normalize(Category_Preselection).qcd.decorate(
-    label='Non-isolated SS Fakes', drawstyle='hist E0', markersize=0, color='blue',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+qcd_ss = Analysis(args.year, qcd_shape_region='SS').normalize(Category_Preselection).qcd.decorate(label='Isolated SS Fakes')
+qcd_ss_nonisol = Analysis(args.year, qcd_shape_region='SS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated SS Fakes')
 
-qcd_nonisol = Analysis(args.year, qcd_shape_region='NONISOL').normalize(Category_Preselection).qcd.decorate(
-    label='Non-isolated Fakes', drawstyle='hist E0', markersize=0, color='purple',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+qcd_nonisol = Analysis(args.year, qcd_shape_region='NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated Fakes')
 
 
 def draw_ratio(a, b, field, category, ratio_title='ratio', textsize=22):
@@ -91,6 +69,20 @@ def draw_ratio(a, b, field, category, ratio_title='ratio', textsize=22):
     b_integral = b.integral()
     if b_integral != 0:
         b /= b_integral
+    a.color = 'black'
+    b.color = 'red'
+    a.legendstyle = 'L'
+    b.legendstyle = 'L'
+    a.markersize = 0
+    b.markersize = 0
+    a.linewidth = 2
+    b.linewidth = 2
+    a.fillstyle = 'hollow'
+    b.fillstyle = 'hollow'
+    a.linestyle = 'solid'
+    b.linestyle = 'dashed'
+    a.drawstyle='hist E0'
+    b.drawstyle='hist E0'
     plot.draw('main', [a, b], ypadding=(0.3, 0.))
     ratio = Hist.divide(a, b, fill_value=-1)
     ratio.drawstyle = 'hist'
@@ -112,18 +104,10 @@ def draw_ratio(a, b, field, category, ratio_title='ratio', textsize=22):
         label.SetTextFont(43)
         label.SetTextSize(textsize)
         label.Draw()
-        # show KS and Chi^2
-        ks = a.KolmogorovTest(b)
-        ks_label = TLatex(
-            pad.GetLeftMargin() + 0.04, 0.8,
-            "KS={0:.2f}".format(ks))
-        ks_label.SetNDC(True)
-        ks_label.SetTextFont(43)
-        ks_label.SetTextSize(textsize)
-        ks_label.Draw()
+        # show Chi^2
         chi2 = a.Chi2Test(b, 'WW CHI2/NDF')
         chi2_label = TLatex(
-            pad.GetLeftMargin() + 0.04, 0.75,
+            pad.GetLeftMargin() + 0.04, 0.8,
             "#chi^{{2}}={0:.2f}".format(chi2))
         chi2_label.SetNDC(True)
         chi2_label.SetTextFont(43)
