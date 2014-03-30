@@ -52,6 +52,7 @@ qcd_nos_nonisol = Analysis(args.year, qcd_shape_region='nOS_NONISOL').normalize(
 
 qcd_ss = Analysis(args.year, qcd_shape_region='SS').normalize(Category_Preselection).qcd.decorate(label='Isolated SS Fakes')
 qcd_ss_nonisol = Analysis(args.year, qcd_shape_region='SS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated SS Fakes')
+qcd_os_nonisol = Analysis(args.year, qcd_shape_region='OS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated OS Fakes')
 
 qcd_nonisol = Analysis(args.year, qcd_shape_region='NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated Fakes')
 
@@ -96,7 +97,7 @@ def draw_ratio(a, b, field, category, textsize=22):
         # legend
         leg = Legend([a, b],
                      leftmargin=0.25, topmargin=0.1,
-                     margin=0.2, textsize=textsize)
+                     margin=0.18, textsize=textsize)
         leg.Draw()
         # draw the category label
         label = TLatex(
@@ -145,6 +146,8 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
     compare(qcd_nos, qcd_ss, category, 'qcd_ss_v_nos')
     # compare SS ISOL and SS NONISOL QCD shapes
     compare(qcd_ss, qcd_ss_nonisol, category, 'qcd_ss')
+    # compare SS ISOL and SS NONISOL QCD shapes
+    compare(qcd_ss_nonisol, qcd_os_nonisol, category, 'qcd_ss_v_os')
     # compare NONISOL and nOS QCD shapes
     compare(qcd_nos, qcd_nos_nonisol, category, 'qcd_nos')
     # compare nOS NONISOL and NONISOL (no charge requirement)
