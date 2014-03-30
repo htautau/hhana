@@ -30,6 +30,7 @@ fields = [
     'tau2_pt',
     'tau1_eta',
     'tau2_eta',
+    'numJets',
 ]
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
