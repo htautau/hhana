@@ -95,11 +95,12 @@ def write_significances( significances_file,files_list,ws_list,masses_list):
         jobs.append(p)
         p.start()
         log.info( str(p)+str(p.is_alive()) )
-    jobs[-1].join()
+    for job in jobs:
+        job.join()
     log.info('Write to '+significances_file)
     log.info( str(significances) )
     with open(significances_file, 'w') as significances_file:
-        pickle.dump(significances, significances_file)
+        pickle.dump(dict(significances), significances_file)
 
 
 
