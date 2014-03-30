@@ -51,6 +51,7 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
 TH1D* runSig(RooWorkspace* ws,
              bool isBlind = true, // Dont look at observed data
+	     bool verbose = false,
              const char* modelConfigName = "ModelConfig",
              const char* dataName = "obsData",
              const char* asimov1DataName = "asimovData_1",
@@ -86,8 +87,8 @@ TH1D* runSig(RooWorkspace* ws,
         cout << "ERROR::Dataset: " << dataName << " doesn't exist!" << endl;
         return NULL;
     }
-
-    mc->GetNuisanceParameters()->Print("v");
+    if (verbose)
+      mc->GetNuisanceParameters()->Print("v");
 
     //RooNLLVar::SetIgnoreZeroEntries(1);
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer(defaultMinimizer.c_str());
@@ -141,7 +142,8 @@ TH1D* runSig(RooWorkspace* ws,
         ws->loadSnapshot(condSnapshot.c_str());
         if (doInj) ws->loadSnapshot("conditionalNuis_inj");
         else ws->loadSnapshot("conditionalNuis_1");
-        mc->GetGlobalObservables()->Print("v");
+	if (verbose)
+	  mc->GetGlobalObservables()->Print("v");
         mu->setVal(0);
         mu->setConstant(1);
         status = minimize(asimov_nll, ws);

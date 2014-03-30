@@ -36,6 +36,6 @@ def get_limit_workspace(workspace, unblind=False, verbose=False):
 
 
 def get_significance_workspace(workspace, blind=True, verbose=False):
-    hist = asrootpy(runSig(workspace, blind))
+    hist = asrootpy(runSig(workspace, blind,verbose))
     hist.SetName('%s_significance' % workspace.GetName())
     return hist
