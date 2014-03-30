@@ -53,6 +53,7 @@ ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 # qcd
+# TODO: normalize using Analysis objects
 qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='Multijet nOS',
     drawstyle='hist E0', markersize=0, color='black',
     linewidth=2, fillstyle='hollow', legendstyle='L') 
@@ -61,6 +62,9 @@ qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 qcd_nonisol = QCD(data, [ztt_eb, others], shape_region='NONISOL', label='Multijet NONISOL',
     drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+qcd_ss_nonisol = QCD(data, [ztt_eb, others], shape_region='SS_NONISOL', label='Multijet NONISOL SS',
+    drawstyle='hist E0', markersize=0, color='blue',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 # MC Ztt and MC embedded Ztt
@@ -72,7 +76,7 @@ ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 
-def draw_ratio(a, b, category, ratio_title='ratio', textsize=22):
+def draw_ratio(a, b, field, category, ratio_title='ratio', textsize=22):
     plot = RatioPlot(
         xtitle=field_dict[field]['root'],
         ytitle='Normalized Events',
@@ -124,7 +128,7 @@ def draw_ratio(a, b, category, ratio_title='ratio', textsize=22):
     return plot
 
 
-def compare(a, b, name, ratio_title):
+def compare(a, b, category, name, ratio_title):
     a_hists, field_scale = a.get_field_hist(field_dict, category)
     b_hists, _ = b.get_field_hist(field_dict, category)
     a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
@@ -133,24 +137,21 @@ def compare(a, b, name, ratio_title):
         # draw ratio plot
         a_hist = a_hists[field]
         b_hist = b_hists[field]
-        plot = draw_ratio(a_hist, b_hist, category, ratio_title=ratio_title)
+        plot = draw_ratio(a_hist, b_hist, field, category, ratio_title=ratio_title)
         plot.SaveAs('plots/shapes/shape_{0}_{1}_{2}_{3}.png'.format(
             name, field, category.name, args.year % 1000))
 
 
 for category in CATEGORIES[args.categories] + [Category_Preselection]:
-
+    # compare SS ISOL and SS NONISOL QCD shapes
+    compare(qcd_ss, qcd_ss_nonisol, category, 'qcd_ss_isol_vs_nonisol', 'SS ISOL / NONISOL')
     # compare tes-shifted data with original data
-    compare(data, data_orig, 'data_tes', 'TES Shift / Orig.')
-
+    compare(data, data_orig, category, 'data_tes', 'TES Shift / Orig.')
     # compare SS and nOS QCD shapes
-    compare(qcd_nos, qcd_ss, 'qcd_ss_nos', 'nOS / SS')
-    
+    compare(qcd_nos, qcd_ss, category, 'qcd_ss_nos', 'nOS / SS')
     # compare NONISOL and nOS QCD shapes
-    compare(qcd_nos, qcd_nonisol, 'qcd_nonisol_nos', 'nOS / NONISOL')
-    
+    compare(qcd_nos, qcd_nonisol, category, 'qcd_nonisol_nos', 'nOS / NONISOL')
     # compare Ztt shapes
-    compare(ztt_eb, ztt_mc, 'ztt', 'Emb / MC')
-
+    compare(ztt_eb, ztt_mc, category, 'ztt', 'Emb / MC')
     # Compare MC Ztautau with embedded MC Zmumu
-    compare(ztt_pyth, ztt_mceb, 'ebztt', 'MC / Emb')
+    compare(ztt_pyth, ztt_mceb, category, 'ebztt', 'MC / Emb')
