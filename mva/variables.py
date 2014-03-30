@@ -381,7 +381,7 @@ VARIABLES = {
     },
     'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta#phi}_{#font[152]{#tau}#font[152]{#tau}}',
+        'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dphi_tau1_tau2',
         'bins': 12,
         'range': (0., 2.4),
@@ -389,7 +389,7 @@ VARIABLES = {
     },
     'dEta_tau1_tau2': {
         'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
-        'root': '#font[152]{#Delta#eta}(#font[152]{#tau}_{had},#font[152]{#tau}_{had})',
+        'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'deta_tau1_tau2',
         'bins': 10,
         'range': {
