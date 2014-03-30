@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# create an ntuple containing trees for data with classifier scores
-# and event weights
-
 from mva.cmd import get_parser
 
 args = get_parser(actions=False).parse_args()
@@ -12,6 +9,7 @@ from mva.samples import (
     Pythia_Ztautau, MC_Embedded_Ztautau)
 from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
+from mva.analysis import Analysis
 
 from rootpy.plotting import Hist, Graph, Legend
 from rootpy.plotting.templates import RatioPlot
@@ -52,27 +50,31 @@ ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC',
     drawstyle='hist E0', markersize=0, color='red',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
-# qcd
-# TODO: normalize using Analysis objects
-qcd_nos = QCD(data, [ztt_eb, others], shape_region='nOS', label='Multijet nOS',
-    drawstyle='hist E0', markersize=0, color='black',
-    linewidth=2, fillstyle='hollow', legendstyle='L') 
-qcd_ss = QCD(data, [ztt_eb, others], shape_region='SS', label='Multijet SS',
-    drawstyle='hist E0', markersize=0, color='red',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
-qcd_nonisol = QCD(data, [ztt_eb, others], shape_region='NONISOL', label='Multijet NONISOL',
-    drawstyle='hist E0', markersize=0, color='red',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
-qcd_ss_nonisol = QCD(data, [ztt_eb, others], shape_region='SS_NONISOL', label='Multijet NONISOL SS',
-    drawstyle='hist E0', markersize=0, color='blue',
-    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
-
 # MC Ztt and MC embedded Ztt
 ztt_pyth = Pythia_Ztautau(year=2012, label='Pythia',
     drawstyle='hist E0', markersize=0, color='black',
     linewidth=2, fillstyle='hollow', legendstyle='L')
 ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia',
     drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+
+# fakes
+qcd_nos = Analysis(args.year, qcd_shape_region='nOS').normalize(Category_Preselection).qcd.decorate(
+    label='Isolated nOS Fakes', drawstyle='hist E0', markersize=0, color='black',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed') 
+qcd_nos_nonisol = Analysis(args.year, qcd_shape_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(
+    label='Non-isolated nOS Fakes', drawstyle='hist E0', markersize=0, color='red',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+
+qcd_ss = Analysis(args.year, qcd_shape_region='SS').normalize(Category_Preselection).qcd.decorate(
+    label='Isolated SS Fakes', drawstyle='hist E0', markersize=0, color='green',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+qcd_ss_nonisol = Analysis(args.year, qcd_shape_region='SS_NONISOL').normalize(Category_Preselection).qcd.decorate(
+    label='Non-isolated SS Fakes', drawstyle='hist E0', markersize=0, color='blue',
+    linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
+
+qcd_nonisol = Analysis(args.year, qcd_shape_region='NONISOL').normalize(Category_Preselection).qcd.decorate(
+    label='Non-isolated Fakes', drawstyle='hist E0', markersize=0, color='purple',
     linewidth=2, fillstyle='hollow', legendstyle='L', linestyle='dashed')
 
 
@@ -98,7 +100,9 @@ def draw_ratio(a, b, field, category, ratio_title='ratio', textsize=22):
     plot.draw('ratio', [ratio_band, ratio])
     with plot.pad('main') as pad:
         # legend
-        leg = Legend([a, b], leftmargin=0.3, topmargin=0.1, margin=0.2, textsize=textsize)
+        leg = Legend([a, b],
+                     leftmargin=0.27, topmargin=0.1,
+                     margin=0.2, textsize=textsize)
         leg.Draw()
         # draw the category label
         label = TLatex(
@@ -143,14 +147,18 @@ def compare(a, b, category, name, ratio_title):
 
 
 for category in CATEGORIES[args.categories] + [Category_Preselection]:
-    # compare SS ISOL and SS NONISOL QCD shapes
-    compare(qcd_ss, qcd_ss_nonisol, category, 'qcd_ss_isol_vs_nonisol', 'SS ISOL / NONISOL')
-    # compare tes-shifted data with original data
-    compare(data, data_orig, category, 'data_tes', 'TES Shift / Orig.')
     # compare SS and nOS QCD shapes
-    compare(qcd_nos, qcd_ss, category, 'qcd_ss_nos', 'nOS / SS')
+    compare(qcd_nos, qcd_ss, category, 'qcd_ss_v_nos', 'nOS / SS')
+    # compare SS ISOL and SS NONISOL QCD shapes
+    compare(qcd_ss, qcd_ss_nonisol, category, 'qcd_ss', 'isol / non-isol')
     # compare NONISOL and nOS QCD shapes
-    compare(qcd_nos, qcd_nonisol, category, 'qcd_nonisol_nos', 'nOS / NONISOL')
+    compare(qcd_nos, qcd_nos_nonisol, category, 'qcd_nos', 'isol / non-isol')
+    # compare nOS NONISOL and NONISOL (no charge requirement)
+    compare(qcd_nos_nonisol, qcd_nonisol, category, 'qcd_nonisol', 'non-isol nOS / non-isol')
+    
+    # compare tes-shifted data with original data
+    compare(data, data_orig, category, 'data_tes', 'TES shift / orig.')
+
     # compare Ztt shapes
     compare(ztt_eb, ztt_mc, category, 'ztt', 'Emb / MC')
     # Compare MC Ztautau with embedded MC Zmumu

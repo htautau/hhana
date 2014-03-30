@@ -213,6 +213,7 @@ class Analysis(object):
             qcd=self.qcd,
             category=category,
             param=self.norm_field)
+        return self
 
     def iter_categories(self, *definitions, **kwargs):
         names = kwargs.pop('names', None)

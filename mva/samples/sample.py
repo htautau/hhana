@@ -92,6 +92,15 @@ class Sample(object):
             self.hist_decor['fillstyle'] = 'solid'
         self.trigger = trigger
 
+    def decorate(self, name=None, label=None, **hist_decor):
+        if name is not None:
+            self.name = name
+        if label is not None:
+            self.label = label
+        if hist_decor:
+            self.hist_decor.update(hist_decor)
+        return self
+
     def get_field_hist(self, vars, category, templates=None):
         field_hist = {}
         field_scale = {}
