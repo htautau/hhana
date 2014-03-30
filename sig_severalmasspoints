@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+
+# --> python imports
+import os
+import cPickle as pickle
+
+# --> rootpy imports
+from rootpy.extern.argparse import ArgumentParser
+from rootpy.io import root_open
+from rootpy.utils.lock import lock
+from rootpy.plotting import Canvas
+
+# --> local imports
+from mva.cmd import get_parser
+from statstools import get_significance_workspace
+from statstools.pvalue_plot import pvalue_plot
+from mva import log
+from mva import CACHE_DIR
+
+# --> Argument parser
+parser = get_parser(actions=False)
+parser.add_argument('--verbose', action='store_true', default=False)
+parser.add_argument('--force-pickle', action='store_true', default=False)
+parser.add_argument('workspace_dir')
+parser.add_argument('--workspace-basename', default='hh_combination')
+args = parser.parse_args()
+
+
+
+def read_pvalues(pvalues_file):
+    pvalues = {}
+    if os.path.isfile(pvalues_file):
+        log.info("reading pvalues from %s" % pvalues_file)
+        #         with lock(pvalues_file):
+        with open(pvalues_file) as cached_pvalues:
+            pvalues = pickle.load(cached_pvalues)
+    return pvalues
+
+def write_pvalues( pvalues_file,files_list,ws_list,masses_list):
+    # -------------------------
+    if not files_list:
+        raise ValueError("files_list is empty")
+    if not ws_list:
+        raise ValueError("ws_list is empty")
+    if not masses_list:
+        raise ValueError("masses_list is empty")
+
+    # -------------------------
+    if not isinstance( files_list, (list, tuple) ):
+        files_list = [files_list]
+    if not isinstance( ws_list, (list, tuple) ):
+        ws_list = [ws_list]
+    if not isinstance( masses_list, (list, tuple) ):
+        masses_list = [masses_list]
+
+    # -------------------------
+    #     with lock(pvalues_file):
+    pvalues = {}
+    for file,ws,mass in zip(files_list,ws_list,masses_list):
+        log.info( '============================================' )
+        log.info ( 'File: %s'%file )
+        log.info ( 'Workspace: %s'%ws )
+        log.info ( 'Tested mass: %d'%mass )
+        with root_open(file) as f:
+            if ws not in f:
+                f.ls()
+            else:
+                h = get_significance_workspace( f[ws], 
+                                                verbose=args.verbose,
+                                                blind = not args.unblind )
+                log.info ( 'Tested mass: %d'%mass )
+                log.info( list(h.y()))
+                log.info( list(h.y())[1] )
+                pvalues[mass] = list(h.y())[1]
+    log.info('Write to '+pvalues_file)
+    with open(pvalues_file, 'w') as pvalues_file:
+        pickle.dump(pvalues, pvalues_file)
+
+
+
+# --------------------------------------------------------
+# ------------------ MAIN DRIVER
+# --------------------------------------------------------
+pickle_file = (args.workspace_dir+'_'+args.workspace_basename+'.pickle')
+pickle_file = pickle_file.replace( '/','_')
+PVALUES_FILE = os.path.join(CACHE_DIR,pickle_file)
+log.info( 'Write result to %s'%PVALUES_FILE )
+args.mass_points = map(int, args.mass_points.split(','))
+log.info ( 'Mass points tested %s'%str(args.mass_points) )
+
+masses_list = args.mass_points
+ws_list = []
+files_list = []
+for mass in masses_list:
+    file = args.workspace_dir+'/'+args.workspace_basename+'_%d.root'%mass
+    ws = 'workspace_'+args.workspace_basename+'_%d'%mass
+    files_list.append( file )
+    ws_list.append( ws )
+
+if os.path.isfile(PVALUES_FILE) and not args.force_pickle:
+    log.warning( '%s already exists, pvalues are not recomputed'%PVALUES_FILE)
+else:
+    write_pvalues( PVALUES_FILE,files_list,ws_list,masses_list )
+
+pvalues = []
+for key,val in read_pvalues( PVALUES_FILE ).iteritems():
+    pvalues.append( val )
+
+c = Canvas()
+pvalue_plot(masses_list,pvalues,c,xtitle='m_{H} [GeV]')
+for fmt in args.output_formats:
+    c.SaveAs('plots/pvalue.%s'%fmt)
