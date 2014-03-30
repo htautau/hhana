@@ -124,62 +124,33 @@ def draw_ratio(a, b, category, ratio_title='ratio', textsize=22):
     return plot
 
 
+def compare(a, b, name, ratio_title):
+    a_hists, field_scale = a.get_field_hist(field_dict, category)
+    b_hists, _ = b.get_field_hist(field_dict, category)
+    a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
+    b.draw_array(b_hists, category, 'OS', field_scale=field_scale)
+    for field in fields:
+        # draw ratio plot
+        a_hist = a_hists[field]
+        b_hist = b_hists[field]
+        plot = draw_ratio(a_hist, b_hist, category, ratio_title=ratio_title)
+        plot.SaveAs('plots/shapes/shape_{0}_{1}_{2}_{3}.png'.format(
+            name, field, category.name, args.year % 1000))
+
+
 for category in CATEGORIES[args.categories] + [Category_Preselection]:
 
     # compare tes-shifted data with original data
-    data_hists, field_scale = data.get_field_hist(field_dict, category)
-    data_orig_hists, _ = data_orig.get_field_hist(field_dict, category)
-    data.draw_array(data_hists, category, 'OS', field_scale=field_scale)
-    data_orig.draw_array(data_orig_hists, category, 'OS', field_scale=field_scale)
-    for field in fields:
-        # draw ratio plot
-        d = data_hists[field]
-        d_orig = data_orig_hists[field]
-        plot = draw_ratio(d, d_orig, category, ratio_title='TES Shift / Orig.')
-        plot.SaveAs('plots/shapes/shape_data_tes_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+    compare(data, data_orig, 'data_tes', 'TES Shift / Orig.')
 
     # compare SS and nOS QCD shapes
-    qcd_nos_hists, field_scale = qcd_nos.get_field_hist(field_dict, category)
-    qcd_ss_hists, _ = qcd_ss.get_field_hist(field_dict, category)
-    qcd_nos.draw_array(qcd_nos_hists, category, 'OS', field_scale=field_scale)
-    qcd_ss.draw_array(qcd_ss_hists, category, 'OS', field_scale=field_scale)
-    for field in fields:
-        # draw ratio plot
-        nos = qcd_nos_hists[field]
-        ss = qcd_ss_hists[field]
-        plot = draw_ratio(nos, ss, category, ratio_title='nOS / SS')
-        plot.SaveAs('plots/shapes/shape_qcd_ss_nos_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+    compare(qcd_nos, qcd_ss, 'qcd_ss_nos', 'nOS / SS')
     
     # compare NONISOL and nOS QCD shapes
-    qcd_nonisol_hists, _ = qcd_nonisol.get_field_hist(field_dict, category)
-    qcd_nonisol.draw_array(qcd_nonisol_hists, category, 'OS', field_scale=field_scale)
-    for field in fields:
-        # draw ratio plot
-        nos = qcd_nos_hists[field]
-        nonisol = qcd_nonisol_hists[field]
-        plot = draw_ratio(nos, nonisol, category, ratio_title='nOS / NONISOL')
-        plot.SaveAs('plots/shapes/shape_qcd_nonisol_nos_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
-
+    compare(qcd_nos, qcd_nonisol, 'qcd_nonisol_nos', 'nOS / NONISOL')
+    
     # compare Ztt shapes
-    ztt_eb_hists, field_scale = ztt_eb.get_field_hist(field_dict, category)
-    ztt_mc_hists, _ = ztt_mc.get_field_hist(field_dict, category)
-    ztt_eb.draw_array(ztt_eb_hists, category, 'OS', field_scale=field_scale)
-    ztt_mc.draw_array(ztt_mc_hists, category, 'OS', field_scale=field_scale)
-    for field in fields:
-        # draw ratio plot
-        eb = ztt_eb_hists[field]
-        mc = ztt_mc_hists[field]
-        plot = draw_ratio(eb, mc, category, ratio_title='Emb / MC')
-        plot.SaveAs('plots/shapes/shape_ztt_{0}_{1}_{2}.png'.format(field, category.name, args.year % 1000))
+    compare(ztt_eb, ztt_mc, 'ztt', 'Emb / MC')
 
     # Compare MC Ztautau with embedded MC Zmumu
-    ztt_pyth_hists, field_scale = ztt_pyth.get_field_hist(field_dict, category)
-    ztt_mceb_hists, _ = ztt_mceb.get_field_hist(field_dict, category)
-    ztt_pyth.draw_array(ztt_pyth_hists, category, 'OS', field_scale=field_scale)
-    ztt_mceb.draw_array(ztt_mceb_hists, category, 'OS', field_scale=field_scale)
-    for field in fields:
-        # draw ratio plot
-        pyth = ztt_pyth_hists[field]
-        mceb = ztt_mceb_hists[field]
-        plot = draw_ratio(pyth, mceb, category, ratio_title='MC / Emb')
-        plot.SaveAs('plots/shapes/shape_ebztt_{0}_{1}_12.png'.format(field, category.name))
+    compare(ztt_pyth, ztt_mceb, 'ebztt', 'MC / Emb')
