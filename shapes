@@ -95,7 +95,7 @@ def draw_ratio(a, b, field, category, textsize=22):
     with plot.pad('main') as pad:
         # legend
         leg = Legend([a, b],
-                     leftmargin=0.27, topmargin=0.1,
+                     leftmargin=0.25, topmargin=0.1,
                      margin=0.2, textsize=textsize)
         leg.Draw()
         # draw the category label
