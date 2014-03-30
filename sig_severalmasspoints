@@ -5,17 +5,17 @@ import os
 import cPickle as pickle
 
 # --> rootpy imports
-from rootpy.extern.argparse import ArgumentParser
 from rootpy.io import root_open
-from rootpy.utils.lock import lock
 from rootpy.plotting import Canvas
 
+# --> ROOT imports
+import ROOT
+
 # --> local imports
+from mva import CACHE_DIR,log
 from mva.cmd import get_parser
 from statstools import get_significance_workspace
 from statstools.pvalue_plot import pvalue_plot
-from mva import log
-from mva import CACHE_DIR
 
 # --> Argument parser
 parser = get_parser(actions=False)
@@ -25,18 +25,25 @@ parser.add_argument('workspace_dir')
 parser.add_argument('--workspace-basename', default='hh_combination')
 args = parser.parse_args()
 
+#-----------------------------------
+def read_significances(significances_file):
+    """
+    Use the pickle module to extract the
+    information stored in the pickle file
+    and dump it into a dictionnary.
+    -----------
+    parameter: pickle file name
+    """
 
+    significances = {}
+    if os.path.isfile(significances_file):
+        log.info("reading significances from %s" % significances_file)
+        with open(significances_file) as cached_significances:
+            significances = pickle.load(cached_significances)
+    return significances
 
-def read_pvalues(pvalues_file):
-    pvalues = {}
-    if os.path.isfile(pvalues_file):
-        log.info("reading pvalues from %s" % pvalues_file)
-        #         with lock(pvalues_file):
-        with open(pvalues_file) as cached_pvalues:
-            pvalues = pickle.load(cached_pvalues)
-    return pvalues
-
-def write_pvalues( pvalues_file,files_list,ws_list,masses_list):
+#----------------------------------------------
+def write_significances( significances_file,files_list,ws_list,masses_list):
     # -------------------------
     if not files_list:
         raise ValueError("files_list is empty")
@@ -54,8 +61,7 @@ def write_pvalues( pvalues_file,files_list,ws_list,masses_list):
         masses_list = [masses_list]
 
     # -------------------------
-    #     with lock(pvalues_file):
-    pvalues = {}
+    significances = {}
     for file,ws,mass in zip(files_list,ws_list,masses_list):
         log.info( '============================================' )
         log.info ( 'File: %s'%file )
@@ -71,10 +77,10 @@ def write_pvalues( pvalues_file,files_list,ws_list,masses_list):
                 log.info ( 'Tested mass: %d'%mass )
                 log.info( list(h.y()))
                 log.info( list(h.y())[1] )
-                pvalues[mass] = list(h.y())[1]
-    log.info('Write to '+pvalues_file)
-    with open(pvalues_file, 'w') as pvalues_file:
-        pickle.dump(pvalues, pvalues_file)
+                significances[mass] = list(h.y())[1]
+    log.info('Write to '+significances_file)
+    with open(significances_file, 'w') as significances_file:
+        pickle.dump(significances, significances_file)
 
 
 
@@ -83,11 +89,12 @@ def write_pvalues( pvalues_file,files_list,ws_list,masses_list):
 # --------------------------------------------------------
 pickle_file = (args.workspace_dir+'_'+args.workspace_basename+'.pickle')
 pickle_file = pickle_file.replace( '/','_')
-PVALUES_FILE = os.path.join(CACHE_DIR,pickle_file)
-log.info( 'Write result to %s'%PVALUES_FILE )
+SIGNIFICANCES_FILE = os.path.join(CACHE_DIR,pickle_file)
+log.info( 'Write result to %s'%SIGNIFICANCES_FILE )
 args.mass_points = map(int, args.mass_points.split(','))
 log.info ( 'Mass points tested %s'%str(args.mass_points) )
 
+# --- Create the files/WS/tested mass lists
 masses_list = args.mass_points
 ws_list = []
 files_list = []
@@ -97,16 +104,21 @@ for mass in masses_list:
     files_list.append( file )
     ws_list.append( ws )
 
-if os.path.isfile(PVALUES_FILE) and not args.force_pickle:
-    log.warning( '%s already exists, pvalues are not recomputed'%PVALUES_FILE)
+# --- Write the significances into the pickle file
+# --- do it only if the file does not exist or if the force_pickle argument is called
+if os.path.isfile(SIGNIFICANCES_FILE) and not args.force_pickle:
+    log.warning( '%s already exists, significances are not recomputed'%SIGNIFICANCES_FILE)
 else:
-    write_pvalues( PVALUES_FILE,files_list,ws_list,masses_list )
+    write_significances( SIGNIFICANCES_FILE,files_list,ws_list,masses_list )
 
-pvalues = []
-for key,val in read_pvalues( PVALUES_FILE ).iteritems():
-    pvalues.append( val )
+# --- plot the significances
+significances_dict = read_significances( SIGNIFICANCES_FILE )
+pvalues_exp = []
+for mass in masses_list :
+    pval_temp = ROOT.Math.gaussian_cdf_c(significances_dict[mass])
+    pvalues_exp.append( pval_temp )
 
 c = Canvas()
-pvalue_plot(masses_list,pvalues,c,xtitle='m_{H} [GeV]')
+pvalue_plot(masses_list,pvalues_exp,c,xtitle='m_{H} [GeV]')
 for fmt in args.output_formats:
     c.SaveAs('plots/pvalue.%s'%fmt)
