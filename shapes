@@ -42,6 +42,10 @@ others = Others(year=args.year)
 ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded Data')
 ztt_mc = MC_Ztautau(year=args.year, label='POWHEG MC')
 
+# compare 2011 with 2012 embedding
+ztt_eb_11 = Embedded_Ztautau(year=2011, label='7 TeV Embedding')
+ztt_eb_12 = Embedded_Ztautau(year=2012, label='8 TeV Embedding')
+
 # MC Ztt and MC embedded Ztt
 ztt_pyth = Pythia_Ztautau(year=2012, label='Pythia')
 ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia')
@@ -158,5 +162,7 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
 
     # compare Ztt shapes
     compare(ztt_eb, ztt_mc, category, 'ztt')
-    # Compare MC Ztautau with embedded MC Zmumu
+    # compare MC Ztautau with embedded MC Zmumu
     compare(ztt_pyth, ztt_mceb, category, 'ebztt')
+    # compare 7 TeV with 8 TeV embedding
+    compare(ztt_eb_12, ztt_eb_11, category, 'ztt_7_v_8')
