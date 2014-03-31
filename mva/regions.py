@@ -36,6 +36,7 @@ REGIONS = {
 
 TARGET_REGIONS = ['OS',]
 QCD_SHAPE_REGIONS = [
+    'OS', # closure
     'nOS',
     'SS',
     'NONISOL',
