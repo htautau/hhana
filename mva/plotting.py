@@ -1005,7 +1005,8 @@ def draw(name,
          separate_legends=False,
          ypadding=None,
          legend_position='right',
-         range=None):
+         range=None,
+         output_dir=PLOTS_DIR):
 
     if model is None and data is None and signal is None:
         # insufficient input
@@ -1461,8 +1462,8 @@ def draw(name,
 
     # save the figure
     for format in output_formats:
-        output_filename = '%s.%s' % (filename, format)
-        save_canvas(fig, PLOTS_DIR, output_filename)
+        output_filename = '{0}.{1}'.format(filename, format)
+        save_canvas(fig, output_dir, output_filename)
 
     if prev_style is not None:
         prev_style.cd()
