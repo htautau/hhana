@@ -13,7 +13,9 @@ from mva.analysis import Analysis
 
 from rootpy.plotting import Hist, Graph, Legend
 from rootpy.plotting.templates import RatioPlot
+from rootpy.utils.path import mkdir_p
 from ROOT import TLatex
+import os
 
 # list of fields to plot
 fields = [
@@ -146,13 +148,16 @@ def compare(a, b, category, name):
     b_hists, _ = b.get_field_hist(field_dict, category)
     a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
     b.draw_array(b_hists, category, 'OS', field_scale=field_scale)
+    outdir = 'plots/shapes/{0}'.format(name)
+    if not os.exists(outdir):
+        mkdir_p(outdir)
     for field in fields:
         # draw ratio plot
         a_hist = a_hists[field]
         b_hist = b_hists[field]
         plot = draw_ratio(a_hist, b_hist, field, category)
-        plot.SaveAs('plots/shapes/shape_{0}_{1}_{2}_{3}.png'.format(
-            name, field, category.name, args.year % 1000))
+        plot.SaveAs('{0}/shape_{1}_{2}_{3}_{4}.png'.format(
+            outdir, name, field, category.name, args.year % 1000))
 
 
 for category in CATEGORIES[args.categories] + [Category_Preselection]:
