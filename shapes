@@ -136,6 +136,10 @@ if not args.shapes or 'ztt' in args.shapes:
     # ztt
     ztt_eb = Embedded_Ztautau(year=args.year, label='Embedded Data')
     ztt_mc = MC_Ztautau(year=args.year, label='MC')
+    
+    # compare with and without spin weight
+    ztt_eb_spin = Embedded_Ztautau(year=args.year, label='TauSpinner')
+    ztt_eb_nospin = Embedded_Ztautau(year=args.year, label='No TauSpinner', tauspinner=False)
 
     # compare 2011 with 2012 embedding
     ztt_eb_11 = Embedded_Ztautau(year=2011, label='7 TeV Embedding')
@@ -148,6 +152,8 @@ if not args.shapes or 'ztt' in args.shapes:
     for category in CATEGORIES['mva'] + [Category_Preselection]:
         # compare Ztt shapes
         compare(ztt_eb, ztt_mc, category, 'ztt')
+        # compare with and without tau spinner weight
+        compare(ztt_eb_spin, ztt_eb_nospin, category, 'ztt_spin')
         # compare MC Ztautau with embedded MC Zmumu
         compare(ztt_pyth, ztt_mceb, category, 'ebztt')
         # compare 7 TeV with 8 TeV embedding

@@ -63,12 +63,14 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
         ]
 
     def weight_fields(self):
-        return super(Embedded_Ztautau, self).weight_fields() + [
+        weights = super(Embedded_Ztautau, self).weight_fields() + [
             'mc_weight',
             'embedding_reco_unfold',
             'embedding_trigger_weight',
-            'embedding_spin_weight',
         ]
+        if self.tauspinner:
+            weights.append('embedding_spin_weight')
+        return weights
 
     def weight_systematics(self):
         systematics = super(Embedded_Ztautau, self).weight_systematics()
@@ -100,6 +102,10 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def xsec_kfact_effic(self, isample):
         return 1., 1., 1.
+
+    def __init__(self, *args, **kwargs):
+        self.tauspinner = kwargs.pop('tauspinner', True)
+        super(Embedded_Ztautau, self).__init__(*args, **kwargs)
 
 
 class MC_Embedded_Ztautau(Embedded_Ztautau):
