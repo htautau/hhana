@@ -173,6 +173,8 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
     compare(qcd_nos, qcd_os, category, 'qcd_nos_v_os_isol')
     # compare nOS NONISOL and OS ISOL QCD shapes
     compare(qcd_nos_nonisol, qcd_os, category, 'qcd_nos_nonisol_v_os_isol')
+    # compare NONISOL and OS ISOL QCD shapes
+    compare(qcd_nonisol, qcd_os, category, 'qcd_nonisol_v_os_isol')
 
     # compare nOS NONISOL and NONISOL (no charge requirement)
     compare(qcd_nos_nonisol, qcd_nonisol, category, 'qcd_nonisol')
