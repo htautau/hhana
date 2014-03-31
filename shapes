@@ -53,6 +53,7 @@ ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded Pythia')
 # fakes
 qcd_nos = Analysis(args.year, qcd_shape_region='nOS').normalize(Category_Preselection).qcd.decorate(label='Isolated nOS Fakes')
 qcd_nos_nonisol = Analysis(args.year, qcd_shape_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated nOS Fakes')
+qcd_nos_double_nonisol = Analysis(args.year, qcd_shape_region='nOS_DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated nOS Fakes')
 
 qcd_ss = Analysis(args.year, qcd_shape_region='SS').normalize(Category_Preselection).qcd.decorate(label='Isolated SS Fakes')
 # to get OS fakes, use "best" Ztt fits from nOS_NONISOL and then change the
@@ -63,8 +64,11 @@ qcd_os.scale = 1.
 
 qcd_ss_nonisol = Analysis(args.year, qcd_shape_region='SS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated SS Fakes')
 qcd_os_nonisol = Analysis(args.year, qcd_shape_region='OS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated OS Fakes')
+qcd_ss_double_nonisol = Analysis(args.year, qcd_shape_region='SS_DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated SS Fakes')
+qcd_os_double_nonisol = Analysis(args.year, qcd_shape_region='OS_DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated OS Fakes')
 
 qcd_nonisol = Analysis(args.year, qcd_shape_region='NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated Fakes')
+qcd_double_nonisol = Analysis(args.year, qcd_shape_region='DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated Fakes')
 
 
 def draw_ratio(a, b, field, category, textsize=22):
@@ -175,6 +179,12 @@ for category in CATEGORIES[args.categories] + [Category_Preselection]:
     compare(qcd_nos_nonisol, qcd_os, category, 'qcd_nos_nonisol_v_os_isol')
     # compare NONISOL and OS ISOL QCD shapes
     compare(qcd_nonisol, qcd_os, category, 'qcd_nonisol_v_os_isol')
+
+    # compare nonisol with double nonisol
+    compare(qcd_os_nonisol, qcd_os_double_nonisol, category, 'qcd_double_os')
+    compare(qcd_ss_nonisol, qcd_ss_double_nonisol, category, 'qcd_double_ss')
+    compare(qcd_nos_nonisol, qcd_nos_double_nonisol, category, 'qcd_double_nos')
+    compare(qcd_nonisol, qcd_double_nonisol, category, 'qcd_double')
 
     # compare nOS NONISOL and NONISOL (no charge requirement)
     compare(qcd_nos_nonisol, qcd_nonisol, category, 'qcd_nonisol')
