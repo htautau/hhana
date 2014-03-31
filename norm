@@ -58,7 +58,7 @@ ztt_scale_diff = 100.
 it = 0
 max_iter = 10
 
-while ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01 and it < max_iter:
+while (ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01) and it < max_iter:
     it += 1
     # keep fitting until normalizations converge
     

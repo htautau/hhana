@@ -238,7 +238,7 @@ dump:
 .PHONY: norms
 norms:
 	for year in 2011 2012; do \
-		for model in nOS SS NONISOL nOS_NONISOL SS_NONISOL OS_NONISOL; do \
+		for model in nOS SS NONISOL nOS_NONISOL SS_NONISOL OS_NONISOL DOUBLE_NONISOL nOS_DOUBLE_NONISOL SS_DOUBLE_NONISOL OS_DOUBLE_NONISOL; do \
 			nohup ./norm --no-systematics --qcd-shape-region $${model} --year $${year} > norm_ebz_$${model}_$${year}.log & \
 			nohup ./norm --no-systematics --no-embedding --qcd-shape-region $${model} --year $${year} > norm_mcz_$${model}_$${year}.log & \
 		done; \
