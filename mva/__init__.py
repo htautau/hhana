@@ -10,11 +10,6 @@ if not os.path.exists(CACHE_DIR):
     log.info("creating directory %s" % CACHE_DIR)
     os.mkdir(CACHE_DIR)
 
-PLOTS_DIR = os.path.join(BASE_DIR, 'plots')
-if not os.path.exists(PLOTS_DIR):
-    log.info("creating directory %s" % PLOTS_DIR)
-    os.mkdir(PLOTS_DIR)
-
 ETC_DIR = os.path.join(BASE_DIR, 'etc')
 
 NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod')
@@ -38,15 +33,13 @@ if not os.environ.get("DEBUG", False):
 if hasattr(logging, 'captureWarnings'):
     logging.captureWarnings(True)
 
-from .utils import mkdir_p
+from rootpy.utils.path import mkdir_p
 
 def plots_dir(script):
-
     script = os.path.basename(script)
     script = os.path.splitext(script)[0]
     dir = os.path.join(PLOTS_DIR, script)
-    if not os.path.exists(dir):
-        mkdir_p(dir)
+    mkdir_p(dir)
     return dir
 
 import numpy as np
@@ -97,3 +90,18 @@ CONST_PARAMS = [
     'mu_XS7_ZH',
     'mu_BR_tautau',
 ]
+
+
+# pip install --user GitPython
+from git import Repo
+REPO = Repo(BASE_DIR)
+REPO_BRANCH = REPO.active_branch
+PLOTS_DIR = os.path.join(BASE_DIR, 'plots', 'variables')
+
+def save_canvas(canvas, directory, name):
+    # save images in directories corresponding to current git branch
+    filepath = os.path.join(directory, REPO_BRANCH, name)
+    path = os.path.dirname(filepath)
+    if not os.path.exists(path):
+        mkdir_p(path)
+    canvas.SaveAs(filepath)

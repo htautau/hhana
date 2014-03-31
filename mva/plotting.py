@@ -33,7 +33,7 @@ from rootpy.stats.histfactory import HistoSys, split_norm_shape
 
 # local imports
 from .variables import VARIABLES
-from . import PLOTS_DIR, MMC_MASS
+from . import PLOTS_DIR, MMC_MASS, save_canvas
 from .systematics import iter_systematics, systematic_name
 from . import log; log = log[__name__]
 
@@ -1446,10 +1446,9 @@ def draw(name,
     model_stack.xaxis.SetLimits(*range)
 
     # create the output filename
-    filename = os.path.join(PLOTS_DIR,
-        'var_%s_%s' %
-        (category.name,
-         output_name.lower().replace(' ', '_')))
+    filename = 'var_{0}_{1}'.format(
+        category.name,
+        output_name.lower().replace(' ', '_'))
     if logy:
         filename += '_logy'
     filename += '_root'
@@ -1463,7 +1462,7 @@ def draw(name,
     # save the figure
     for format in output_formats:
         output_filename = '%s.%s' % (filename, format)
-        fig.SaveAs(output_filename)
+        save_canvas(fig, PLOTS_DIR, output_filename)
 
     if prev_style is not None:
         prev_style.cd()

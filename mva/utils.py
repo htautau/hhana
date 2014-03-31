@@ -34,15 +34,6 @@ def hist_to_dict(hist):
     return hist_dict
 
 
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc: # Python >2.5
-        if exc.errno == errno.EEXIST:
-            pass
-        else: raise
-
-
 class Tee(object):
     """
     http://stackoverflow.com/questions/616645/
