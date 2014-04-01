@@ -22,7 +22,7 @@ from root_numpy import rec2array, stack
 from higgstautau import samples as samples_db
 
 # local imports
-from . import log
+from . import log; log = log[__name__]
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
@@ -1470,3 +1470,44 @@ class MC(SystematicsSample):
                     'tau1_trigger_sf',
                     'tau2_trigger_sf']}})
         return systematics
+
+
+
+class CompositeSample(object):
+    """
+    This class adds together the events from a list of samples
+    and also return the summed histograms of all of those samples
+    for the requested fields
+    """
+
+    def __init__(self,samples_list):
+        if not isinstance( samples_list, (list,tuple)):
+            samples_list = [samples_list]
+        if not isinstance (samples_list[0], Sample):
+            raise ValueError( "samples_list must be filled with Samples")
+        self.samples_list = samples_list
+
+    def events( self, *args,**kwargs ):
+        hist_list = []
+        for s in self.samples_list:
+            hist_list.append( s.events(*args,**kwargs) )
+        hist_tot = hist_list[0].Clone()
+        hist_tot.Reset()
+        for hist in hist_list:
+            hist_tot.Add( hist )
+        return hist_tot
+
+    def draw_array(self, field_hist_tot, category, region, **kwargs ):
+        field_hists_list = []
+        for s in self.samples_list:
+            field_hists_temp = s.get_hist_array( field_hist_tot, category, region, **kwargs)
+            #             s.draw_array( field_hists_temp, category, region, **kwargs )
+            field_hists_list.append( field_hists_temp )
+        for field, hist in field_hists_list[0].items():
+            hist_tot = hist.Clone()
+            hist_tot.Reset()
+            field_hist_tot[field] = hist_tot
+        for field_hist in field_hists_list:
+            for field, hist in field_hist.items():
+                field_hist_tot[field].Add( hist )
+        return

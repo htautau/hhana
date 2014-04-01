@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+# python imports
+import os
+
+# rootpy imports
+from rootpy.extern.argparse import ArgumentParser
+from rootpy.plotting import Hist, Graph, Legend
+from rootpy.plotting.templates import RatioPlot
+from rootpy.utils.path import mkdir_p
+
+# ROOT imports
+from ROOT import TLatex
+
+# local imports
+from mva.cmd import get_parser
+from mva.categories import CATEGORIES
+from mva.variables import VARIABLES
+from mva.analysis import Analysis, get_analysis
+from mva.systematics import iter_systematics,get_systematics
+from mva.samples import CompositeSample
+from mva import save_canvas,log; log = log[__name__]
+
+args = get_parser(actions=False).parse_args()
+
+categories = CATEGORIES[args.categories]
+
+SYSTEMATICS = get_systematics(args.year)
+analysis = get_analysis(args)
+output_suffix = analysis.get_suffix()
+
+# list of fields to plot
+fields = [
+    'mmc1_mass',
+]
+
+field_dict = dict( [(field, VARIABLES[field]) for field in fields] )
+
+
+backgrounds = analysis.backgrounds
+ztautau = analysis.ztautau
+TotalBkg = CompositeSample( backgrounds )
+
+log.info( backgrounds )
+for category in categories:
+    log.info( category )
+    events = TotalBkg.events( category, 'OS' )
+    log.info (events[1].value)
+    field_hist,field_scale = ztautau.get_field_hist( field_dict, category )
+    log.info ( str(field_hist) )
+    log.info ( str(field_scale) )
+    field_total_hists = TotalBkg.draw_array( field_hist, category, 'OS', field_scale = field_scale ,systematics=args.systematics)
+    log.info( str(field_hist) )
+            
+
+
+for bkg in backgrounds:
+    log.info( bkg.name )
+
+
+# if not args.shapes or 'syst' in args.shapes:
+#     categories_cuts = None
+#     if args.year == 2011:
+#         categories_cuts = CATEGORIES['cuts_2011']
+#     elif args.year == 2012:
+#         categories_cuts = CATEGORIES['cuts']
+
+#     for syst in iter_systematics( year=args.year ):
+#         log.info( syst )
