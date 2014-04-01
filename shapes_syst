@@ -40,8 +40,8 @@ field_dict = dict( [(field, VARIABLES[field]) for field in fields] )
 backgrounds = analysis.backgrounds
 ztautau = analysis.ztautau
 others  = analysis.others
-toto = [ztautau,others]
-TotalBkg = CompositeSample( toto )
+# toto = [ztautau,others]
+TotalBkg = CompositeSample( backgrounds )
 
 log.info( backgrounds )
 for category in categories:

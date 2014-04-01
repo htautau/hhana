@@ -102,6 +102,18 @@ class Sample(object):
         return self
 
     def get_field_hist(self, vars, category, templates=None):
+        """
+        retrieve a dictionnary of histograms for the requested
+        variables in the given category
+        ------
+        Parameters:
+        - vars: dictionnary of variables (see variables.py)
+        - category: Analysis category see categories/*
+        - template: dictionnary of Histograms. If specified used those
+        histograms as templates to retrieve the various fields. If not
+        specified, take the default binning specified in variables.py
+        """
+
         field_hist = {}
         field_scale = {}
         for field, var_info in vars.items():
@@ -1500,18 +1512,27 @@ class CompositeSample(object):
             hist_tot.Add( hist )
         return hist_tot
 
-    def draw_array(self, field_hist_tot, category, region, **kwargs ):
+    def draw_array(self, field_hist_tot, category, region, systematics=False,**kwargs ):
         field_hists_list = []
+        # --------
         for s in self.samples_list:
-            field_hists_temp = s.get_hist_array( field_hist_tot, category, region, **kwargs)
-            #             s.draw_array( field_hists_temp, category, region, **kwargs )
+            # field_hists_temp = s.get_hist_array( field_hist_tot, category, region, systematics=systematics,**kwargs)
+            fiel_hists_temp = field_hist_tot
+            s.draw_array( field_hist_tot, category, region, systematics=systematics,**kwargs)
             field_hists_list.append( field_hists_temp )
-            #             log.info( str(field_hists_temp['mmc1_mass'].systematics) )
+        # --------
         for field, hist in field_hists_list[0].items():
             hist_tot = hist.Clone()
             hist_tot.Reset()
             field_hist_tot[field] = hist_tot
+        # --------
         for field_hist in field_hists_list:
             for field, hist in field_hist.items():
                 field_hist_tot[field].Add( hist )
+
+#         if systematics:
+#             for field,hist in field_hist_tot.items():
+#                 if not hasstr( hist,'systematics'):
+#                     hist.systematics = {}
+
         return
