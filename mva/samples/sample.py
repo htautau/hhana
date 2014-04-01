@@ -152,12 +152,12 @@ class Sample(object):
             weighted=True,
             bootstrap_data=False):
 
+        log.info ( 'Systematics is %d' % systematics )
         do_systematics = (isinstance(self, SystematicsSample)
                           and self.systematics
                           and systematics)
         if do_systematics and systematics_components is None:
             systematics_components = self.systematics_components()
-
         if min_score is None:
             min_score = getattr(category, 'workspace_min_clf', None)
         if max_score is None:
@@ -185,6 +185,8 @@ class Sample(object):
             systematics_components=systematics_components,
             bootstrap_data=bootstrap_data)
 
+        log.info( str(field_hist) )
+        log.info( str(field_hist['mmc1_mass'].systematics) )
         return field_hist
 
     def get_hist(self,
@@ -1221,6 +1223,7 @@ class SystematicsSample(Sample):
                 max_score=max_score,
                 systematic=systematic)
 
+
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=False,
@@ -1503,6 +1506,7 @@ class CompositeSample(object):
             field_hists_temp = s.get_hist_array( field_hist_tot, category, region, **kwargs)
             #             s.draw_array( field_hists_temp, category, region, **kwargs )
             field_hists_list.append( field_hists_temp )
+            #             log.info( str(field_hists_temp['mmc1_mass'].systematics) )
         for field, hist in field_hists_list[0].items():
             hist_tot = hist.Clone()
             hist_tot.Reset()

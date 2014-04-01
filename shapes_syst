@@ -39,7 +39,9 @@ field_dict = dict( [(field, VARIABLES[field]) for field in fields] )
 
 backgrounds = analysis.backgrounds
 ztautau = analysis.ztautau
-TotalBkg = CompositeSample( backgrounds )
+others  = analysis.others
+toto = [ztautau,others]
+TotalBkg = CompositeSample( toto )
 
 log.info( backgrounds )
 for category in categories:
@@ -49,8 +51,13 @@ for category in categories:
     field_hist,field_scale = ztautau.get_field_hist( field_dict, category )
     log.info ( str(field_hist) )
     log.info ( str(field_scale) )
-    field_total_hists = TotalBkg.draw_array( field_hist, category, 'OS', field_scale = field_scale ,systematics=args.systematics)
-    log.info( str(field_hist) )
+    TotalBkg.draw_array( field_hist,
+                         category,
+                         'OS',
+                         field_scale = field_scale,
+                         systematics=args.systematics )
+#     log.info( str(field_hist) )
+#     log.info( str(field_hist['mmc1_mass'].systematics) )
             
 
 
