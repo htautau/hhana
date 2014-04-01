@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import itertools
+from itertools import izip
 
 # numpy imports
 import numpy as np
@@ -64,10 +65,14 @@ rc('text.latex', preamble=LATEX_PREAMBLE)
 #plt.rcParams['pdf.fonttype'] = 42
 
 
-def set_colours(hists, colour_map=cm.jet):
-    for i, h in enumerate(hists):
-        colour = colour_map((i + 1) / float(len(hists) + 1))
-        h.SetColor(colour)
+def set_colors(hists, colors=cm.jet):
+    if hasattr(colors, '__call__'):
+        for i, h in enumerate(hists):
+            color = colors((i + 1) / float(len(hists) + 1))
+            h.SetColor(color)
+    else:
+        for h, color in izip(hists, colors):
+            h.SetColor(color)
 
 
 def format_legend(l):
@@ -142,7 +147,7 @@ def draw_scatter(fields,
                  signals=None,
                  data=None,
                  signal_scale=1.,
-                 signal_colour_map=cm.spring,
+                 signal_colors=cm.spring,
                  classifier=None,
                  cuts=None,
                  unblind=False):
@@ -327,7 +332,7 @@ def draw_scatter(fields,
                     ymin = lymin
                 if lymax > ymax:
                     ymax = lymax
-                color = signal_colour_map((i + 1) / float(len(signals) + 1))
+                color = signal_colors((i + 1) / float(len(signals) + 1))
                 weight = array['weight']
                 sig_ax.scatter(
                         x_array, y_array,
@@ -976,22 +981,22 @@ def draw_channel(channel, fit=None, no_data=False, **kwargs):
 
 
 def draw(name,
-         output_name,
          category,
          data=None,
          data_info=None,
          model=None,
+         model_colors=None,
          signal=None,
          signal_scale=1.,
          signal_on_top=False,
          signal_linestyles=None,
+         signal_colors=None,
          show_signal_error=False,
+         fill_signal=False,
+         stack_signal=True,
          units=None,
          plot_label=None,
          ylabel='Events',
-         model_colour_map=None,
-         signal_colour_map=None,
-         fill_signal=False,
          blind=False,
          show_ratio=False,
          ratio_range=None,
@@ -1004,9 +1009,11 @@ def draw(name,
          textsize=22,
          logy=False,
          separate_legends=False,
+         legend_leftmargin=0.39,
          ypadding=None,
          legend_position='right',
          range=None,
+         output_name=None,
          output_dir=PLOTS_DIR):
 
     if model is None and data is None and signal is None:
@@ -1092,9 +1099,6 @@ def draw(name,
     if logy:
         hist_pad.SetLogy()
 
-    if model is not None and model_colour_map is not None:
-        set_colours(model, model_colour_map)
-
     if signal is not None:
         # always make signal a list
         if not isinstance(signal, (list, tuple)):
@@ -1109,9 +1113,10 @@ def draw(name,
                 scaled_signal.append(scaled_h)
         else:
             scaled_signal = signal
-        if signal_colour_map is not None:
-            set_colours(scaled_signal, signal_colour_map)
+        if signal_colors is not None:
+            set_colors(scaled_signal, signal_colors)
         for i, s in enumerate(scaled_signal):
+            s.drawstyle = 'HIST'
             if fill_signal:
                 s.fillstyle = 'solid'
                 s.fillcolor = s.linecolor
@@ -1128,6 +1133,8 @@ def draw(name,
                 alpha = 1.
 
     if model is not None:
+        if model_colors is not None:
+            set_colors(model, model_colors)
         # create the model stack
         model_stack = HistStack()
         for hist in model:
@@ -1136,17 +1143,18 @@ def draw(name,
             model_stack.Add(hist)
         if signal is not None and signal_on_top:
             for s in scaled_signal:
-                s.drawstyle = 'hist'
                 model_stack.Add(s)
         objects.append(model_stack)
 
     if signal is not None and not signal_on_top:
-        # create the signal stack
-        signal_stack = HistStack()
-        for hist in scaled_signal:
-            hist.drawstyle = 'hist'
-            signal_stack.Add(hist)
-        objects.append(signal_stack)
+        if stack_signal:
+            # create the signal stack
+            signal_stack = HistStack()
+            for hist in scaled_signal:
+                signal_stack.Add(hist)
+            objects.append(signal_stack)
+        else:
+            objects.extend(scaled_signal)
 
     if model is not None:
         # draw uncertainty band
@@ -1327,7 +1335,7 @@ def draw(name,
         else:
             legend = Legend(n_entries,
                 pad=hist_pad,
-                leftmargin=0.39,
+                leftmargin=legend_leftmargin,
                 rightmargin=0.12,
                 margin=0.35,
                 textsize=textsize,
@@ -1447,24 +1455,25 @@ def draw(name,
         range = model[0].bounds()
     model_stack.xaxis.SetLimits(*range)
 
-    # create the output filename
-    filename = 'var_{0}_{1}'.format(
-        category.name,
-        output_name.lower().replace(' ', '_'))
-    if logy:
-        filename += '_logy'
-    filename += '_root'
+    if output_name is not None:
+        # create the output filename
+        filename = 'var_{0}_{1}'.format(
+            category.name,
+            output_name.lower().replace(' ', '_'))
+        if logy:
+            filename += '_logy'
+        filename += '_root'
 
-    # generate list of requested output formats
-    if output_formats is None:
-        output_formats = ('png',)
-    elif isinstance(output_formats, basestring):
-        output_formats = output_formats.split()
+        # generate list of requested output formats
+        if output_formats is None:
+            output_formats = ('png',)
+        elif isinstance(output_formats, basestring):
+            output_formats = output_formats.split()
 
-    # save the figure
-    for format in output_formats:
-        output_filename = '{0}.{1}'.format(filename, format)
-        save_canvas(fig, output_dir, output_filename)
+        # save the figure
+        for format in output_formats:
+            output_filename = '{0}.{1}'.format(filename, format)
+            save_canvas(fig, output_dir, output_filename)
 
     if prev_style is not None:
         prev_style.cd()
@@ -1614,7 +1623,7 @@ def plot_clf(background_scores,
              bins=10,
              min_score=0,
              max_score=1,
-             signal_colour_map=cm.spring,
+             signal_colors=cm.spring,
              systematics=None,
              unblind=False,
              **kwargs):
@@ -1696,8 +1705,8 @@ def plot_clf(background_scores,
                  name="BDT Score",
                  output_name=output_name,
                  show_ratio=data_hist is not None,
-                 model_colour_map=None,
-                 signal_colour_map=signal_colour_map,
+                 model_colors=None,
+                 signal_colors=signal_colors,
                  systematics=systematics,
                  logy=logy,
                  **kwargs)

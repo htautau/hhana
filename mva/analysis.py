@@ -197,6 +197,15 @@ class Analysis(object):
                         mass=m,
                         systematics=self.systematics,
                         scale=self.mu))
+        elif isinstance(mode, (list, tuple)):
+            for _mass in mass:
+                for _mode in mode:
+                    signals.append(samples.Higgs(
+                        year=self.year,
+                        mass=_mass,
+                        mode=_mode,
+                        systematics=self.systematics,
+                        scale=self.mu))
         else:
             for m in mass:
                 signals.append(samples.Higgs(
