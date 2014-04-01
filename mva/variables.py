@@ -490,7 +490,7 @@ VARIABLES = {
         'cuts': 'dEta_jets > 0', # ignore default value in plot
         'bins': 15,
         'range': {
-            'VBF': (11, 2, 7.5),
+            'VBF': (15, 0, 7.5),
             None: (15, 0, 7.5)},
         'cats': ['2J', 'VBF', 'PRESELECTION']
     },

@@ -39,11 +39,12 @@ MET_CENTRALITY_TIGHT = Cut('MET_bisecting || (dPhi_min_tau_MET < %f)' % (0.1 * m
 # common preselection cuts
 PRESELECTION = (
     LEAD_TAU_35 & SUBLEAD_TAU_25
+    & ID_MEDIUM_TIGHT
     & MET
     & Cut('%s > 0' % MMC_MASS)
     & DR_TAUS
     & TAU_SAME_VERTEX
-    & MET_CENTRALITY_LOOSE
+    #& MET_CENTRALITY_LOOSE
     )
 
 # VBF category cuts
@@ -55,6 +56,6 @@ CUTS_VBF = (
 # Boosted category cuts
 CUTS_BOOSTED = (
     RESONANCE_PT
-    & MET_CENTRALITY_TIGHT
+    #& MET_CENTRALITY_TIGHT
     & DETA_TAUS
     )
