@@ -19,8 +19,9 @@ from mva.variables import VARIABLES
 from mva.analysis import Analysis, get_analysis
 from mva.systematics import iter_systematics,get_systematics
 from mva.samples import CompositeSample
-from mva import save_canvas,log; log = log[__name__]
-
+from mva import save_canvas
+from mva import log; log = log[__name__]
+from mva.plotting import draw_ratio
 args = get_parser(actions=False).parse_args()
 
 categories = CATEGORIES[args.categories]
@@ -40,7 +41,7 @@ field_dict = dict( [(field, VARIABLES[field]) for field in fields] )
 backgrounds = analysis.backgrounds
 ztautau = analysis.ztautau
 others  = analysis.others
-# toto = [ztautau,others]
+#toto = [ztautau,others]
 TotalBkg = CompositeSample( backgrounds )
 
 log.info( backgrounds )
@@ -56,21 +57,13 @@ for category in categories:
                          'OS',
                          field_scale = field_scale,
                          systematics=args.systematics )
-#     log.info( str(field_hist) )
-#     log.info( str(field_hist['mmc1_mass'].systematics) )
+    log.info( str(field_hist) )
             
 
+    for field,hist in field_hist.items():
+        for syst,hist_syst in hist.systematics.items():
+            log.info( syst )
+            plot = draw_ratio(hist,hist_syst,field,field_dict,category)
+            save_canvas(plot, 'plots', 'shape_{0}_{1}_{2}_{3}.png'.format( syst[0],field,category.name, args.year%1000) )
 
-for bkg in backgrounds:
-    log.info( bkg.name )
 
-
-# if not args.shapes or 'syst' in args.shapes:
-#     categories_cuts = None
-#     if args.year == 2011:
-#         categories_cuts = CATEGORIES['cuts_2011']
-#     elif args.year == 2012:
-#         categories_cuts = CATEGORIES['cuts']
-
-#     for syst in iter_systematics( year=args.year ):
-#         log.info( syst )

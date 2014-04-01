@@ -20,7 +20,7 @@ from matplotlib.patches import Patch
 
 # ROOT/rootpy imports
 import ROOT
-from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
+from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack, Graph
 from rootpy.plotting.templates import RatioPlot
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.io import root_open
@@ -1734,13 +1734,12 @@ def draw_ROC(bkg_scores, sig_scores):
 
 
 
-def draw_ratio(a, b, field, category, textsize=22):
-    plot = RatioPlot(
-        xtitle=field_dict[field]['root'],
-        ytitle='Normalized Events',
-        ratio_title='A / B',
-        ratio_range=(0, 2),
-        ratio_line_values=[0.5, 1, 1.5])
+def draw_ratio(a, b, field,field_dict, category, textsize=22):
+    plot = RatioPlot( xtitle=field_dict[field]['root'],
+                      ytitle='Normalized Events',
+                      ratio_title='A / B',
+                      ratio_range=(0, 2),
+                      ratio_line_values=[0.5, 1, 1.5] )
     a_integral = a.integral()
     if a_integral != 0:
         a /= a_integral
@@ -1809,10 +1808,10 @@ def compare(a, b, field_dict, category, name, year ):
     b_hists, _ = b.get_field_hist(field_dict, category)
     a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
     b.draw_array(b_hists, category, 'OS', field_scale=field_scale)
-    for field in fields:
+    for field,_ in field_dict.items():
         # draw ratio plot
         a_hist = a_hists[field]
         b_hist = b_hists[field]
-        plot = draw_ratio(a_hist, b_hist, field, category)
+        plot = draw_ratio(a_hist, b_hist, field,field_dict, category)
         save_canvas(plot, 'plots/shapes', '{0}/shape_{0}_{1}_{2}_{3}.png'.format(
             name, field, category.name, year % 1000))

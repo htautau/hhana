@@ -7,7 +7,7 @@ from rootpy import asrootpy
 from rootpy.plotting import Hist
 
 # local imports
-from . import log
+from . import log; log = log[__name__]
 from .sample import Sample
 from .db import TEMPFILE, get_file
 from ..cachedtable import CachedTable

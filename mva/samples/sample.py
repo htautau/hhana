@@ -164,7 +164,6 @@ class Sample(object):
             weighted=True,
             bootstrap_data=False):
 
-        log.info ( 'Systematics is %d' % systematics )
         do_systematics = (isinstance(self, SystematicsSample)
                           and self.systematics
                           and systematics)
@@ -197,8 +196,6 @@ class Sample(object):
             systematics_components=systematics_components,
             bootstrap_data=bootstrap_data)
 
-        log.info( str(field_hist) )
-        log.info( str(field_hist['mmc1_mass'].systematics) )
         return field_hist
 
     def get_hist(self,
@@ -1503,6 +1500,13 @@ class CompositeSample(object):
         self.samples_list = samples_list
 
     def events( self, *args,**kwargs ):
+        """
+        Return a one-bin histogram with the total sum of events
+        of all the samples
+        Parameters:
+        - See the events() method in the Sample class
+        """
+
         hist_list = []
         for s in self.samples_list:
             hist_list.append( s.events(*args,**kwargs) )
@@ -1512,27 +1516,55 @@ class CompositeSample(object):
             hist_tot.Add( hist )
         return hist_tot
 
-    def draw_array(self, field_hist_tot, category, region, systematics=False,**kwargs ):
+    def draw_array(self, field_hist_tot, category, region, systematics=False,**kwargs):
+        """
+        Construct histograms of the sum of all the samples.
+        Parameters:
+        - field_hist_tot: dictionnary of Histograms that constain the structure we want to retrieve
+        - category: the analysis category
+        - region: the analysis region (for example 'OS')
+        - systematics: boolean flag
+        """
+
         field_hists_list = []
-        # --------
+        # -------- Retrieve the histograms dictionnary from each sample and store it into a list
         for s in self.samples_list:
             # field_hists_temp = s.get_hist_array( field_hist_tot, category, region, systematics=systematics,**kwargs)
-            fiel_hists_temp = field_hist_tot
-            s.draw_array( field_hist_tot, category, region, systematics=systematics,**kwargs)
+            field_hists_temp = {}
+            for field,hist in field_hist_tot.items():
+                field_hists_temp[field] = hist.Clone()
+                field_hists_temp[field].Reset()
+            s.draw_array( field_hists_temp, category, region, systematics=systematics,**kwargs)
             field_hists_list.append( field_hists_temp )
-        # --------
+
+        # -------- Reset the output histograms
         for field, hist in field_hists_list[0].items():
             hist_tot = hist.Clone()
             hist_tot.Reset()
             field_hist_tot[field] = hist_tot
-        # --------
+
+        # -------- Add the nominal histograms
         for field_hist in field_hists_list:
             for field, hist in field_hist.items():
                 field_hist_tot[field].Add( hist )
 
-#         if systematics:
-#             for field,hist in field_hist_tot.items():
-#                 if not hasstr( hist,'systematics'):
-#                     hist.systematics = {}
-
+        # --- Systematic Uncertainties block
+        if systematics:
+            #--- loop over the dictionnary of the summed histograms
+            for field,hist in field_hist_tot.items():
+                # --- Add a dictionary to the nominal summed histogram
+                if not hasattr( hist,'systematics'):
+                    hist.systematics = {}
+                # --- loop over the systematic uncercainties 
+                for sys in iter_systematics( self.samples_list[0].year ):
+                    if sys is 'NOMINAL':
+                        continue
+                    log.info ( "Fill the %s syst for the field %s" % (sys,field) )
+                    # -- Create an histogram for each systematic uncertainty
+                    hist.systematics[sys] =  hist.Clone()
+                    hist.systematics[sys].Reset()
+                    # -- loop over the samples and sum-up the syst-applied histograms
+                    for field_hist_sample in field_hists_list:
+                        field_hist_syst = field_hist_sample[field].systematics
+                        hist.systematics[sys].Add( field_hist_syst[sys] )
         return
