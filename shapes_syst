@@ -33,7 +33,9 @@ output_suffix = analysis.get_suffix()
 # list of fields to plot
 fields = [
     'mmc1_mass',
-]
+    'dR_tau1_tau2',
+    'dEta_jets',
+    ]
 
 field_dict = dict( [(field, VARIABLES[field]) for field in fields] )
 
