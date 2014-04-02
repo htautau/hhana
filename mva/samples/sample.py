@@ -1501,6 +1501,7 @@ class CompositeSample(object):
         self.samples_list = samples_list
         self.name = name
         self.label = label
+
     def events( self, *args,**kwargs ):
         """
         Return a one-bin histogram with the total sum of events
