@@ -1738,7 +1738,7 @@ def draw_ratio( a, b, field, category,
                 textsize=22,
                 ratio_range=(0,2),
                 ratio_line_values=[0.5,1,1.5],
-                optional_label_text = None ):
+                optional_label_text=None ):
     """
     Draw a canvas with two Hists normalized to unity on top
     and a ratio plot between the two hist
@@ -1748,7 +1748,6 @@ def draw_ratio( a, b, field, category,
     - field: variable field (see variables.py)
     - category: analysis category (see categories/*)
     """
-
 
     plot = RatioPlot( xtitle=VARIABLES[field]['root'],
                       ytitle='Normalized Events',
