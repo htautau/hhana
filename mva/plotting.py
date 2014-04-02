@@ -1732,8 +1732,6 @@ def draw_ROC(bkg_scores, sig_scores):
     plt.grid()
     plt.savefig(os.path.join(PLOTS_DIR, 'ROC.png'), bbox_inches='tight')
 
-
-
 def draw_ratio( a, b, field, category,
                 textsize=22,
                 ratio_range=(0,2),
@@ -1748,7 +1746,6 @@ def draw_ratio( a, b, field, category,
     - field: variable field (see variables.py)
     - category: analysis category (see categories/*)
     """
-
     plot = RatioPlot( xtitle=VARIABLES[field]['root'],
                       ytitle='Normalized Events',
                       ratio_title='A / B',
@@ -1821,9 +1818,6 @@ def draw_ratio( a, b, field, category,
             optional_label.SetTextFont(43)
             optional_label.SetTextSize(textsize)
             optional_label.Draw()
-
-
-
     return plot
 
 
