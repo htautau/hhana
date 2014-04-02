@@ -72,7 +72,8 @@ for s in TestedSamples:
                 plot = draw_ratio( hist,hist_syst,field,category,
                                    textsize = 18,
                                    ratio_range = (0.8,1.2),
-                                   ratio_line_values = [0.9,1,1.1] )
+                                   ratio_line_values = [0.9,1,1.1],
+                                   optional_label_text = s.label )
                 save_canvas( plot,
                              'plots',
                              '{0}/shape_{1}_{2}_{3}_{4}.png'.format( s.name,
