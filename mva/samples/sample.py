@@ -1502,16 +1502,16 @@ class CompositeSample(object):
         self.name = name
         self.label = label
 
-    def events( self, *args,**kwargs ):
+    def events(self, *args,**kwargs ):
         """
         Return a one-bin histogram with the total sum of events
         of all the samples
         Parameters:
         - See the events() method in the Sample class
         """
-        return sum([s.events(*args,**kwargs) for s in self.samples_list])
+        return sum([s.events(*args, **kwargs) for s in self.samples_list])
 
-    def draw_array(self, field_hist_tot, category, region, systematics=False,**kwargs):
+    def draw_array(self, field_hist_tot, category, region, systematics=False, **kwargs):
         """
         Construct histograms of the sum of all the samples.
         Parameters:
@@ -1551,7 +1551,7 @@ class CompositeSample(object):
                 if not hasattr( hist,'systematics'):
                     hist.systematics = {}
                 # --- loop over the systematic uncercainties 
-                for sys in iter_systematics( self.samples_list[0].year ):
+                for sys in iter_systematics(self.samples_list[0].year):
                     if sys is 'NOMINAL':
                         continue
                     log.info ( "Fill the %s syst for the field %s" % (sys,field) )

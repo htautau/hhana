@@ -6,7 +6,7 @@ from .mva_cb_overlap import *
 CATEGORIES = {
     # Preselection
     'presel': [
-    Category_Preselection,
+        Category_Preselection,
     ],
     'presel_deta_controls': [
     Category_Preselection_DEta_Control,
