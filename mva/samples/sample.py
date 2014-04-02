@@ -1493,7 +1493,7 @@ class CompositeSample(object):
     TODO: Implement a naming from the components.
     """
 
-    def __init__(self,samples_list,name='Sample',label='Sample'):
+    def __init__(self, samples_list, name='Sample', label='Sample'):
         if not isinstance( samples_list, (list,tuple)):
             samples_list = [samples_list]
         if not isinstance (samples_list[0], Sample):
