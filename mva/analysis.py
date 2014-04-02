@@ -32,10 +32,15 @@ Scores = namedtuple('Scores', [
 
 
 def get_analysis(args, **kwargs):
+    for name, value in kwargs.items():
+        if hasattr(args, name):
+            setattr(args, name, value)
+        else:
+            raise ValueError("invalid Analysis kwarg {0}".format(name))
     analysis = Analysis(
         year=args.year,
-        systematics=kwargs.get('systematics', args.systematics),
-        use_embedding=kwargs.get('embedding', args.embedding),
+        systematics=args.systematics,
+        use_embedding=args.embedding,
         target_region=args.target_region,
         qcd_shape_region=args.qcd_shape_region,
         decouple_qcd_shape=args.decouple_qcd_shape,

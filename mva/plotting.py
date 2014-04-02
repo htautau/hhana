@@ -25,7 +25,7 @@ from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack, Graph
 from rootpy.plotting.templates import RatioPlot
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.io import root_open
-from rootpy.plotting.shapes import Line
+from rootpy.plotting.shapes import Line, Arrow
 import rootpy.plotting.utils as rootpy_utils
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.plotting.contrib.quantiles import qqgraph
@@ -43,7 +43,6 @@ from statstools.utils import efficiency_cut, significance
 
 
 def package_path(name):
-
     return os.path.splitext(os.path.abspath('latex/%s.sty' % name))[0]
 
 
@@ -1014,7 +1013,9 @@ def draw(name,
          legend_position='right',
          range=None,
          output_name=None,
-         output_dir=PLOTS_DIR):
+         output_dir=PLOTS_DIR,
+         arrow_values=None,
+         arrow_labels=None):
 
     if model is None and data is None and signal is None:
         # insufficient input
@@ -1277,15 +1278,29 @@ def draw(name,
             ratio_hist.Draw('same E0')
 
     if separate_legends:
+        right_legend = Legend(len(signal) + 1 if signal is not None else 1,
+            pad=hist_pad,
+            leftmargin=legend_leftmargin,
+            rightmargin=0.12,
+            margin=0.35,
+            textsize=textsize,
+            entrysep=0.02,
+            entryheight=0.04,
+            topmargin=0.15)
+        right_legend.AddEntry(data, style='lep')
+        if signal is not None:
+            for s in reversed(scaled_signal):
+                right_legend.AddEntry(s, style='F' if fill_signal else 'L')
+        legends.append(right_legend)
         if model is not None:
             n_entries = len(model)
             if systematics:
                 n_entries += 1
             model_legend = Legend(n_entries,
                 pad=hist_pad,
-                leftmargin=0.45,
-                rightmargin=0.12,
-                margin=0.45,
+                leftmargin=0.05,
+                rightmargin=0.46,
+                margin=0.35,
                 textsize=textsize,
                 entrysep=0.02,
                 entryheight=0.04,
@@ -1300,20 +1315,6 @@ def draw(name,
                 model_err_band.title = 'Uncert.'
                 model_legend.AddEntry(model_err_band, style='F')
             legends.append(model_legend)
-        right_legend = Legend(len(signal) + 1 if signal is not None else 1,
-            pad=hist_pad,
-            leftmargin=0.02,
-            rightmargin=0.5,
-            margin=0.35,
-            textsize=textsize,
-            entrysep=0.02,
-            entryheight=0.04,
-            topmargin=0.15)
-        right_legend.AddEntry(data, style='lep')
-        if signal is not None:
-            for s in reversed(scaled_signal):
-                right_legend.AddEntry(s, style='F' if fill_signal else 'L')
-        legends.append(right_legend)
     else:
         n_entries = 1
         if signal is not None:
@@ -1359,7 +1360,7 @@ def draw(name,
         legends.append(legend)
 
     # draw the objects
-    rootpy_utils.draw(
+    xmin, xmax, ymin, ymax = rootpy_utils.draw(
         objects,
         pad=hist_pad,
         logy=logy,
@@ -1454,6 +1455,16 @@ def draw(name,
     if range is None:
         range = model[0].bounds()
     model_stack.xaxis.SetLimits(*range)
+
+    # draw arrows
+    if arrow_values is not None:
+        arrow_top = ymin + (ymax - ymin) / 3.
+        hist_pad.cd()
+        for value in arrow_values:
+            arrow = Arrow(value, arrow_top, value, ymin, 0.05, '|>')
+            arrow.SetAngle(30)
+            arrow.SetLineWidth(2)
+            arrow.Draw()
 
     if output_name is not None:
         # create the output filename
