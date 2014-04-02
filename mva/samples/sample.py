@@ -22,7 +22,7 @@ from root_numpy import rec2array, stack
 from higgstautau import samples as samples_db
 
 # local imports
-from . import log
+from . import log; log = log[__name__]
 from .. import variables
 from .. import DEFAULT_STUDENT, ETC_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
@@ -102,6 +102,18 @@ class Sample(object):
         return self
 
     def get_field_hist(self, vars, category, templates=None):
+        """
+        retrieve a dictionnary of histograms for the requested
+        variables in the given category
+        ------
+        Parameters:
+        - vars: dictionnary of variables (see variables.py)
+        - category: Analysis category see categories/*
+        - template: dictionnary of Histograms. If specified used those
+        histograms as templates to retrieve the various fields. If not
+        specified, take the default binning specified in variables.py
+        """
+
         field_hist = {}
         field_scale = {}
         for field, var_info in vars.items():
@@ -157,7 +169,6 @@ class Sample(object):
                           and systematics)
         if do_systematics and systematics_components is None:
             systematics_components = self.systematics_components()
-
         if min_score is None:
             min_score = getattr(category, 'workspace_min_clf', None)
         if max_score is None:
@@ -1221,6 +1232,7 @@ class SystematicsSample(Sample):
                 max_score=max_score,
                 systematic=systematic)
 
+
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
                systematics=False,
@@ -1470,3 +1482,81 @@ class MC(SystematicsSample):
                     'tau1_trigger_sf',
                     'tau2_trigger_sf']}})
         return systematics
+
+class CompositeSample(object):
+    """
+    This class adds together the events from a list of samples
+    and also return the summed histograms of all of those samples
+    for the requested fields
+    TODO: Implement a naming from the components.
+    """
+    def __init__(self, samples_list, name='Sample', label='Sample'):
+        if not isinstance( samples_list, (list,tuple)):
+            samples_list = [samples_list]
+        if not isinstance (samples_list[0], Sample):
+            raise ValueError( "samples_list must be filled with Samples")
+        self.samples_list = samples_list
+        self.name = name
+        self.label = label
+
+    def events(self, *args,**kwargs ):
+        """
+        Return a one-bin histogram with the total sum of events
+        of all the samples
+        Parameters:
+        - See the events() method in the Sample class
+        """
+        return sum([s.events(*args, **kwargs) for s in self.samples_list])
+
+    def draw_array(self, field_hist_tot, category, region, systematics=False, **kwargs):
+        """
+        Construct histograms of the sum of all the samples.
+        Parameters:
+        - field_hist_tot: dictionnary of Histograms that constain the structure we want to retrieve
+        - category: the analysis category
+        - region: the analysis region (for example 'OS')
+        - systematics: boolean flag
+        """
+
+        field_hists_list = []
+        # -------- Retrieve the histograms dictionnary from each sample and store it into a list
+        for s in self.samples_list:
+            # field_hists_temp = s.get_hist_array( field_hist_tot, category, region, systematics=systematics,**kwargs)
+            field_hists_temp = {}
+            for field,hist in field_hist_tot.items():
+                field_hists_temp[field] = hist.Clone()
+                field_hists_temp[field].Reset()
+            s.draw_array( field_hists_temp, category, region, systematics=systematics,**kwargs)
+            field_hists_list.append( field_hists_temp )
+
+        # -------- Reset the output histograms
+        for field, hist in field_hists_list[0].items():
+            hist_tot = hist.Clone()
+            hist_tot.Reset()
+            field_hist_tot[field] = hist_tot
+
+        # -------- Add the nominal histograms
+        for field_hist in field_hists_list:
+            for field, hist in field_hist.items():
+                field_hist_tot[field].Add( hist )
+
+        # --- Systematic Uncertainties block
+        if systematics:
+            #--- loop over the dictionnary of the summed histograms
+            for field,hist in field_hist_tot.items():
+                # --- Add a dictionary to the nominal summed histogram
+                if not hasattr( hist,'systematics'):
+                    hist.systematics = {}
+                # --- loop over the systematic uncercainties 
+                for sys in iter_systematics(self.samples_list[0].year):
+                    if sys is 'NOMINAL':
+                        continue
+                    log.info ( "Fill the %s syst for the field %s" % (sys,field) )
+                    # -- Create an histogram for each systematic uncertainty
+                    hist.systematics[sys] =  hist.Clone()
+                    hist.systematics[sys].Reset()
+                    # -- loop over the samples and sum-up the syst-applied histograms
+                    for field_hist_sample in field_hists_list:
+                        field_hist_syst = field_hist_sample[field].systematics
+                        hist.systematics[sys].Add( field_hist_syst[sys] )
+        return

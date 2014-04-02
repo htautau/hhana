@@ -20,7 +20,8 @@ from matplotlib.patches import Patch
 
 # ROOT/rootpy imports
 import ROOT
-from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack
+from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack, Graph
+from rootpy.plotting.templates import RatioPlot
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line
@@ -1730,3 +1731,105 @@ def draw_ROC(bkg_scores, sig_scores):
     plt.xlim(0, 1)
     plt.grid()
     plt.savefig(os.path.join(PLOTS_DIR, 'ROC.png'), bbox_inches='tight')
+
+def draw_ratio( a, b, field, category,
+                textsize=22,
+                ratio_range=(0,2),
+                ratio_line_values=[0.5,1,1.5],
+                optional_label_text=None ):
+    """
+    Draw a canvas with two Hists normalized to unity on top
+    and a ratio plot between the two hist
+    Parameters:
+    - a: Nominal Hist (denominator in the ratio)
+    - b: Shifted Hist (numerator in the ratio)
+    - field: variable field (see variables.py)
+    - category: analysis category (see categories/*)
+    """
+    plot = RatioPlot( xtitle=VARIABLES[field]['root'],
+                      ytitle='Normalized Events',
+                      ratio_title='A / B',
+                      ratio_range=ratio_range,
+                      ratio_line_values=ratio_line_values )
+    a_integral = a.integral()
+    if a_integral != 0:
+        a /= a_integral
+    b_integral = b.integral()
+    if b_integral != 0:
+        b /= b_integral
+    a.title = 'A: ' + a.title
+    b.title = 'B: ' + b.title
+    a.color = 'black'
+    b.color = 'red'
+    a.legendstyle = 'L'
+    b.legendstyle = 'L'
+    a.markersize = 0
+    b.markersize = 0
+    a.linewidth = 2
+    b.linewidth = 2
+    a.fillstyle = 'hollow'
+    b.fillstyle = 'hollow'
+    a.linestyle = 'solid'
+    b.linestyle = 'dashed'
+    a.drawstyle='hist E0'
+    b.drawstyle='hist E0'
+    plot.draw('main', [a, b], ypadding=(0.3, 0.))
+    ratio = Hist.divide(a, b, fill_value=-1)
+    ratio.drawstyle = 'hist'
+    ratio.color = 'black'
+    ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
+    ratio_band.drawstyle = '20'
+    plot.draw('ratio', [ratio_band, ratio])
+    with plot.pad('main') as pad:
+        # legend
+        leg = Legend([a, b],
+                     leftmargin=0.25, topmargin=0.1,
+                     margin=0.18, textsize=textsize)
+        leg.Draw()
+        # draw the category label
+        label = ROOT.TLatex(
+            pad.GetLeftMargin() + 0.04, 0.87,
+            category.label)
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        label.Draw()
+        # show p-value and chi^2
+        pvalue = a.Chi2Test(b, 'WW')
+        pvalue_label = ROOT.TLatex(
+            pad.GetLeftMargin() + 0.04, 0.8,
+            "p-value={0:.2f}".format(pvalue))
+        pvalue_label.SetNDC(True)
+        pvalue_label.SetTextFont(43)
+        pvalue_label.SetTextSize(textsize)
+        pvalue_label.Draw()
+        chi2 = a.Chi2Test(b, 'WW CHI2/NDF')
+        chi2_label = ROOT.TLatex(
+            pad.GetLeftMargin() + 0.04, 0.72,
+            "#frac{{#chi^{{2}}}}{{ndf}}={0:.2f}".format(chi2))
+        chi2_label.SetNDC(True)
+        chi2_label.SetTextFont(43)
+        chi2_label.SetTextSize(textsize)
+        chi2_label.Draw()
+        if optional_label_text is not None:
+            optional_label = ROOT.TLatex(pad.GetLeftMargin()+0.55,0.87,
+                                         optional_label_text )
+            optional_label.SetNDC(True)
+            optional_label.SetTextFont(43)
+            optional_label.SetTextSize(textsize)
+            optional_label.Draw()
+    return plot
+
+
+def compare(a, b, field_dict, category, name, year ):
+    a_hists, field_scale = a.get_field_hist(field_dict, category)
+    b_hists, _ = b.get_field_hist(field_dict, category)
+    a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
+    b.draw_array(b_hists, category, 'OS', field_scale=field_scale)
+    for field,_ in field_dict.items():
+        # draw ratio plot
+        a_hist = a_hists[field]
+        b_hist = b_hists[field]
+        plot = draw_ratio(a_hist, b_hist, field,field_dict, category)
+        save_canvas(plot, 'plots/shapes', '{0}/shape_{0}_{1}_{2}_{3}.png'.format(
+            name, field, category.name, year % 1000))

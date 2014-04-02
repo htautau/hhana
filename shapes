@@ -13,7 +13,8 @@ from mva.samples import (
 from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis
-from mva import save_canvas
+from mva.systematics import iter_systematics
+from mva import save_canvas,log
 
 from rootpy.plotting import Hist, Graph, Legend
 from rootpy.plotting.templates import RatioPlot
@@ -215,3 +216,5 @@ if not args.shapes or 'qcd' in args.shapes:
 
         # compare nOS NONISOL and NONISOL (no charge requirement)
         compare(qcd_nos_nonisol, qcd_nonisol, category, 'qcd_nonisol')
+
+

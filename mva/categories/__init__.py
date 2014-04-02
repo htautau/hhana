@@ -11,10 +11,10 @@ CATEGORIES = {
     'presel_deta_controls': [
         Category_Preselection_DEta_Control,
         ],
-
+    
     '1j_inclusive': [
-    Category_1J_Inclusive,
-    ],
+        Category_1J_Inclusive,
+        ],
     
     # CB Categories
     'cuts' : [
@@ -33,37 +33,39 @@ CATEGORIES = {
     'cuts_merged' : [
         Category_Cuts_VBF,
         Category_Cuts_Boosted,
-    ],
+        ],
+    'cuts_cr' : [
+        Category_Cuts_VBF_CR,
+        Category_Cuts_Boosted,
+        ],
     'cuts_studies' : [
         Category_Cuts_Boosted_Tight,
         Category_Cuts_Boosted_Tight_NoDRCut,
         ],    
-
-
     # MVA Categories
     'mva': [
         Category_VBF,
         Category_Boosted,
-    ],
+        ],
     'mva_all': [
         Category_VBF,
         Category_Boosted,
         Category_Rest,
-    ],
+        ],
     'mva_deta_controls': [
         Category_VBF_DEta_Control,
         Category_Boosted_DEta_Control,
-    ],
+        ],
     'mva_workspace_controls': [
         Category_Rest,
-    ],
+        ],
 
     # CB/MVA Overlap Categories
     'overlap': [
         Category_Cut_VBF_MVA_VBF,
         Category_Cut_Boosted_MVA_Boosted,
         Category_Cut_Presel_MVA_Presel,
-    ],
+        ],
     'overlap_details': [
         Category_Cut_VBF_MVA_VBF,
         Category_Cut_VBF_MVA_Boosted,
@@ -92,5 +94,5 @@ CATEGORIES = {
         Category_MVA_Boosted_Not_Cut_VBF,
         Category_MVA_Boosted_Not_Cut_Boosted,
         Category_MVA_Boosted_Not_Cut_Presel,
-    ]
+        ]
 }

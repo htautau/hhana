@@ -7,7 +7,7 @@ import numpy as np
 
 # local imports
 from .sample import Sample, Background
-from . import log
+from . import log; log = log[__name__]
 from ..systematics import systematic_name
 
 
