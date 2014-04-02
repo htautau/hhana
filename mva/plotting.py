@@ -1737,13 +1737,16 @@ def draw_ROC(bkg_scores, sig_scores):
 def draw_ratio( a, b, field, category,
                 textsize=22,
                 ratio_range=(0,2),
-                ratio_line_values=[0.5,1,1.5] ):
+                ratio_line_values=[0.5,1,1.5],
+                optional_label_text = None ):
     """
     Draw a canvas with two Hists normalized to unity on top
     and a ratio plot between the two hist
     Parameters:
     - a: Nominal Hist (denominator in the ratio)
     - b: Shifted Hist (numerator in the ratio)
+    - field: variable field (see variables.py)
+    - category: analysis category (see categories/*)
     """
 
 
@@ -1812,6 +1815,16 @@ def draw_ratio( a, b, field, category,
         chi2_label.SetTextFont(43)
         chi2_label.SetTextSize(textsize)
         chi2_label.Draw()
+        if optional_label_text is not None:
+            optional_label = ROOT.TLatex( pad.GetLefMargin()+0.65,0.87,
+                                          optional_label_text )
+            optional_label.SetNDC(True)
+            optional_label.SetTextFont(43)
+            optional_label.SetTextSize(textsize)
+            optional_label.Draw()
+
+
+
     return plot
 
 
