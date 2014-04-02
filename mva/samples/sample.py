@@ -1483,8 +1483,6 @@ class MC(SystematicsSample):
                     'tau2_trigger_sf']}})
         return systematics
 
-
-
 class CompositeSample(object):
     """
     This class adds together the events from a list of samples
