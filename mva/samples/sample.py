@@ -1508,15 +1508,7 @@ class CompositeSample(object):
         Parameters:
         - See the events() method in the Sample class
         """
-
-        hist_list = []
-        for s in self.samples_list:
-            hist_list.append( s.events(*args,**kwargs) )
-        hist_tot = hist_list[0].Clone()
-        hist_tot.Reset()
-        for hist in hist_list:
-            hist_tot.Add( hist )
-        return hist_tot
+        return sum([s.events(*args,**kwargs) for s in self.samples_list])
 
     def draw_array(self, field_hist_tot, category, region, systematics=False,**kwargs):
         """
