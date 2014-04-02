@@ -1734,12 +1734,24 @@ def draw_ROC(bkg_scores, sig_scores):
 
 
 
-def draw_ratio(a, b, field,field_dict, category, textsize=22):
-    plot = RatioPlot( xtitle=field_dict[field]['root'],
+def draw_ratio( a, b, field, category,
+                textsize=22,
+                ratio_range=(0,2),
+                ratio_line_values=[0.5,1,1.5] ):
+    """
+    Draw a canvas with two Hists normalized to unity on top
+    and a ratio plot between the two hist
+    Parameters:
+    - a: Nominal Hist (denominator in the ratio)
+    - b: Shifted Hist (numerator in the ratio)
+    """
+
+
+    plot = RatioPlot( xtitle=VARIABLES[field]['root'],
                       ytitle='Normalized Events',
                       ratio_title='A / B',
-                      ratio_range=(0, 2),
-                      ratio_line_values=[0.5, 1, 1.5] )
+                      ratio_range=ratio_range,
+                      ratio_line_values=ratio_line_values )
     a_integral = a.integral()
     if a_integral != 0:
         a /= a_integral

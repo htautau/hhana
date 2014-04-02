@@ -1490,15 +1490,17 @@ class CompositeSample(object):
     This class adds together the events from a list of samples
     and also return the summed histograms of all of those samples
     for the requested fields
+    TODO: Implement a naming from the components.
     """
 
-    def __init__(self,samples_list):
+    def __init__(self,samples_list,name='Sample',label='Sample'):
         if not isinstance( samples_list, (list,tuple)):
             samples_list = [samples_list]
         if not isinstance (samples_list[0], Sample):
             raise ValueError( "samples_list must be filled with Samples")
         self.samples_list = samples_list
-
+        self.name = name
+        self.label = label
     def events( self, *args,**kwargs ):
         """
         Return a one-bin histogram with the total sum of events
