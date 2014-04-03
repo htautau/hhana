@@ -1014,13 +1014,32 @@ def draw(name,
          range=None,
          output_name=None,
          output_dir=PLOTS_DIR,
-         arrow_values=None):
+         arrow_values=None,
+         overflow=True):
 
     if model is None and data is None and signal is None:
         # insufficient input
         raise ValueError(
             "at least one of model, data, "
             "or signal must be specified")
+
+    if model is not None:
+        if not isinstance(model, (list, tuple)):
+            model = [model]
+        if overflow:
+            for hist in model:
+                hist[1] += hist[0]
+                hist[-2] += hist[-1]
+    if signal is not None:
+        if not isinstance(signal, (list, tuple)):
+            signal = [signal]
+        if overflow:
+            for hist in signal:
+                hist[1] += hist[0]
+                hist[-2] += hist[-1]
+    if data is not None and overflow:
+        data[1] += data[0]
+        data[-2] += data[-1]
 
     if 'BDT' in name:
         # HACK
@@ -1100,9 +1119,6 @@ def draw(name,
         hist_pad.SetLogy()
 
     if signal is not None:
-        # always make signal a list
-        if not isinstance(signal, (list, tuple)):
-            signal = [signal]
         if signal_scale != 1.:
             scaled_signal = []
             for sig in signal:
