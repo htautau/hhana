@@ -60,7 +60,7 @@ class Analysis(object):
                  systematics=False,
                  use_embedding=True,
                  target_region='OS_ISOL',
-                 qcd_shape_region='NON_ISOL',
+                 qcd_shape_region='NONISOL',
                  decouple_qcd_shape=True,
                  qcd_workspace_norm=None,
                  ztt_workspace_norm=None,

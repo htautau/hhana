@@ -47,7 +47,7 @@ def general_parser(parser=None):
     parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
     parser.add_argument('--qcd-shape-region', choices=REGIONS.keys(),
-            default='NON_ISOL',
+            default='NONISOL',
             help='QCD shape region')
     parser.add_argument('--decouple-qcd-shape', action='store_true', default=False)
     parser.add_argument('--optimize-limits', default=False, action='store_true')
