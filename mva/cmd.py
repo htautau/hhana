@@ -4,7 +4,7 @@ from rootpy.extern import argparse
 from .categories import CATEGORIES
 from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from .variables import VARIABLES
-from .regions import QCD_SHAPE_REGIONS, TARGET_REGIONS
+from .regions import REGIONS
 
 
 class formatter_class(argparse.ArgumentDefaultsHelpFormatter,
@@ -46,14 +46,14 @@ def general_parser(parser=None):
             help='use ALPGEN Z->tau+tau instead of embedding')
     parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
-    parser.add_argument('--qcd-shape-region', choices=QCD_SHAPE_REGIONS,
+    parser.add_argument('--qcd-shape-region', choices=REGIONS.keys(),
             default='nOS',
             help='QCD shape region')
     parser.add_argument('--decouple-qcd-shape', action='store_true', default=False)
     parser.add_argument('--optimize-limits', default=False, action='store_true')
     parser.add_argument('--mass-points', default='125')
-    parser.add_argument('--target-region', choices=TARGET_REGIONS,
-            default='OS',
+    parser.add_argument('--target-region', choices=REGIONS.keys(),
+            default='OS_ISOL',
             help='target signal region')
     parser.add_argument('--suffix', default=None, nargs='?',
             help='suffix to add to any output files or plots')

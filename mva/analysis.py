@@ -59,7 +59,7 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=True,
-                 target_region='OS',
+                 target_region='OS_ISOL',
                  qcd_shape_region='nOS',
                  decouple_qcd_shape=True,
                  qcd_workspace_norm=None,
