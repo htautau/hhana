@@ -30,8 +30,8 @@ field = 'dEta_tau1_tau2'
 field_min = 0.
 
 if args.year == 2011:
-    field_max = 1.
-    field_bins = 5
+    field_max = 2.
+    field_bins = 4
 else:
     field_max = 2.
     field_bins = 5
