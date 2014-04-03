@@ -1227,10 +1227,8 @@ def draw(name,
                 ratio_range = (0.8, 1.2)
             elif max_dev < 0.4:
                 ratio_range = (0.6, 1.4)
-            elif max_dev < 0.6:
-                ratio_range = (0.4, 1.6)
-            elif max_dev < 0.8:
-                ratio_range = (0.2, 1.8)
+            elif max_dev < 0.5:
+                ratio_range = (0.5, 1.5)
 
             ruler_high = (ratio_range[1] + 1.) / 2.
             ruler_low = (ratio_range[0] + 1.) / 2.
