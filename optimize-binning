@@ -102,7 +102,7 @@ def optimize_func(edge, scores, binning):
     return - get_sig(scores, binning, edge, 1)
 
 
-systematics = True
+systematics = False
 transform = False
 
 analysis = Analysis(args.year,
@@ -128,17 +128,7 @@ for category in (Category_VBF, Category_Boosted):
     max_score = max(np.max(s), np.max(b)) + 1E-8
     s = (s, sw)
     b = (b, bw)
-
-    # poor man's constant width binning
-    nfixed_bins = range(1, 41)
-    fixed_sigs = []
-    for bins in nfixed_bins:
-        fixed_sigs.append(get_sig(
-            scores, np.linspace(min_score, max_score, bins + 1)))
-    max_fixed_sig = np.max(fixed_sigs)
-    max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
-
-    # demonstrate smart binning
+    
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     ax1.set_ylabel('Significance')
@@ -151,13 +141,26 @@ for category in (Category_VBF, Category_Boosted):
 
     # plot the distributions
     b_hist = Hist(20, min_score, max_score, color='blue',
-                linewidth=3, linestyle='dashed')
+                  linewidth=3, linestyle='dashed')
     s_hist = b_hist.Clone(color='red')
     fill_hist(b_hist, *b)
     fill_hist(s_hist, *s)
     rplt.hist(b_hist, axes=ax3, label='Background')
     rplt.hist(s_hist, axes=ax3, label='Signal')
 
+    # poor man's constant width binning
+    nfixed_bins = range(1, 11)
+    fixed_sigs = []
+    for bins in nfixed_bins:
+        fixed_sigs.append(get_sig(
+            scores, np.linspace(min_score, max_score, bins + 1)))
+    max_fixed_sig = np.max(fixed_sigs)
+    max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
+    
+    # show significance vs number of equal width bins
+    ax2.plot(nfixed_bins, fixed_sigs, label='Fixed-width Bins', color='green', linestyle='-')
+
+    # demonstrate smart binning
     from itertools import cycle
     lines = ["-","--","-.",":"]
     linecycler = cycle(lines)
@@ -174,9 +177,6 @@ for category in (Category_VBF, Category_Boosted):
         binning.insert(1, best_edge)
         ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
             color='black', linestyle='-', linewidth=2)
-
-    # show significance vs number of equal width bins
-    ax2.plot(nfixed_bins, fixed_sigs, label='Fixed-width Bins', color='green', linestyle='-')
 
     #handles1, labels1 = ax1.get_legend_handles_labels()
     #handles2, labels2 = ax2.get_legend_handles_labels()
