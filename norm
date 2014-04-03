@@ -127,7 +127,8 @@ channels = analysis.make_var_channels(
 draw_channel(channels[0], name=VARIABLES[field]['root'],
     category=category,
     output_name='{0}_postfit{1}'.format(field, analysis.get_suffix()),
-    output_dir='plots/normalization')
+    output_dir='plots/normalization',
+    top_label="Fakes Model: {0}".format(analysis.qcd_shape_region))
 
 # determine resonance pt reweighting after normalization
 #with root_open('weights.root', 'recreate') as weights_file:

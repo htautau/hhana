@@ -373,6 +373,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             cuts=cuts,
             show_ratio=True,
             no_data=args.no_data,
+            top_label="Fakes Model: {0}".format(analysis.qcd_shape_region),
             fit=None) # vars at pre-fit
         figures[category.name] = figs
 

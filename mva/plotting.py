@@ -1016,7 +1016,8 @@ def draw(name,
          output_dir=PLOTS_DIR,
          arrow_values=None,
          overflow=True,
-         show_pvalue=True):
+         show_pvalue=True,
+         top_label=None):
 
     if model is None and data is None and signal is None:
         # insufficient input
@@ -1520,6 +1521,16 @@ def draw(name,
         chi2_label.SetTextFont(43)
         chi2_label.SetTextSize(16)
         chi2_label.Draw()
+
+    if top_label is not None:
+        hist_pad.cd()
+        label = ROOT.TLatex(
+            hist_pad.GetLeftMargin() + 0.08, 0.97,
+            top_label)
+        label.SetNDC(True)
+        label.SetTextFont(43)
+        label.SetTextSize(16)
+        label.Draw()
 
     if output_name is not None:
         # create the output filename
