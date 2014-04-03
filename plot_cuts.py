@@ -17,7 +17,7 @@ for year in (2011, 2012):
     analysis = get_analysis(
         args, year=year,
         systematics=False,
-        qcd_shape_region='nOS_NONISOL')
+        qcd_shape_region='nOS')
     analysis.normalize(Category_Preselection)
 
     # show justification of the dEta cut location in VBF

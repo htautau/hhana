@@ -28,8 +28,13 @@ category = Category_Preselection
 # distribution to fit
 field = 'dEta_tau1_tau2'
 field_min = 0.
-field_max = 1
-field_bins = 5
+
+if args.year == 2011:
+    field_max = 1.
+    field_bins = 5
+else:
+    field_max = 2.
+    field_bins = 5
 
 # initialize QCD and Ztautau normalizations to 50/50 of data yield
 data_yield = analysis.data.events(category, args.target_region)[1].value

@@ -1014,8 +1014,7 @@ def draw(name,
          range=None,
          output_name=None,
          output_dir=PLOTS_DIR,
-         arrow_values=None,
-         arrow_labels=None):
+         arrow_values=None):
 
     if model is None and data is None and signal is None:
         # insufficient input
@@ -1444,7 +1443,7 @@ def draw(name,
     # HACK
     if 'BDT' not in name:
         if integer:
-            model_stack.xaxis.SetNdivisions(7)
+            model_stack.xaxis.SetNdivisions(min(model[0].nbins(), 7))
         else:
             model_stack.xaxis.SetNdivisions(507)
 
@@ -1458,7 +1457,7 @@ def draw(name,
 
     # draw arrows
     if arrow_values is not None:
-        arrow_top = ymin + (ymax - ymin) / 3.
+        arrow_top = ymin + (ymax - ymin) / 2.
         hist_pad.cd()
         for value in arrow_values:
             arrow = Arrow(value, arrow_top, value, ymin, 0.05, '|>')

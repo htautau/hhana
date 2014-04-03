@@ -159,8 +159,9 @@ VARIABLES = {
         'root': '#font[52]{E}^{miss}_{T} bisects the taus',
         'filename': 'MET_bisecting',
         'bins': 2,
-        'range': (0, 2),
+        'range': (-0.5, 1.5),
         'legend': 'left',
+        'integer': True,
     },
     #'sphericity': {
     #    'title': r'Sphericity',
