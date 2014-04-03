@@ -1506,19 +1506,19 @@ def draw(name,
         # show p-value and chi^2
         pvalue = total_model.Chi2Test(data, 'WW')
         pvalue_label = ROOT.TLatex(
-            0.65, 0.97,
+            0.6, 0.97,
             "p-value={0:.2f}".format(pvalue))
         pvalue_label.SetNDC(True)
         pvalue_label.SetTextFont(43)
-        pvalue_label.SetTextSize(14)
+        pvalue_label.SetTextSize(16)
         pvalue_label.Draw()
         chi2 = total_model.Chi2Test(data, 'WW CHI2/NDF')
         chi2_label = ROOT.TLatex(
-            0.8, 0.97,
+            0.78, 0.97,
             "#chi^{{2}}/ndf={0:.2f}".format(chi2))
         chi2_label.SetNDC(True)
         chi2_label.SetTextFont(43)
-        chi2_label.SetTextSize(14)
+        chi2_label.SetTextSize(16)
         chi2_label.Draw()
 
     if output_name is not None:
