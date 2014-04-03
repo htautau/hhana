@@ -999,7 +999,7 @@ def draw(name,
          blind=False,
          show_ratio=False,
          ratio_range=None,
-         ratio_height=0.2,
+         ratio_height=0.15,
          ratio_margin=0.05,
          output_formats=None,
          systematics=None,
@@ -1213,13 +1213,31 @@ def draw(name,
             total_model = sum(model)
             ratio_hist = Hist.divide(data, total_model)
             # remove bins where data is zero
+            max_dev = 0
             for bin in data.bins():
-                if bin.value == 0:
-                    ratio_hist[bin.idx] = (-1, 0)
+                if bin.value <= 0:
+                    ratio_hist[bin.idx] = (-100, 0)
+                else:
+                    ratio_value = ratio_hist[bin.idx].value
+                    dev =  abs(ratio_value - 1)
+                    if dev > max_dev:
+                        max_dev = dev
+
+            if max_dev < 0.2:
+                ratio_range = (0.8, 1.2)
+            elif max_dev < 0.4:
+                ratio_range = (0.6, 1.4)
+            elif max_dev < 0.6:
+                ratio_range = (0.4, 1.6)
+            elif max_dev < 0.8:
+                ratio_range = (0.2, 1.8)
+
+            ruler_high = (ratio_range[1] + 1.) / 2.
+            ruler_low = (ratio_range[0] + 1.) / 2.
+
             ratio_hist.linecolor = 'black'
             ratio_hist.linewidth = 2
             ratio_hist.fillstyle = 'hollow'
-
 
             # draw empty copy of ratio_hist first so lines will show
             ratio_hist_tmp = ratio_hist.Clone()
@@ -1248,15 +1266,15 @@ def draw(name,
             line.Draw()
 
             # draw high ratio line
-            line_up = Line(ratio_xrange[0], 1.50,
-                           ratio_xrange[1], 1.50)
+            line_up = Line(ratio_xrange[0], ruler_high,
+                           ratio_xrange[1], ruler_high)
             line_up.linestyle = 'dashed'
             line_up.linewidth = 2
             line_up.Draw()
 
             # draw low ratio line
-            line_dn = Line(ratio_xrange[0], 0.50,
-                           ratio_xrange[1], 0.50)
+            line_dn = Line(ratio_xrange[0], ruler_low,
+                           ratio_xrange[1], ruler_low)
             line_dn.linestyle = 'dashed'
             line_dn.linewidth = 2
             line_dn.Draw()
@@ -1402,6 +1420,7 @@ def draw(name,
             base_hist.xaxis.GetTitleOffset() * 3)
         base_hist.xaxis.SetLabelOffset(
             base_hist.xaxis.GetLabelOffset() * 4)
+        base_hist.yaxis.CenterTitle(True)
     base_hist.xaxis.SetTitle(label)
 
     # draw the category label
@@ -1442,18 +1461,19 @@ def draw(name,
 
     # HACK
     if 'BDT' not in name:
-        if integer:
-            model_stack.xaxis.SetNdivisions(min(model[0].nbins(), 7))
-        else:
-            model_stack.xaxis.SetNdivisions(507)
+        divisions = min(model[0].nbins(), 7) if integer else 507
+        model_stack.xaxis.SetNdivisions(divisions)
+        if show_ratio:
+            base_hist.xaxis.SetNdivisions(divisions)
 
     hist_pad.Update()
     hist_pad.Modified()
-    hist_pad.RedrawAxis()
+    #hist_pad.RedrawAxis()
 
     if range is None:
         range = model[0].bounds()
     model_stack.xaxis.SetLimits(*range)
+    model_stack.xaxis.SetRangeUser(*range)
 
     # draw arrows
     if arrow_values is not None:
