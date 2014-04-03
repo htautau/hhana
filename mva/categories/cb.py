@@ -1,7 +1,8 @@
 import math
 from rootpy.tree import Cut
-from .common import Category_Preselection
-from .selections import CUTS_2J, CUTS_VBF, CUTS_BOOSTED
+from .common import (
+    Category_Preselection,
+    CUTS_2J, CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY)
 
 # https://cds.cern.ch/record/1629891/files/ATL-COM-PHYS-2013-1558.pdf
 
@@ -16,13 +17,14 @@ TAUS_CENTR = TAU1_CENTR & TAU2_CENTR
 CUTS_VBF_CUTBASED = (
     CUTS_VBF
     & DETA_JETS
-    & MASS_JETS 
+    & MASS_JETS
     & TAUS_CENTR
+    & Cut(MET_CENTRALITY.format(0.2 * math.pi))
     )
 
 CUTS_BOOSTED_CUTBASED = (
     CUTS_BOOSTED
-    #     & Cut('dR_tau1_tau2 < 2.5')
+    & Cut(MET_CENTRALITY.format(0.1 * math.pi))
     )
 
 INF = 1E100

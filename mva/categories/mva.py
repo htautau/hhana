@@ -1,7 +1,18 @@
+from math import pi
 from rootpy.tree import Cut
-from .common import Category_Preselection, Category_Preselection_DEta_Control
-from .selections import CUTS_VBF, CUTS_BOOSTED
+from .common import (
+    Category_Preselection,
+    Category_Preselection_DEta_Control,
+    Category_Preselection_NO_MET_CENTRALITY,
+    CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY)
 from .features import features_2j, features_boosted, features_0j
+
+
+class Category_VBF_NO_DETAJJ_CUT(Category_Preselection):
+    name = 'vbf'
+    label = '#tau_{had}#tau_{had} VBF'
+    common_cuts = Category_Preselection.common_cuts
+    cuts = CUTS_VBF
 
 
 class Category_VBF(Category_Preselection):
@@ -10,8 +21,7 @@ class Category_VBF(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts
     cuts = (
         CUTS_VBF
-        #& Cut('dEta_jets > 2.0')
-        #& Cut('resonance_pt > 40000')
+        & Cut('dEta_jets > 2.0')
         )
     #limitbins = 98
     limitbins = 40
@@ -36,6 +46,7 @@ class Category_Boosted(Category_Preselection):
     cuts = (
         (- Category_VBF.cuts)
         & CUTS_BOOSTED
+        & Cut(MET_CENTRALITY.format(pi / 6))
         )
     #limitbins = 86
     limitbins = 40
