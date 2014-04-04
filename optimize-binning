@@ -24,6 +24,9 @@ import multiprocessing
 from multiprocessing import Process
 import time
 
+systematics = False
+transform = False
+
 
 class SigProcess(Process):
     def __init__(self, *args, **kwargs):
@@ -46,16 +49,24 @@ def run_pool(workers, n_jobs=-1):
     if n_jobs == -1:
         n_jobs = multiprocessing.cpu_count()
     processes = []
-    while True:
-        active = multiprocessing.active_children()
-        while len(active) < n_jobs and len(workers) > 0:
-            p = workers.pop(0)
-            p.start()
-            processes.append(p)
+    p = None
+    try:
+        while True:
             active = multiprocessing.active_children()
-        if len(workers) == 0 and len(active) == 0:
-            break
-        time.sleep(0.5)
+            while len(active) < n_jobs and len(workers) > 0:
+                p = workers.pop(0)
+                p.start()
+                processes.append(p)
+                active = multiprocessing.active_children()
+            if len(workers) == 0 and len(active) == 0:
+                break
+            time.sleep(0.5)
+    except KeyboardExit, SystemExit:
+        if p is not None:
+            p.terminate()
+        for p in processes:
+            p.terminate()
+        raise
 
 
 def search(f, a, b, tol=1.0e-9, **kwargs):
@@ -86,7 +97,7 @@ def search(f, a, b, tol=1.0e-9, **kwargs):
         return x2, f2
 
 
-def get_best_edge(scores, edges, pos=0, iter=200):
+def get_best_edge(scores, edges, pos=0, iter=100):
     left, right = edges[pos:pos+2]
     probe_edges = np.linspace(left, right, iter, endpoint=False)[1:]
     #sigs = [get_sig(scores, edges, x, pos+1) for x in probe_edges]
@@ -98,16 +109,18 @@ def get_best_edge(scores, edges, pos=0, iter=200):
     return probe_edges, sigs, best_edge, best_sig
 
 
-def get_workspace(scores, binning, fix=True):
+def get_workspace(scores, binning, fill_empties=False):
     hist_template = Hist(binning)
     background = []
     for sample, scores_dict in scores.bkg_scores:
         background.append(sample.get_histfactory_sample(
-            hist_template, None, category, 'OS', scores=scores_dict))
+            hist_template, None, category, 'OS', scores=scores_dict,
+            systematics=systematics))
     signal = []
     for sample, scores_dict in scores.all_sig_scores[125]:
         signal.append(sample.get_histfactory_sample(
-            hist_template, None, category, 'OS', scores=scores_dict))
+            hist_template, None, category, 'OS', scores=scores_dict,
+            systematics=systematics))
     data_hist = sum([b.hist for b in background])
     data_hist.name = 'Data'
     data = Data('Data', data_hist)
@@ -115,16 +128,15 @@ def get_workspace(scores, binning, fix=True):
     measurement = make_measurement('MVA', channel,
         POI='SigXsecOverSM',
         const_params=CONST_PARAMS)
-    if fix:
-        fix_measurement(measurement)
+    fix_measurement(measurement, fill_empties=fill_empties)
     return make_workspace(measurement, silence=False)
 
 
-def get_sig(scores, binning, edge=None, pos=1):
+def get_sig(scores, binning, edge=None, pos=1, fill_empties=False):
     if edge is not None:
         binning = binning[:]
         binning.insert(pos, edge)
-    ws = get_workspace(scores, binning)
+    ws = get_workspace(scores, binning, fill_empties=fill_empties)
     hist = get_significance_workspace(ws)
     sig = hist[2].value
     # handle nan
@@ -141,9 +153,6 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--year', type=int, choices=(2011, 2012), default=2012)
     args = parser.parse_args()
-
-    systematics = True
-    transform = False
 
     analysis = Analysis(args.year,
                         transform=transform,
@@ -181,7 +190,7 @@ if __name__ == '__main__':
 
         # plot the distributions
         b_hist = Hist(20, min_score, max_score, color='blue',
-                    linewidth=3, linestyle='dashed')
+                      linewidth=3, linestyle='dashed')
         s_hist = b_hist.Clone(color='red')
         fill_hist(b_hist, *b)
         fill_hist(s_hist, *s)
@@ -189,8 +198,8 @@ if __name__ == '__main__':
         rplt.hist(s_hist, axes=ax3, label='Signal')
 
         # poor man's constant width binning
-        nfixed_bins = range(1, 11)
-        workers = [SigProcess(scores, np.linspace(min_score, max_score, bins + 1)) for bins in nfixed_bins]
+        nfixed_bins = range(1, 21)
+        workers = [SigProcess(scores, np.linspace(min_score, max_score, bins + 1), fill_empties=True) for bins in nfixed_bins]
         run_pool(workers)
         fixed_sigs = [w.output for w in workers]
         max_fixed_sig = np.max(fixed_sigs)
@@ -206,7 +215,7 @@ if __name__ == '__main__':
 
         # show significance vs middle bin edge location
         binning = [min_score, max_score]
-        for nbins in xrange(4): # up to 4 bins
+        for nbins in xrange(3): # 3 edges inserted
             # linear scan
             edges, sigs, best_edge, best_sig = get_best_edge(scores, binning)
             ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))

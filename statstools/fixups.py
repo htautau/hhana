@@ -39,7 +39,7 @@ def fix(input, suffix='fixed', verbose=False):
                                 silence=not verbose)
 
 
-def fix_measurement(meas):
+def fix_measurement(meas, fill_empties=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
@@ -71,3 +71,9 @@ def fix_measurement(meas):
     #--smooth-histosys-samples Fakes Ztautau Others "Signal_VBF_*" "Signal_gg_*" \
     #--prune-histosys --prune-histosys-samples Fakes Others Ztautau \
     #--prune-histosys-method max --prune-histosys-threshold 0.1
+
+    if fill_empties:
+        process_measurement(meas,
+            fill_empties=True,
+            fill_empties_samples=['Fakes', 'Ztautau']
+            )

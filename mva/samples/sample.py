@@ -352,6 +352,8 @@ class Sample(object):
                     low=hist_down,
                     high=hist_up)
                 sample.AddHistoSys(histsys)
+
+            """
             if isinstance(self, QCD):
                 high, low = self.get_shape_systematic(
                      nominal_hist,
@@ -380,6 +382,8 @@ class Sample(object):
                     npname += '_CR'
                 histsys = histfactory.HistoSys(npname, low=low, high=high)
                 sample.AddHistoSys(histsys)
+            """
+
         if isinstance(self, Signal):
             sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
         elif isinstance(self, Background):
@@ -502,6 +506,8 @@ class Sample(object):
                         low=hist_down,
                         high=hist_up)
                     sample.AddHistoSys(histsys)
+
+                """
                 if isinstance(self, QCD):
                     high, low = qcd_shapes[field]
                     if ravel:
@@ -519,6 +525,7 @@ class Sample(object):
                         npname += '_CR'
                     histsys = histfactory.HistoSys(npname, low=low, high=high)
                     sample.AddHistoSys(histsys)
+                """
             if isinstance(self, Signal):
                 sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
             elif isinstance(self, Background):
@@ -1483,6 +1490,7 @@ class MC(SystematicsSample):
                     'tau2_trigger_sf']}})
         return systematics
 
+
 class CompositeSample(object):
     """
     This class adds together the events from a list of samples
@@ -1517,7 +1525,6 @@ class CompositeSample(object):
         - region: the analysis region (for example 'OS')
         - systematics: boolean flag
         """
-
         field_hists_list = []
         # -------- Retrieve the histograms dictionnary from each sample and store it into a list
         for s in self.samples_list:
@@ -1547,7 +1554,7 @@ class CompositeSample(object):
                 # --- Add a dictionary to the nominal summed histogram
                 if not hasattr( hist,'systematics'):
                     hist.systematics = {}
-                # --- loop over the systematic uncercainties 
+                # --- loop over the systematic uncercainties
                 for sys in iter_systematics(self.samples_list[0].year):
                     if sys is 'NOMINAL':
                         continue
