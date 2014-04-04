@@ -69,34 +69,6 @@ def run_pool(workers, n_jobs=-1):
         raise
 
 
-def search(f, a, b, tol=1.0e-9, **kwargs):
-    """
-    Golden section method for determining x that minimizes
-    the user-supplied scalar function f(x).
-    The minimum must be bracketed in (a,b).
-    """
-    nIter = int(-2.078087*log(tol/abs(b-a)))
-    R = 0.618033989
-    C = 1.0 - R
-    # First telescoping
-    x1 = R*a + C*b; x2 = C*a + R*b
-    f1 = f(x1, **kwargs); f2 = f(x2, **kwargs)
-    # Main loop
-    for i in range(nIter):
-        if f1 > f2:
-            a = x1
-            x1 = x2; f1 = f2
-            x2 = C*a + R*b; f2 = f(x2, **kwargs)
-        else:
-            b = x2
-            x2 = x1; f2 = f1
-            x1 = R*a + C*b; f1 = f(x1, **kwargs)
-    if f1 < f2:
-        return x1, f1
-    else:
-        return x2, f2
-
-
 def get_best_edge(scores, edges, pos=0, iter=100):
     left, right = edges[pos:pos+2]
     probe_edges = np.linspace(left, right, iter, endpoint=False)[1:]
@@ -141,10 +113,6 @@ def get_sig(scores, binning, edge=None, pos=1, fill_empties=False):
     sig = hist[2].value
     # handle nan
     return 0 if sig != sig else sig
-
-
-def optimize_func(edge, scores, binning):
-    return - get_sig(scores, binning, edge, 1)
 
 
 if __name__ == '__main__':
@@ -219,9 +187,6 @@ if __name__ == '__main__':
             # linear scan
             edges, sigs, best_edge, best_sig = get_best_edge(scores, binning)
             ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
-            # golden section search (doesn't work well in general)
-            #best_edge, best_sig = search(optimize_func, binning[0], binning[1],
-            #    scores=scores, binning=binning)
             binning.insert(1, best_edge)
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                 color='black', linestyle='-', linewidth=2)
