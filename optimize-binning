@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-from rootpy.extern.argparse import ArgumentParser
-
-parser = ArgumentParser()
-parser.add_argument('--year', type=int, choices=(2011, 2012), default=2012)
-args = parser.parse_args()
-
 import os
 from math import log
 import pickle
@@ -24,6 +18,44 @@ from mva.analysis import Analysis
 
 from statstools.fixups import fix_measurement
 from statstools import get_significance_workspace
+
+#from joblib import Parallel, delayed
+import multiprocessing
+from multiprocessing import Process
+import time
+
+
+class SigProcess(Process):
+    def __init__(self, *args, **kwargs):
+        super(SigProcess, self).__init__()
+        self.args = args
+        self.kwargs = kwargs
+        self.result = multiprocessing.Queue()
+    
+    @property
+    def output(self):
+        return self.result.get()
+
+    def run(self):
+        self.result.put(get_sig(*self.args, **self.kwargs))
+
+
+def run_pool(workers, n_jobs=-1):
+    # defensive copy
+    workers = workers[:]
+    if n_jobs == -1:
+        n_jobs = multiprocessing.cpu_count()
+    processes = []
+    while True:
+        active = multiprocessing.active_children()
+        while len(active) < n_jobs and len(workers) > 0:
+            p = workers.pop(0)
+            p.start()
+            processes.append(p)
+            active = multiprocessing.active_children()
+        if len(workers) == 0 and len(active) == 0:
+            break
+        time.sleep(0.5)
 
 
 def search(f, a, b, tol=1.0e-9, **kwargs):
@@ -57,7 +89,10 @@ def search(f, a, b, tol=1.0e-9, **kwargs):
 def get_best_edge(scores, edges, pos=0, iter=200):
     left, right = edges[pos:pos+2]
     probe_edges = np.linspace(left, right, iter, endpoint=False)[1:]
-    sigs = [get_sig(scores, edges, x, pos+1) for x in probe_edges]
+    #sigs = [get_sig(scores, edges, x, pos+1) for x in probe_edges]
+    procs = [SigProcess(scores, edges, x, pos+1) for x in probe_edges]
+    run_pool(procs)
+    sigs = [p.result.get() for p in procs]
     best_sig = np.max(sigs[10:])
     best_edge = probe_edges[np.argmax(sigs[10:]) + 10]
     return probe_edges, sigs, best_edge, best_sig
@@ -69,8 +104,6 @@ def get_workspace(scores, binning, fix=True):
     for sample, scores_dict in scores.bkg_scores:
         background.append(sample.get_histfactory_sample(
             hist_template, None, category, 'OS', scores=scores_dict))
-    # remove free norm factors
-
     signal = []
     for sample, scores_dict in scores.all_sig_scores[125]:
         signal.append(sample.get_histfactory_sample(
@@ -102,94 +135,100 @@ def optimize_func(edge, scores, binning):
     return - get_sig(scores, binning, edge, 1)
 
 
-systematics = False
-transform = False
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
 
-analysis = Analysis(args.year,
-                    transform=transform,
-                    systematics=systematics,
-                    qcd_workspace_norm=False,
-                    ztt_workspace_norm=False)
+    parser = ArgumentParser()
+    parser.add_argument('--year', type=int, choices=(2011, 2012), default=2012)
+    args = parser.parse_args()
 
-for category in (Category_VBF, Category_Boosted):
-    analysis.normalize(category)
-    clf = analysis.get_clf(category, load=True)
-    scores = analysis.get_scores(
-        clf, category, 'OS', mode='workspace',
-        mass_points=[125], systematics=systematics)
-    min_score, max_score = scores.min_score, scores.max_score
+    systematics = True
+    transform = False
 
-    # nominal scores for convenience
-    b = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.bkg_scores])
-    bw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.bkg_scores])
-    s = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.all_sig_scores[125]])
-    sw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.all_sig_scores[125]])
-    min_score = min(np.min(s), np.min(b)) - 1E-8
-    max_score = max(np.max(s), np.max(b)) + 1E-8
-    s = (s, sw)
-    b = (b, bw)
-    
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.set_ylabel('Significance')
-    ax1.set_xlabel('BDT Score')
-    ax2 = ax1.twiny()
-    ax2.set_xlabel('Number of Fixed-width Bins')
-    ax3 = ax1.twinx()
-    ax3.set_ylabel('Events')
-    ax3.set_yscale('log')
+    analysis = Analysis(args.year,
+                        transform=transform,
+                        systematics=systematics,
+                        qcd_workspace_norm=False,
+                        ztt_workspace_norm=False)
 
-    # plot the distributions
-    b_hist = Hist(20, min_score, max_score, color='blue',
-                  linewidth=3, linestyle='dashed')
-    s_hist = b_hist.Clone(color='red')
-    fill_hist(b_hist, *b)
-    fill_hist(s_hist, *s)
-    rplt.hist(b_hist, axes=ax3, label='Background')
-    rplt.hist(s_hist, axes=ax3, label='Signal')
+    for category in (Category_VBF, Category_Boosted):
+        analysis.normalize(category)
+        clf = analysis.get_clf(category, load=True)
+        scores = analysis.get_scores(
+            clf, category, 'OS', mode='workspace',
+            mass_points=[125], systematics=systematics)
+        min_score, max_score = scores.min_score, scores.max_score
 
-    # poor man's constant width binning
-    nfixed_bins = range(1, 11)
-    fixed_sigs = []
-    for bins in nfixed_bins:
-        fixed_sigs.append(get_sig(
-            scores, np.linspace(min_score, max_score, bins + 1)))
-    max_fixed_sig = np.max(fixed_sigs)
-    max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
-    
-    # show significance vs number of equal width bins
-    ax2.plot(nfixed_bins, fixed_sigs, label='Fixed-width Bins', color='green', linestyle='-')
-
-    # demonstrate smart binning
-    from itertools import cycle
-    lines = ["-","--","-.",":"]
-    linecycler = cycle(lines)
-
-    # show significance vs middle bin edge location
-    binning = [min_score, max_score]
-    for nbins in xrange(3): # up to 3 bins
-        # linear scan
-        edges, sigs, best_edge, best_sig = get_best_edge(scores, binning)
-        ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
-        # golden section search (doesn't work well in general)
-        #best_edge, best_sig = search(optimize_func, binning[0], binning[1],
-        #    scores=scores, binning=binning)
-        binning.insert(1, best_edge)
-        ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
-            color='black', linestyle='-', linewidth=2)
-
-    #handles1, labels1 = ax1.get_legend_handles_labels()
-    #handles2, labels2 = ax2.get_legend_handles_labels()
-    #handles3, labels3 = ax3.get_legend_handles_labels()
-    #ax2.legend(handles1+handles2+handles3, labels1+labels2+labels3)
-    plt.tight_layout()
-
-    fig.savefig('binning_{0}_{1}.png'.format(category.name, args.year % 1000))
+        # nominal scores for convenience
+        b = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.bkg_scores])
+        bw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.bkg_scores])
+        s = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.all_sig_scores[125]])
+        sw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.all_sig_scores[125]])
+        min_score = min(np.min(s), np.min(b)) - 1E-8
+        max_score = max(np.max(s), np.max(b)) + 1E-8
+        s = (s, sw)
+        b = (b, bw)
         
-    print binning
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        ax1.set_ylabel('Significance')
+        ax1.set_xlabel('BDT Score')
+        ax2 = ax1.twiny()
+        ax2.set_xlabel('Number of Fixed-width Bins')
+        ax3 = ax1.twinx()
+        ax3.set_ylabel('Events')
+        ax3.set_yscale('log')
 
-    # save the binning
-    with open(os.path.join(CACHE_DIR,
-                           'binning_{0}_{1}.pickle'.format(
-                               category.name, args.year % 1000)), 'w') as f:
-        pickle.dump(binning, f)
+        # plot the distributions
+        b_hist = Hist(20, min_score, max_score, color='blue',
+                    linewidth=3, linestyle='dashed')
+        s_hist = b_hist.Clone(color='red')
+        fill_hist(b_hist, *b)
+        fill_hist(s_hist, *s)
+        rplt.hist(b_hist, axes=ax3, label='Background')
+        rplt.hist(s_hist, axes=ax3, label='Signal')
+
+        # poor man's constant width binning
+        nfixed_bins = range(1, 11)
+        workers = [SigProcess(scores, np.linspace(min_score, max_score, bins + 1)) for bins in nfixed_bins]
+        run_pool(workers)
+        fixed_sigs = [w.output for w in workers]
+        max_fixed_sig = np.max(fixed_sigs)
+        max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
+        
+        # show significance vs number of equal width bins
+        ax2.plot(nfixed_bins, fixed_sigs, label='Fixed-width Bins', color='green', linestyle='-')
+
+        # demonstrate smart binning
+        from itertools import cycle
+        lines = ["-","--","-.",":"]
+        linecycler = cycle(lines)
+
+        # show significance vs middle bin edge location
+        binning = [min_score, max_score]
+        for nbins in xrange(4): # up to 4 bins
+            # linear scan
+            edges, sigs, best_edge, best_sig = get_best_edge(scores, binning)
+            ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
+            # golden section search (doesn't work well in general)
+            #best_edge, best_sig = search(optimize_func, binning[0], binning[1],
+            #    scores=scores, binning=binning)
+            binning.insert(1, best_edge)
+            ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
+                color='black', linestyle='-', linewidth=2)
+
+        #handles1, labels1 = ax1.get_legend_handles_labels()
+        #handles2, labels2 = ax2.get_legend_handles_labels()
+        #handles3, labels3 = ax3.get_legend_handles_labels()
+        #ax2.legend(handles1+handles2+handles3, labels1+labels2+labels3)
+        plt.tight_layout()
+
+        fig.savefig('binning_{0}_{1}.png'.format(category.name, args.year % 1000))
+            
+        print binning
+
+        # save the binning
+        with open(os.path.join(CACHE_DIR,
+                            'binning_{0}_{1}.pickle'.format(
+                                category.name, args.year % 1000)), 'w') as f:
+            pickle.dump(binning, f)
