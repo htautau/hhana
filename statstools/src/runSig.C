@@ -51,7 +51,7 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
 TH1D* runSig(RooWorkspace* ws,
              bool isBlind = true, // Dont look at observed data
-	     bool verbose = false,
+	         bool verbose = false,
              const char* modelConfigName = "ModelConfig",
              const char* dataName = "obsData",
              const char* asimov1DataName = "asimovData_1",
