@@ -46,8 +46,6 @@ RooDataSet* makeAsimovData(
 
 int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
-//int minimize(RooNLLVar* nll);
-//int minimize(RooAbsReal* nll);
 
 TH1D* runSig(RooWorkspace* ws,
              bool isBlind = true, // Dont look at observed data
@@ -113,17 +111,14 @@ TH1D* runSig(RooWorkspace* ws,
     if (!asimovData1)
     {
         string mu_str, mu_prof_str;
-
         asimovData1 = makeAsimovData(mc, doConditional, ws, obs_nll, 1, &mu_str, &mu_prof_str, mu_profile_value, true);
         condSnapshot="conditionalGlobs"+mu_prof_str;
-
-        //makeAsimovData(mc, true, ws, mc->GetPdf(), data, 0);
-        //ws->Print();
-        //asimovData1 = (RooDataSet*)ws->data("asimovData_1");
     }
 
-    if (!doUncap) mu->setRange(0, 40);
-    else mu->setRange(-40, 40);
+    if (!doUncap)
+        mu->setRange(0, 40);
+    else
+        mu->setRange(-40, 40);
 
     RooAbsPdf* pdf = mc->GetPdf();
     RooArgSet nuis_tmp1 = *mc->GetNuisanceParameters();
@@ -140,10 +135,12 @@ TH1D* runSig(RooWorkspace* ws,
     if (doMedian)
     {
         ws->loadSnapshot(condSnapshot.c_str());
-        if (doInj) ws->loadSnapshot("conditionalNuis_inj");
-        else ws->loadSnapshot("conditionalNuis_1");
-	if (verbose)
-	  mc->GetGlobalObservables()->Print("v");
+        if (doInj)
+            ws->loadSnapshot("conditionalNuis_inj");
+        else
+            ws->loadSnapshot("conditionalNuis_1");
+	    if (verbose)
+	        mc->GetGlobalObservables()->Print("v");
         mu->setVal(0);
         mu->setConstant(1);
         status = minimize(asimov_nll, ws);
@@ -157,9 +154,12 @@ TH1D* runSig(RooWorkspace* ws,
         double asimov_nll_cond = asimov_nll->getVal();
 
         mu->setVal(1);
-        if (doInj) ws->loadSnapshot("conditionalNuis_inj");
-        else ws->loadSnapshot("conditionalNuis_1");
-        if (doInj) mu->setConstant(0);
+        if (doInj)
+            ws->loadSnapshot("conditionalNuis_inj");
+        else
+            ws->loadSnapshot("conditionalNuis_1");
+        if (doInj)
+            mu->setConstant(0);
         status = minimize(asimov_nll, ws);
 
         if (status < 0) 
@@ -171,7 +171,8 @@ TH1D* runSig(RooWorkspace* ws,
 
         double asimov_nll_min = asimov_nll->getVal();
         asimov_q0 = 2*(asimov_nll_cond - asimov_nll_min);
-        if (doUncap && mu->getVal() < 0) asimov_q0 = -asimov_q0;
+        if (doUncap && mu->getVal() < 0)
+            asimov_q0 = -asimov_q0;
 
         sign = int(asimov_q0 != 0 ? asimov_q0/fabs(asimov_q0) : 0);
         med_sig = sign*sqrt(fabs(asimov_q0));
@@ -206,11 +207,14 @@ TH1D* runSig(RooWorkspace* ws,
         double obs_nll_min = obs_nll->getVal();
 
         obs_q0 = 2*(obs_nll_cond - obs_nll_min);
-        if (doUncap && mu->getVal() < 0) obs_q0 = -obs_q0;
+        if (doUncap && mu->getVal() < 0)
+            obs_q0 = -obs_q0;
 
         sign = int(obs_q0 == 0 ? 0 : obs_q0 / fabs(obs_q0));
-        if (!doUncap && ((obs_q0 < 0 && obs_q0 > -0.1) || mu->getVal() < 0.001)) obs_sig = 0; 
-        else obs_sig = sign*sqrt(fabs(obs_q0));
+        if (!doUncap && ((obs_q0 < 0 && obs_q0 > -0.1) || mu->getVal() < 0.001))
+            obs_sig = 0; 
+        else
+            obs_sig = sign*sqrt(fabs(obs_q0));
     }
     
     if (doObs)

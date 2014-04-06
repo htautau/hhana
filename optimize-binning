@@ -24,9 +24,6 @@ import multiprocessing
 from multiprocessing import Process
 import time
 
-systematics = True
-transform = False
-
 
 class SigProcess(Process):
     def __init__(self, *args, **kwargs):
@@ -43,10 +40,10 @@ class SigProcess(Process):
         self.result.put(get_sig(*self.args, **self.kwargs))
 
 
-def run_pool(workers, n_jobs=-1):
+def run_pool(workers, n_jobs=12):
     # defensive copy
     workers = workers[:]
-    if n_jobs == -1:
+    if n_jobs < 1:
         n_jobs = multiprocessing.cpu_count()
     processes = []
     p = None
@@ -75,9 +72,10 @@ def map_pool(process, args, n_jobs=-1, **kwargs):
     return [p.output for p in procs]
 
 
-def get_best_edge(scores, edges, pos=0, iter=100, min_bkg=10):
+def get_best_edge(scores, edges, pos=0,
+                  steps=100, min_bkg=10,
+                  systematics=False):
     left, right = edges[pos:pos+2]
-    probe_edges = np.linspace(left, right, iter, endpoint=False)[1:]
     # Only consider edges that give non-negative yields for all backgrounds
     # (negative weights on the background events can be present)
     # and edges that will hold at least unweighted min_bkg events in the
@@ -85,9 +83,8 @@ def get_best_edge(scores, edges, pos=0, iter=100, min_bkg=10):
     bkg_weighted = []
     bkg_unweighted = []
     sums_weighted = []
-    last_idx = iter - 1
     for bkg, scores_dict in scores.bkg_scores:
-        weighted = Hist(iter, left, right)
+        weighted = Hist(steps, left, right)
         unweighted = weighted.Clone()
         s, w = scores_dict['NOMINAL']
         fill_hist(weighted, s, w)
@@ -100,18 +97,41 @@ def get_best_edge(scores, edges, pos=0, iter=100, min_bkg=10):
     tot_unweighted = sum(bkg_unweighted)
     sum_unweighted = np.cumsum(np.array(list(tot_unweighted.y()))[::-1])[::-1]
     all_positive = np.logical_and.reduce([b >= 0. for b in sums_weighted])
-    last_bin_min_bkg = np.where(sum_unweighted >= min_bkg)[-1][-1]
+    if not np.any(all_positive):
+        return None, None, None, None, -1
+    sum_unweighted_valid = sum_unweighted >= min_bkg
+    if not np.any(sum_unweighted_valid):
+        return None, None, None, None, -1
+    last_bin_min_bkg = np.where(sum_unweighted_valid)[-1][-1]
     # bump last bin down until each background is positive
     last_bin_min_bkg -= all_positive[:last_bin_min_bkg + 1][::-1].argmax()
     last_bin_edge = bkg_weighted[0].xedges(int(last_bin_min_bkg))
-    probe_edges = np.linspace(left, last_bin_edge, iter)[1:]
-    sigs = map_pool(SigProcess, [(scores, edges, x, pos+1) for x in probe_edges])
+    probe_edges = np.linspace(left, last_bin_edge, steps)[1:]
+    sigs = map_pool(SigProcess,
+                    [(scores, edges, x, pos + 1) for x in probe_edges],
+                    systematics=systematics)
     best_sig = np.max(sigs[10:])
-    best_edge = probe_edges[np.argmax(sigs[10:]) + 10]
-    return probe_edges, sigs, best_edge, best_sig
+    best_edge_idx = np.argmax(sigs[10:]) + 10
+    best_edge = probe_edges[best_edge_idx]
+    # get unweighted number of background events in this new bin
+    bkg_unweighted = []
+    for bkg, scores_dict in scores.bkg_scores:
+        unweighted = Hist([left, best_edge, right])
+        s, w = scores_dict['NOMINAL']
+        fill_hist(unweighted, s)
+        bkg_unweighted.append(unweighted)
+    tot_unweighted = sum(bkg_unweighted)
+    # stop if next bin would be too small
+    if tot_unweighted[1].value < min_bkg:
+        return None, None, None, None, -1
+    nbkg = tot_unweighted[2].value
+    assert(nbkg >= min_bkg)
+    return probe_edges, sigs, nbkg, best_edge, best_sig
 
 
-def get_workspace(scores, binning, fill_empties=False):
+def get_workspace(scores, binning,
+                  fill_empties=False,
+                  systematics=False):
     hist_template = Hist(binning)
     background = []
     for sample, scores_dict in scores.bkg_scores:
@@ -134,11 +154,15 @@ def get_workspace(scores, binning, fill_empties=False):
     return make_workspace(measurement, silence=False)
 
 
-def get_sig(scores, binning, edge=None, pos=1, fill_empties=False):
+def get_sig(scores, binning, edge=None, pos=1,
+            fill_empties=False,
+            systematics=False):
     if edge is not None:
         binning = binning[:]
         binning.insert(pos, edge)
-    ws = get_workspace(scores, binning, fill_empties=fill_empties)
+    ws = get_workspace(scores, binning,
+                       fill_empties=fill_empties,
+                       systematics=systematics)
     hist = get_significance_workspace(ws)
     sig = hist[2].value
     # handle nan
@@ -146,24 +170,30 @@ def get_sig(scores, binning, edge=None, pos=1, fill_empties=False):
 
 
 if __name__ == '__main__':
+    
     from rootpy.extern.argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument('--year', type=int, choices=(2011, 2012), default=2012)
+    parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
+    parser.add_argument('--min-bkg', type=int, default=10)
+    parser.add_argument('--steps', type=int, default=100)
+    parser.add_argument('--growth', type=float, default=0.5)
+    parser.add_argument('--systematics', action='store_true', default=False)
     args = parser.parse_args()
+    year = args.year
 
-    analysis = Analysis(args.year,
-                        transform=transform,
-                        systematics=systematics,
+    analysis = Analysis(year,
+                        transform=False,
+                        systematics=args.systematics,
                         qcd_workspace_norm=False,
                         ztt_workspace_norm=False)
 
-    for category in (Category_VBF, Category_Boosted):
+    for category in (Category_Boosted, Category_VBF):
         analysis.normalize(category)
         clf = analysis.get_clf(category, load=True)
         scores = analysis.get_scores(
             clf, category, 'OS', mode='workspace',
-            mass_points=[125], systematics=systematics)
+            mass_points=[125], systematics=args.systematics)
         min_score, max_score = scores.min_score, scores.max_score
 
         # nominal scores for convenience
@@ -188,7 +218,7 @@ if __name__ == '__main__':
 
         # plot the distributions
         b_hist = Hist(20, min_score, max_score, color='blue',
-                      linewidth=3, linestyle='dashed')
+                    linewidth=3, linestyle='dashed')
         s_hist = b_hist.Clone(color='red')
         fill_hist(b_hist, *b)
         fill_hist(s_hist, *s)
@@ -199,8 +229,10 @@ if __name__ == '__main__':
         nfixed_bins = range(1, 21)
         fixed_sigs = map_pool(
             SigProcess,
-            [(scores, np.linspace(min_score, max_score, bins + 1)) for bins in nfixed_bins], 
-            fill_empties=True)
+            [(scores, np.linspace(min_score, max_score, bins + 1))
+                for bins in nfixed_bins], 
+            fill_empties=True,
+            systematics=args.systematics)
         max_fixed_sig = np.max(fixed_sigs)
         max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
         
@@ -215,9 +247,17 @@ if __name__ == '__main__':
         # show significance vs middle bin edge location
         binning = [min_score, max_score]
         prev_best_sig = 0
+        min_bkg = args.min_bkg
         while True:
             # linear scan
-            edges, sigs, best_edge, best_sig = get_best_edge(scores, binning)
+            edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
+                scores, binning,
+                steps=args.steps,
+                min_bkg=min_bkg,
+                systematics=args.systematics)
+            if best_sig <= 0:
+                # no valid edge found
+                break
             if (best_sig - prev_best_sig) / best_sig < 0.005:
                 # improvement is not worth the new bin
                 break
@@ -226,19 +266,16 @@ if __name__ == '__main__':
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                 color='black', linestyle='-', linewidth=2)
             prev_best_sig = best_sig
+            min_bkg = int(max(args.min_bkg, nbkg * args.growth))
 
         #handles1, labels1 = ax1.get_legend_handles_labels()
         #handles2, labels2 = ax2.get_legend_handles_labels()
         #handles3, labels3 = ax3.get_legend_handles_labels()
         #ax2.legend(handles1+handles2+handles3, labels1+labels2+labels3)
         plt.tight_layout()
-
-        fig.savefig('binning_{0}_{1}.png'.format(category.name, args.year % 1000))
+        fig.savefig('binning_{0}_{1}.png'.format(category.name, year % 1000))
             
-        print binning
-
         # save the binning
-        with open(os.path.join(CACHE_DIR,
-                            'binning_{0}_{1}.pickle'.format(
-                                category.name, args.year % 1000)), 'w') as f:
+        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
+                category.name, year % 1000)), 'w') as f:
             pickle.dump(binning, f)

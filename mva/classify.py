@@ -228,16 +228,11 @@ class Classifier(object):
               remove_negative_weights=False,
               grid_search=True,
               cv_nfold=5,
-              use_cache=True,
               **clf_params):
         """
         Determine best BDTs on left and right partitions. Each BDT will then be
         used on the other partition.
         """
-        if use_cache and not self.clfs:
-            if self.load():
-                return
-
         signal_recs = []
         signal_arrs = []
         signal_weight_arrs = []

@@ -488,48 +488,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             weighted=False,
             stacked_model=False,
             cuts=cuts)
-
-    if 'train' in args.actions and not is_control:
-        
-        signals_train = [
-            Higgs(
-                year=year,
-                mass=125,
-                modes=category.train_signal_modes,
-                trigger=True),
-            # NOTE: used trigger=False, but this adds too many events with
-            # small weights and when the signal is cropped to the size of the
-            # background sample you are possibly left with many low-weight
-            # events vs a few high-weight events, therefore spiky
-            # distributions...
-        ]
-        
-        # combine embedded and MC Ztt for training
-        # TODO: account for the fact that N(MC) != N(EMB)
-        #analysis_eb = get_analysis(args, embedding=True)
-        #analysis_mc = get_analysis(args, embedding=False)
-        #analysis_eb.normalize(category)
-        #analysis_mc.normalize(category)
-        #analysis_eb.ztautau.scale *= 0.5
-        #analysis_mc.ztautau.scale *= 0.5
-        #backgrounds_train = [
-        #    analysis_eb.ztautau,
-        #    analysis_mc.ztautau,
-        #    analysis.others,
-        #    analysis.qcd,
-        #]
-
-        backgrounds_train = analysis.backgrounds
-
-        clf = analysis.get_clf(category, load=False)
-        
-        clf.train(
-            signals=signals_train,
-            backgrounds=backgrounds_train,
-            cuts=train_region,
-            grid_search=args.grid_search,
-            cv_nfold=args.nfold,
-            use_cache=args.use_clf_cache)
     
     if 'money' in args.actions and not is_control:
 
@@ -691,19 +649,18 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     
 if 'workspace' in args.actions:
-    #controls = make_track_channels(
-    #    CATEGORIES['mva_workspace_controls'],
-    #    include_signal=False)
-    if args.constrain_norms:
-        controls = []
+    #if args.constrain_norms:
+    controls = []
+    """
     else:
-        hist_template = Hist(10, 0, 1.5, type='D')
+        hist_template = Hist(5, 0, 1.5, type='D')
         controls = analysis.make_var_channels(
             hist_template,
             'dEta_tau1_tau2',
             CATEGORIES['mva_workspace_controls'],
             target_region,
             include_signal=True, mass_points=args.mass_points)
+    """
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 
