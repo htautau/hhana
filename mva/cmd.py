@@ -70,7 +70,7 @@ def analysis_parser(parser=None):
 
 
 def mass_parser(parser=None):
-    if parser is none:
+    if parser is None:
         parser = base_parser()
     parser.add_argument('--low-mass-cut', type=int,
             default=DEFAULT_LOW_MASS,

@@ -289,13 +289,13 @@ def make_clf_channels(categories):
     return all_channels
 
 
-COMBINATION_MAPPING = {
-    'ATLAS_norm_HH12_QCD': 'ATLAS_norm_HH_2012_QCD',
-    'ATLAS_norm_HH12_Ztt': 'ATLAS_norm_HH_2012_Ztt',
-    'ATLAS_ANA_HH12_QCD': 'ATLAS_ANA_HH_2012_QCD',
-    'ATLAS_TRIGGER_HH_2012_Emb': 'ATLAS_TRIGGER_EMB_HH_2012',
-}
-
+#COMBINATION_MAPPING = {
+#    'ATLAS_norm_HH12_QCD': 'ATLAS_norm_HH_2012_QCD',
+#    'ATLAS_norm_HH12_Ztt': 'ATLAS_norm_HH_2012_Ztt',
+#    'ATLAS_ANA_HH12_QCD': 'ATLAS_ANA_HH_2012_QCD',
+#    'ATLAS_TRIGGER_HH_2012_Emb': 'ATLAS_TRIGGER_EMB_HH_2012',
+#}
+#
 #fit = root_open('fit.root')
 #ws = fit.combined
 #ws.loadSnapshot('unconditional')
