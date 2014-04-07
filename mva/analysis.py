@@ -18,7 +18,8 @@ from .samples import Higgs, Data
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
-from .defaults import FAKES_REGION, TARGET_REGION, NORM_FIELD
+from .defaults import (
+    TRAIN_FAKES_REGION, FAKES_REGION, TARGET_REGION, NORM_FIELD)
 from statstools.utils import efficiency_cut
 
 
@@ -236,8 +237,10 @@ class Analysis(object):
                 yield category
 
     def get_suffix(self, clf=False):
-        # "track" here only for historical reasons
-        output_suffix = '_%s' % self.fakes_region
+        if clf:
+            output_suffix = '_%s' % TRAIN_FAKES_REGION
+        else:
+            output_suffix = '_%s' % self.fakes_region
         if self.use_embedding:
             output_suffix += '_ebz'
         else:
@@ -248,7 +251,7 @@ class Analysis(object):
             # force the use of 2012 clf on 2011
             output_suffix += '_12'
         else:
-            output_suffix += '_%d' % (self.year % 1E3)
+            output_suffix += '_%d' % (self.year % 1000)
         if not clf and not self.systematics:
             output_suffix += '_stat'
         return  output_suffix
@@ -591,7 +594,6 @@ class Analysis(object):
                 clf_name='classifier',
                 include_weight=True,
                 systematic='NOMINAL'):
-
         bkg_recs = {}
         for bkg in self.backgrounds:
             bkg_recs[bkg] = bkg.merged_records(
@@ -616,23 +618,18 @@ class Analysis(object):
                clf_name='classifier',
                include_weight=True,
                systematic='NOMINAL'):
-
         bkg_recs, sig_recs = self.records(
             category, region, cuts=cuts, fields=fields,
             clf=clf,
             clf_name=clf_name,
             include_weight=include_weight,
             systematic=systematic)
-
         bkg_arrs = {}
         sig_arrs = {}
-
         for b, rec in bkg_recs.items():
             bkg_arrs[b] = rec2array(rec)
-
         for s, rec in sig_recs.items():
             sig_arrs[s] = rec2array(rec)
-
         return bkg_arrs, sig_arrs
 
     def make_var_channels(self, hist_template, expr, categories, region,
