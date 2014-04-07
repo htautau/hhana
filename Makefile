@@ -239,8 +239,8 @@ dump:
 norms:
 	for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			nohup ./norm --no-systematics --qcd-shape-region $${model} --year $${year} > norm_ebz_$${model}_$${year}.log & \
-			nohup ./norm --no-systematics --no-embedding --qcd-shape-region $${model} --year $${year} > norm_mcz_$${model}_$${year}.log & \
+			nohup ./norm --no-systematics --fakes-region $${model} --year $${year} > norm_ebz_$${model}_$${year}.log & \
+			nohup ./norm --no-systematics --no-embedding --fakes-region $${model} --year $${year} > norm_mcz_$${model}_$${year}.log & \
 		done; \
 	done
 
@@ -248,8 +248,8 @@ norms:
 stats-plots:
 	for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			nohup ./ana plot --qcd-shape-region $${model} --no-systematics --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
-			nohup ./ana plot --qcd-shape-region $${model} --no-systematics --year $${year} --categories presel --output-formats eps png > var_plots_presel_$${year}_$${model}.log & \
+			nohup ./ana plot --fakes-region $${model} --no-systematics --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
+			nohup ./ana plot --fakes-region $${model} --no-systematics --year $${year} --categories presel --output-formats eps png > var_plots_presel_$${year}_$${model}.log & \
 		done; \
 	done
 

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from mva import CONST_PARAMS, CACHE_DIR
 from mva.categories import Category_VBF, Category_Boosted
 from mva.analysis import Analysis
+from mva.defaults import TARGET_REGION
 
 from statstools.fixups import fix_measurement
 from statstools import get_significance_workspace
@@ -136,12 +137,12 @@ def get_workspace(scores, binning,
     background = []
     for sample, scores_dict in scores.bkg_scores:
         background.append(sample.get_histfactory_sample(
-            hist_template, None, category, 'OS', scores=scores_dict,
+            hist_template, None, category, TARGET_REGION, scores=scores_dict,
             systematics=systematics))
     signal = []
     for sample, scores_dict in scores.all_sig_scores[125]:
         signal.append(sample.get_histfactory_sample(
-            hist_template, None, category, 'OS', scores=scores_dict,
+            hist_template, None, category, TARGET_REGION, scores=scores_dict,
             systematics=systematics))
     data_hist = sum([b.hist for b in background])
     data_hist.name = 'Data'
@@ -183,7 +184,6 @@ if __name__ == '__main__':
     year = args.year
 
     analysis = Analysis(year,
-                        transform=False,
                         systematics=args.systematics,
                         qcd_workspace_norm=False,
                         ztt_workspace_norm=False)
@@ -192,7 +192,7 @@ if __name__ == '__main__':
         analysis.normalize(category)
         clf = analysis.get_clf(category, load=True)
         scores = analysis.get_scores(
-            clf, category, 'OS', mode='workspace',
+            clf, category, TARGET_REGION, mode='workspace',
             mass_points=[125], systematics=args.systematics)
         min_score, max_score = scores.min_score, scores.max_score
 
@@ -274,7 +274,11 @@ if __name__ == '__main__':
         #ax2.legend(handles1+handles2+handles3, labels1+labels2+labels3)
         plt.tight_layout()
         fig.savefig('binning_{0}_{1}.png'.format(category.name, year % 1000))
-            
+        
+        # avoid overflow
+        binning[0] -= 1E5
+        binning[-1] += 1E5
+
         # save the binning
         with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
                 category.name, year % 1000)), 'w') as f:

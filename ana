@@ -272,6 +272,7 @@ def make_clf_channels(categories):
         with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
                 category.name, args.year % 1000))) as f:
             binning = pickle.load(f)
+        log.info("binning: {0}".format(str(binning)))
         # construct a "channel" for each mass point
         scores, channels = analysis.clf_channels(
             clf, category, target_region,
@@ -649,16 +650,16 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     
 if 'workspace' in args.actions:
-    if args.constrain_norms:
-        controls = []
-    else:
-        hist_template = Hist(5, 0, 1.5, type='D')
-        controls = analysis.make_var_channels(
-            hist_template,
-            'dEta_tau1_tau2',
-            CATEGORIES['mva_workspace_controls'],
-            target_region,
-            include_signal=True, mass_points=args.mass_points)
+    #if args.constrain_norms:
+    controls = []
+    #else:
+    #    hist_template = Hist(5, 0, 1.5, type='D')
+    #    controls = analysis.make_var_channels(
+    #        hist_template,
+    #        'dEta_tau1_tau2',
+    #        CATEGORIES['mva_workspace_controls'],
+    #        target_region,
+    #        include_signal=True, mass_points=args.mass_points)
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 

@@ -49,7 +49,7 @@ cache.set_scales(
     category.name,
     args.embedding,
     field,
-    args.qcd_shape_region,
+    args.fakes_region,
     qcd_scale=qcd_scale,
     qcd_scale_error=0.,
     qcd_data_scale=1.,
@@ -107,7 +107,7 @@ while (ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01) and it < max_iter:
         category.name,
         args.embedding,
         field,
-        args.qcd_shape_region,
+        args.fakes_region,
         qcd_scale=analysis.qcd.scale * qcd_scale,
         qcd_scale_error=analysis.qcd.scale * qcd_scale_error / qcd_scale,
         qcd_data_scale=1.,
@@ -128,7 +128,7 @@ draw_channel(channels[0], name=VARIABLES[field]['root'],
     category=category,
     output_name='{0}_postfit{1}'.format(field, analysis.get_suffix()),
     output_dir='plots/normalization',
-    top_label="Fakes Model: {0}".format(analysis.qcd_shape_region))
+    top_label="Fakes Model: {0}".format(analysis.fakes_region))
 
 # determine resonance pt reweighting after normalization
 #with root_open('weights.root', 'recreate') as weights_file:
