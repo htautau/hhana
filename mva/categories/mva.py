@@ -4,7 +4,8 @@ from .common import (
     Category_Preselection,
     Category_Preselection_DEta_Control,
     Category_Preselection_NO_MET_CENTRALITY,
-    CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY)
+    CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY,
+    DETA_TAUS)
 from .features import features_2j, features_boosted, features_0j
 
 
@@ -70,7 +71,7 @@ class Category_Rest(Category_Preselection):
     name = 'rest'
     label = '#tau_{had}#tau_{had} Rest'
     common_cuts = Category_Preselection.common_cuts
-    cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts)
+    cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts) & DETA_TAUS
     limitbins = 10
     features = features_0j
     # train with all modes

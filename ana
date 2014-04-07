@@ -649,9 +649,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     
 if 'workspace' in args.actions:
-    #if args.constrain_norms:
-    controls = []
-    """
+    if args.constrain_norms:
+        controls = []
     else:
         hist_template = Hist(5, 0, 1.5, type='D')
         controls = analysis.make_var_channels(
@@ -660,7 +659,6 @@ if 'workspace' in args.actions:
             CATEGORIES['mva_workspace_controls'],
             target_region,
             include_signal=True, mass_points=args.mass_points)
-    """
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 

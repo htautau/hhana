@@ -47,7 +47,7 @@ def general_parser(parser=None):
 
 
 def analysis_parser(parser=None):
-    if parser is none:
+    if parser is None:
         parser = base_parser()
     parser.add_argument('--random-mu', action='store_true', default=False,
             help='set mu (signal strength) to a random number')
