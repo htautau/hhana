@@ -66,9 +66,6 @@ def analysis_parser(parser=None):
             action='store_true', default=False)
     parser.add_argument('--decouple-qcd-shape',
             action='store_true', default=False)
-    parser.add_argument('--transform', action='store_true',
-            default=False,
-            help='apply a logistic transformation to classifier scores')
     return parser
 
 
