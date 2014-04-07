@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 
-from mva.cmd import get_parser
+from rootpy.extern.argparse import ArgumentParser
 
-args = get_parser(actions=False).parse_args()
-year = args.year
+parser = ArgumentParser()
+parser.add_argument('--nfold', type=int, default=10,
+    help='the number of folds in the cross-validation')
+parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
+args = parser.parse_args()
 
 from mva.categories import (
     Category_Preselection, Category_VBF, Category_Boosted)
-from mva.analysis import get_analysis
-from mva import log
+from mva.analysis import Analysis
+from mva.defaults import TRAIN_FAKES_REGION
 
 analysis = get_analysis(args)
+analysis = Analysis(
+    year=2012,
+    systematics=False,
+    fakes_region=TRAIN_FAKES_REGION)
 analysis.normalize(Category_Preselection)
-
-if args.mass_points == 'all':
-    args.mass_points = Higgs.MASS_POINTS
-else:
-    args.mass_points = map(int, args.mass_points.split(','))
-
 
 for category in (Category_VBF, Category_Boosted):
 
@@ -56,5 +57,4 @@ for category in (Category_VBF, Category_Boosted):
     clf.train(
         signals=signals_train,
         backgrounds=backgrounds_train,
-        grid_search=args.grid_search,
         cv_nfold=args.nfold)

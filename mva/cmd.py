@@ -5,6 +5,7 @@ from .categories import CATEGORIES
 from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from .variables import VARIABLES
 from .regions import REGIONS
+from .defaults import FAKES_REGION, TARGET_REGION
 
 
 class formatter_class(argparse.ArgumentDefaultsHelpFormatter,
@@ -13,17 +14,14 @@ class formatter_class(argparse.ArgumentDefaultsHelpFormatter,
 
 
 def base_parser():
-
     return argparse.ArgumentParser(formatter_class=formatter_class)
 
 
 def general_parser(parser=None):
-
     if parser is None:
         parser = base_parser()
-    """
-    General Options
-    """
+    parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
+            help='the year')
     parser.add_argument('--no-systematics', action='store_false',
             dest='systematics',
             help="turn off systematics",
@@ -37,24 +35,7 @@ def general_parser(parser=None):
             help='control definitions')
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
-    parser.add_argument('--random-mu', action='store_true', default=False,
-            help='set mu (signal strength) to a random number')
-    parser.add_argument('--mu', default=1., type=float,
-            help='set mu (signal strength)')
-    parser.add_argument('--no-embedding', action='store_false', default=True,
-            dest='embedding',
-            help='use ALPGEN Z->tau+tau instead of embedding')
-    parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
-            help='the year')
-    parser.add_argument('--qcd-shape-region', choices=REGIONS.keys(),
-            default='NONISOL',
-            help='QCD shape region')
-    parser.add_argument('--decouple-qcd-shape', action='store_true', default=False)
-    parser.add_argument('--optimize-limits', default=False, action='store_true')
     parser.add_argument('--mass-points', default='125')
-    parser.add_argument('--target-region', choices=REGIONS.keys(),
-            default='OS_ISOL',
-            help='target signal region')
     parser.add_argument('--suffix', default=None, nargs='?',
             help='suffix to add to any output files or plots')
     parser.add_argument('--workspace-suffix', default=None, nargs='?',
@@ -62,18 +43,38 @@ def general_parser(parser=None):
     parser.add_argument('--systematics-components', default=None,
             help='only include the following systematics in plots Example: '
                  'TES_TRUE_UP,QCD_SHAPE_UP')
+    return parser
+
+
+def analysis_parser(parser=None):
+    if parser is none:
+        parser = base_parser()
+    parser.add_argument('--random-mu', action='store_true', default=False,
+            help='set mu (signal strength) to a random number')
+    parser.add_argument('--mu', default=1., type=float,
+            help='set mu (signal strength)')
+    parser.add_argument('--no-embedding', action='store_false', default=True,
+            dest='embedding',
+            help='use ALPGEN Z->tau+tau instead of embedding')
+    parser.add_argument('--fakes-region', choices=REGIONS.keys(),
+            default=FAKES_REGION,
+            help='QCD shape region')
+    parser.add_argument('--target-region', choices=REGIONS.keys(),
+            default=TARGET_REGION,
+            help='target signal region')
     parser.add_argument('--constrain-norms',
             action='store_true', default=False)
+    parser.add_argument('--decouple-qcd-shape',
+            action='store_true', default=False)
+    parser.add_argument('--transform', action='store_true',
+            default=False,
+            help='apply a logistic transformation to classifier scores')
     return parser
 
 
 def mass_parser(parser=None):
-
-    if parser is None:
+    if parser is none:
         parser = base_parser()
-    """
-    Mass Regions Options
-    """
     parser.add_argument('--low-mass-cut', type=int,
             default=DEFAULT_LOW_MASS,
             help='the low mass window cut. '
@@ -90,45 +91,12 @@ def mass_parser(parser=None):
             default=True,
             help='Exclude the high mass sideband in the mass control and include '
             'it in the signal region')
-    parser.add_argument('--no-mmc', action='store_true', default=False,
-            help="do not include the MMC in the trained classifier")
-    return parser
-
-
-def training_parser(parser=None):
-
-    if parser is None:
-        parser = base_parser()
-    """
-    Training Options
-    """
-    parser.add_argument('--nfold', type=int, default=10,
-            help='the number of folds in the cross-validation')
-    parser.add_argument('--quick-eval', action='store_true', default=False,
-            help='do not make expensize validation plots')
-    parser.add_argument('--grid-search', action='store_true', default=False,
-            help='perform a grid-searched cross validation')
-    parser.add_argument('--forest-feature-ranking',
-            action='store_true', default=False,
-            help='Use a random forest to perform a feature ranking.')
-    parser.add_argument('--correlations', action='store_true', default=False,
-            help='draw correlation plots')
-    parser.add_argument('--ranking', action='store_true', default=False,
-            help='only show the variable rankings')
-    parser.add_argument('--raw-scores', action='store_true',
-            default=False,
-            help='use raw classifier scores instead of applying '
-                 'a logistic transformation')
     return parser
 
 
 def plotting_parser(parser=None):
-
     if parser is None:
         parser = base_parser()
-    """
-    Plotting Options
-    """
     parser.add_argument('--plots', nargs='*',
             help='only draw these plots. see the keys in variables.py')
     parser.add_argument('--plot-cut', default=None, nargs='?',
@@ -156,8 +124,8 @@ def plotting_parser(parser=None):
 
 def get_parser(actions=True):
     parser = general_parser()
+    analysis_parser(parser)
     mass_parser(parser)
-    training_parser(parser)
     plotting_parser(parser)
     if actions:
         parser.add_argument('actions', nargs='*',

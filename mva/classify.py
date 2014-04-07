@@ -129,7 +129,7 @@ class Classifier(object):
                  standardize=False,
                  output_suffix="",
                  clf_output_suffix="",
-                 partition_key=None,
+                 partition_key='EventNumber',
                  transform=True,
                  mmc=True):
 
@@ -224,10 +224,9 @@ class Classifier(object):
               max_sig=None,
               max_bkg=None,
               norm_sig_to_bkg=True,
-              same_size_sig_bkg=True, # NOTE: if True this crops signal a lot!!
+              same_size_sig_bkg=True,
               remove_negative_weights=False,
-              grid_search=True,
-              cv_nfold=5,
+              cv_nfold=10,
               **clf_params):
         """
         Determine best BDTs on left and right partitions. Each BDT will then be

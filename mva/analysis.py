@@ -18,7 +18,7 @@ from .samples import Higgs, Data
 from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
-
+from .defaults import FAKES_REGION, TARGET_REGION, NORM_FIELD
 from statstools.utils import efficiency_cut
 
 
@@ -42,15 +42,12 @@ def get_analysis(args, **kwargs):
         systematics=args.systematics,
         use_embedding=args.embedding,
         target_region=args.target_region,
-        qcd_shape_region=args.qcd_shape_region,
+        fakes_region=args.fakes_region,
         decouple_qcd_shape=args.decouple_qcd_shape,
         constrain_norms=args.constrain_norms,
         random_mu=args.random_mu,
         mu=args.mu,
-        partition_key='EventNumber', # 'MET_phi_original * 100', or None
-        suffix=args.suffix,
-        transform=not args.raw_scores,
-        mmc=not args.no_mmc)
+        suffix=args.suffix)
     return analysis
 
 
@@ -59,28 +56,22 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=True,
-                 target_region='OS_ISOL',
-                 qcd_shape_region='NONISOL',
+                 target_region=TARGET_REGION,
+                 fakes_region=FAKES_REGION,
                  decouple_qcd_shape=True,
                  qcd_workspace_norm=None,
                  ztt_workspace_norm=None,
                  constrain_norms=False,
                  random_mu=False,
                  mu=1.,
-                 partition_key='EventNumber',
-                 transform=True,
                  suffix=None,
-                 mmc=True,
-                 norm_field='dEta_tau1_tau2'):
+                 norm_field=NORM_FIELD):
         self.year = year
         self.systematics = systematics
         self.use_embedding = use_embedding
         self.target_region = target_region
-        self.qcd_shape_region = qcd_shape_region
-        self.partition_key = partition_key
-        self.transform = transform
+        self.fakes_region = fakes_region
         self.suffix = suffix
-        self.mmc = mmc
         self.norm_field = norm_field
 
         if use_embedding:
@@ -129,7 +120,7 @@ class Analysis(object):
         self.qcd = samples.QCD(
             data=self.data,
             mc=[self.ztautau, self.others],
-            shape_region=qcd_shape_region,
+            shape_region=fakes_region,
             decouple_shape=decouple_qcd_shape,
             workspace_norm=qcd_workspace_norm,
             constrain_norm=constrain_norms,
@@ -246,13 +237,11 @@ class Analysis(object):
 
     def get_suffix(self, clf=False):
         # "track" here only for historical reasons
-        output_suffix = '_%s' % self.qcd_shape_region
+        output_suffix = '_%s' % self.fakes_region
         if self.use_embedding:
             output_suffix += '_ebz'
         else:
             output_suffix += '_mcz'
-        if not self.mmc:
-            output_suffix += '_no_mmc'
         if self.suffix:
             output_suffix += '_%s' % self.suffix
         if self.year % 1E3 == 11 and clf:
@@ -580,7 +569,7 @@ class Analysis(object):
 
         return scores_obj, channels
 
-    def get_clf(self, category, load=False, swap=False):
+    def get_clf(self, category, load=False, swap=False, **kwargs):
 
         output_suffix = self.get_suffix()
         clf_output_suffix = self.get_suffix(clf=True)
@@ -591,9 +580,7 @@ class Analysis(object):
             region=self.target_region,
             clf_output_suffix=clf_output_suffix,
             output_suffix=output_suffix,
-            partition_key=self.partition_key,
-            transform=self.transform,
-            mmc=self.mmc)
+            **kwargs)
 
         if load and not clf.load(swap=swap):
             raise RuntimeError("train BDTs before requesting scores")
