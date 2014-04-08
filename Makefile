@@ -294,3 +294,9 @@ workspace-const:
 workspace-125:
 	nohup ./ana workspace > workspace.log &
 	nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu > workspace_unblind_random.log &
+
+.PHONY: train
+train:
+	for mass in $$(seq 100 5 150); do \
+		run-cluster ./train --mass $${mass}; \
+	done

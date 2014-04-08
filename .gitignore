@@ -1,3 +1,5 @@
+lhc*.phys.sfu.ca-*
+*.lock
 *.tar
 *.tar.gz
 STDIN.*
