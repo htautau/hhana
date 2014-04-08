@@ -478,8 +478,9 @@ class Classifier(object):
                         'n_estimators':
                         'trees'},
                     name=(self.category.name +
+                          ("_%d" % self.mass) +
                           self.output_suffix +
-                          "_%d" % partition_idx))
+                          ("_%d" % partition_idx)))
 
                 # save grid scores
                 with open('{0}_grid_scores.pickle'.format(clf_filename), 'w') as f:
