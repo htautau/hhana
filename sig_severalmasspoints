@@ -15,6 +15,7 @@ import ROOT
 # --> local imports
 from mva import CACHE_DIR,log
 from mva.cmd import get_parser
+from mva.samples import Higgs
 from statstools import get_significance_workspace
 from statstools.pvalue_plot import pvalue_plot
 
@@ -25,6 +26,13 @@ parser.add_argument('--force-pickle', action='store_true', default=False)
 parser.add_argument('workspace_dir')
 parser.add_argument('--workspace-basename', default='hh_combination')
 args = parser.parse_args()
+
+# --> Add a handle of the all shortcut in the mass-points argument
+if args.mass_points == 'all':
+    args.mass_points = Higgs.MASS_POINTS
+else:
+    args.mass_points = map(int, args.mass_points.split(','))
+
 
 #------------------------------------------------
 def get_significance(significances,file, ws,mass):
@@ -111,7 +119,7 @@ pickle_file = (args.workspace_dir+'_'+args.workspace_basename+'.pickle')
 pickle_file = pickle_file.replace( '/','_')
 SIGNIFICANCES_FILE = os.path.join(CACHE_DIR,pickle_file)
 log.info( 'Use %s'%SIGNIFICANCES_FILE )
-args.mass_points = map(int, args.mass_points.split(','))
+# args.mass_points = map(int, args.mass_points.split(','))
 log.info ( 'Mass points tested %s'%str(args.mass_points) )
 
 # --- Create the files/WS/tested mass lists
