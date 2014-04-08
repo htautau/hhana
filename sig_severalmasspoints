@@ -35,16 +35,16 @@ else:
 
 
 #------------------------------------------------
-def get_significance(significances,file, ws,mass):
+def get_significance(significances, file, ws, mass):
     with root_open(file) as f:
         if ws not in f:
             f.ls()
         else:
-            h = get_significance_workspace( f[ws], 
-                                            verbose=args.verbose,
-                                            blind = not args.unblind )
+            h = get_significance_workspace(f[ws], 
+                                           verbose=args.verbose,
+                                           blind=not args.unblind)
             signi = list(h.y())[1]
-            log.info( 'Tested mass: %d, significance = %1.4f' % (mass,signi) )
+            log.info('Tested mass: %d, significance = %1.4f' % (mass, signi))
             significances[mass] = signi
     return
 
@@ -69,7 +69,7 @@ def read_significances(significances_file):
     return significances
 
 #----------------------------------------------
-def write_significances( significances_file,files_list,ws_list,masses_list):
+def write_significances(significances_file, files_list, ws_list, masses_list):
     # -------------------------
     if not files_list:
         raise ValueError("files_list is empty")
@@ -79,11 +79,11 @@ def write_significances( significances_file,files_list,ws_list,masses_list):
         raise ValueError("masses_list is empty")
 
     # -------------------------
-    if not isinstance( files_list, (list, tuple) ):
+    if not isinstance(files_list, (list, tuple)):
         files_list = [files_list]
-    if not isinstance( ws_list, (list, tuple) ):
+    if not isinstance(ws_list, (list, tuple)):
         ws_list = [ws_list]
-    if not isinstance( masses_list, (list, tuple) ):
+    if not isinstance(masses_list, (list, tuple)):
         masses_list = [masses_list]
 
     # -------------------------
@@ -92,21 +92,20 @@ def write_significances( significances_file,files_list,ws_list,masses_list):
     manager = Manager()
     significances = manager.dict()
     jobs = []
-    for file,ws,mass in zip(files_list,ws_list,masses_list):
-        log.info( '============================================' )
-        log.info ( 'File: %s'%file )
-        log.info ( 'Workspace: %s'%ws )
-        log.info ( 'Tested mass: %d'%mass )
-        p = Process( target=get_significance,
-                     name='significance_m%d'%mass,
-                     args=(significances,file,ws,mass) )
+    for file, ws, mass in zip(files_list, ws_list, masses_list):
+        log.info('============================================')
+        log.info('File: %s' % file)
+        log.info('Workspace: %s' % ws)
+        log.info('Tested mass: %d' % mass)
+        p = Process(target=get_significance,
+                    name='significance_m%d' % mass,
+                    args=(significances, file, ws, mass))
         jobs.append(p)
         p.start()
-        log.info( str(p)+str(p.is_alive()) )
+        log.info('%s. Is alive ? %s' % (str(p), str(p.is_alive())) )
     for job in jobs:
         job.join()
-    log.info('Write to '+significances_file)
-    log.info( str(significances) )
+    log.info('Write to %s' % significances_file)
     with open(significances_file, 'w') as significances_file:
         pickle.dump(dict(significances), significances_file)
 
@@ -115,38 +114,38 @@ def write_significances( significances_file,files_list,ws_list,masses_list):
 # --------------------------------------------------------
 # ------------------ MAIN DRIVER
 # --------------------------------------------------------
-pickle_file = (args.workspace_dir+'_'+args.workspace_basename+'.pickle')
-pickle_file = pickle_file.replace( '/','_')
-SIGNIFICANCES_FILE = os.path.join(CACHE_DIR,pickle_file)
-log.info( 'Use %s'%SIGNIFICANCES_FILE )
+pickle_file = ('%s_%s.pickle' % (args.workspace_dir, args.workspace_basename))
+pickle_file = pickle_file.replace('/', '_')
+SIGNIFICANCES_FILE = os.path.join(CACHE_DIR, pickle_file)
+log.info('Use %s'%SIGNIFICANCES_FILE)
 # args.mass_points = map(int, args.mass_points.split(','))
-log.info ( 'Mass points tested %s'%str(args.mass_points) )
+log.info ('Mass points tested %s' % str(args.mass_points))
 
 # --- Create the files/WS/tested mass lists
 masses_list = args.mass_points
 ws_list = []
 files_list = []
 for mass in masses_list:
-    file = args.workspace_dir+'/'+args.workspace_basename+'_%d.root'%mass
-    ws = 'workspace_'+args.workspace_basename+'_%d'%mass
-    files_list.append( file )
-    ws_list.append( ws )
+    file = '%s/%s_%d.root'%(args.workspace_dir, args.workspace_basename, mass)
+    ws = 'workspace_%s_%d'%(args.workspace_basename, mass)
+    files_list.append(file)
+    ws_list.append(ws)
 
 # --- Write the significances into the pickle file
 # --- do it only if the file does not exist or if the force_pickle argument is called
 if os.path.isfile(SIGNIFICANCES_FILE) and not args.force_pickle:
-    log.warning( '%s already exists, significances are not recomputed'%SIGNIFICANCES_FILE)
+    log.warning('%s already exists, significances are not recomputed'%SIGNIFICANCES_FILE)
 else:
-    write_significances( SIGNIFICANCES_FILE,files_list,ws_list,masses_list )
+    write_significances(SIGNIFICANCES_FILE, files_list, ws_list, masses_list)
 
 # --- plot the significances
-significances_dict = read_significances( SIGNIFICANCES_FILE )
+significances_dict = read_significances(SIGNIFICANCES_FILE)
 pvalues_exp = []
 for mass in masses_list :
     pval_temp = ROOT.Math.gaussian_cdf_c(significances_dict[mass])
-    pvalues_exp.append( pval_temp )
+    pvalues_exp.append(pval_temp)
 
 c = Canvas()
-pvalue_plot(masses_list,pvalues_exp,c,xtitle='m_{H} [GeV]')
+pvalue_plot(masses_list, pvalues_exp, c, xtitle='m_{H} [GeV]')
 for fmt in args.output_formats:
     c.SaveAs('plots/pvalue.%s'%fmt)
