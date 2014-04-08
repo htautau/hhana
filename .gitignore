@@ -1,3 +1,5 @@
+*.e*
+*.o*
 lhc*.phys.sfu.ca-*
 *.lock
 *.tar
