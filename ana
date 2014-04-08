@@ -267,7 +267,7 @@ def make_clf_channels(categories):
     for category in categories:
         # apply normalization
         analysis.normalize(category)
-        clf = analysis.get_clf(category, load=True)
+        clf = analysis.get_clf(category, load=True, mass=125) # TODO: set mass
         # get the binning (see the optimize-binning script)
         with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
                 category.name, args.year % 1000))) as f:
