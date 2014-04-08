@@ -230,6 +230,7 @@ class Classifier(object):
               same_size_sig_bkg=True,
               remove_negative_weights=False,
               cv_nfold=10,
+              n_jobs=-1,
               **clf_params):
         """
         Determine best BDTs on left and right partitions. Each BDT will then be
@@ -435,13 +436,13 @@ class Classifier(object):
                     #score_func=accuracy_score,
                     score_func=roc_auc_score,
                     cv = StratifiedKFold(labels_train, cv_nfold),
-                    n_jobs=20)
+                    n_jobs=n_jobs)
 
                 #grid_clf = GridSearchCV(
                 #    clf, grid_params,
                 #    score_func=accuracy_score,
                 #    cv = StratifiedKFold(labels_train, cv_nfold),
-                #    n_jobs=20)
+                #    n_jobs=n_jobs)
 
                 log.info("")
                 log.info("using a %d-fold cross validation" % cv_nfold)

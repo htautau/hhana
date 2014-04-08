@@ -13,6 +13,9 @@ from mva.categories import (
 from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.defaults import TRAIN_FAKES_REGION
+import multiprocessing
+
+n_jobs = 3 * multiprocessing.cpu_count() / 4
 
 analysis = Analysis(
     year=2012,
@@ -54,4 +57,5 @@ for category in (Category_VBF, Category_Boosted):
     clf = analysis.get_clf(category, load=False, mass=args.mass)
     clf.train(signals=signals_train,
               backgrounds=backgrounds_train,
-              cv_nfold=args.nfold)
+              cv_nfold=args.nfold,
+              n_jobs=n_jobs)
