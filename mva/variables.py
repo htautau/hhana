@@ -404,6 +404,7 @@ VARIABLES = {
         'range': {
             'BOOSTED': (10, 0, 1.5),
             'VBF': (10, 0, 1.5),
+            'REST': (10, 0, 1.5),
             None: (10, 0, 2.5)},
         'ypadding': (0.5, 0),
     },

@@ -364,7 +364,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             plot_label='Signal Region' if not is_control and not ('preselection' in category.name) else None,
             category=category,
             region=target_region,
-#             systematics=SYSTEMATICS if args.systematics else None,
+            #systematics=SYSTEMATICS if args.systematics else None,
             systematics_components=args.systematics_components,
             output_formats=args.output_formats,
             weighted=not args.no_weight,
@@ -374,7 +374,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             cuts=cuts,
             show_ratio=True,
             no_data=args.no_data,
-            top_label="Fakes Model: {0}".format(analysis.qcd_shape_region),
+            top_label="Fakes Model: {0}".format(analysis.fakes_region),
             fit=None) # vars at pre-fit
         figures[category.name] = figs
 

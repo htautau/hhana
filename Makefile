@@ -3,6 +3,8 @@ HHSTUDENT ?= hhskim
 HHNTUP ?= ntuples/prod/hhskim
 HHNTUP_RUNNING ?= ntuples/running/hhskim
 
+BRANCH := $(shell git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
+
 .PHONY: dump
 
 default: clean
@@ -215,7 +217,7 @@ clean: clean-pyc
 
 bundle:
 	rm -f ~/higgstautau-mva-plots.tar.gz
-	tar -vpczf ~/higgstautau-mva-plots.tar.gz plots/*.eps 
+	find plots/variables/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
 	@echo bundle at ~/higgstautau-mva-plots.tar.gz
 
 png-bundle:
