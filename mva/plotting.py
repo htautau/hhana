@@ -1434,7 +1434,7 @@ def draw(name,
             base_hist.xaxis.GetTitleOffset() * 3)
         base_hist.xaxis.SetLabelOffset(
             base_hist.xaxis.GetLabelOffset() * 4)
-        base_hist.yaxis.CenterTitle(True)
+        #base_hist.yaxis.CenterTitle(True)
     base_hist.xaxis.SetTitle(label)
 
     # draw the category label
