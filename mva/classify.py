@@ -121,6 +121,7 @@ class Classifier(object):
     ]
 
     def __init__(self,
+                 mass,
                  fields,
                  category,
                  region,
@@ -140,6 +141,7 @@ class Classifier(object):
             except ValueError:
                 pass
 
+        self.mass = mass
         self.fields = fields
         self.category = category
         self.region = region
@@ -182,8 +184,9 @@ class Classifier(object):
 
             category_name = self.category.get_parent().name
             clf_filename = os.path.join(CACHE_DIR, 'classify',
-                'clf_%s%s_%d.pickle' % (
-                category_name, self.clf_output_suffix, partition_idx))
+                'clf_%s_%d%s_%d.pickle' % (
+                category_name, self.mass,
+                self.clf_output_suffix, partition_idx))
 
             log.info("attempting to open %s ..." % clf_filename)
             if os.path.isfile(clf_filename):
@@ -273,8 +276,9 @@ class Classifier(object):
         for partition_idx in range(2):
 
             clf_filename = os.path.join(CACHE_DIR, 'classify',
-                'clf_%s%s_%d' % (
-                self.category.name, self.clf_output_suffix, partition_idx))
+                'clf_%s_%d%s_%d' % (
+                self.category.name, self.mass,
+                self.clf_output_suffix, partition_idx))
 
             # train a classifier
             # merge arrays and create training samples

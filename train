@@ -11,50 +11,47 @@ args = parser.parse_args()
 from mva.categories import (
     Category_Preselection, Category_VBF, Category_Boosted)
 from mva.analysis import Analysis
+from mva.samples import Higgs
 from mva.defaults import TRAIN_FAKES_REGION
 
-analysis = get_analysis(args)
 analysis = Analysis(
     year=2012,
     systematics=False,
     fakes_region=TRAIN_FAKES_REGION)
 analysis.normalize(Category_Preselection)
 
+# combine embedded and MC Ztt for training
+# TODO: account for the fact that N(MC) != N(EMB)
+#analysis_eb = get_analysis(args, embedding=True)
+#analysis_mc = get_analysis(args, embedding=False)
+#analysis_eb.normalize(category)
+#analysis_mc.normalize(category)
+#analysis_eb.ztautau.scale *= 0.5
+#analysis_mc.ztautau.scale *= 0.5
+#backgrounds_train = [
+#    analysis_eb.ztautau,
+#    analysis_mc.ztautau,
+#    analysis.others,
+#    analysis.qcd,
+#]
+
+backgrounds_train = analysis.backgrounds
+
 for category in (Category_VBF, Category_Boosted):
 
     signals_train = [
-        Higgs(
-            year=year,
-            mass=125,
-            modes=category.train_signal_modes,
-            trigger=True),
-        # NOTE: used trigger=False, but this adds too many events with
-        # small weights and when the signal is cropped to the size of the
-        # background sample you are possibly left with many low-weight
-        # events vs a few high-weight events, therefore spiky
-        # distributions...
-    ]
-    
-    # combine embedded and MC Ztt for training
-    # TODO: account for the fact that N(MC) != N(EMB)
-    #analysis_eb = get_analysis(args, embedding=True)
-    #analysis_mc = get_analysis(args, embedding=False)
-    #analysis_eb.normalize(category)
-    #analysis_mc.normalize(category)
-    #analysis_eb.ztautau.scale *= 0.5
-    #analysis_mc.ztautau.scale *= 0.5
-    #backgrounds_train = [
-    #    analysis_eb.ztautau,
-    #    analysis_mc.ztautau,
-    #    analysis.others,
-    #    analysis.qcd,
-    #]
+        Higgs(year=2012,
+              mass=args.mass,
+              modes=category.train_signal_modes,
+              trigger=True),
+        ]
+    # NOTE: used trigger=False, but this adds too many events with
+    # small weights and when the signal is cropped to the size of the
+    # background sample you are possibly left with many low-weight
+    # events vs a few high-weight events, therefore spiky
+    # distributions...
 
-    backgrounds_train = analysis.backgrounds
-
-    clf = analysis.get_clf(category, load=False)
-    
-    clf.train(
-        signals=signals_train,
-        backgrounds=backgrounds_train,
-        cv_nfold=args.nfold)
+    clf = analysis.get_clf(category, load=False, mass=args.mass)
+    clf.train(signals=signals_train,
+              backgrounds=backgrounds_train,
+              cv_nfold=args.nfold)
