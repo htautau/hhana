@@ -6,7 +6,7 @@ import os
 from . import log; log = log[__name__]
 
 
-def fix(input, suffix='fixed', verbose=False):
+def fix(input, suffix='fixed', verbose=False, **kwargs):
     """
     Traverse all workspaces and apply HSG4 fixes
     """
@@ -31,7 +31,7 @@ def fix(input, suffix='fixed', verbose=False):
                         silence=not verbose)
                     for meas in measurements:
                         with MemFile():
-                            fix_measurement(meas)
+                            fix_measurement(meas, **kwargs)
                             write_measurement(meas,
                                 output_path=os.path.join(
                                     output, dirpath.replace(input, '', 1)[1:]),
