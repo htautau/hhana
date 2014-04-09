@@ -222,7 +222,7 @@ bundle:
 
 png-bundle:
 	rm -f ~/higgstautau-mva-plots.tar.gz
-	tar -vpczf ~/higgstautau-mva-plots.tar.gz plots/*.png 
+	find plots/variables/$(BRANCH) -name '*.png' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
 	@echo bundle at ~/higgstautau-mva-plots.tar.gz
 
 montage:
