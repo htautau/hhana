@@ -109,6 +109,7 @@ class Category_Cuts_Boosted(Category_Preselection):
     name = 'cuts_boosted_cr'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Control Region'
     cuts = Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts
+    limitbins = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
     norm_category = Category_Preselection
 
 

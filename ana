@@ -759,7 +759,8 @@ if '2d-mass-workspace' in args.actions:
 
 if 'cuts-workspace' in args.actions:
     channels = {}
-    for category in analysis.iter_categories('cuts'):
+#     for category in analysis.iter_categories('cuts'):
+    for category in analysis.iter_categories(args.categories):
         hist_template = Hist(category.limitbins, type='D')
         for mass in args.mass_points:
             channel = analysis.get_channel_array(

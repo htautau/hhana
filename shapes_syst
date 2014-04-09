@@ -47,7 +47,8 @@ others=analysis.others
 qcd=analysis.qcd
 TotalBkg=CompositeSample( backgrounds, name='TotalBkg', label='Total Background' )
 TotalSig=CompositeSample( signals, name='TotalSig', label='H#rightarrow#tau#tau' )
-TestedSamples=[ztautau,others,qcd,TotalBkg,TotalSig] 
+# TestedSamples=[ztautau,others,qcd,TotalBkg,TotalSig] 
+TestedSamples=[TotalSig] 
 
 log.info( backgrounds )
 for s in TestedSamples:
