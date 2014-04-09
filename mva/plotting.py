@@ -1043,11 +1043,6 @@ def draw(name,
         data[1] += data[0]
         data[-2] += data[-1]
 
-    if 'BDT' in name:
-        # HACK
-        log.warning("using BDT axes ranges")
-        range = (-1, 1.3)
-
     # objects will be populated with all histograms in the main pad
     objects = []
     legends = []
@@ -1473,21 +1468,20 @@ def draw(name,
         label.Draw()
         keepalive(hist_pad, label)
 
-    # HACK
-    if 'BDT' not in name:
-        divisions = min(model[0].nbins(), 7) if integer else 507
-        model_stack.xaxis.SetNdivisions(divisions)
-        if show_ratio:
-            base_hist.xaxis.SetNdivisions(divisions)
-
     hist_pad.Update()
     hist_pad.Modified()
     #hist_pad.RedrawAxis()
 
+    divisions = min(model[0].nbins(), 7) if integer else 507
+    model_stack.xaxis.SetNdivisions(divisions)
     if range is None:
         range = model[0].bounds()
     model_stack.xaxis.SetLimits(*range)
     model_stack.xaxis.SetRangeUser(*range)
+    if show_ratio:
+        base_hist.xaxis.SetLimits(*range)
+        base_hist.xaxis.SetRangeUser(*range)
+        base_hist.xaxis.SetNdivisions(divisions)
 
     # draw arrows
     if arrow_values is not None:

@@ -374,8 +374,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             cuts=cuts,
             show_ratio=True,
             no_data=args.no_data,
-            top_label="Fakes Model: {0}".format(analysis.fakes_region),
-            fit=None) # vars at pre-fit
+            top_label="Fakes Model: {0}".format(analysis.fakes_region))
         figures[category.name] = figs
 
     if 'plotevolving' in args.actions:
@@ -636,6 +635,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     if 'evaluate' in args.actions and not is_control:
         # create BDT validation plots
+        clf = analysis.get_clf(category, load=True, mass=125, transform=True)
         clf.evaluate(
             analysis,
             signal_region=signal_region,
@@ -644,9 +644,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             systematics=SYSTEMATICS if args.systematics else None,
             output_formats=args.output_formats,
             signal_scale=50,)
-            #fit=nps)
-
-        #category_scores[category.name] = (bkg_scores, sig_scores)
 
     
 if 'workspace' in args.actions:

@@ -605,7 +605,6 @@ class Classifier(object):
         category = self.category
         region = self.region
 
-
         ##########################################################
         # show the background model and data in the control region
         log.info("plotting classifier output in control region ...")
@@ -630,6 +629,7 @@ class Classifier(object):
             systematics=systematics,
             output_formats=output_formats,
             ypadding=(0.4, 0.),
+            range=(-1, 1),
             signal_scale=signal_scale,
             signal_on_top=False,
             show_ratio=True)
@@ -644,7 +644,7 @@ class Classifier(object):
             mode='combined',
             systematics=systematics,
             bins=category.limitbins / 2,
-            unblind=unblind or 0.6,
+            unblind=unblind or 0.3,
             no_signal_fixes=True)
 
         bkg_scores = scores.bkg_scores
@@ -663,6 +663,7 @@ class Classifier(object):
             data_info=str(analysis.data.info),
             output_name='event_bdt_score_signal_region' + self.output_suffix,
             name='BDT score',
+            range=(-1, 1),
             systematics=systematics,
             output_formats=output_formats,
             show_ratio=True,
@@ -819,7 +820,6 @@ class Classifier(object):
             unblind=True,
             fit=fit)
         """
-        #return bkg_scores, sig_scores_125
 
 
 def purity_score(bdt, X):

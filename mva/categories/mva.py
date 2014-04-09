@@ -24,8 +24,7 @@ class Category_VBF(Category_Preselection):
         CUTS_VBF
         & Cut('dEta_jets > 2.0')
         )
-    #limitbins = 98
-    limitbins = 40
+    limitbins = 20
     features = features_2j
     # train with only VBF
     signal_train_modes = ['VBF']
@@ -49,8 +48,7 @@ class Category_Boosted(Category_Preselection):
         & CUTS_BOOSTED
         & Cut(MET_CENTRALITY.format(pi / 6))
         )
-    #limitbins = 86
-    limitbins = 40
+    limitbins = 20
     # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes
