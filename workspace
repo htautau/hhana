@@ -25,11 +25,15 @@ def bdt_workspace(path, analysis, categories, masses,
         include_signal=True, masses=masses)
     mass_category_channel = {}
     for category in analysis.iter_categories(categories):
-        clf = analysis.get_clf(category, load=True, mass=125) # TODO: set mass
+        
+        #### TODO: SET MASS using 125 for all points for now
+        clf = analysis.get_clf(category, load=True, mass=125)
         # get the binning (see the optimize-binning script)
-        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
-                category.name, args.year % 1000))) as f:
+        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}_{2}.pickle'.format(
+                category.name, 125, args.year % 1000))) as f:
             binning = pickle.load(f)
+        ####
+
         log.info("binning: {0}".format(str(binning)))
         # construct a "channel" for each mass point
         scores, channels = analysis.clf_channels(
