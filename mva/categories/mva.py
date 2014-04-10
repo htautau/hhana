@@ -6,7 +6,7 @@ from .common import (
     Category_Preselection_NO_MET_CENTRALITY,
     CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY,
     DETA_TAUS)
-from .features import features_2j, features_boosted, features_0j
+from .features import features_vbf, features_boosted
 
 
 class Category_VBF_NO_DETAJJ_CUT(Category_Preselection):

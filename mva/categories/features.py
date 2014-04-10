@@ -27,12 +27,6 @@ features_vbf = [
 
 features_boosted = [
     MMC_MASS,
-    # !!! mass ditau + leading jet?
-    #'dEta_jets',
-    #'dEta_jets_boosted', #
-    #'eta_product_jets',
-    #'eta_product_jets_boosted', #
-    #'mass_jet1_jet2',
     #'sphericity', #
     #'aplanarity', #
     #'tau1_centrality',
@@ -49,5 +43,4 @@ features_boosted = [
     #'resonance_pt',
     'sum_pt_full',
     'tau_pt_ratio',
-    # !!! eta centrality of 3rd jet
 ]
