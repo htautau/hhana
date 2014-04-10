@@ -180,8 +180,10 @@ if __name__ == '__main__':
     parser.add_argument('--steps', type=int, default=100)
     parser.add_argument('--growth', type=float, default=0.5)
     parser.add_argument('--systematics', action='store_true', default=False)
+    parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
     args = parser.parse_args()
     year = args.year
+    mass = args.mass
 
     analysis = Analysis(year,
                         systematics=args.systematics,
@@ -190,10 +192,10 @@ if __name__ == '__main__':
 
     for category in (Category_Boosted, Category_VBF):
         analysis.normalize(category)
-        clf = analysis.get_clf(category, load=True)
+        clf = analysis.get_clf(category, load=True, mass=mass)
         scores = analysis.get_scores(
             clf, category, TARGET_REGION, mode='workspace',
-            mass_points=[125], systematics=args.systematics)
+            mass_points=[mass], systematics=args.systematics)
         min_score, max_score = scores.min_score, scores.max_score
 
         # nominal scores for convenience
@@ -264,7 +266,7 @@ if __name__ == '__main__':
             ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
             binning.insert(1, best_edge)
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
-                color='black', linestyle='-', linewidth=2)
+                     color='black', linestyle='-', linewidth=2)
             prev_best_sig = best_sig
             min_bkg = int(max(args.min_bkg, nbkg * args.growth))
 
@@ -273,13 +275,14 @@ if __name__ == '__main__':
         #handles3, labels3 = ax3.get_legend_handles_labels()
         #ax2.legend(handles1+handles2+handles3, labels1+labels2+labels3)
         plt.tight_layout()
-        fig.savefig('binning_{0}_{1}.png'.format(category.name, year % 1000))
+        fig.savefig('binning_{0}_{1}_{2}.png'.format(
+                    category.name, mass, year % 1000))
         
         # avoid overflow
         binning[0] -= 1E5
         binning[-1] += 1E5
 
         # save the binning
-        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
-                category.name, year % 1000)), 'w') as f:
+        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}_{2}.pickle'.format(
+                               category.name, mass, year % 1000)), 'w') as f:
             pickle.dump(binning, f)
