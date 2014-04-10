@@ -133,20 +133,20 @@ class Higgs(MC, Signal):
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
 
-        # QCDscale_ggH3in MVA only
-        if mode == 'gg' and category.name == 'vbf':
-            up = self.QCDscale_ggH3in_file.up_fit
-            dn = self.QCDscale_ggH3in_file.dn_fit
-            nom = sample.hist
-            up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
-            dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
-            up_hist *= up
-            dn_hist *= dn
-            shape = histfactory.HistoSys('QCDscale_ggH3in',
-                low=dn_hist,
-                high=up_hist)
-            norm, shape = histfactory.split_norm_shape(shape, nom)
-            sample.AddHistoSys(shape)
+        # QCDscale_ggH3in MVA only UPDATE THIS!!!
+        #if mode == 'gg' and category.name == 'vbf':
+        #    up = self.QCDscale_ggH3in_file.up_fit
+        #    dn = self.QCDscale_ggH3in_file.dn_fit
+        #    nom = sample.hist
+        #    up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
+        #    dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
+        #    up_hist *= up
+        #    dn_hist *= dn
+        #    shape = histfactory.HistoSys('QCDscale_ggH3in',
+        #        low=dn_hist,
+        #        high=up_hist)
+        #    norm, shape = histfactory.split_norm_shape(shape, nom)
+        #    sample.AddHistoSys(shape)
 
     def __init__(self, year,
             mode=None, modes=None,
