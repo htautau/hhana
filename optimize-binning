@@ -178,7 +178,7 @@ if __name__ == '__main__':
     parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
     parser.add_argument('--min-bkg', type=int, default=10)
     parser.add_argument('--steps', type=int, default=100)
-    parser.add_argument('--growth', type=float, default=0.5)
+    parser.add_argument('--growth', type=float, default=0.1)
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
     args = parser.parse_args()
