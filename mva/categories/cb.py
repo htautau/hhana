@@ -85,6 +85,15 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     limitbins = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
     norm_category = Category_Preselection
 
+class Category_Cuts_Boosted_Tight_2011(Category_Preselection):
+    name = 'cuts_boosted_tight'
+    label = '#tau_{had}#tau_{had} Cut-based Boosted Tight'
+    latex = '\\textbf{Boosted High-$p_T^{H}$}'
+    cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
+            & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
+    #         & ((Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt > 140000')) | Cut('resonance_pt > 200000')))
+    limitbins = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,INF]
+    norm_category = Category_Preselection
 
 class Category_Cuts_Boosted_Loose(Category_Preselection):
     name = 'cuts_boosted_loose'
@@ -109,7 +118,6 @@ class Category_Cuts_Boosted(Category_Preselection):
     name = 'cuts_boosted_cr'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Control Region'
     cuts = Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts
-    limitbins = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
     norm_category = Category_Preselection
 
 
