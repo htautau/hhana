@@ -1,3 +1,6 @@
+import os
+
+from rootpy.io import root_open
 from rootpy.stats import histfactory
 from rootpy.utils.path import mkdir_p
 
