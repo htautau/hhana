@@ -149,6 +149,7 @@ def mass2d_workspace(path, analysis, categories, masses,
 
 if __name__ == '__main__':
     from mva import cmd
+    from mva.samples import Higgs
     
     parser = cmd.analysis_parser(cmd.general_parser())
     parser.add_argument('type', choices=('bdt', 'cuts'), default='bdt')
