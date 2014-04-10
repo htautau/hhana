@@ -1,13 +1,7 @@
+import rootpy.compiled as C
 import os
-import ROOT
-from rootpy.utils.lock import lock
-
 HERE = os.path.dirname(os.path.abspath(__file__))
-
-with lock(HERE):
-    ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'AsymptoticsCLs.C'),
-        'k',
-        'AsymptoticsCLs',
-        '/tmp')
-
-from ROOT import AsymptoticsCLs
+PATH = os.path.join(HERE, 'src', 'AsymptoticsCLs.C')
+C.register_file(PATH, ['AsymptoticsCLs'])
+from rootpy.compiled import AsymptoticsCLs
+__all__ = ['AsymptoticsCLs']

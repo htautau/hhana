@@ -1,11 +1,7 @@
+import rootpy.compiled as C
 import os
-import ROOT
-
 HERE = os.path.dirname(os.path.abspath(__file__))
-
-ROOT.gSystem.CompileMacro(os.path.join(HERE, 'src', 'runSig.C'),
-        'k',
-        'runSig',
-        '/tmp')
-
-from ROOT import runSig
+PATH = os.path.join(HERE, 'src', 'runSig.C')
+C.register_file(PATH, ['runSig'])
+from rootpy.compiled import runSig
+__all__ = ['runSig']
