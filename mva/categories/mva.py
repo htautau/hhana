@@ -25,7 +25,7 @@ class Category_VBF(Category_Preselection):
         & Cut('dEta_jets > 2.0')
         )
     limitbins = 20
-    features = features_2j
+    features = features_vbf
     # train with only VBF
     signal_train_modes = ['VBF']
     norm_category = Category_Preselection
@@ -71,7 +71,4 @@ class Category_Rest(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts) & DETA_TAUS
     limitbins = 10
-    features = features_0j
-    # train with all modes
     norm_category = Category_Preselection
-    #workspace_min_clf = 0.
