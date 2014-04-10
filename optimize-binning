@@ -75,6 +75,7 @@ def map_pool(process, args, n_jobs=-1, **kwargs):
 
 def get_best_edge(scores, edges, pos=0,
                   steps=100, min_bkg=10,
+                  mass=125,
                   systematics=False):
     left, right = edges[pos:pos+2]
     # Only consider edges that give non-negative yields for all backgrounds
@@ -110,6 +111,7 @@ def get_best_edge(scores, edges, pos=0,
     probe_edges = np.linspace(left, last_bin_edge, steps)[1:]
     sigs = map_pool(SigProcess,
                     [(scores, edges, x, pos + 1) for x in probe_edges],
+                    mass=mass,
                     systematics=systematics)
     best_sig = np.max(sigs[10:])
     best_edge_idx = np.argmax(sigs[10:]) + 10
@@ -131,6 +133,7 @@ def get_best_edge(scores, edges, pos=0,
 
 
 def get_workspace(scores, binning,
+                  mass=125,
                   fill_empties=False,
                   systematics=False):
     hist_template = Hist(binning)
@@ -140,7 +143,7 @@ def get_workspace(scores, binning,
             hist_template, None, category, TARGET_REGION, scores=scores_dict,
             systematics=systematics))
     signal = []
-    for sample, scores_dict in scores.all_sig_scores[125]:
+    for sample, scores_dict in scores.all_sig_scores[mass]:
         signal.append(sample.get_histfactory_sample(
             hist_template, None, category, TARGET_REGION, scores=scores_dict,
             systematics=systematics))
@@ -156,12 +159,14 @@ def get_workspace(scores, binning,
 
 
 def get_sig(scores, binning, edge=None, pos=1,
+            mass=125,
             fill_empties=False,
             systematics=False):
     if edge is not None:
         binning = binning[:]
         binning.insert(pos, edge)
     ws = get_workspace(scores, binning,
+                       mass=mass,
                        fill_empties=fill_empties,
                        systematics=systematics)
     hist = get_significance_workspace(ws)
@@ -201,8 +206,8 @@ if __name__ == '__main__':
         # nominal scores for convenience
         b = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.bkg_scores])
         bw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.bkg_scores])
-        s = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.all_sig_scores[125]])
-        sw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.all_sig_scores[125]])
+        s = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.all_sig_scores[mass]])
+        sw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.all_sig_scores[mass]])
         min_score = min(np.min(s), np.min(b)) - 1E-8
         max_score = max(np.max(s), np.max(b)) + 1E-8
         s = (s, sw)
@@ -234,6 +239,7 @@ if __name__ == '__main__':
             [(scores, np.linspace(min_score, max_score, bins + 1))
                 for bins in nfixed_bins], 
             fill_empties=True,
+            mass=mass,
             systematics=args.systematics)
         max_fixed_sig = np.max(fixed_sigs)
         max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
