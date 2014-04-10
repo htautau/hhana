@@ -30,7 +30,7 @@ args = parser.parse_args()
 
 # --> Add a handle of the all shortcut in the mass-points argument
 if args.masses == 'all':
-    args.masses = Higgs.masses
+    args.masses = Higgs.MASSES
 else:
     args.masses = map(int, args.masses.split(','))
 
