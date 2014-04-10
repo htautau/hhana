@@ -22,10 +22,8 @@ def general_parser(parser=None):
         parser = base_parser()
     parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
             help='the year')
-    parser.add_argument('--no-systematics', action='store_false',
-            dest='systematics',
-            help="turn off systematics",
-            default=True)
+    parser.add_argument('--systematics', action='store_true', default=False,
+            help="enable systematics")
     parser.add_argument('--categories', default='mva',
             choices=CATEGORIES.keys(),
             help='category definitions')
@@ -35,11 +33,11 @@ def general_parser(parser=None):
             help='control definitions')
     parser.add_argument('--unblind', action='store_true', default=False,
             help='plot the data in the signal region of the classifier output')
-    parser.add_argument('--mass-points', default='125')
+    parser.add_argument('--masses', default='125')
     parser.add_argument('--suffix', default=None, nargs='?',
             help='suffix to add to any output files or plots')
-    parser.add_argument('--workspace-suffix', default=None, nargs='?',
-            help='suffix to add to workspace output files')
+    parser.add_argument('--output-suffix', default=None, nargs='?',
+            help='suffix to add to any output files or plots')
     parser.add_argument('--systematics-components', default=None,
             help='only include the following systematics in plots Example: '
                  'TES_TRUE_UP,QCD_SHAPE_UP')

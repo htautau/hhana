@@ -200,7 +200,7 @@ if __name__ == '__main__':
         clf = analysis.get_clf(category, load=True, mass=mass)
         scores = analysis.get_scores(
             clf, category, TARGET_REGION, mode='workspace',
-            mass_points=[mass], systematics=args.systematics)
+            masses=[mass], systematics=args.systematics)
         min_score, max_score = scores.min_score, scores.max_score
 
         # nominal scores for convenience

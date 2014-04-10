@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-
 """
 This is the main driver script for the analysis
 """
-
 from mva.cmd import get_parser
 
 args = get_parser().parse_args()
@@ -18,7 +16,6 @@ import pickle
 # rootpy imports
 from rootpy.tree import Cut
 from rootpy.io import root_open
-from rootpy.stats import histfactory
 from rootpy.plotting import Hist2D, Hist
 from rootpy.utils.silence import silence_sout_serr
 from rootpy.plotting.contrib import plot_contour_matrix
@@ -47,16 +44,12 @@ from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS, YEAR_VARIABLES
 from mva.analysis import get_analysis, Analysis
-from mva.lumi import get_lumi_uncert
-from mva import log, variables, samples, MMC_MASS, CONST_PARAMS
+from mva import log, variables, samples, MMC_MASS
 from mva.norm import cache
 
 
 SYSTEMATICS = get_systematics(year)
-lumi_rel_error = get_lumi_uncert(year)
 args.systematics_components = parse_systematics(args.systematics_components)
-figures = {}
-category_scores = {}
 
 mass_regions = MassRegions(
     low=args.low_mass_cut,
@@ -78,161 +71,6 @@ target_region = args.target_region
 analysis = get_analysis(args)
 
 output_suffix = analysis.get_suffix()
-
-if args.mass_points == 'all':
-    args.mass_points = Higgs.MASS_POINTS
-else:
-    args.mass_points = map(int, args.mass_points.split(','))
-
-workspace_suffix = output_suffix
-if args.workspace_suffix:
-    workspace_suffix += '_' + args.workspace_suffix
-workspace_suffix = workspace_suffix.lower()
-
-silence = False
-
-"""
-Workspace functions
-"""
-
-def write_measurements(mass_category_channel, controls=None):
-    log.info("writing measurements ...")
-    if controls is None:
-        controls = []
-    workspace_output_dir = 'workspaces/hh%s' % workspace_suffix
-    if os.path.exists(workspace_output_dir):
-        shutil.rmtree(workspace_output_dir)
-    os.mkdir(workspace_output_dir)
-    for mass, category_channel in mass_category_channel.items():
-        channels = []
-        # make measurement for each category, including the control region in each
-        for category, channel in category_channel.items():
-            name = "hh_category_%s_%d" % (category, mass)
-            log.info("writing {0} ...".format(name))
-            # make measurement
-            measurement = histfactory.make_measurement(
-                name, [channel] + (
-                    controls[mass].values() if isinstance(controls, dict) else controls),
-                POI='SigXsecOverSM',
-                lumi=1.0,
-                lumi_rel_error=lumi_rel_error,
-                const_params=CONST_PARAMS)
-            with root_open(os.path.join(workspace_output_dir,
-                '{0}.root'.format(name)), 'recreate') as workspace_file:
-                # mu=1 for Asimov data
-                #measurement.SetParamValue('SigXsecOverSM', 1)
-                histfactory.write_measurement(measurement,
-                    root_file=workspace_file,
-                    xml_path=os.path.join(workspace_output_dir, name),
-                    silence=silence)
-            channels.append(channel)
-        # make combined measurement
-        name = "hh_combination_%d" % mass
-        log.info("writing {0} ...".format(name))
-        measurement = histfactory.make_measurement(
-            name, channels + (
-                controls[mass].values() if isinstance(controls, dict) else controls),
-            POI='SigXsecOverSM',
-            lumi=1.0,
-            lumi_rel_error=lumi_rel_error,
-            const_params=CONST_PARAMS)
-        with root_open(os.path.join(workspace_output_dir,
-            '{0}.root'.format(name)), 'recreate') as workspace_file:
-            # mu=1 for Asimov data
-            #measurement.SetParamValue('SigXsecOverSM', 1)
-            histfactory.write_measurement(measurement,
-                root_file=workspace_file,
-                xml_path=os.path.join(workspace_output_dir, name),
-                silence=silence)
-
-
-def write_workspaces(mass_category_channel, controls=None):
-    log.info("writing workspaces ...")
-    if controls is None:
-        controls = []
-    workspace_output_dir = 'workspaces/hh%s' % workspace_suffix
-    if os.path.exists(workspace_output_dir):
-        shutil.rmtree(workspace_output_dir)
-    os.mkdir(workspace_output_dir)
-    for mass, category_channel in mass_category_channel.items():
-        channels = []
-
-        # make workspace for each category, including the control region in each
-        for category, channel in category_channel.items():
-            name = "hh_category_%s_%d" % (category, mass)
-            log.info("writing {0} ...".format(name))
-            # make workspace
-            measurement = histfactory.make_measurement(
-                name, [channel] + (
-                    controls[mass].values() if isinstance(controls, dict) else controls),
-                POI='SigXsecOverSM',
-                lumi=1.0,
-                lumi_rel_error=lumi_rel_error,
-                const_params=CONST_PARAMS)
-            workspace = histfactory.make_workspace(measurement, name=name, silence=silence)
-            with root_open(os.path.join(workspace_output_dir,
-                '{0}.root'.format(name)), 'recreate') as workspace_file:
-                workspace.Write()
-                # mu=1 for Asimov data
-                #measurement.SetParamValue('SigXsecOverSM', 1)
-                histfactory.write_measurement(measurement,
-                    root_file=workspace_file,
-                    xml_path=os.path.join(workspace_output_dir, name),
-                    silence=silence)
-            channels.append(channel)
-
-        # make combined workspace
-        name = "hh_combination_%d" % mass
-        log.info("writing {0} ...".format(name))
-
-        measurement = histfactory.make_measurement(
-            name, channels + (
-                controls[mass].values() if isinstance(controls, dict) else controls),
-            POI='SigXsecOverSM',
-            lumi=1.0,
-            lumi_rel_error=lumi_rel_error,
-            const_params=CONST_PARAMS)
-
-        workspace = histfactory.make_workspace(measurement, name=name, silence=silence)
-
-        with root_open(os.path.join(workspace_output_dir,
-            '{0}.root'.format(name)), 'recreate') as workspace_file:
-            workspace.Write()
-            # mu=1 for Asimov data
-            #measurement.SetParamValue('SigXsecOverSM', 1)
-            histfactory.write_measurement(measurement,
-                root_file=workspace_file,
-                xml_path=os.path.join(workspace_output_dir, name),
-                silence=silence)
-
-
-def make_clf_channels(categories):
-    all_channels = {}
-    for category in categories:
-        # apply normalization
-        analysis.normalize(category)
-        clf = analysis.get_clf(category, load=True, mass=125) # TODO: set mass
-        # get the binning (see the optimize-binning script)
-        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
-                category.name, args.year % 1000))) as f:
-            binning = pickle.load(f)
-        log.info("binning: {0}".format(str(binning)))
-        # construct a "channel" for each mass point
-        scores, channels = analysis.clf_channels(
-            clf, category, target_region,
-            cuts=signal_region,
-            bins=binning,
-            mass_points=args.mass_points,
-            mode='workspace',
-            systematics=args.systematics,
-            unblind=args.unblind or 0.3,
-            uniform=True)
-        for mass, channel in channels.items():
-            if mass not in all_channels:
-                all_channels[mass] = {}
-            all_channels[mass][category.name] = channel
-    return all_channels
-
 
 #COMBINATION_MAPPING = {
 #    'ATLAS_norm_HH12_QCD': 'ATLAS_norm_HH_2012_QCD',
@@ -285,7 +123,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         fig.SaveAs('data_consistency_{0}.png'.format(category.name))
 
     if 'plot' in args.actions:
-        figures[category.name] = {}
         cuts = Cut(args.plot_cut)
 
         if args.plot_expr is not None:
@@ -319,7 +156,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             show_ratio=True,
             no_data=args.no_data,
             top_label="Fakes Model: {0}".format(analysis.fakes_region))
-        figures[category.name] = figs
 
     if 'plotevolving' in args.actions:
         from copy import deepcopy    
@@ -360,7 +196,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             VARS_ORIGINAL = VARIABLES
 
         for sc in score_cuts:
-            figures[category.name] = {}
             cuts = Cut(args.plot_cut)
             VARS = deepcopy(VARS_ORIGINAL)
             for v in VARS:
@@ -388,14 +223,13 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
                 min_score = sc,
                 signal_on_top=True,
             )
-            figures[category.name] = figs
 
     if 'massplot' in args.actions:
         cuts = Cut(args.plot_cut)
         draw_channel_array(
             analysis,
             vars={MMC_MASS: VARIABLES[MMC_MASS]},
-            mass=Higgs.MASS_POINTS[::2],
+            mass=Higgs.MASSES[::2],
             mode='combined',
             signal_scale=50,
             stacked_signal=False,
@@ -436,7 +270,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     if 'money' in args.actions and not is_control:
 
         scores = analysis.get_scores(clf, category, target_region,
-                mode='combined', mass_points=[125],
+                mode='combined', masses=[125],
                 systematics=args.systematics,
                 unblind=True)
 
@@ -588,116 +422,3 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             systematics=SYSTEMATICS if args.systematics else None,
             output_formats=args.output_formats,
             signal_scale=50,)
-
-    
-if 'workspace' in args.actions:
-    if args.constrain_norms:
-        controls = []
-    else:
-        hist_template = Hist(5, 0, 1.5, type='D')
-        controls = analysis.make_var_channels(
-            hist_template,
-            'dEta_tau1_tau2',
-            CATEGORIES['mva_workspace_controls'],
-            target_region,
-            include_signal=True, mass_points=args.mass_points)
-    mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
-    write_workspaces(mass_category_channel, controls)
-
-if 'mass-workspace' in args.actions:
-    hist_template = Hist(30, 50, 200, type='D')
-    
-    channels = {}
-    for category in analysis.iter_categories(args.categories):
-
-        clf = analysis.get_clf(category, load=True)
-        scores = analysis.get_scores(
-            clf, category, target_region, cuts=signal_region,
-            mass_points=[125], mode='combined',
-            systematics=False,
-            unblind=True)
-
-        bkg_scores = scores.bkg_scores
-        sig_scores = scores.all_sig_scores[125]
-        min_score = scores.min_score
-        max_score = scores.max_score
-        
-        bkg_score_hist = Hist(category.limitbins, min_score, max_score, type='D')
-        sig_score_hist = bkg_score_hist.Clone()
-        hist_scores(bkg_score_hist, bkg_scores)
-        _bkg = bkg_score_hist.Clone()
-        hist_scores(sig_score_hist, sig_scores)
-        _sig = sig_score_hist.Clone()
-        sob_hist = (1 + _sig / _bkg)
-        _log = math.log
-        for bin in sob_hist.bins(overflow=True):
-            bin.value = _log(bin.value)
-        log.info(str(list(sob_hist.y())))
-        
-        for mass in Higgs.MASS_POINTS:
-            channel = analysis.get_channel_array(
-                {MMC_MASS: VARIABLES[MMC_MASS]},
-                templates={MMC_MASS: hist_template},
-                category=category,
-                region=target_region,
-                cuts=signal_region,
-                include_signal=True,
-                weight_hist=sob_hist,
-                clf=clf,
-                mass=mass,
-                scale_125=False, # CHANGE
-                mode='workspace',
-                systematics=args.systematics)[MMC_MASS]
-            if mass not in channels:
-                channels[mass] = {}
-            channels[mass][category.name] = channel
-    write_workspaces(channels)
-
-if '2d-mass-workspace' in args.actions:
-    hist_template = Hist2D(250, 0, 250, 200, -1, 1, type='D')
-    channels = {}
-    for category in analysis.iter_categories(args.categories):
-        clf = analysis.get_clf(category, load=True)
-        for mass in args.mass_points:
-            channel = analysis.get_channel_array(
-                {MMC_MASS: hist_template},
-                category=category,
-                region=target_region,
-                cuts=signal_region,
-                clf=clf,
-                include_signal=True,
-                mass=mass,
-                mode='workspace',
-                systematics=args.systematics,
-                ravel=False)[MMC_MASS]
-            if mass not in channels:
-                channels[mass] = {}
-            channels[mass][category.name] = channel
-    #write_workspaces(channels) # slow with this many bins
-    write_measurements(channels)
-
-
-if 'cuts-workspace' in args.actions:
-    channels = {}
-#     for category in analysis.iter_categories('cuts'):
-    for category in analysis.iter_categories(args.categories):
-        if isinstance(category.limitbins, dict):
-            binning = category.limitbins[year]
-        else:
-            binning = category.limitbins
-        hist_template = Hist(binning, type='D')
-        for mass in args.mass_points:
-            channel = analysis.get_channel_array(
-                {MMC_MASS: hist_template},
-                category=category,
-                region=target_region,
-                cuts=None,
-                include_signal=True,
-                mass=mass,
-                mode='workspace',
-                systematics=args.systematics,
-                uniform=True)[MMC_MASS]
-            if mass not in channels:
-                channels[mass] = {}
-            channels[mass][category.name] = channel
-    write_workspaces(channels)

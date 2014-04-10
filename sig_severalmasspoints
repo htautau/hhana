@@ -29,10 +29,10 @@ parser.add_argument('--workspace-basename', default='hh_combination')
 args = parser.parse_args()
 
 # --> Add a handle of the all shortcut in the mass-points argument
-if args.mass_points == 'all':
-    args.mass_points = Higgs.MASS_POINTS
+if args.masses == 'all':
+    args.masses = Higgs.masses
 else:
-    args.mass_points = map(int, args.mass_points.split(','))
+    args.masses = map(int, args.masses.split(','))
 
 
 #------------------------------------------------
@@ -115,11 +115,11 @@ pickle_file = ('%s_%s.pickle' % (args.workspace_dir, args.workspace_basename))
 pickle_file = pickle_file.replace('/', '_')
 SIGNIFICANCES_FILE = os.path.join(CACHE_DIR, 'significances', pickle_file)
 log.info('Use %s'%SIGNIFICANCES_FILE)
-# args.mass_points = map(int, args.mass_points.split(','))
-log.info ('Mass points tested %s' % str(args.mass_points))
+# args.masses = map(int, args.masses.split(','))
+log.info ('Mass points tested %s' % str(args.masses))
 
 # --- Create the files/WS/tested mass lists
-masses_list = args.mass_points
+masses_list = args.masses
 ws_list = []
 files_list = []
 for mass in masses_list:

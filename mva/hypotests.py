@@ -510,7 +510,7 @@ def optimized_channels(clf, category, region, backgrounds,
 
     # now use the optimal binning and construct channels for all requested mass
     # hypotheses
-    for mass in Higgs.MASS_POINTS:
+    for mass in Higgs.MASSES:
         if mass_points is not None and mass not in mass_points:
             continue
         log.info('=' * 20)

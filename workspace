@@ -1,0 +1,170 @@
+#!/usr/bin/env python
+
+from rootpy.plotting import Hist, Hist2D
+from rootpy.io import root_open
+
+from mva.analysis import get_analysis
+from mva.categories import CATEGORIES
+from mva.workspace import write_workspaces, write_measurements
+from mva import CACHE_DIR, MMC_MASS
+from mva import log
+
+import pickle
+import math
+import os
+
+
+def bdt_workspace(path, analysis, categories, masses,
+                  unblind=False,
+                  systematics=False):
+    hist_template = Hist(5, 0, 1.5, type='D')
+    controls = analysis.make_var_channels(
+        hist_template, 'dEta_tau1_tau2',
+        CATEGORIES['mva_workspace_controls'],
+        analysis.target_region,
+        include_signal=True, masses=masses)
+    mass_category_channel = {}
+    for category in analysis.iter_categories(categories):
+        clf = analysis.get_clf(category, load=True, mass=125) # TODO: set mass
+        # get the binning (see the optimize-binning script)
+        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}.pickle'.format(
+                category.name, args.year % 1000))) as f:
+            binning = pickle.load(f)
+        log.info("binning: {0}".format(str(binning)))
+        # construct a "channel" for each mass point
+        scores, channels = analysis.clf_channels(
+            clf, category,
+            region=analysis.target_region,
+            bins=binning,
+            masses=masses,
+            mode='workspace',
+            systematics=systematics,
+            unblind=unblind or 0.3,
+            uniform=True)
+        for mass, channel in channels.items():
+            if mass not in mass_category_channel:
+                mass_category_channel[mass] = {}
+            mass_category_channel[mass][category.name] = channel
+    write_workspaces(path, mass_category_channel, controls)
+
+
+def cuts_workspace(path, analysis, categories, masses,
+                   systematics=False):
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        if isinstance(category.limitbins, dict):
+            binning = category.limitbins[year]
+        else:
+            binning = category.limitbins
+        hist_template = Hist(binning, type='D')
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                cuts=None,
+                include_signal=True,
+                mass=mass,
+                mode='workspace',
+                systematics=systematics,
+                uniform=True)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    write_workspaces(path, channels)
+
+
+def mass_workspace(path, analysis, categories, masses,
+                   systematics=False):
+    hist_template = Hist(30, 50, 200, type='D')
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        clf = analysis.get_clf(category, load=True, mass=125)
+        scores = analysis.get_scores(
+            clf, category, target_region,
+            masses=[125], mode='combined',
+            systematics=False,
+            unblind=True)
+        bkg_scores = scores.bkg_scores
+        sig_scores = scores.all_sig_scores[125]
+        min_score = scores.min_score
+        max_score = scores.max_score
+        bkg_score_hist = Hist(category.limitbins, min_score, max_score, type='D')
+        sig_score_hist = bkg_score_hist.Clone()
+        hist_scores(bkg_score_hist, bkg_scores)
+        _bkg = bkg_score_hist.Clone()
+        hist_scores(sig_score_hist, sig_scores)
+        _sig = sig_score_hist.Clone()
+        sob_hist = (1 + _sig / _bkg)
+        _log = math.log
+        for bin in sob_hist.bins(overflow=True):
+            bin.value = _log(bin.value)
+        log.info(str(list(sob_hist.y())))
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: VARIABLES[MMC_MASS]},
+                templates={MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                include_signal=True,
+                weight_hist=sob_hist,
+                clf=clf,
+                mass=mass,
+                scale_125=False, # CHANGE
+                mode='workspace',
+                systematics=systematics)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    write_workspaces(path, channels)
+
+
+def mass2d_workspace(path, analysis, categories, masses,
+                     systematics=False):
+    hist_template = Hist2D(250, 0, 250, 200, -1, 1, type='D')
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        clf = analysis.get_clf(category, load=True)
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                clf=clf,
+                include_signal=True,
+                mass=mass,
+                mode='workspace',
+                systematics=systematics,
+                ravel=False)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    #write_workspaces(channels) # slow with this many bins
+    write_measurements(path, channels)
+
+
+if __name__ == '__main__':
+    from mva import cmd
+    
+    parser = cmd.analysis_parser(cmd.general_parser())
+    parser.add_argument('type', choices=('bdt', 'cuts'), default='bdt')
+    args = parser.parse_args()
+
+    analysis = get_analysis(args)
+    suffix = analysis.get_suffix()
+    if args.output_suffix:
+        suffix += '_' + args.output_suffix
+    suffix = suffix.lower()
+    path = 'workspaces/hh{0}'.format(suffix)
+    if args.masses == 'all':
+        args.masses = Higgs.MASSES
+    else:
+        args.masses = map(int, args.masses.split(','))
+
+    if args.type == 'bdt':
+        bdt_workspace(path, analysis, args.categories, args.masses,
+                      unblind=args.unblind,
+                      systematics=args.systematics)
+    elif args.type == 'cuts':
+        cuts_workspace(path, analysis, args.categories, args.masses,
+                       systematics=args.systematics)

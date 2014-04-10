@@ -364,7 +364,7 @@ class Analysis(object):
         return field_channels
 
     def get_scores(self, clf, category, region, cuts=None,
-                   mass_points=None, mode=None, unblind=False,
+                   masses=None, mode=None, unblind=False,
                    systematics=True):
 
         log.info("getting scores")
@@ -412,10 +412,8 @@ class Analysis(object):
 
         # signal scores
         all_sig_scores = {}
-        if mass_points is not None:
-            for mass in samples.Higgs.MASS_POINTS:
-                if mass not in mass_points:
-                    continue
+        if masses is not None:
+            for mass in masses:
                 # signal scores
                 sigs = self.get_signals(mass=mass, mode=mode)
                 sig_scores = []
@@ -457,7 +455,7 @@ class Analysis(object):
                      category, region,
                      cuts=None,
                      bins=10,
-                     mass_points=None,
+                     masses=None,
                      mode=None,
                      systematics=True,
                      unblind=False,
@@ -472,7 +470,7 @@ class Analysis(object):
 
         scores_obj = self.get_scores(
             clf, category, region, cuts=cuts,
-            mass_points=mass_points, mode=mode,
+            masses=masses, mode=mode,
             systematics=systematics,
             unblind=unblind)
 
@@ -509,7 +507,7 @@ class Analysis(object):
                     efficiency_cut(
                         sum([histogram_scores(hist_template, scores)
                              for s, scores in all_sig_scores[mass]]), 0.3)
-                        for mass in mass_points])
+                        for mass in masses])
                 """
                 max_unblind_score = efficiency_cut(
                     sum([histogram_scores(hist_template, scores)
@@ -533,7 +531,7 @@ class Analysis(object):
                 # always at 0 pull.
                 pass
 
-        if mass_points is None:
+        if masses is None:
             # create channel without signal
             channel = histfactory.make_channel(
                 category.name,
@@ -542,9 +540,7 @@ class Analysis(object):
             return scores_obj, channel
 
         # signal scores
-        for mass in samples.Higgs.MASS_POINTS:
-            if mass not in mass_points:
-                continue
+        for mass in masses:
             log.info('=' * 20)
             log.info("%d GeV mass hypothesis" % mass)
 
@@ -630,7 +626,7 @@ class Analysis(object):
         return bkg_arrs, sig_arrs
 
     def make_var_channels(self, hist_template, expr, categories, region,
-                          include_signal=False, mass_points=None):
+                          include_signal=False, masses=None):
         if not include_signal:
             channels = []
             for category in categories:
@@ -653,7 +649,7 @@ class Analysis(object):
                 # apply normalization
                 self.normalize(parent_category)
                 # clf = analysis.get_clf(parent_category, load=True)
-                for mass in mass_points:
+                for mass in masses:
                     contr = self.get_channel(hist_template, expr,
                         category=category,
                         region=region,

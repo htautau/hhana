@@ -18,7 +18,7 @@ TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 
 
 class Higgs(MC, Signal):
-    MASS_POINTS = range(100, 155, 5)
+    MASSES = range(100, 155, 5)
     MODES = ['Z', 'W', 'gg', 'VBF']
     MODES_COMBINED = [['Z', 'W'], ['gg'], ['VBF']]
     MODES_DICT = {
@@ -149,20 +149,20 @@ class Higgs(MC, Signal):
         #    sample.AddHistoSys(shape)
 
     def __init__(self, year,
-            mode=None, modes=None,
-            mass=None, masses=None,
-            sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
-            **kwargs):
+                 mode=None, modes=None,
+                 mass=None, masses=None,
+                 sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
+                 **kwargs):
         if masses is None:
             if mass is not None:
-                assert mass in Higgs.MASS_POINTS
+                assert mass in Higgs.MASSES
                 masses = [mass]
             else:
-                masses = Higgs.MASS_POINTS
+                masses = Higgs.MASSES
         else:
             assert len(masses) > 0
             for mass in masses:
-                assert mass in Higgs.MASS_POINTS
+                assert mass in Higgs.MASSES
             assert len(set(masses)) == len(masses)
 
         if modes is None:
