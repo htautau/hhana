@@ -205,62 +205,6 @@ def write_workspaces(mass_category_channel, controls=None):
                 xml_path=os.path.join(workspace_output_dir, name),
                 silence=silence)
 
-    
-def make_track_channels(categories, include_signal=False):
-    # create control region Channels here
-    control_analysis = Analysis(
-        year=year,
-        systematics=args.systematics,
-        use_embedding=args.embedding,
-        qcd_shape_region='SS',
-        decouple_qcd_shape=args.decouple_qcd_shape,
-        partition_key=analysis.partition_key,
-        suffix=args.suffix,
-        transform=not args.raw_scores)
-    expr = ('tau1_numTrack_recounted', 'tau2_numTrack_recounted')
-    # define the 2D boundaries and number of bins
-    min_edge, max_edge = .5, 4.5
-    bins = int(max_edge - min_edge)
-    # define the histogram template
-    hist_template = Hist2D(
-        bins, min_edge, max_edge,
-        bins, min_edge, max_edge, type='D')
-    if not include_signal:
-        channels = []
-        for category in categories:
-            parent_category = category.get_parent()
-            # apply normalization
-            control_analysis.normalize(parent_category)
-            # clf = analysis.get_clf(parent_category, load=True)
-            contr = control_analysis.get_channel(hist_template, expr,
-                category=category,
-                region='OS',
-                #clf=clf,
-                #cuts=signal_region,
-                include_signal=False)
-            channels.append(contr)
-            # TODO check that number of SS events is consistent with nOS
-    else:
-        channels = {}
-        for category in categories:
-            parent_category = category.get_parent()
-            # apply normalization
-            control_analysis.normalize(parent_category)
-            # clf = analysis.get_clf(parent_category, load=True)
-            for mass in args.mass_points:
-                contr = control_analysis.get_channel(hist_template, expr,
-                    category=category,
-                    region='OS',
-                    #clf=clf,
-                    #cuts=signal_region,
-                    include_signal=True,
-                    mass=mass,
-                    mode='workspace')
-                if mass not in channels:
-                    channels[mass] = {}
-                channels[mass][category.name] = contr
-    return channels
-
 
 def make_clf_channels(categories):
     all_channels = {}
@@ -660,29 +604,6 @@ if 'workspace' in args.actions:
     mass_category_channel = make_clf_channels(CATEGORIES[args.categories])
     write_workspaces(mass_category_channel, controls)
 
-
-categories = CATEGORIES['mva_all']
-
-if 'track-workspace' in args.actions:
-    mass_category_channel = make_track_channels(
-        categories,
-        include_signal=True)
-    write_workspaces(mass_category_channel)
-
-if 'deta-workspace' in args.actions:
-    hist_template = Hist(10, 0, 1.5, type='D')
-    mass_category_channel = make_var_channels(
-        hist_template,
-        'dEta_tau1_tau2',
-        categories,
-        include_signal=True)
-    write_workspaces(mass_category_channel)
-
-if 'bdt-workspace' in args.actions:
-    mass_category_channel = make_clf_channels(categories)
-    write_workspaces(mass_category_channel)
-
-
 if 'mass-workspace' in args.actions:
     hist_template = Hist(30, 50, 200, type='D')
     
@@ -731,7 +652,6 @@ if 'mass-workspace' in args.actions:
                 channels[mass] = {}
             channels[mass][category.name] = channel
     write_workspaces(channels)
-
 
 if '2d-mass-workspace' in args.actions:
     hist_template = Hist2D(250, 0, 250, 200, -1, 1, type='D')
