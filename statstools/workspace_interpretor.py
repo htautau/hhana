@@ -103,6 +103,7 @@ class workspaceinterpretor:
             if not nuis:
                 break
             log.info( '%s: %1.2f<%1.2f<%1.2f'%(nuis.GetName(),nuis.getAsymErrorLo(),nuis.getVal(),nuis.getAsymErrorHi()))
+<<<<<<< HEAD
 
         comps = simPdf.getComponents()
         compIter = comps.createIterator()
@@ -120,6 +121,29 @@ class workspaceinterpretor:
             if not var:
                 break
             log.info( '%s: %1.2f < %1.2f'%(var.GetName()) )
+#     args = pdftmp.getComponents()
+#     argIter = args.createIterator()
+#     while True:
+#         comp = argIter.Next()
+#         if not comp: break
+#         comp.Print()
+#         if 'nominal' in comp.GetName():
+#             hist_comp_nom[comp.GetName()] = comp.createHistogram(cat.GetName()+"_"+comp.GetName(),obs)
+#         if "alpha" in comp.GetName()[0:5]:
+#             comp.Print(),comp.getVariables().Print()
+
+
+
+=======
+
+        comps = simPdf.getComponents()
+        compIter = comps.createIterator()
+        while True:
+            comp = compIter.Next()
+            if not comp:
+                break
+            vars = comp.getVariables()
+            log.info( comp.GetName() )
 #     args = pdftmp.getComponents()
 #     argIter = args.createIterator()
 #     while True:
