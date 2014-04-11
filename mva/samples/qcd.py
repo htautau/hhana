@@ -405,75 +405,44 @@ class QCD(Sample, Background):
         # expected number of QCD events
         # get number of events at preselection for nominal model
         from ..categories import Category_Preselection
+
+        models = {
+            'nOS_NONISOL': 'nOS_ISOL',
+        }
+
+        curr_model = self.shape_region
+        if curr_model not in models:
+            raise ValueError(
+                "no QCD shape systematic defined for nominal {0}".format(
+                    curr_model))
+
         nominal_events = self.events(Category_Preselection, None)[1].value
 
         hist_template = nominal_hist.Clone()
         hist_template.Reset()
 
-        curr_model = self.shape_region
         # add QCD shape systematic
-        if curr_model == 'SS':
-            # OSFF x (SS / SSFF) model in the track-fit category
-            models = []
-            events = []
-            for model in ('OSFF', 'SSFF'):
-                log.info("getting QCD shape for {0}".format(model))
-                self.shape_region = model
-                models.append(self.get_hist(
-                    hist_template,
-                    expr_or_clf,
-                    category, region,
-                    cuts=cuts,
-                    clf=clf,
-                    scores=None,
-                    min_score=min_score,
-                    max_score=max_score,
-                    systematics=False,
-                    suffix=(suffix or '') + '_%s' % model,
-                    field_scale=field_scale,
-                    weight_hist=weight_hist,
-                    weighted=weighted))
-                events.append(self.events(Category_Preselection, None)[1].value)
-
-            OSFF, SSFF = models
-            OSFF_events, SSFF_events = events
-            shape_sys = OSFF
-            nominal_hist_norm = nominal_hist / nominal_hist.Integral()
-            SSFF_norm = SSFF / SSFF.Integral()
-            shape_sys *= nominal_hist_norm / SSFF_norm
-            # this is approximate
-            # normalize shape_sys such that it would have the same number of
-            # events as the nominal at preselection
-            shape_sys *= nominal_events / float(OSFF_events)
-
-        elif curr_model == 'nOS':
-            # SS model elsewhere
-            self.shape_region = 'SS'
-            log.info("getting QCD shape for SS")
-            shape_sys = self.get_hist(
-                hist_template,
-                expr_or_clf,
-                category, region,
-                cuts=cuts,
-                clf=clf,
-                scores=None,
-                min_score=min_score,
-                max_score=max_score,
-                systematics=False,
-                suffix=(suffix or '') + '_SS',
-                field_scale=field_scale,
-                weight_hist=weight_hist,
-                weighted=weighted)
-            SS_events = self.events(Category_Preselection, None)[1].value
-            # normalize shape_sys such that it would have the same number of
-            # events as the nominal at preselection
-            shape_sys *= nominal_events / float(SS_events)
-
-        else:
-            raise ValueError(
-                "no QCD shape systematic defined for nominal {0}".format(
-                    curr_model))
-
+        shape_model = models[curr_model]
+        self.shape_region = shape_model
+        log.info("getting QCD shape for {0}".format(shape_model))
+        shape_sys = self.get_hist(
+            hist_template,
+            expr_or_clf,
+            category, region,
+            cuts=cuts,
+            clf=clf,
+            scores=None,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=False,
+            suffix=(suffix or '') + '_{0}'.format(shape_model),
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            weighted=weighted)
+        norm_events = self.events(Category_Preselection, None)[1].value
+        # normalize shape_sys such that it would have the same number of
+        # events as the nominal at preselection
+        shape_sys *= nominal_events / float(norm_events)
         # restore previous shape model
         self.shape_region = curr_model
 
@@ -497,7 +466,16 @@ class QCD(Sample, Background):
 
         log.info("creating QCD shape systematic")
 
-        # HACK
+        models = {
+            'nOS_NONISOL': 'nOS_ISOL',
+        }
+
+        curr_model = self.shape_region
+        if curr_model not in models:
+            raise ValueError(
+                "no QCD shape systematic defined for nominal {0}".format(
+                    curr_model))
+
         # use preselection as reference in which all models should have the same
         # expected number of QCD events
         # get number of events at preselection for nominal model
@@ -510,61 +488,24 @@ class QCD(Sample, Background):
             new_hist.Reset()
             field_hist_template[field] = new_hist
 
-        curr_model = self.shape_region
+        shape_model = models[curr_model]
         # add QCD shape systematic
-        if curr_model == 'SS':
-            # OSFF x (SS / SSFF) model in the track-fit category
-            models = []
-            for model in ('OSFF', 'SSFF'):
-                log.info("getting QCD shape for {0}".format(model))
-                self.shape_region = model
-                models.append(self.get_hist_array(
-                    field_hist_template,
-                    category, region,
-                    cuts=cuts,
-                    clf=clf,
-                    scores=None,
-                    min_score=min_score,
-                    max_score=max_score,
-                    systematics=False,
-                    suffix=(suffix or '') + '_%s' % model,
-                    field_scale=field_scale,
-                    weight_hist=weight_hist,
-                    weighted=weighted))
-                if model == 'OSFF':
-                    norm_events = self.events(Category_Preselection, None)[1].value
-
-            OSFF, SSFF = models
-            field_shape_sys = {}
-            for field, nominal_hist in field_nominal_hist.items():
-                shape_sys = OSFF[field]
-                shape_sys *= (nominal_hist.normalize(copy=True) /
-                    SSFF[field].normalize(copy=True))
-                field_shape_sys[field] = shape_sys
-
-        elif curr_model == 'nOS':
-            # SS model elsewhere
-            self.shape_region = 'SS'
-            log.info("getting QCD shape for SS")
-            field_shape_sys = self.get_hist_array(
-                field_hist_template,
-                category, region,
-                cuts=cuts,
-                clf=clf,
-                scores=None,
-                min_score=min_score,
-                max_score=max_score,
-                systematics=False,
-                suffix=(suffix or '') + '_SS',
-                field_scale=field_scale,
-                weight_hist=weight_hist,
-                weighted=weighted)
-            norm_events = self.events(Category_Preselection, None)[1].value
-
-        else:
-            raise ValueError(
-                "no QCD shape systematic defined for nominal {0}".format(
-                    curr_model))
+        self.shape_region = shape_model
+        log.info("getting QCD shape for {0}".format(shape_model))
+        field_shape_sys = self.get_hist_array(
+            field_hist_template,
+            category, region,
+            cuts=cuts,
+            clf=clf,
+            scores=None,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=False,
+            suffix=(suffix or '') + '_{0}'.format(shape_model),
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            weighted=weighted)
+        norm_events = self.events(Category_Preselection, None)[1].value
 
         # restore previous shape model
         self.shape_region = curr_model

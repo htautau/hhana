@@ -353,7 +353,6 @@ class Sample(object):
                     high=hist_up)
                 sample.AddHistoSys(histsys)
 
-            """
             if isinstance(self, QCD):
                 high, low = self.get_shape_systematic(
                      nominal_hist,
@@ -373,16 +372,11 @@ class Sample(object):
                 if uniform:
                     low = uniform_hist(low)
                     high = uniform_hist(high)
-                #log.info("QCD low shape")
-                #print_hist(low)
-                #log.info("QCD high shape")
-                #print_hist(high)
                 npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                 if category.analysis_control and self.decouple_shape:
                     npname += '_CR'
                 histsys = histfactory.HistoSys(npname, low=low, high=high)
                 sample.AddHistoSys(histsys)
-            """
 
         if isinstance(self, Signal):
             sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
@@ -507,8 +501,6 @@ class Sample(object):
                         low=hist_down,
                         high=hist_up)
                     sample.AddHistoSys(histsys)
-
-                """
                 if isinstance(self, QCD):
                     high, low = qcd_shapes[field]
                     if ravel:
@@ -517,16 +509,11 @@ class Sample(object):
                     if uniform:
                         low = uniform_hist(low)
                         high = uniform_hist(high)
-                    #log.info("QCD low shape")
-                    #print_hist(low)
-                    #log.info("QCD high shape")
-                    #print_hist(high)
                     npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
                     if category.analysis_control and self.decouple_shape:
                         npname += '_CR'
                     histsys = histfactory.HistoSys(npname, low=low, high=high)
                     sample.AddHistoSys(histsys)
-                """
             if isinstance(self, Signal):
                 sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
             elif isinstance(self, Background):
