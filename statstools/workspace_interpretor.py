@@ -110,8 +110,16 @@ class workspaceinterpretor:
             comp = compIter.Next()
             if not comp:
                 break
-            vars = comp.getVariables()
             log.info( comp.GetName() )
+
+
+        vars = simPdf.getVariables()
+        varIter = vars.createIterator()
+        while True:
+            var = varIter.Next()
+            if not var:
+                break
+            log.info( '%s: %1.2f < %1.2f'%(var.GetName()) )
 #     args = pdftmp.getComponents()
 #     argIter = args.createIterator()
 #     while True:

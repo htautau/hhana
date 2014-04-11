@@ -7,8 +7,7 @@ from .common import (
 # https://cds.cern.ch/record/1629891/files/ATL-COM-PHYS-2013-1558.pdf
 
 
-# DETA_JETS = Cut('dEta_jets > 2.6')
-DETA_JETS = Cut('dEta_jets > 2.0')
+DETA_JETS = Cut('dEta_jets > 2.6')
 MASS_JETS = Cut('mass_jet1_jet2 > 250000')
 
 TAU1_CENTR = Cut('tau1_centrality > %f' % (1. / math.e))
@@ -20,13 +19,11 @@ CUTS_VBF_CUTBASED = (
     & DETA_JETS
     & MASS_JETS
     & TAUS_CENTR
-#     & Cut(MET_CENTRALITY.format(0.2 * math.pi))
     & Cut(MET_CENTRALITY.format(0.25 * math.pi))
     )
 
 CUTS_BOOSTED_CUTBASED = (
     CUTS_BOOSTED
-#     & Cut(MET_CENTRALITY.format(0.1 * math.pi))
     & Cut(MET_CENTRALITY.format(0.25 * math.pi))
     )
 
