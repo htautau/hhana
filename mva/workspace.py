@@ -87,6 +87,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
         channels = []
         # make workspace for each category
         # include the control region in each
+        """
         for category in categories:
             cat_channels = [year_mass_category_channel[year][mass][category]
                             for year in years]
@@ -110,6 +111,9 @@ def write_workspaces(path, prefix, year_mass_category_channel,
                     xml_path=os.path.join(path, name),
                     silence=silence)
             channels.extend(cat_channels)
+        """
+        channels = [chan for year in years
+                    for chan in year_mass_category_channel[year][mass].values()]
         # make combined workspace
         name = "{0}_full_combination_{1}".format(prefix, mass)
         log.info("writing {0} ...".format(name))

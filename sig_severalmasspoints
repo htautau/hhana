@@ -7,7 +7,7 @@ from multiprocessing import Process,Manager
 
 # --> rootpy imports
 from rootpy.io import root_open
-from rootpy.plotting import Canvas
+from rootpy.plotting import Canvas, get_style
 
 # --> ROOT imports
 import ROOT
@@ -146,6 +146,10 @@ for mass in masses_list :
     pval_temp = ROOT.Math.gaussian_cdf_c(significances_dict[mass])
     pvalues_exp.append(pval_temp)
 
+style = get_style('ATLAS', shape='rect')
+# allow space for sigma labels on right
+style.SetPadRightMargin(0.05)
+style.cd()
 c = Canvas()
 pvalue_plot(masses_list, pvalues_exp, c, xtitle='m_{H} [GeV]')
 for fmt in args.output_formats:
