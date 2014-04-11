@@ -29,7 +29,7 @@ def bdt_workspace(analysis, categories, masses,
         clf = analysis.get_clf(category, load=True, mass=125)
         # get the binning (see the optimize-binning script)
         with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}_{2}.pickle'.format(
-                category.name, 125, args.year % 1000))) as f:
+                               category.name, 125, 12))) as f:
             binning = pickle.load(f)
         ####
 
@@ -52,6 +52,7 @@ def bdt_workspace(analysis, categories, masses,
 
 
 def cuts_workspace(analysis, categories, masses,
+                   unblind=False,
                    systematics=False):
     channels = {}
     for category in analysis.iter_categories(categories):
@@ -82,27 +83,32 @@ if __name__ == '__main__':
     from mva.samples import Higgs
     from mva.workspace import write_workspaces
 
-    parser = cmd.analysis_parser(cmd.general_parser())
+    parser = cmd.analysis_parser(cmd.general_parser(years=True))
     parser.add_argument('type', choices=('bdt', 'cuts'), default='bdt')
     args = parser.parse_args()
 
-    analysis = get_analysis(args)
-    suffix = analysis.get_suffix()
-    if args.output_suffix:
-        suffix += '_' + args.output_suffix
-    suffix = suffix.lower()
-    path = 'workspaces/hh{0}'.format(suffix)
     if args.masses == 'all':
         args.masses = Higgs.MASSES
     else:
         args.masses = map(int, args.masses.split(','))
-
+    
     if args.type == 'bdt':
-        sr, cr = bdt_workspace(analysis, args.categories, args.masses,
-                               unblind=args.unblind,
-                               systematics=args.systematics)
+        workspace_func = bdt_workspace
     else:
-        sr, cr = cuts_workspace(analysis, args.categories, args.masses,
+        workspace_func = cuts_workspace
+
+    signal_regions = {}
+    control_regions = {}
+    for year in args.years:
+        analysis = get_analysis(args, year=year)
+        sr, cr = workspace_func(analysis, args.categories, args.masses,
+                                unblind=args.unblind,
                                 systematics=args.systematics)
-    prefix = 'hh{0}'.format(args.year % 1000)
-    write_workspaces(path, prefix, sr, controls=cr)
+        signal_regions[year] = sr
+        control_regions[year] = cr
+
+    suffix = analysis.get_suffix(year=False)
+    if args.output_suffix:
+        suffix += '_' + args.output_suffix
+    path = 'workspaces/hh{0}'.format(suffix.lower())
+    write_workspaces(path, 'hh', signal_regions, controls=control_regions)

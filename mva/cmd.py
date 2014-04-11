@@ -17,11 +17,16 @@ def base_parser():
     return argparse.ArgumentParser(formatter_class=formatter_class)
 
 
-def general_parser(parser=None):
+def general_parser(parser=None, years=False):
     if parser is None:
         parser = base_parser()
-    parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
-            help='the year')
+    if years:
+        parser.add_argument('--years', type=int, default=2012, choices=(2011, 2012),
+                nargs='+',
+                help='years')
+    else:
+        parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
+                help='the year')
     parser.add_argument('--systematics', action='store_true', default=False,
             help="enable systematics")
     parser.add_argument('--categories', default='mva',

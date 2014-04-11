@@ -33,13 +33,17 @@ Scores = namedtuple('Scores', [
 
 
 def get_analysis(args, **kwargs):
+    if 'year' in kwargs:
+        year = kwargs.pop('year')
+    else:
+        year = args.year
     for name, value in kwargs.items():
         if hasattr(args, name):
             setattr(args, name, value)
         else:
             raise ValueError("invalid Analysis kwarg {0}".format(name))
     analysis = Analysis(
-        year=args.year,
+        year=year,
         systematics=args.systematics,
         use_embedding=args.embedding,
         target_region=args.target_region,
@@ -236,7 +240,7 @@ class Analysis(object):
                 self.normalize(category)
                 yield category
 
-    def get_suffix(self, clf=False):
+    def get_suffix(self, clf=False, year=True):
         if clf:
             output_suffix = '_%s' % TRAIN_FAKES_REGION
         else:
@@ -250,7 +254,7 @@ class Analysis(object):
         if self.year % 1E3 == 11 and clf:
             # force the use of 2012 clf on 2011
             output_suffix += '_12'
-        else:
+        elif year:
             output_suffix += '_%d' % (self.year % 1000)
         if not clf and not self.systematics:
             output_suffix += '_stat'
