@@ -30,12 +30,12 @@ class highlighted_string(unicode):
 
 class prettyfloat(float):
     def __repr__(self):
-        if self<0:
-            return stripped_str("\033[93m%0.2f\033[0m"%self)
-        elif self==0:
-            return stripped_str("\033[91m%0.2f\033[0m" % self)
-        else:
-            return "%1.1f" % self
+        #         if self<0:
+        #             return stripped_str("\033[93m%0.2f\033[0m"%self)
+        #         elif self==0:
+        #             return stripped_str("\033[91m%0.2f\033[0m" % self)
+        #         else:
+        return "%1.1f" % self
     def __str__(self):
         return repr(self)
 
@@ -126,7 +126,7 @@ class workspaceinterpretor:
         out = StringIO()
         table = PrettyTable(row_template)
         for pair in hlist:
-            pretty_bin_contents=map(highlighted_string,pair[1].y())
+            pretty_bin_contents=map(prettyfloat,pair[1].y())
             table.add_row( [pair[0]]+pretty_bin_contents ) 
         print >> out, '\n'
         print >> out, table.get_string(hrules=1)
@@ -136,30 +136,36 @@ class workspaceinterpretor:
     def get_nuisance_checks(self, mc, simPdf, obsData, ws):
         roo_min = asrootpy(ws).fit()
         fitres = roo_min.save()
-        minNLL = fitres.minNll()
-        log.info( 'minimized NLL: %f'%minNLL)
+        minNLL_hat = fitres.minNll()
+        log.info( 'minimized NLL: %f'%minNLL_hat)
 
         nuisance_params = mc.GetNuisanceParameters()
-        params_list = self.nuisance_params_list(mc)
+        params_list = self.nuisance_params(mc, floating=True)
+
+        minNlls_dict = {}
         for key,_ in params_list.items():
-            nuisance_params[key] = 1
-            roo_min = asrootpy(ws).fit(param_const=params_list)
-            fitres = roo_min.save()
-            minNLL = fitres.minNll()
-            nuisance_params[key] = 0
+            nuisance_params[key] = False
+            nuis_par = nuisance_params.find(key)
+            minNlls = []
+            for val in xrange(-5, 5, 10):
+                nuis_par.setVal(val)
+                roo_min = asrootpy(ws).fit(param_const=params_list)
+                fitres = roo_min.save()
+                minNlls.append(fitres.minNll())
+            minNlls_dict[key] = minNlls
+            nuisance_params[key] = True
 
-            log.info('Nuisance %s: NLL=%f'%(key,minNLL))
-    
+        log.info( str(minNlls_dict) )    
 
 
-    def nuisance_params_list(self,mc):
+    def nuisance_params(self,mc,floating=False):
         nuisIter = mc.GetNuisanceParameters().createIterator()
         params_list = {}
         while True:
             nuis = nuisIter.Next()
             if not nuis:
                 break
-            params_list[nuis.GetName()] = 0
+            params_list[nuis.GetName()] = floating 
         return params_list
 
 
