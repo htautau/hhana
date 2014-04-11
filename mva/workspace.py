@@ -8,59 +8,7 @@ from . import log; log = log[__name__]
 from . import CONST_PARAMS
 
 
-def write_measurements(path, mass_category_channel,
-                       controls=None,
-                       silence=False):
-    log.info("writing measurements ...")
-    if controls is None:
-        controls = []
-    if not os.path.exists(path):
-        mkdir_p(path)
-    for mass, category_channel in mass_category_channel.items():
-        channels = []
-        # make measurement for each category
-        # include the control region in each
-        for category, channel in category_channel.items():
-            name = "hh_category_%s_%d" % (category, mass)
-            log.info("writing {0} ...".format(name))
-            # make measurement
-            measurement = histfactory.make_measurement(
-                name, [channel] + (
-                    controls[mass].values()
-                    if isinstance(controls, dict)
-                    else controls),
-                POI='SigXsecOverSM',
-                const_params=CONST_PARAMS)
-            with root_open(os.path.join(path, '{0}.root'.format(name)),
-                           'recreate') as workspace_file:
-                # mu=1 for Asimov data
-                #measurement.SetParamValue('SigXsecOverSM', 1)
-                histfactory.write_measurement(measurement,
-                    root_file=workspace_file,
-                    xml_path=os.path.join(path, name),
-                    silence=silence)
-            channels.append(channel)
-        # make combined measurement
-        name = "hh_combination_%d" % mass
-        log.info("writing {0} ...".format(name))
-        measurement = histfactory.make_measurement(
-            name, channels + (
-                controls[mass].values()
-                if isinstance(controls, dict)
-                else controls),
-            POI='SigXsecOverSM',
-            const_params=CONST_PARAMS)
-        with root_open(os.path.join(path, '{0}.root'.format(name)),
-                       'recreate') as workspace_file:
-            # mu=1 for Asimov data
-            #measurement.SetParamValue('SigXsecOverSM', 1)
-            histfactory.write_measurement(measurement,
-                root_file=workspace_file,
-                xml_path=os.path.join(path, name),
-                silence=silence)
-
-
-def write_workspaces(path, mass_category_channel,
+def write_workspaces(path, prefix, mass_category_channel,
                      controls=None,
                      silence=False):
     log.info("writing workspaces ...")
@@ -73,7 +21,7 @@ def write_workspaces(path, mass_category_channel,
         # make workspace for each category
         # include the control region in each
         for category, channel in category_channel.items():
-            name = "hh_category_%s_%d" % (category, mass)
+            name = "{0}_category_{1}_{2}".format(prefix, category, mass)
             log.info("writing {0} ...".format(name))
             # make workspace
             measurement = histfactory.make_measurement(
@@ -96,7 +44,7 @@ def write_workspaces(path, mass_category_channel,
                     silence=silence)
             channels.append(channel)
         # make combined workspace
-        name = "hh_combination_%d" % mass
+        name = "{0}_combination_{1}".format(prefix, mass)
         log.info("writing {0} ...".format(name))
         measurement = histfactory.make_measurement(
             name, channels + (
@@ -116,3 +64,71 @@ def write_workspaces(path, mass_category_channel,
                 root_file=workspace_file,
                 xml_path=os.path.join(path, name),
                 silence=silence)
+
+
+def mass_workspace(analysis, categories, masses,
+                   systematics=False):
+    hist_template = Hist(30, 50, 200, type='D')
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        clf = analysis.get_clf(category, load=True, mass=125)
+        scores = analysis.get_scores(
+            clf, category, target_region,
+            masses=[125], mode='combined',
+            systematics=False,
+            unblind=True)
+        bkg_scores = scores.bkg_scores
+        sig_scores = scores.all_sig_scores[125]
+        min_score = scores.min_score
+        max_score = scores.max_score
+        bkg_score_hist = Hist(category.limitbins, min_score, max_score, type='D')
+        sig_score_hist = bkg_score_hist.Clone()
+        hist_scores(bkg_score_hist, bkg_scores)
+        _bkg = bkg_score_hist.Clone()
+        hist_scores(sig_score_hist, sig_scores)
+        _sig = sig_score_hist.Clone()
+        sob_hist = (1 + _sig / _bkg)
+        _log = math.log
+        for bin in sob_hist.bins(overflow=True):
+            bin.value = _log(bin.value)
+        log.info(str(list(sob_hist.y())))
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: VARIABLES[MMC_MASS]},
+                templates={MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                include_signal=True,
+                weight_hist=sob_hist,
+                clf=clf,
+                mass=mass,
+                scale_125=False, # CHANGE
+                mode='workspace',
+                systematics=systematics)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    return channels, []
+
+
+def mass2d_workspace(analysis, categories, masses,
+                     systematics=False):
+    hist_template = Hist2D(250, 0, 250, 200, -1, 1, type='D')
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        clf = analysis.get_clf(category, load=True)
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                clf=clf,
+                include_signal=True,
+                mass=mass,
+                mode='workspace',
+                systematics=systematics,
+                ravel=False)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    return channels, []

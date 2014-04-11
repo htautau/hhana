@@ -270,7 +270,7 @@ class Analysis(object):
         # TODO: implement blinding
         log.info("constructing channels")
         samples = [self.data] + self.backgrounds
-        channel_name = category.name
+        channel_name = '{0}_{1}'.format(category.name, self.year % 1000)
         suffix = None
         if include_signal:
             if isinstance(mass, list):
@@ -321,7 +321,7 @@ class Analysis(object):
         # TODO: implement blinding
         log.info("constructing channels")
         samples = [self.data] + self.backgrounds
-        channel_name = category.name
+        channel_name = '{0}_{1}'.format(category.name, self.year % 1000)
         suffix = None
         if include_signal:
             if isinstance(mass, list):
@@ -561,7 +561,7 @@ class Analysis(object):
 
             # create channel for this mass point
             channel = histfactory.make_channel(
-                "%s_%d" % (category.name, mass),
+                '{0}_{1}_{2}'.format(category.name, mass, self.year % 1000),
                 bkg_samples + sig_samples,
                 data=data_sample)
             channels[mass] = channel

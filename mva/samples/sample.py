@@ -456,12 +456,13 @@ class Sample(object):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 weighted=weighted)
+        if isinstance(self, Data):
+            sample_cls = histfactory.Data
+        else:
+            sample_cls = histfactory.Sample
         field_samples = {}
         for field, hist in field_hist.items():
-            if isinstance(self, Data):
-                sample = histfactory.Data(self.name)
-            else:
-                sample = histfactory.Sample(self.name)
+            sample = sample_cls(self.name)
             # copy of unaltered nominal hist required by QCD shape
             nominal_hist = hist.Clone()
             if ravel:
