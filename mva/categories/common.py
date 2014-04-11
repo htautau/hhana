@@ -34,6 +34,7 @@ MET = Cut('MET_et > 20000')
 DR_TAUS = Cut('0.8 < dR_tau1_tau2 < 2.4')
 DETA_TAUS = Cut('dEta_tau1_tau2 < 1.5')
 RESONANCE_PT = Cut('resonance_pt > 100000')
+# RESONANCE_PT = Cut('resonance_pt > 80000')
 
 # use .format() to set centality value
 MET_CENTRALITY = 'MET_bisecting || (dPhi_min_tau_MET < {0})'
