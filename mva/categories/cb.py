@@ -19,12 +19,10 @@ CUTS_VBF_CUTBASED = (
     & DETA_JETS
     & MASS_JETS
     & TAUS_CENTR
-    & Cut(MET_CENTRALITY.format(0.25 * math.pi))
     )
 
 CUTS_BOOSTED_CUTBASED = (
     CUTS_BOOSTED
-    & Cut(MET_CENTRALITY.format(0.25 * math.pi))
     )
 
 INF = 1E100
@@ -83,7 +81,6 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     latex = '\\textbf{Boosted High-$p_T^{H}$}'
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
-    #         & ((Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt > 140000')) | Cut('resonance_pt > 200000')))
     limitbins = {}
     limitbins[2011] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,INF]
     #     limitbins[2012] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
@@ -96,8 +93,6 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     latex = '\\textbf{Boosted Low-$p_T^{H}$}'
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))
-    #         & Cut('resonance_pt > (-200000 * dR_tau1_tau2 + 400000)') & Cut('resonance_pt < 140000')
-    #         & Cut('dEta_tau1_tau2 < 1'))
     limitbins = {}
     limitbins[2011] = [0,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,156,200,INF]
     #     limitbins[2012] = [0,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,176,184,INF]
