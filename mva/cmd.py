@@ -24,8 +24,8 @@ def general_parser(parser=None, multi_years=False, multi_categories=False):
             help="enable systematics")
 
     if multi_years:
-        parser.add_argument('--years', type=int, default=2012, choices=(2011, 2012),
-                nargs='+',
+        parser.add_argument('--years', type=int, default=[2012], choices=(2011, 2012),
+                nargs='*',
                 help='years')
     else:
         parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
@@ -34,7 +34,7 @@ def general_parser(parser=None, multi_years=False, multi_categories=False):
     if multi_categories:
         parser.add_argument('--categories', default=['mva'],
                 choices=CATEGORIES.keys(),
-                nargs='+',
+                nargs='*',
                 help='category definitions')
     else:
         parser.add_argument('--categories', default='mva',
