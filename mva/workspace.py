@@ -20,7 +20,10 @@ def write_workspaces(path, prefix, year_mass_category_channel,
         # write workspaces for each year
         for mass, category_channel in mass_category_channel.items():
             if isinstance(controls, dict):
-                mass_controls = controls[year][mass].values()
+                if isinstance(controls[year], dict):
+                    mass_controls = controls[year][mass].values()
+                else:
+                    mass_controls = controls[year]
             else:
                 mass_controls = controls
             channels = []
@@ -73,8 +76,12 @@ def write_workspaces(path, prefix, year_mass_category_channel,
     categories = year_mass_category_channel[years[0]][masses[0]].keys()
     for mass in masses:
         if isinstance(controls, dict):
-            mass_controls = [control for year in years
-                             for control in controls[year][mass].values()]
+            if isinstance(controls[year], dict):
+                mass_controls = [control for year in years
+                                 for control in controls[year][mass].values()]
+            else:
+                mass_controls = [control for year in years
+                                 for control in controls[year]]
         else:
             mass_controls = controls
         channels = []
