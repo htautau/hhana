@@ -19,12 +19,12 @@ CUTS_VBF_CUTBASED = (
     & DETA_JETS
     & MASS_JETS
     & TAUS_CENTR
-    & Cut(MET_CENTRALITY.format(0.2 * math.pi))
+    & Cut(MET_CENTRALITY.format(0.25 * math.pi))
     )
 
 CUTS_BOOSTED_CUTBASED = (
     CUTS_BOOSTED
-    & Cut(MET_CENTRALITY.format(0.1 * math.pi))
+    & Cut(MET_CENTRALITY.format(0.25 * math.pi))
     )
 
 INF = 1E100
