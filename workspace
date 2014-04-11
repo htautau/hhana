@@ -79,11 +79,13 @@ def cuts_workspace(analysis, categories, masses,
 
 
 if __name__ == '__main__':
+    import sys
     from mva import cmd
     from mva.samples import Higgs
     from mva.workspace import write_workspaces
 
-    parser = cmd.analysis_parser(cmd.general_parser(years=True))
+    parser = cmd.analysis_parser(cmd.general_parser(
+        multi_years=True, multi_categories=True))
     parser.add_argument('type', choices=('bdt', 'cuts'), default='bdt')
     args = parser.parse_args()
 
@@ -96,12 +98,19 @@ if __name__ == '__main__':
         workspace_func = bdt_workspace
     else:
         workspace_func = cuts_workspace
+    
+    years = args.years
+    categories = args.categories
+    if len(categories) == 1 and len(years) > 1:
+        categories = categories * len(years)
+    elif len(categories) != len(years):
+        sys.exit("specify the same number of category definitions as years")
 
     signal_regions = {}
     control_regions = {}
-    for year in args.years:
+    for year, year_categories in zip(years, categories):
         analysis = get_analysis(args, year=year)
-        sr, cr = workspace_func(analysis, args.categories, args.masses,
+        sr, cr = workspace_func(analysis, year_categories, args.masses,
                                 unblind=args.unblind,
                                 systematics=args.systematics)
         signal_regions[year] = sr

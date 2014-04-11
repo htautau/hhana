@@ -17,21 +17,30 @@ def base_parser():
     return argparse.ArgumentParser(formatter_class=formatter_class)
 
 
-def general_parser(parser=None, years=False):
+def general_parser(parser=None, multi_years=False, multi_categories=False):
     if parser is None:
         parser = base_parser()
-    if years:
+    parser.add_argument('--systematics', action='store_true', default=False,
+            help="enable systematics")
+
+    if multi_years:
         parser.add_argument('--years', type=int, default=2012, choices=(2011, 2012),
                 nargs='+',
                 help='years')
     else:
         parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012),
                 help='the year')
-    parser.add_argument('--systematics', action='store_true', default=False,
-            help="enable systematics")
-    parser.add_argument('--categories', default='mva',
-            choices=CATEGORIES.keys(),
-            help='category definitions')
+
+    if multi_categories:
+        parser.add_argument('--categories', default=['mva'],
+                choices=CATEGORIES.keys(),
+                nargs='+',
+                help='category definitions')
+    else:
+        parser.add_argument('--categories', default='mva',
+                choices=CATEGORIES.keys(),
+                help='category definitions')
+
     parser.add_argument('--category-names', nargs="+", default=None,
             help='category names')
     parser.add_argument('--controls', default='mva_workspace_controls',
