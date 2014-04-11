@@ -262,6 +262,7 @@ if __name__ == '__main__':
                 scores, binning,
                 steps=args.steps,
                 min_bkg=min_bkg,
+                mass=mass,
                 systematics=args.systematics)
             if best_sig <= 0:
                 # no valid edge found
