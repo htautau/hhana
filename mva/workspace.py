@@ -19,6 +19,10 @@ def write_workspaces(path, prefix, year_mass_category_channel,
     for year, mass_category_channel in year_mass_category_channel.items():
         # write workspaces for each year
         for mass, category_channel in mass_category_channel.items():
+            if isinstance(controls, dict):
+                mass_controls = controls[year][mass].values()
+            else:
+                mass_controls = controls
             channels = []
             # make workspace for each category
             # include the control region in each
@@ -28,10 +32,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
                 log.info("writing {0} ...".format(name))
                 # make workspace
                 measurement = histfactory.make_measurement(
-                    name, [channel] + (
-                        controls[year][mass].values()
-                        if isinstance(controls, dict)
-                        else controls),
+                    name, [channel] + mass_controls,
                     POI='SigXsecOverSM',
                     const_params=CONST_PARAMS)
                 workspace = histfactory.make_workspace(measurement, name=name,
@@ -50,10 +51,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
             name = "{0}_{1}_combination_{2}".format(prefix, year % 1000, mass)
             log.info("writing {0} ...".format(name))
             measurement = histfactory.make_measurement(
-                name, channels + (
-                    controls[year][mass].values()
-                    if isinstance(controls, dict)
-                    else controls),
+                name, channels + mass_controls,
                 POI='SigXsecOverSM',
                 const_params=CONST_PARAMS)
             workspace = histfactory.make_workspace(measurement, name=name,
