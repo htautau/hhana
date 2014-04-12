@@ -59,7 +59,7 @@ def run_pool(workers, n_jobs=12):
             if len(workers) == 0 and len(active) == 0:
                 break
             time.sleep(0.1)
-    except KeyboardExit, SystemExit:
+    except KeyboardInterrupt, SystemExit:
         if p is not None:
             p.terminate()
         for p in processes:
