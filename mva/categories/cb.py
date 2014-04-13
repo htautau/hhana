@@ -67,6 +67,7 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
     limitbins = [0,64,80,92,104,116,132,152,176,INF]
     norm_category = Category_Preselection
 
+
 class Category_Cuts_VBF_HighDR(Category_Preselection):
     name = 'cuts_vbf_highdr'
     label = '#tau_{had}#tau_{had} Cut-based VBF High dR Loose'
@@ -74,6 +75,7 @@ class Category_Cuts_VBF_HighDR(Category_Preselection):
     cuts = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts
     limitbins = [0,64,80,92,104,116,132,152,INF]
     norm_category = Category_Preselection
+
 
 class Category_Cuts_Boosted_Tight(Category_Preselection):
     name = 'cuts_boosted_tight'
@@ -86,6 +88,7 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     #     limitbins[2012] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
     limitbins[2012] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,156,176,INF]
     norm_category = Category_Preselection
+
 
 class Category_Cuts_Boosted_Loose(Category_Preselection):
     name = 'cuts_boosted_loose'
@@ -108,12 +111,12 @@ class Category_Cuts_VBF_CR(Category_Preselection):
     latex = '\\textbf{VBF Control Region}'
     cuts  = CUTS_2J
 
+
 class Category_Cuts_Boosted(Category_Preselection):
     name = 'cuts_boosted_cr'
     label = '#tau_{had}#tau_{had} Cut-based Boosted Control Region'
     cuts = Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts
     norm_category = Category_Preselection
-
 
 
 class Category_Cuts_Boosted_Tight_NoDRCut(Category_Preselection):
@@ -124,8 +127,6 @@ class Category_Cuts_Boosted_Tight_NoDRCut(Category_Preselection):
     norm_category = Category_Preselection
 
 
-
-
 # --------> Added by Quentin Buat quentin(dot)buat(at)cern(dot)ch
 class Category_Cuts_VBF(Category_Preselection):
     name = 'cuts_vbf'
@@ -133,5 +134,3 @@ class Category_Cuts_VBF(Category_Preselection):
     cuts  = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts | Category_Cuts_VBF_LowDR.cuts
     limitbins = [0,64,80,92,104,116,132,152,176,INF]
     norm_category = Category_Preselection
-
-

@@ -77,7 +77,10 @@ def get_best_edge(scores, edges, pos=0,
                   steps=100, min_bkg=10,
                   mass=125,
                   systematics=False):
-    left, right = edges[pos:pos+2]
+    if pos + 2 == 0:
+        left, right = edges[pos:]
+    else:
+        left, right = edges[pos:pos+2]
     # Only consider edges that give non-negative yields for all backgrounds
     # (negative weights on the background events can be present)
     # and edges that will hold at least unweighted min_bkg events in the
@@ -272,11 +275,45 @@ if __name__ == '__main__':
                 # improvement is not worth the new bin
                 break
             ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
-            binning.insert(1, best_edge)
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                      color='black', linestyle='-', linewidth=2)
+            binning.insert(1, best_edge)
             prev_best_sig = best_sig
             min_bkg = int(max(args.min_bkg, nbkg * args.growth))
+
+        # try to insert an edge in highest bin
+        edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
+                scores, binning,
+                pos=-2,
+                steps=args.steps,
+                min_bkg=min_bkg,
+                mass=mass,
+                systematics=args.systematics)
+        if best_sig > 0 and (best_sig - prev_best_sig) / best_sig > 0.005:
+            ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
+            ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
+                     color='red', linestyle='-', linewidth=2)
+            binning.insert(-1, best_edge)
+            prev_best_sig = best_sig
+
+        # try inserting N bins into the first bin
+        #max_sig = prev_best_sig
+        #best_binning = binning
+        #best_const_edges = None
+        #for n in xrange(2, 10):
+        #    const_edges = np.linspace(binning[0], binning[1], n, endpoint=False)[1:]
+        #    new_binning = binning[:]
+        #    new_binning[1:1] = const_edges
+        #    sig = get_sig(scores, new_binning, edge=None, pos=1,
+        #                  mass=mass,
+        #                  systematics=args.systematics)
+        #    if sig > max_sig:
+        #        max_sig = sig
+        #        best_binning = new_binning
+        #        best_const_edges = const_edges
+        #for edge in best_const_edges:
+        #    ax1.plot((edge, edge), (0, abs(max_sig)),
+        #             color='red', linestyle='-', linewidth=2)
 
         #handles1, labels1 = ax1.get_legend_handles_labels()
         #handles2, labels2 = ax2.get_legend_handles_labels()
