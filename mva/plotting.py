@@ -120,7 +120,7 @@ def root_axes(ax,
 def draw_contours(hist, n_contours=3, contours=None,
                   linecolors=None, linestyles=None, linewidths=None,
                   labelcontours=True, labelcolors=None,
-                  labelsizes=None, labelformats=None):
+                  labelsizes=None, labelformats=None, same=False):
     from rootpy import asrootpy
     if contours is None:
         contours = np.linspace(hist.min(), hist.max(), n_contours + 1,
@@ -137,8 +137,9 @@ def draw_contours(hist, n_contours=3, contours=None,
             for curve in cont:
                 graphs.append(curve.Clone())
                 levels.append(contours[i])
-    axes = hist.Clone()
-    axes.Draw('AXIS')
+    if not same:
+        axes = hist.Clone()
+        axes.Draw('AXIS')
     from itertools import cycle
     if linecolors is None:
         linecolors = ['black']

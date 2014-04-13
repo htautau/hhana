@@ -1,5 +1,12 @@
 import math
 
+def get_label(name):
+    info = VARIABLES[name]
+    label = info['root']
+    if 'units' in info:
+        label += ' [{0}]'.format(info['units'])
+    return label
+
 WEIGHTS = {
     'pileup_weight': {
         'title': 'Pile-up Weight',
@@ -523,7 +530,7 @@ VARIABLES = {
     #},
     'mass_jet1_jet2': {
         'title': r'$M(jet_{1},\/jet_{2})$',
-        'root': '#font[52]{m}_{#font[52]{j}_{1},#font[52]{j}_{2}}',
+        'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
         'filename': 'mass_jet1_jet2',
         'bins': 20,
         'range': (0, 1000),
