@@ -157,21 +157,23 @@ class workspaceinterpretor:
             params_list[key]=False
             nuis_par = nuisance_params.find(key)
             minNlls = []
-            for val in xrange(-5, 6):
-                
+            for val in xrange(-5, 5, 2):
+                log.info( 'Fit with %s = %d'%(key, val) )
                 ws.loadSnapshot("StartingPoint")
                 nuis_par.setVal(val)
                 roo_min = asrootpy(ws).fit(param_const=params_list,print_level=-1)
+                nuisance_params.Print('v')
                 fitres = roo_min.save()
                 minNlls.append(fitres.minNll()-minNLL_hat)
+                
             minNlls_dict[key] = minNlls
             nuisance_params[key] = True
 
         out = StringIO()
-        row_template = ['NLL -Nll_hat'] + list(val for val in xrange(-5, 6)) 
+        row_template = ['NLL -Nll_hat'] + [val for val in xrange(-5, 5, 2)] 
         table = PrettyTable(row_template)
-        for key,list in minNlls_dict.items():
-            pretty_bin_contents=map(prettyfloat,list)
+        for key,list_nuis in minNlls_dict.items():
+            pretty_bin_contents=map(prettyfloat,list_nuis)
             table.add_row( [key]+pretty_bin_contents ) 
         print >> out, '\n'
         print >> out, table.get_string(hrules=1)
