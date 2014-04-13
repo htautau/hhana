@@ -50,6 +50,7 @@ def get_analysis(args, **kwargs):
         fakes_region=args.fakes_region,
         decouple_qcd_shape=args.decouple_qcd_shape,
         constrain_norms=args.constrain_norms,
+        qcd_shape_systematic=args.qcd_shape_systematic,
         random_mu=args.random_mu,
         mu=args.mu,
         suffix=args.suffix)
@@ -67,6 +68,7 @@ class Analysis(object):
                  qcd_workspace_norm=None,
                  ztt_workspace_norm=None,
                  constrain_norms=False,
+                 qcd_shape_systematic=True,
                  random_mu=False,
                  mu=1.,
                  suffix=None,
@@ -129,6 +131,7 @@ class Analysis(object):
             decouple_shape=decouple_qcd_shape,
             workspace_norm=qcd_workspace_norm,
             constrain_norm=constrain_norms,
+            shape_systematic=qcd_shape_systematic,
             color='#00FF00')
 
         self.qcd.scale = 1.

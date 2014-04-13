@@ -353,7 +353,7 @@ class Sample(object):
                     high=hist_up)
                 sample.AddHistoSys(histsys)
 
-            if isinstance(self, QCD):
+            if isinstance(self, QCD) and self.shape_systematic:
                 high, low = self.get_shape_systematic(
                      nominal_hist,
                      expr_or_clf,
@@ -438,7 +438,7 @@ class Sample(object):
         do_systematics = (not isinstance(self, Data)
                           and self.systematics
                           and systematics)
-        if isinstance(self, QCD) and do_systematics:
+        if do_systematics and isinstance(self, QCD) and self.shape_systematic:
             qcd_shapes = self.get_shape_systematic_array(
                 field_hist,
                 category, region,
@@ -501,7 +501,7 @@ class Sample(object):
                         low=hist_down,
                         high=hist_up)
                     sample.AddHistoSys(histsys)
-                if isinstance(self, QCD):
+                if isinstance(self, QCD) and self.shape_systematic:
                     high, low = qcd_shapes[field]
                     if ravel:
                         low = ravel_hist(low)

@@ -78,6 +78,9 @@ def analysis_parser(parser=None):
             action='store_true', default=False)
     parser.add_argument('--decouple-qcd-shape',
             action='store_true', default=False)
+    parser.add_argument('--no-qcd-shape-systematic',
+            dest='qcd_shape_systematic',
+            action='store_false', default=True)
     return parser
 
 

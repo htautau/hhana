@@ -64,6 +64,7 @@ class QCD(Sample, Background):
                  decouple_shape=True,
                  workspace_norm=None,
                  constrain_norm=False,
+                 shape_systematic=True,
                  cuts=None,
                  name='Fakes',
                  label='Fakes',
@@ -91,6 +92,7 @@ class QCD(Sample, Background):
         self.decouple_shape = decouple_shape
         self.workspace_norm = workspace_norm
         self.constrain_norm = constrain_norm
+        self.shape_systematic = shape_systematic
         self.systematics = mc[0].systematics
 
     def events(self, category=None, region=None, cuts=None,

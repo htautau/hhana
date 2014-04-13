@@ -193,7 +193,8 @@ if __name__ == '__main__':
     analysis = Analysis(year,
                         systematics=args.systematics,
                         qcd_workspace_norm=False,
-                        ztt_workspace_norm=False)
+                        ztt_workspace_norm=False,
+                        qcd_shape_systematic=False)
 
     for category in (Category_Boosted, Category_VBF):
         analysis.normalize(category)
