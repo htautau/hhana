@@ -4,8 +4,8 @@ from .common import (
     Category_Preselection,
     CUTS_2J, CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY)
 
+# Documentation:
 # https://cds.cern.ch/record/1629891/files/ATL-COM-PHYS-2013-1558.pdf
-
 
 DETA_JETS = Cut('dEta_jets > 2.6')
 MASS_JETS = Cut('mass_jet1_jet2 > 250000')
@@ -28,6 +28,20 @@ CUTS_BOOSTED_CUTBASED = (
 INF = 1E100
 
 # Cut-based categories
+
+class Category_Cuts_VBF_Preselection(Category_Preselection):
+    name = 'cuts_vbf_preselection'
+    label = '#tau_{had}#tau_{had} Cut-based VBF Preselection'
+    cuts = CUTS_VBF_CUTBASED
+    norm_category = Category_Preselection
+
+
+class Category_Cuts_Boosted_Preselection(Category_Preselection):
+    name = 'cuts_boosted_preselection'
+    label = '#tau_{had}#tau_{had} Cut-based Boosted Preselection'
+    cuts = CUTS_BOOSTED_CUTBASED
+    norm_category = Category_Preselection
+
 
 # -----------> Main Categories used in the CB Signal Region
 class Category_Cuts_VBF_LowDR(Category_Preselection):
