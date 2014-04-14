@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import sys
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--name', default='combined')
+parser.add_argument('--verbose', action='store_true', default=False)
+parser.add_argument('--output', default='combined')
+parser.add_argument('files', nargs='+')
+args = parser.parse_args()
+
+from rootpy.stats.histfactory import (
+    measurements_from_xml, write_measurement,
+    make_measurement)
+
+# get measurements
+measurements = []
+for file in args.files:
+    meas = measurements_from_xml(
+        file,
+        cd_parent=True,
+        collect_histograms=True,
+        silence=not args.verbose)
+    if not meas:
+        sys.exit("No measurements in {0}".format(file))
+    measurements.extend(meas)
+
+# combine all channels into a new measurement
+channels = []
+channel_names = {}
+for meas in measurements:
+    for channel in meas.channels:
+        if channel.name in channel_names:
+            # ignore duplicate channels
+            continue
+        channels.append(channel)
+        channel_names[channel.name] = None
+
+# use settings from the first measurement
+# (POI and constant params)
+combined_measurement = make_measurement(
+    args.name, channels,
+    POI=measurements[0].poi,
+    const_params=measurements[0].const_params)
+
+# write out the new measurement and workspace
+write_measurement(
+    combined_measurement,
+    output_path=args.output,
+    write_workspaces=True,
+    silence=not args.verbose)
