@@ -120,7 +120,8 @@ def root_axes(ax,
 def draw_contours(hist, n_contours=3, contours=None,
                   linecolors=None, linestyles=None, linewidths=None,
                   labelcontours=True, labelcolors=None,
-                  labelsizes=None, labelformats=None, same=False):
+                  labelsizes=None, labelformats=None, same=False,
+                  min_points=5):
     from rootpy import asrootpy
     if contours is None:
         contours = np.linspace(hist.min(), hist.max(), n_contours + 1,
@@ -135,6 +136,8 @@ def draw_contours(hist, n_contours=3, contours=None,
         conts = asrootpy(ROOT.gROOT.GetListOfSpecials().FindObject('contours'))
         for i, cont in enumerate(conts):
             for curve in cont:
+                if len(curve) < min_points:
+                    continue
                 graphs.append(curve.Clone())
                 levels.append(contours[i])
     if not same:
@@ -190,25 +193,25 @@ def draw_contours(hist, n_contours=3, contours=None,
             point_idx = len(graph) / 2
             point = graph[point_idx]
             padx, pady = 0, 0
-            if len(graph) > 3:
+            if len(graph) > 5:
                 # use derivative to get text angle
-                x1, y1 = graph[point_idx - 1]
-                x2, y2 = graph[point_idx + 1]
-                dx = x2 - x1
-                dy = y2 - y1
+                x1, y1 = graph[point_idx - 2]
+                x2, y2 = graph[point_idx + 2]
+                dx = (x2 - x1) / stepx
+                dy = (y2 - y1) / stepy
                 if dx == 0:
                     label.SetTextAngle(0)
                     label.SetTextAlign(12)
                 else:
-                    if dx < 0 and dy > 0:
+                    padx = copysign(1, -dy) * stepx
+                    pady = copysign(1, dx) * stepy
+                    if pady < 0:
                         align = 23
                     else:
                         align = 21
                     angle = atan(dy / dx) * 180 / pi
                     label.SetTextAngle(angle)
                     label.SetTextAlign(align)
-                    padx = copysign(1, -dy) * stepx
-                    pady = copysign(1, dx) * stepy
             else:
                 label.SetTextAngle(0)
                 label.SetTextAlign(21)

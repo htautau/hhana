@@ -98,10 +98,14 @@ REPO = Repo(BASE_DIR)
 REPO_BRANCH = REPO.active_branch
 PLOTS_DIR = os.path.join(BASE_DIR, 'plots', 'variables')
 
-def save_canvas(canvas, directory, name):
+def save_canvas(canvas, directory, name, formats=None):
     # save images in directories corresponding to current git branch
     filepath = os.path.join(directory, REPO_BRANCH, name)
     path = os.path.dirname(filepath)
     if not os.path.exists(path):
         mkdir_p(path)
-    canvas.SaveAs(filepath)
+    if formats is not None:
+        for fmt in formats:
+            canvas.SaveAs(filepath + fmt)
+    else:
+        canvas.SaveAs(filepath)
