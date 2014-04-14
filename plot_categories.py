@@ -10,8 +10,11 @@ from mva.defaults import TARGET_REGION
 from mva import save_canvas
 
 from rootpy.plotting import Canvas, Hist, Hist2D, Profile2D, Legend, set_style
+from rootpy.plotting.style.atlas.labels import ATLAS_label
 from root_numpy import fill_hist, fill_profile
 import numpy as np
+
+from ROOT import TLatex
 
 set_style('ATLAS', shape='rect')
 
@@ -27,10 +30,10 @@ styles = ['solid', 'dashed', 'dotted']
 
 bounds = {
     'mmc1_mass': (0, 200),
-    'resonance_pt': (0, 300),
+    'resonance_pt': (50, 300),
     'dR_tau1_tau2': (0.8, 2.4),
     'dEta_jets': (2.6, 6),
-    'mass_jet1_jet2': (0, 1400),
+    'mass_jet1_jet2': (200, 1400),
 }
 scales = {
     'mmc1_mass': 1,
@@ -92,17 +95,32 @@ def bdt_contours(mva_category, category, x, y, bins=10):
                   linecolors='black',
                   linewidths=2, linestyles='dashed')
 
+
 def legend(canvas, right=False):
     objs = [Hist(1, 0, 1, legendstyle='L',
                  linewidth=2, linestyle=style,
                  linecolor=s.hist_decor['color'],
                  title=s.label)
             for s, style in zip(samples, styles)]
-    legend = Legend(objs, pad=canvas, textsize=20,
-                    leftmargin=0.5 if right else 0.04,
-                    rightmargin=0.04 if right else 0.5,
-                    margin=0.3)
-    legend.Draw()
+    with canvas:
+        legend = Legend(objs, pad=canvas, textsize=20,
+                        leftmargin=0.5 if right else 0.04,
+                        rightmargin=0.04 if right else 0.5,
+                        topmargin=0.1,
+                        margin=0.3)
+        legend.Draw()
+
+
+def labels(canvas, category):
+    with canvas:
+        # draw the ATLAS label
+        ATLAS_label(0.72, 0.88,
+            sep=0.1, pad=canvas, sqrts=None,
+            text="Internal", textsize=20)
+        label = TLatex()
+        label.SetNDC(True)
+        label.SetTextSize(20)
+        label.DrawLatex(0.2, 0.88, category.label)
 
 
 formats = ('.eps', '.png')
@@ -111,63 +129,77 @@ formats = ('.eps', '.png')
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'mmc1_mass', 'resonance_pt')
 legend(canvas)
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_pt', formats)
 
 canvas = Canvas()
 bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'mmc1_mass', 'resonance_pt')
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_pt_bdt', formats)
 
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'mmc1_mass', 'dR_tau1_tau2')
 legend(canvas)
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_dr', formats)
 
 canvas = Canvas()
 bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'mmc1_mass', 'dR_tau1_tau2')
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_dr_bdt', formats)
 
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'dR_tau1_tau2', 'resonance_pt')
 legend(canvas, right=True)
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_dr_pt', formats)
 
 canvas = Canvas()
 bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'dR_tau1_tau2', 'resonance_pt')
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_dr_pt_bdt', formats)
 
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'dEta_jets', 'mass_jet1_jet2')
 legend(canvas)
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_deta_mjj', formats)
 
 canvas = Canvas()
 bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'dEta_jets', 'mass_jet1_jet2')
+labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_deta_mjj_bdt', formats)
 
 # Boosted
 canvas = Canvas()
 sample_contours(Category_Cuts_Boosted_Preselection, 'mmc1_mass', 'resonance_pt')
 legend(canvas)
+labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_pt', formats)
 
 canvas = Canvas()
 bdt_contours(Category_Boosted, Category_Cuts_Boosted_Preselection, 'mmc1_mass', 'resonance_pt')
+labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_pt_bdt', formats)
 
 canvas = Canvas()
 sample_contours(Category_Cuts_Boosted_Preselection, 'mmc1_mass', 'dR_tau1_tau2')
 legend(canvas)
+labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_dr', formats)
 
 canvas = Canvas()
 bdt_contours(Category_Boosted, Category_Cuts_Boosted_Preselection, 'mmc1_mass', 'dR_tau1_tau2')
+labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_dr_bdt', formats)
 
 canvas = Canvas()
 sample_contours(Category_Cuts_Boosted_Preselection, 'dR_tau1_tau2', 'resonance_pt')
 legend(canvas)
+labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_dr_pt', formats)
 
 canvas = Canvas()
 bdt_contours(Category_Boosted, Category_Cuts_Boosted_Preselection, 'dR_tau1_tau2', 'resonance_pt')
+labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_dr_pt_bdt', formats)
