@@ -6,7 +6,7 @@ from rootpy.stats import histfactory
 from rootpy.utils.path import mkdir_p
 
 from . import log; log = log[__name__]
-from . import CONST_PARAMS, CACHE_DIR, MMC_MASS
+from . import CONST_PARAMS, CACHE_DIR, MMC_MASS, POI
 from .categories import CATEGORIES
 
 import pickle
@@ -41,7 +41,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
                 # make workspace
                 measurement = histfactory.make_measurement(
                     name, [channel] + mass_controls,
-                    POI='SigXsecOverSM',
+                    POI=POI,
                     const_params=CONST_PARAMS)
                 workspace = histfactory.make_workspace(measurement, name=name,
                                                        silence=silence)
@@ -60,7 +60,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
             log.info("writing {0} ...".format(name))
             measurement = histfactory.make_measurement(
                 name, channels + mass_controls,
-                POI='SigXsecOverSM',
+                POI=POI,
                 const_params=CONST_PARAMS)
             workspace = histfactory.make_workspace(measurement, name=name,
                                                    silence=silence)
@@ -103,7 +103,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
             # make workspace
             measurement = histfactory.make_measurement(
                 name, cat_channels + mass_controls,
-                POI='SigXsecOverSM',
+                POI=POI,
                 const_params=CONST_PARAMS)
             workspace = histfactory.make_workspace(measurement, name=name,
                                                    silence=silence)
@@ -125,7 +125,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
         log.info("writing {0} ...".format(name))
         measurement = histfactory.make_measurement(
             name, channels + mass_controls,
-            POI='SigXsecOverSM',
+            POI=POI,
             const_params=CONST_PARAMS)
         workspace = histfactory.make_workspace(measurement, name=name,
                                                silence=silence)

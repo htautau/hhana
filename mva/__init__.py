@@ -91,6 +91,7 @@ CONST_PARAMS = [
     'mu_BR_tautau',
 ]
 
+POI = 'SigXsecOverSM'
 
 # pip install --user GitPython
 from git import Repo
