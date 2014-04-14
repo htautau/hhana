@@ -307,6 +307,6 @@ train:
 binning:
 	for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			run-cluster ./optimize-binning --year $${year} --mass $${mass}; \
+			run-cluster ./optimize-binning --systematics --year $${year} --mass $${mass}; \
 		done; \
 	done
