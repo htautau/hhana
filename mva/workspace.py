@@ -1,11 +1,16 @@
 import os
 
+from rootpy.plotting import Hist, Hist2D
 from rootpy.io import root_open
 from rootpy.stats import histfactory
 from rootpy.utils.path import mkdir_p
 
 from . import log; log = log[__name__]
-from . import CONST_PARAMS
+from . import CONST_PARAMS, CACHE_DIR, MMC_MASS
+from .categories import CATEGORIES
+
+import pickle
+import os
 
 
 def write_workspaces(path, prefix, year_mass_category_channel,
@@ -133,6 +138,71 @@ def write_workspaces(path, prefix, year_mass_category_channel,
                 root_file=workspace_file,
                 xml_path=os.path.join(path, name),
                 silence=silence)
+
+
+def bdt_workspace(analysis, categories, masses,
+                  unblind=False,
+                  systematics=False):
+    hist_template = Hist(5, 0, 1.5, type='D')
+    controls = analysis.make_var_channels(
+        hist_template, 'dEta_tau1_tau2',
+        CATEGORIES['mva_workspace_controls'],
+        analysis.target_region,
+        include_signal=True, masses=masses)
+    mass_category_channel = {}
+    for category in analysis.iter_categories(categories):
+
+        #### TODO: SET MASS using 125 for all points for now
+        clf = analysis.get_clf(category, load=True, mass=125)
+        # get the binning (see the optimize-binning script)
+        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
+                               category.name, 125, 12))) as f:
+            binning = pickle.load(f)
+        ####
+
+        log.info("binning: {0}".format(str(binning)))
+        # construct a "channel" for each mass point
+        scores, channels = analysis.clf_channels(
+            clf, category,
+            region=analysis.target_region,
+            bins=binning,
+            masses=masses,
+            mode='workspace',
+            systematics=systematics,
+            unblind=unblind or 0.3,
+            uniform=True)
+        for mass, channel in channels.items():
+            if mass not in mass_category_channel:
+                mass_category_channel[mass] = {}
+            mass_category_channel[mass][category.name] = channel
+    return mass_category_channel, controls
+
+
+def cuts_workspace(analysis, categories, masses,
+                   unblind=False,
+                   systematics=False):
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        if isinstance(category.limitbins, dict):
+            binning = category.limitbins[year]
+        else:
+            binning = category.limitbins
+        hist_template = Hist(binning, type='D')
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                cuts=None,
+                include_signal=True,
+                mass=mass,
+                mode='workspace',
+                systematics=systematics,
+                uniform=True)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    return channels, []
 
 
 def mass_workspace(analysis, categories, masses,
