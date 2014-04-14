@@ -289,7 +289,7 @@ if __name__ == '__main__':
                 min_bkg=min_bkg,
                 mass=mass,
                 systematics=args.systematics)
-        if best_sig > 0 and (best_sig - prev_best_sig) / best_sig > 0.005:
+        if best_sig > prev_best_sig:
             ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                      color='red', linestyle='-', linewidth=2)
@@ -328,6 +328,6 @@ if __name__ == '__main__':
         binning[-1] += 1E5
 
         # save the binning
-        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}_{2}.pickle'.format(
+        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
                                category.name, mass, year % 1000)), 'w') as f:
             pickle.dump(binning, f)
