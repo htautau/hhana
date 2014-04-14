@@ -15,7 +15,7 @@ args = get_parser(actions=False).parse_args()
 
 from mva import log
 from mva.norm import cache as norm_cache
-
+from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
 from mva.categories.mva  import Category_Preselection
 from mva.categories.common import (CUTS_VBF,CUTS_BOOSTED,
@@ -40,7 +40,7 @@ def get_yield( sample, Category=Category_Preselection, cut='' ):
     """ Retrieve the (weigthed) yield and its stat error for a sample t
     pass a given cut after the preselection
     """
-    hist = sample.events( Category, 'OS', cut )
+    hist = sample.events( Category, TARGET_REGION, cut )
     val, err = hist[1].value,hist[1].error 
     return ufloat(val,err)
 # -------------------------------------
