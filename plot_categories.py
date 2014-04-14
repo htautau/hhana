@@ -14,7 +14,7 @@ from rootpy.plotting.style.atlas.labels import ATLAS_label
 from root_numpy import fill_hist, fill_profile
 import numpy as np
 
-from ROOT import TLatex
+from ROOT import TLatex, TLine
 
 set_style('ATLAS', shape='rect')
 
@@ -123,11 +123,17 @@ def labels(canvas, category):
         label.DrawLatex(0.2, 0.88, category.label)
 
 
+label = TLatex()
+label.SetNDC(False)
+label.SetTextSize(20)
+line = TLine()
+line.SetLineWidth(2)
 formats = ('.eps', '.png')
 
 # VBF
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'mmc1_mass', 'resonance_pt')
+line.DrawLine(0, 140, 200, 140)
 legend(canvas)
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_pt', formats)
@@ -137,8 +143,11 @@ bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'mmc1_mass', 'resonan
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_pt_bdt', formats)
 
+##########
+
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'mmc1_mass', 'dR_tau1_tau2')
+line.DrawLine(0, 1.5, 200, 1.5)
 legend(canvas)
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_dr', formats)
@@ -148,8 +157,14 @@ bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'mmc1_mass', 'dR_tau1
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_mass_dr_bdt', formats)
 
+##########
+
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'dR_tau1_tau2', 'resonance_pt')
+line.DrawLine(0.8, 140, 1.5, 140)
+line.DrawLine(1.5, 140, 1.5, 300)
+label.DrawLatex(1, 160, "High #font[52]{p}_{T}^{H}")
+label.DrawLatex(2, 160, "High #font[52]{p}_{T}^{H}")
 legend(canvas, right=True)
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_dr_pt', formats)
@@ -159,8 +174,13 @@ bdt_contours(Category_VBF, Category_Cuts_VBF_Preselection, 'dR_tau1_tau2', 'reso
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_dr_pt_bdt', formats)
 
+##########
+
 canvas = Canvas()
 sample_contours(Category_Cuts_VBF_Preselection, 'dEta_jets', 'mass_jet1_jet2')
+line.DrawLine(2.6, 900, 5.4, 200)
+label.DrawLatex(5, 500, "Tight")
+label.DrawLatex(3, 500, "Loose")
 legend(canvas)
 labels(canvas, Category_Cuts_VBF_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_vbf_deta_mjj', formats)
@@ -173,6 +193,7 @@ save_canvas(canvas, 'plots/contours', 'contour_vbf_deta_mjj_bdt', formats)
 # Boosted
 canvas = Canvas()
 sample_contours(Category_Cuts_Boosted_Preselection, 'mmc1_mass', 'resonance_pt')
+line.DrawLine(0, 140, 200, 140)
 legend(canvas)
 labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_pt', formats)
@@ -182,8 +203,11 @@ bdt_contours(Category_Boosted, Category_Cuts_Boosted_Preselection, 'mmc1_mass', 
 labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_pt_bdt', formats)
 
+#########
+
 canvas = Canvas()
 sample_contours(Category_Cuts_Boosted_Preselection, 'mmc1_mass', 'dR_tau1_tau2')
+line.DrawLine(0, 1.5, 200, 1.5)
 legend(canvas)
 labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_dr', formats)
@@ -193,8 +217,14 @@ bdt_contours(Category_Boosted, Category_Cuts_Boosted_Preselection, 'mmc1_mass', 
 labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_mass_dr_bdt', formats)
 
+#########
+
 canvas = Canvas()
 sample_contours(Category_Cuts_Boosted_Preselection, 'dR_tau1_tau2', 'resonance_pt')
+line.DrawLine(0.8, 140, 1.5, 140)
+line.DrawLine(1.5, 140, 1.5, 300)
+label.DrawLatex(1, 160, "High #font[52]{p}_{T}^{H}")
+label.DrawLatex(2, 160, "High #font[52]{p}_{T}^{H}")
 legend(canvas)
 labels(canvas, Category_Cuts_Boosted_Preselection)
 save_canvas(canvas, 'plots/contours', 'contour_boosted_dr_pt', formats)
