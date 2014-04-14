@@ -87,6 +87,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
         channels = []
         # make workspace for each category
         # include the control region in each
+        # TODO: categories might be different across years
         """
         for category in categories:
             cat_channels = [year_mass_category_channel[year][mass][category]
