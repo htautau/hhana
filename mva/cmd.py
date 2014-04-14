@@ -110,27 +110,29 @@ def plotting_parser(parser=None):
     if parser is None:
         parser = base_parser()
     parser.add_argument('--plots', nargs='*',
-            help='only draw these plots. see the keys in variables.py')
+                        help='only draw these plots. see the keys in variables.py')
     parser.add_argument('--plot-cut', default=None, nargs='?',
-            help='extra cut to be applied on the plots, but excluded from the '
-            'QCD/Z normaliation and training and classifier output')
+                        help='extra cut to be applied on the plots, but excluded from the '
+                        'QCD/Z normaliation and training and classifier output')
     parser.add_argument('--plot-expr', default=None, nargs='?',
-            help='expression to plot, instead of predefined ones in variables.py')
+                        help='expression to plot, instead of predefined ones in variables.py')
     parser.add_argument('--plot-name', default=None, nargs='?',
-            help='name of expr')
+                        help='name of expr')
     parser.add_argument('--plot-min', type=float, default=0, nargs='?',
-            help='minimum of expr')
+                        help='minimum of expr')
     parser.add_argument('--plot-max', type=float, default=1, nargs='?',
-            help='maximum of expr')
+                        help='maximum of expr')
     parser.add_argument('--plot-bins', type=int, default=20, nargs='?',
-            help='number of bins to plot expr in')
+                        help='number of bins to plot expr in')
     parser.add_argument('--no-weight', action='store_true', default=False,
-            help='do not apply correction weights')
+                        help='do not apply correction weights')
     parser.add_argument('--output-formats', default=['png'], nargs='+',
-            choices=('png', 'eps', 'pdf'),
-            help='output formats')
-    parser.add_argument('--no-data',action='store_true',default=False,
+                        choices=('png', 'eps', 'pdf'),
+                        help='output formats')
+    parser.add_argument('--no-data', action='store_true', default=False,
                         help='do not display data on the plot')
+    parser.add_argument('--show-ratio', action='store_true', default=False,
+                        help='Draw plot with a ratio plot below the main plot')
     return parser
 
 

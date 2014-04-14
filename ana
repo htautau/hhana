@@ -153,7 +153,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             output_suffix=output_suffix,
             unblind=args.unblind, #or is_control,
             cuts=cuts,
-            show_ratio=True,
+            show_ratio=args.show_ratio,
             no_data=args.no_data,
             top_label="Fakes Model: {0}".format(analysis.fakes_region))
 
@@ -257,7 +257,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             signal_scale=50,
             category=category,
             region=target_region,
-            show_ratio=False,
+            show_ratio=args.show_ratio,
             show_qq=False,
             plot_signal_significance=False,
             systematics=None,
