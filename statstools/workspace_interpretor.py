@@ -1,22 +1,40 @@
 # stdlib imports
 from cStringIO import StringIO
 from collections import OrderedDict
+
 # root/rootpy imports
 import ROOT
+import rootpy
 from rootpy import asrootpy
 from rootpy.plotting import Hist
 from rootpy.stats.histfactory import HistoSys, split_norm_shape
+from rootpy.stats import Workspace
 from rootpy.extern.tabulartext import PrettyTable
-
+from rootpy.extern.pyparsing import (Literal, Word, Combine,
+                                     Optional, delimitedList,
+                                     oneOf, alphas, nums, Suppress)
 # local imports
 from .import log; log = log[__name__]
+
+class highlighted_string(unicode):
+    def __new__(self, content):
+        if isinstance(content, basestring):
+            return unicode.__new__(self, "\033[93m%s\033[0m"%str(content))
+        else:
+            return unicode.__new__(self, "\033[93m%0.2f\033[0m"%content)
+            
+    def __len__(self):
+        ESC = Literal('\x1b')
+        integer = Word(nums)
+        escapeSeq = Combine(ESC + '[' + Optional(delimitedList(integer,';')) + oneOf(list(alphas)))
+        return unicode.__len__(Suppress(escapeSeq).transformString(str(self)))        
 
 class prettyfloat(float):
     def __repr__(self):
         #         if self<0:
-        #             return "\033[93m%0.2f\033[0m" % self
+        #             return stripped_str("\033[93m%0.2f\033[0m"%self)
         #         elif self==0:
-        #             return "\033[91m%0.2f\033[0m" % self
+        #             return stripped_str("\033[91m%0.2f\033[0m" % self)
         #         else:
         return "%1.1f" % self
     def __str__(self):
@@ -25,7 +43,12 @@ class prettyfloat(float):
 
             
 class workspaceinterpretor:
-    """A class to read and retrieve HSG4-type WS components"""
+    """
+    A class to read and retrieve HSG4-type WS components
+    - Parameters:
+    - A HSG4 workspace
+    """
+    # ---------------------------------------
     def __init__(self,ws):
         obsData = ws.data('obsData')
         # --> Get the Model Config object
@@ -42,8 +65,9 @@ class workspaceinterpretor:
         log.info('\n')
         for cat,hlist in self.hists.items():
             self.PrintHistsContents(cat,hlist)
-        self.get_nuisance_params(mc, simPdf)
+        self.get_nuisance_checks(mc, simPdf, obsData, ws)
 
+    # ---------------------------------------
     def get_nominal_hists_array(self, obsData, mc, simPdf):
         hists_array={}
         # --> get the list of categories index and iterate over
@@ -96,67 +120,7 @@ class workspaceinterpretor:
             hists_array[cat.GetName()]=hists_comp
         return hists_array
 
-    def get_nuisance_params(self, mc, simPdf):
-        nuisIter = mc.GetNuisanceParameters().createIterator()
-        while True:
-            nuis = nuisIter.Next()
-            if not nuis:
-                break
-            log.info( '%s: %1.2f<%1.2f<%1.2f'%(nuis.GetName(),nuis.getAsymErrorLo(),nuis.getVal(),nuis.getAsymErrorHi()))
-<<<<<<< HEAD
-
-        comps = simPdf.getComponents()
-        compIter = comps.createIterator()
-        while True:
-            comp = compIter.Next()
-            if not comp:
-                break
-            log.info( comp.GetName() )
-
-
-        vars = simPdf.getVariables()
-        varIter = vars.createIterator()
-        while True:
-            var = varIter.Next()
-            if not var:
-                break
-            log.info( '%s: %1.2f < %1.2f'%(var.GetName()) )
-#     args = pdftmp.getComponents()
-#     argIter = args.createIterator()
-#     while True:
-#         comp = argIter.Next()
-#         if not comp: break
-#         comp.Print()
-#         if 'nominal' in comp.GetName():
-#             hist_comp_nom[comp.GetName()] = comp.createHistogram(cat.GetName()+"_"+comp.GetName(),obs)
-#         if "alpha" in comp.GetName()[0:5]:
-#             comp.Print(),comp.getVariables().Print()
-
-
-
-=======
-
-        comps = simPdf.getComponents()
-        compIter = comps.createIterator()
-        while True:
-            comp = compIter.Next()
-            if not comp:
-                break
-            vars = comp.getVariables()
-            log.info( comp.GetName() )
-#     args = pdftmp.getComponents()
-#     argIter = args.createIterator()
-#     while True:
-#         comp = argIter.Next()
-#         if not comp: break
-#         comp.Print()
-#         if 'nominal' in comp.GetName():
-#             hist_comp_nom[comp.GetName()] = comp.createHistogram(cat.GetName()+"_"+comp.GetName(),obs)
-#         if "alpha" in comp.GetName()[0:5]:
-#             comp.Print(),comp.getVariables().Print()
-
-
-
+    # ------------------------------------------------
     def PrintHistsContents(self,cat,hlist):
         log.info(cat)
         row_template = [cat]+list(hlist[0][1].bins_range())
@@ -169,46 +133,63 @@ class workspaceinterpretor:
         print >> out, table.get_string(hrules=1)
         log.info(out.getvalue())
 
+    # ------------------------------------------------
+    def get_nuisance_checks(self, mc, simPdf, obsData, ws):
+
+        poi =  mc.GetParametersOfInterest().first()
+        poi.setRange(0., 2.)
+        poi.setVal(0.)
+        roo_min = asrootpy(ws).fit()
+        fitres = roo_min.save()
+        minNLL_hat = fitres.minNll()
+        log.info( 'minimized NLL: %f'%minNLL_hat)
+        ws.saveSnapshot("StartingPoint", simPdf.getParameters(obsData))
 
 
+        nuisance_params = mc.GetNuisanceParameters()
+        params_list = self.nuisance_params(mc)
 
-#             # --> Iterate over nuisance params
-#             nuisIter = mc.GetNuisanceParameters().createIterator()
-#             while True:
-#                 nuis = nuisIter.Next()
-#                 if not nuis: break
-#                 #                 print 'Nuisance parameter: '+nuis.GetName()
-#                 #                 nuis.Print()
-#                 if "gamma_stat" in nuis.GetName(): continue
-#                 if "ATLAS_norm" in nuis.GetName(): continue
-#                 if "ATLAS_sampleNorm" in nuis.GetName(): continue
-#                 #                 print '--> plot this nuisance parameter: '+nuis.GetName()
-#                 self.hist_nuis[cat.GetName()+"_"+nuis.GetName()] = pdftmp.createHistogram( "channel_"+cat.GetName()+"_nuis_"+nuis.GetName(),obs,ROOT.RooFit.YVar(nuis) )
+        minNlls_dict = {}
+        for key,_ in params_list.items():
+            if 'alpha_ATLAS_JES_Eta_Modelling' not in key:
+                continue
+            log.info('Scanning parameter %s'%key)
+            params_list[key]=False
+            nuis_par = nuisance_params.find(key)
+            minNlls = []
+            for val in xrange(-5, 5, 2):
+                log.info( 'Fit with %s = %d'%(key, val) )
+                ws.loadSnapshot("StartingPoint")
+                nuis_par.setVal(val)
+                roo_min = asrootpy(ws).fit(param_const=params_list,print_level=-1)
+                nuisance_params.Print('v')
+                fitres = roo_min.save()
+                minNlls.append(fitres.minNll()-minNLL_hat)
+                
+            minNlls_dict[key] = minNlls
+            nuisance_params[key] = True
 
- 
-    #  Get the components amd the shape nuissance parameters
-#     hist_comp_nom = {}
-#     hist_nuis     = {}
-
-#     args = pdftmp.getComponents()
-#     argIter = args.createIterator()
-#     while True:
-#         comp = argIter.Next()
-#         if not comp: break
-#         comp.Print()
-#         if 'nominal' in comp.GetName():
-#             hist_comp_nom[comp.GetName()] = comp.createHistogram(cat.GetName()+"_"+comp.GetName(),obs)
-#         if "alpha" in comp.GetName()[0:5]:
-#             comp.Print(),comp.getVariables().Print()
-#         comp.Print()
-#     canvas_hist[ cat.GetName() ] = ROOT.TCanvas()
-#     canvas_hist[ cat.GetName() ] .cd()
-#     hist.Draw("")
-#     for h in hist_comp_nom:
-#         print h
-#         hist_comp_nom[h].Draw("same")
+        out = StringIO()
+        row_template = ['NLL -Nll_hat'] + [val for val in xrange(-5, 5, 2)] 
+        table = PrettyTable(row_template)
+        for key,list_nuis in minNlls_dict.items():
+            pretty_bin_contents=map(prettyfloat,list_nuis)
+            table.add_row( [key]+pretty_bin_contents ) 
+        print >> out, '\n'
+        print >> out, table.get_string(hrules=1)
+        log.info(out.getvalue())
+        log.info( str(minNlls_dict) )    
 
 
+    def nuisance_params(self,mc,constant=False):
+        nuisIter = mc.GetNuisanceParameters().createIterator()
+        params_list = {}
+        while True:
+            nuis = nuisIter.Next()
+            if not nuis:
+                break
+            params_list[nuis.GetName()] = constant
+        return params_list
 
 
 

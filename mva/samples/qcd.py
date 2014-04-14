@@ -95,8 +95,27 @@ class QCD(Sample, Background):
         self.shape_systematic = shape_systematic
         self.systematics = mc[0].systematics
 
-    def events(self, category=None, region=None, cuts=None,
+    def events(self,
+               category=None,
+               region=None,
+               cuts=None,
                systematic='NOMINAL'):
+        """
+        This method returns the number of events selected. 
+        It overrides the Sample method (QCD inherits from Sample). In case of QCD, a subtraction
+        of Ztautau and other bkg (W+jets, diboson, top, ...) has to be performed, hence the
+        dedicated method.
+        The selection is specified by the different arguments.
+        By default, the output is a one-bin histogram with number of events as content. 
+        -----------
+        Arguments: 
+        - category: A given analysis category. See categories/__init__.py for the list
+        - region: A given analyis regions based on the sign and isolation of the taus. The signal
+                  region is 'OS'
+        - cuts: In addition to the category (where cuts are specified), extra cuts can be added
+                See categories/common.py for a list of possible cuts
+        - systematic: By default look at the nominal tree but could also do it on specified syst.
+        """
         data = Hist(1, -100, 100)
         mc_subtract = data.Clone()
         self.data.events(category, self.shape_region, cuts=cuts, hist=data)
