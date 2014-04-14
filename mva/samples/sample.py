@@ -1408,12 +1408,31 @@ class SystematicsSample(Sample):
             return zip(recs, idxs)
         return recs
 
-    def events(self, category=None, region=None,
+    def events(self,
+               category=None,
+               region=None,
                cuts=None,
                systematic='NOMINAL',
                weighted=True,
                hist=None,
                scale=1.):
+        """
+        This method returns the number of events selected. 
+        The selection is specified by the different arguments.
+        By default, the output is a one-bin histogram with number of event as content. 
+        -----------
+        Arguments: 
+        - category: A given analysis category. See categories/__init__.py for the list
+        - region: A given analyis regions based on the sign and isolation of the taus. The signal
+                  region is 'OS'
+        - cuts: In addition to the category (where cuts are specified), extra cuts can be added
+                See categories/common.py for a list of possible cuts
+        - systematic: By default look at the nominal tree but could also do it on specified syst.
+        - weighted: if True, return the weighted number of events 
+        - hist: if specified, fill this histogram. if not create a new one an return it.
+        - scale: if specified, multiply the number of events by the given scale. 
+        """
+
         if hist is None:
             hist = Hist(1, -100, 100)
         for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:

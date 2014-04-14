@@ -18,17 +18,18 @@ from mva.norm import cache as norm_cache
 
 from mva.analysis import get_analysis
 from mva.categories.mva  import Category_Preselection
-from mva.categories.selections import CUTS_VBF,CUTS_BOOSTED
-from mva.categories.selections import MET_CENTR,RES_PT
+from mva.categories.common import (CUTS_VBF,CUTS_BOOSTED,
+                                   CUTS_2J, DETA_TAUS,
+                                   RESONANCE_PT)
 
 from mva.categories.cb import DETA_JETS,MASS_JETS,TAUS_CENTR
-from mva.categories.cb import ( Category_Cuts_VBF_HighDR_Tight,
-                                Category_Cuts_VBF_HighDR_Loose,
-                                Category_Cuts_VBF_HighDR,
-                                Category_Cuts_VBF_LowDR,
-                                Category_Cuts_VBF )
-from mva.categories.cb import ( Category_Cuts_Boosted_Tight,
-                                Category_Cuts_Boosted_Loose )
+from mva.categories.cb import (Category_Cuts_VBF_HighDR_Tight,
+                               Category_Cuts_VBF_HighDR_Loose,
+                               Category_Cuts_VBF_HighDR,
+                               Category_Cuts_VBF_LowDR,
+                               Category_Cuts_VBF)
+from mva.categories.cb import (Category_Cuts_Boosted_Tight,
+                               Category_Cuts_Boosted_Loose)
 from statstools.ufloat import ufloat
 
 analysis = get_analysis(args)
@@ -79,8 +80,9 @@ norm_cache.qcd_ztautau_norm( ztautau = analysis.ztautau,
                              param=analysis.norm_field)
 
 vbf_cuts = OrderedDict( )
-vbf_cuts['2jets sel.'] = CUTS_VBF
-vbf_cuts['$\\Delta_{\\eta}$'] = CUTS_VBF & DETA_JETS
+vbf_cuts['2jets sel.'] = CUTS_2J
+vbf_cuts['$|\\Delta\\eta_{\\tau\\tau}|$'] = CUTS_VBF
+vbf_cuts['$|\\Delta\\eta_{jj}|$'] = CUTS_VBF & DETA_JETS
 vbf_cuts['$M_{jj}$'] = CUTS_VBF & DETA_JETS & MASS_JETS
 vbf_cuts['$\\eta_{min,j}<\\tau_1,\\tau_2<\\eta_{max,j}$'] = CUTS_VBF & DETA_JETS & MASS_JETS & TAUS_CENTR
 
@@ -113,9 +115,9 @@ for cat in vbf_cats:
 f_latex.write( '\\hline\n' )
 
 boosted_cuts = OrderedDict()
-boosted_cuts['Preselection'] = (-Category_Cuts_VBF.cuts)
-boosted_cuts['$\\Delta\\phi_{min}(\\tau,E_T^{miss)}$'] = MET_CENTR&(-Category_Cuts_VBF.cuts)
-boosted_cuts['$p_T^{H}$'] = CUTS_BOOSTED &(-Category_Cuts_VBF.cuts)
+boosted_cuts['Preselection'] = -CUTS_2J
+boosted_cuts['$|\\Delta\\eta_{\\tau\\tau}|$'] = -CUTS_2J & DETA_TAUS
+boosted_cuts['$p_T^{H}$'] = -CUTS_2J & DETA_TAUS & RESONANCE_PT 
 
 boosted_cats = [ Category_Cuts_Boosted_Tight,
                  Category_Cuts_Boosted_Loose
