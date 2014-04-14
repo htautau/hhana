@@ -28,7 +28,7 @@ def bdt_workspace(analysis, categories, masses,
         #### TODO: SET MASS using 125 for all points for now
         clf = analysis.get_clf(category, load=True, mass=125)
         # get the binning (see the optimize-binning script)
-        with open(os.path.join(CACHE_DIR, 'binning_{0}_{1}_{2}.pickle'.format(
+        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
                                category.name, 125, 12))) as f:
             binning = pickle.load(f)
         ####
