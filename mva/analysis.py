@@ -397,9 +397,6 @@ class Analysis(object):
                         log.info('Hybrid data: template binning {0}'.format(list(hist_data_template[0][field].xedges())))
                         replace_bin = (hist_data_template[0][field].FindBin(float(replace_low))-1,
                                        hist_data_template[0][field].FindBin(float(replace_high))+1)
-                        if uniform:
-                            replace_bin = (channel.data.hist.FindBin(replace_bin[0]),
-                                           channel.data.hist.FindBin(replace_bin[1]))
                         total_bkg_sig = sum([s.hist for s in channel.samples])
                         log.info( 'Hybrid data: before --> {0}'.format(list(channel.data.hist.y())))
                         channel.data.hist[replace_bin[0]:replace_bin[1]] = total_bkg_sig[replace_bin[0]:replace_bin[1]]
