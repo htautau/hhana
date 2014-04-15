@@ -159,18 +159,19 @@ def bdt_workspace(analysis, categories, masses,
                 binning = pickle.load(f)
             log.info("binning: {0}".format(str(binning)))
             # construct a "channel" for each mass point
-            scores, channels = analysis.clf_channels(
+            scores, channel = analysis.clf_channels(
                 clf, category,
                 region=analysis.target_region,
                 bins=binning,
-                masses=[mass],
+                mass=mass,
                 mode='workspace',
                 systematics=systematics,
-                unblind=unblind or 0.3,
+                unblind=unblind or 2,
+                hybrid_data=not unblind,
                 uniform=True)
             if mass not in mass_category_channel:
                 mass_category_channel[mass] = {}
-            mass_category_channel[mass][category.name] = channels[mass]
+            mass_category_channel[mass][category.name] = channel
     return mass_category_channel, controls
 
 

@@ -612,7 +612,7 @@ class Classifier(object):
 
         _, channel = analysis.clf_channels(self,
             category, region, cuts=control_region,
-            mass_points=[125],
+            mass=125,
             mode='combined',
             bins=category.clf_bins + 2,
             systematics=systematics,
@@ -640,7 +640,7 @@ class Classifier(object):
 
         scores, channels = analysis.clf_channels(self,
             category, region, cuts=signal_region,
-            mass_points=[125],
+            mass=125,
             mode='combined',
             systematics=systematics,
             bins=category.limitbins / 2,

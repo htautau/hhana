@@ -496,7 +496,7 @@ class Analysis(object):
                      category, region,
                      cuts=None,
                      bins=10,
-                     masses=None,
+                     mass=None,
                      mode=None,
                      systematics=True,
                      unblind=False,
@@ -511,7 +511,7 @@ class Analysis(object):
 
         scores_obj = self.get_scores(
             clf, category, region, cuts=cuts,
-            masses=masses, mode=mode,
+            masses=[mass], mode=mode,
             systematics=systematics,
             unblind=unblind)
 
@@ -521,10 +521,10 @@ class Analysis(object):
         min_score = scores_obj.min_score
         max_score = scores_obj.max_score
 
-        if isinstance(bins, (list, tuple)):
-            binning = Hist(bins, type='D')
-        else:
+        if isinstance(bins, int):
             binning = Hist(bins, min_score, max_score, type='D')
+        else: # iterable
+            binning = Hist(bins, type='D')
 
         bkg_samples = []
         for s, scores in bkg_scores:
@@ -541,18 +541,6 @@ class Analysis(object):
 
         data_sample = None
         if data_scores is not None:
-            max_unblind_score = None
-            if isinstance(unblind, float):
-                """
-                max_unblind_score = min([
-                    efficiency_cut(
-                        sum([histogram_scores(hist_template, scores)
-                             for s, scores in all_sig_scores[mass]]), 0.3)
-                        for mass in masses])
-                """
-                max_unblind_score = efficiency_cut(
-                    sum([histogram_scores(hist_template, scores)
-                         for s, scores in all_sig_scores[125]]), unblind)
             hist_template = binning.Clone(
                 title=self.data.label,
                 **self.data.hist_decor)
@@ -560,54 +548,56 @@ class Analysis(object):
                 hist_template, clf,
                 category, region,
                 cuts=cuts, scores=data_scores,
-                max_score=max_unblind_score,
                 uniform=uniform)
-            if not unblind and hybrid_data:
-                # blinded bins filled with S+B, for limit/p0 plots
-                # Swagato:
-                # We have to make 2 kinds of expected sensitivity plots:
-                # blinded sensitivity and unblinded sensitivity.
-                # For the first one pure AsimovData is used, for second one I
-                # suggest to use Hybrid, because the profiled NP's are not
-                # always at 0 pull.
-                pass
+            if unblind is False:
+                # blind full histogram
+                data_sample.hist[:] = (0, 0)
+            elif isinstance(unblind, int):
+                # blind highest N bins
+                data_sample.hist[-(unblind + 1):] = (0, 0)
+            elif isinstance(unblind, float):
+                # blind above a signal efficiency
+                max_unblind_score = efficiency_cut(
+                    sum([histogram_scores(hist_template, scores)
+                        for s, scores in all_sig_scores[mass]]), unblind)
+                blind_bin = hist_template.FindBin(max_unblind_score)
+                data_sample.hist[blind_bin:] = (0, 0)
 
-        if masses is None:
-            # create channel without signal
-            channel = histfactory.make_channel(
-                category.name,
-                bkg_samples,
-                data=data_sample)
-            return scores_obj, channel
+        # create signal HistFactory samples
+        sig_samples = []
+        for s, scores in all_sig_scores[mass]:
+            hist_template = binning.Clone(
+                title=s.label,
+                **s.hist_decor)
+            sample = s.get_histfactory_sample(
+                hist_template, clf,
+                category, region,
+                cuts=cuts, scores=scores,
+                no_signal_fixes=no_signal_fixes,
+                systematics=systematics,
+                uniform=uniform)
+            sig_samples.append(sample)
 
-        # signal scores
-        for mass in masses:
-            log.info('=' * 20)
-            log.info("%d GeV mass hypothesis" % mass)
+        # replace data in blind bins with signal + background
+        if hybrid_data and unblind is not True:
+            sum_sig_bkg = sum([s.hist for s in (bkg_samples + sig_samples)])
+            if unblind is False:
+                # replace full hist
+                data_sample.hist[:] = sum_sig_bkg[:]
+            elif isinstance(unblind, int):
+                # replace highest N bins
+                bin = -(unblind + 1)
+                data_sample.hist[bin:] = sum_sig_bkg[bin:]
+            elif isinstance(unblind, float):
+                data_sample.hist[blind_bin:] = sum_sig_bkg[blind_bin:]
 
-            # create HistFactory samples
-            sig_samples = []
-            for s, scores in all_sig_scores[mass]:
-                hist_template = binning.Clone(
-                    title=s.label,
-                    **s.hist_decor)
-                sample = s.get_histfactory_sample(
-                    hist_template, clf,
-                    category, region,
-                    cuts=cuts, scores=scores,
-                    no_signal_fixes=no_signal_fixes,
-                    systematics=systematics,
-                    uniform=uniform)
-                sig_samples.append(sample)
+        # create channel for this mass point
+        channel = histfactory.make_channel(
+            '{0}_{1}_{2}'.format(category.name, mass, self.year % 1000),
+            bkg_samples + sig_samples,
+            data=data_sample)
 
-            # create channel for this mass point
-            channel = histfactory.make_channel(
-                '{0}_{1}_{2}'.format(category.name, mass, self.year % 1000),
-                bkg_samples + sig_samples,
-                data=data_sample)
-            channels[mass] = channel
-
-        return scores_obj, channels
+        return scores_obj, channel
 
     def get_clf(self, category, load=False, swap=False, **kwargs):
         output_suffix = self.get_suffix()
