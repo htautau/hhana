@@ -909,7 +909,6 @@ class SystematicsSample(Sample):
             'MET_SCALESOFTTERMS',
             'TAUID',
             'TRIGGER',
-            'FAKERATE',
         ]
         if self.year == 2011:
             return common + [
@@ -1491,6 +1490,7 @@ class MC(SystematicsSample):
             'JES_FlavResp',
             #'JVF',
             'JER',
+            'FAKERATE',
         ]
 
     def weight_fields(self):
