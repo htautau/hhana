@@ -1,0 +1,3 @@
+* remove fake rate NP from embedded Ztt
+* fix treatment of sys and stat treatment of ID and trigger
+* put hybrid data in workspace for CBA and MVA

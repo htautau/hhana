@@ -151,30 +151,26 @@ def bdt_workspace(analysis, categories, masses,
         include_signal=True, masses=masses)
     mass_category_channel = {}
     for category in analysis.iter_categories(categories):
-
-        #### TODO: SET MASS using 125 for all points for now
-        clf = analysis.get_clf(category, load=True, mass=125)
-        # get the binning (see the optimize-binning script)
-        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
-                               category.name, 125, 12))) as f:
-            binning = pickle.load(f)
-        ####
-
-        log.info("binning: {0}".format(str(binning)))
-        # construct a "channel" for each mass point
-        scores, channels = analysis.clf_channels(
-            clf, category,
-            region=analysis.target_region,
-            bins=binning,
-            masses=masses,
-            mode='workspace',
-            systematics=systematics,
-            unblind=unblind or 0.3,
-            uniform=True)
-        for mass, channel in channels.items():
-            if mass not in mass_category_channel:
-                mass_category_channel[mass] = {}
-            mass_category_channel[mass][category.name] = channel
+        for mass in masses:
+            clf = analysis.get_clf(category, load=True, mass=mass)
+            # get the binning (see the optimize-binning script)
+            with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
+                                   category.name, mass, analysis.year % 1000))) as f:
+                binning = pickle.load(f)
+            log.info("binning: {0}".format(str(binning)))
+            # construct a "channel" for each mass point
+            scores, channels = analysis.clf_channels(
+                clf, category,
+                region=analysis.target_region,
+                bins=binning,
+                masses=[mass],
+                mode='workspace',
+                systematics=systematics,
+                unblind=unblind or 0.3,
+                uniform=True)
+            mass_category_channel[mass] = {}
+            for channel in channels.items():
+                mass_category_channel[mass][category.name] = channel
     return mass_category_channel, controls
 
 
