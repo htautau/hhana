@@ -1,5 +1,6 @@
 ntuples
 plots
+workspaces
 *.e*
 *.o*
 lhc*.phys.sfu.ca-*
