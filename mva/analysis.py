@@ -333,8 +333,10 @@ class Analysis(object):
         - category: analysis category (see mva/categories/*)
         - region: analysis region (i.e 'OS_ISOL', ...)
         - cuts: additional cuts that could be place when requesting the channel array (See mva/categories/common.py for examples)
-        - TODO: continue to details parameters
-        - hybrid_data: if specified dictionnary mapping the vars key to a tuple specifyng the range to be swapped by s+b prediction. 
+        ***************
+        - TODO TODO TODO: continue to details parameters
+        ****************
+        - hybrid_data: if specified, it is a dictionnary mapping the vars key to a tuple specifyng the range to be swapped by s+b prediction. 
         """
 
 
@@ -390,11 +392,13 @@ class Analysis(object):
                         if len(hybrid_data[field])!=2:
                             log.error('Hybrid data: Need to specify a range with only two edged')
                         # Get the range of bins to be replaced (add 1 additional bin on both side for safety)
-                        (swap_low, swap_high) = (hybrid_data[field][0], hybrid_data[field][1)]
-                        (swap_bin_low, swap_bin_high) = (channel.data.hist.FindBin(swap_low)-1,
-                                                         channel.data.hist.FindBin(swap_high)+1)
+                        (replace_low, replace_high) = (hybrid_data[field][0], hybrid_data[field][1])
+                        (replace_bin_low, replace_bin_high) = (channel.data.hist.FindBin(float(replace_low))-1,
+                                                               channel.data.hist.FindBin(float(replace_high))+1)
                         total_bkg_sig = sum([s.hist for s in channel.samples])
-                        channel.data.hist[swap_bin_low:swap_bin_high] = total_bkg_sig[swap_bin_low:swap_bin_high]
+                        # --> TO BE FIXED
+                        # channel.data.hist[replace_bin_low:replace_bin_high] = total_bkg_sig[replace_bin_low:replace_bin_high]
+                        channel.data.hist[:] = (0,0)
 
             field_channels[field] = channel
         return field_channels
