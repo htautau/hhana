@@ -12,7 +12,8 @@ gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 
 def pvalue_plot(poi, pvalues, pad=None,
                 xtitle='X', ytitle='P_{0}',
-                linestyle=None):
+                linestyle=None,
+                linecolor=None):
     """
     Draw a pvalue plot
 
@@ -31,6 +32,9 @@ def pvalue_plot(poi, pvalues, pad=None,
         The y-axis label
     linestyle : str or list, optional (default=None)
         Line style for the p-value graph or a list of linestyles for
+        multiple p-value graphs.
+    linecolor : str or list, optional (default=None)
+        Line color for the p-value graph or a list of linestyles for
         multiple p-value graphs.
 
     Returns
@@ -66,14 +70,23 @@ def pvalue_plot(poi, pvalues, pad=None,
         min_pvalue = float('inf')
         graphs = []
         for ipv, pv in enumerate(pvalues):
-            graph = Graph(len(poi), linestyle='dashed', drawstyle='L')
+            graph = Graph(len(poi), linestyle='dashed', drawstyle='L', linewidth=2)
+            
             for idx, (point, pvalue) in enumerate(zip(poi, pv)):
                 graph.SetPoint(idx, point, pvalue)
+            # ---> Set the line style
             if linestyle:
                 if isinstance(linestyle, basestring):
                     graph.linestyle = linestyle
                 else:
                     graph.linestyle = linestyle[ipv]
+            # ---> Set the line color
+            if linecolor:
+                if isinstance(linecolor, basestring):
+                    graph.linecolor = linecolor
+                else:
+                    graph.linecolor = linecolor[ipv]
+
             graphs.append(graph)
             curr_min_pvalue = min(pv)
             if curr_min_pvalue < min_pvalue:

@@ -65,7 +65,7 @@ class workspaceinterpretor:
         log.info('\n')
         for cat,hlist in self.hists.items():
             self.PrintHistsContents(cat,hlist)
-        self.get_nuisance_checks(mc, simPdf, obsData, ws)
+#         self.get_nuisance_checks(mc, simPdf, obsData, ws)
 
     # ---------------------------------------
     def get_nominal_hists_array(self, obsData, mc, simPdf):
