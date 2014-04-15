@@ -925,7 +925,7 @@ class SystematicsSample(Sample):
             ]
 
     def weight_systematics(self):
-        return {
+        systematics = {
             'FAKERATE': {
                 'UP': [
                     'tau1_fakerate_sf_high',
@@ -935,18 +935,36 @@ class SystematicsSample(Sample):
                     'tau2_fakerate_sf_low'],
                 'NOMINAL': [
                     'tau1_fakerate_sf',
-                    'tau2_fakerate_sf']},
-            'TAUID': {
-                'UP': [
-                    'tau1_id_sf_high',
-                    'tau2_id_sf_high'],
-                'DOWN': [
-                    'tau1_id_sf_low',
-                    'tau2_id_sf_low'],
-                'NOMINAL': [
-                    'tau1_id_sf',
-                    'tau2_id_sf']},
-        }
+                    'tau2_fakerate_sf']}
+            }
+        if self.year == 2011:
+            tauid = {
+                'TAUID': {
+                    'UP': [
+                        'tau1_id_sf_high',
+                        'tau2_id_sf_high'],
+                    'DOWN': [
+                        'tau1_id_sf_low',
+                        'tau2_id_sf_low'],
+                    'NOMINAL': [
+                        'tau1_id_sf',
+                        'tau2_id_sf']}
+                }
+        else:
+            tauid = {
+                'TAUID': {
+                    'UP': [
+                        'tau1_id_sf_sys_high',
+                        'tau2_id_sf_sys_high'],
+                    'DOWN': [
+                        'tau1_id_sf_sys_low',
+                        'tau2_id_sf_sys_low'],
+                    'NOMINAL': [
+                        'tau1_id_sf',
+                        'tau2_id_sf']}
+                }
+        systematics.update(tauid)
+        return systematics
 
     def cut_systematics(self):
         return {}
@@ -1417,20 +1435,20 @@ class SystematicsSample(Sample):
                hist=None,
                scale=1.):
         """
-        This method returns the number of events selected. 
+        This method returns the number of events selected.
         The selection is specified by the different arguments.
-        By default, the output is a one-bin histogram with number of event as content. 
+        By default, the output is a one-bin histogram with number of event as content.
         -----------
-        Arguments: 
+        Arguments:
         - category: A given analysis category. See categories/__init__.py for the list
         - region: A given analyis regions based on the sign and isolation of the taus. The signal
                   region is 'OS'
         - cuts: In addition to the category (where cuts are specified), extra cuts can be added
                 See categories/common.py for a list of possible cuts
         - systematic: By default look at the nominal tree but could also do it on specified syst.
-        - weighted: if True, return the weighted number of events 
+        - weighted: if True, return the weighted number of events
         - hist: if specified, fill this histogram. if not create a new one an return it.
-        - scale: if specified, multiply the number of events by the given scale. 
+        - scale: if specified, multiply the number of events by the given scale.
         """
 
         if hist is None:
@@ -1484,17 +1502,30 @@ class MC(SystematicsSample):
 
     def weight_systematics(self):
         systematics = super(MC, self).weight_systematics()
-        systematics.update({
-            'TRIGGER': {
-                'UP': [
-                    'tau1_trigger_sf_high',
-                    'tau2_trigger_sf_high'],
-                'DOWN': [
-                    'tau1_trigger_sf_low',
-                    'tau2_trigger_sf_low'],
-                'NOMINAL': [
-                    'tau1_trigger_sf',
-                    'tau2_trigger_sf']}})
+        if self.year == 2011:
+            systematics.update({
+                'TRIGGER': {
+                    'UP': [
+                        'tau1_trigger_sf_high',
+                        'tau2_trigger_sf_high'],
+                    'DOWN': [
+                        'tau1_trigger_sf_low',
+                        'tau2_trigger_sf_low'],
+                    'NOMINAL': [
+                        'tau1_trigger_sf',
+                        'tau2_trigger_sf']}})
+        else:
+            systematics.update({
+                'TRIGGER': {
+                    'UP': [
+                        'tau1_trigger_sf_sys_high',
+                        'tau2_trigger_sf_sys_high'],
+                    'DOWN': [
+                        'tau1_trigger_sf_sys_low',
+                        'tau2_trigger_sf_sys_low'],
+                    'NOMINAL': [
+                        'tau1_trigger_sf',
+                        'tau2_trigger_sf']}})
         return systematics
 
 

@@ -74,24 +74,41 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def weight_systematics(self):
         systematics = super(Embedded_Ztautau, self).weight_systematics()
-        systematics.update({
-            'TRIGGER': {
-                'UP': [
-                    'tau1_trigger_eff_high',
-                    'tau2_trigger_eff_high'],
-                'DOWN': [
-                    'tau1_trigger_eff_low',
-                    'tau2_trigger_eff_low'],
-                'NOMINAL': [
-                    'tau1_trigger_eff',
-                    'tau2_trigger_eff']},
-        })
+        if self.year == 2011:
+            systematics.update({
+                'TRIGGER': {
+                    'UP': [
+                        'tau1_trigger_eff_high',
+                        'tau2_trigger_eff_high'],
+                    'DOWN': [
+                        'tau1_trigger_eff_low',
+                        'tau2_trigger_eff_low'],
+                    'NOMINAL': [
+                        'tau1_trigger_eff',
+                        'tau2_trigger_eff']},
+            })
+        else:
+            systematics.update({
+                'TRIGGER': {
+                    'UP': [
+                        'tau1_trigger_eff_sys_high',
+                        'tau2_trigger_eff_sys_high'],
+                    'DOWN': [
+                        'tau1_trigger_eff_sys_low',
+                        'tau2_trigger_eff_sys_low'],
+                    'NOMINAL': [
+                        'tau1_trigger_eff',
+                        'tau2_trigger_eff']},
+            })
+        # no FR for embedding since the fakes are data
+        del systematics['FAKERATE']
         return systematics
 
     def cut_systematics(self):
         systematics = super(Embedded_Ztautau, self).cut_systematics()
         if self.year == 2011:
             return systematics
+        # isolation treatment in 2012 is different
         systematics.update({
             'ISOL': { # MUON ISOLATION
                 'UP': Cut('(embedding_isolation == 2)'),
