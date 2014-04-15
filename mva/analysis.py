@@ -332,17 +332,18 @@ class Analysis(object):
         - vars: dictionnary of histograms (i.e. {'MMC_MASS':hist_template, ...}
         - category: analysis category (see mva/categories/*)
         - region: analysis region (i.e 'OS_ISOL', ...)
-        - cuts: additional cuts that could be place when requesting the channel array (See mva/categories/common.py for examples)
+        - cuts: additional cuts that could be place when requesting the channel array
+                (See mva/categories/common.py for examples)
         ***************
         - TODO TODO TODO: continue to details parameters
         ****************
-        - hybrid_data: if specified, it is a dictionnary mapping the vars key to a tuple specifyng the range to be swapped by s+b prediction. 
+        - hybrid_data: if specified, it is a dictionnary mapping the vars key to a tuple
+                       specifying the range to be replaced by s+b prediction. 
         """
-
 
         # TODO: implement blinding
         log.info("constructing channels")
-        samples = [self.data] + self.backgrounds
+        samples = [self.data]+self.backgrounds
         channel_name = '{0}_{1}'.format(category.name, self.year % 1000)
         suffix = None
         if include_signal:
@@ -353,7 +354,6 @@ class Analysis(object):
             channel_name += suffix
             samples += self.get_signals(mass, mode, scale_125=scale_125)
 
-                    
         # create HistFactory samples
         histfactory_samples = []
         for s in samples:
@@ -388,18 +388,22 @@ class Analysis(object):
                 log.info('Hybrid data has been requested')
                 if field in hybrid_data.keys():
                     if isinstance(hybrid_data[field], (list, tuple)):
-                        log.info('Hybrid data: replacing data by signal+background prediction in {0}'.format(hybrid_data[field]))
+                        log.info('Hybrid data: replacing data by s+b prediction for {0} in range {1}'.format(field, hybrid_data[field]))
                         if len(hybrid_data[field])!=2:
                             log.error('Hybrid data: Need to specify a range with only two edged')
                         # Get the range of bins to be replaced (add 1 additional bin on both side for safety)
                         (replace_low, replace_high) = (hybrid_data[field][0], hybrid_data[field][1])
-                        (replace_bin_low, replace_bin_high) = (channel.data.hist.FindBin(float(replace_low))-1,
-                                                               channel.data.hist.FindBin(float(replace_high))+1)
+                        hist_data_template = self.data.get_field_hist(vars, category)
+                        log.info('Hybrid data: template binning {0}'.format(list(hist_data_template[0][field].xedges())))
+                        replace_bin = (hist_data_template[0][field].FindBin(float(replace_low))-1,
+                                       hist_data_template[0][field].FindBin(float(replace_high))+1)
+                        if uniform:
+                            replace_bin = (channel.data.hist.FindBin(replace_bin[0]),
+                                           channel.data.hist.FindBin(replace_bin[1]))
                         total_bkg_sig = sum([s.hist for s in channel.samples])
-                        # --> TO BE FIXED
-                        # channel.data.hist[replace_bin_low:replace_bin_high] = total_bkg_sig[replace_bin_low:replace_bin_high]
-                        channel.data.hist[:] = (0,0)
-
+                        log.info( 'Hybrid data: before --> {0}'.format(list(channel.data.hist.y())))
+                        channel.data.hist[replace_bin[0]:replace_bin[1]] = total_bkg_sig[replace_bin[0]:replace_bin[1]]
+                        log.info( 'Hybrid data: after --> {0}'.format(list(channel.data.hist.y())))
             field_channels[field] = channel
         return field_channels
 

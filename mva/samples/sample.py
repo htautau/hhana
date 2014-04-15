@@ -149,20 +149,20 @@ class Sample(object):
         return field_hist, field_scale
 
     def get_hist_array(self,
-            field_hist_template,
-            category, region,
-            cuts=None,
-            clf=None,
-            scores=None,
-            min_score=None,
-            max_score=None,
-            systematics=False,
-            systematics_components=None,
-            suffix=None,
-            field_scale=None,
-            weight_hist=None,
-            weighted=True,
-            bootstrap_data=False):
+                       field_hist_template,
+                       category, region,
+                       cuts=None,
+                       clf=None,
+                       scores=None,
+                       min_score=None,
+                       max_score=None,
+                       systematics=False,
+                       systematics_components=None,
+                       suffix=None,
+                       field_scale=None,
+                       weight_hist=None,
+                       weighted=True,
+                       bootstrap_data=False):
 
         do_systematics = (isinstance(self, SystematicsSample)
                           and self.systematics
@@ -185,16 +185,16 @@ class Sample(object):
             field_hist[field] = new_hist
 
         self.draw_array(field_hist, category, region,
-            cuts=cuts,
-            weighted=weighted,
-            field_scale=field_scale,
-            weight_hist=weight_hist,
-            clf=clf,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=do_systematics,
-            systematics_components=systematics_components,
-            bootstrap_data=bootstrap_data)
+                        cuts=cuts,
+                        weighted=weighted,
+                        field_scale=field_scale,
+                        weight_hist=weight_hist,
+                        clf=clf,
+                        min_score=min_score,
+                        max_score=max_score,
+                        systematics=do_systematics,
+                        systematics_components=systematics_components,
+                        bootstrap_data=bootstrap_data)
 
         return field_hist
 
@@ -400,22 +400,22 @@ class Sample(object):
         return sample
 
     def get_histfactory_sample_array(self,
-            field_hist_template,
-            category, region,
-            cuts=None,
-            clf=None,
-            scores=None,
-            min_score=None,
-            max_score=None,
-            systematics=False,
-            suffix=None,
-            field_scale=None,
-            weight_hist=None,
-            weighted=True,
-            no_signal_fixes=False,
-            bootstrap_data=False,
-            ravel=True,
-            uniform=False):
+                                     field_hist_template,
+                                     category, region,
+                                     cuts=None,
+                                     clf=None,
+                                     scores=None,
+                                     min_score=None,
+                                     max_score=None,
+                                     systematics=False,
+                                     suffix=None,
+                                     field_scale=None,
+                                     weight_hist=None,
+                                     weighted=True,
+                                     no_signal_fixes=False,
+                                     bootstrap_data=False,
+                                     ravel=True,
+                                     uniform=False):
 
         from .data import Data
         from .qcd import QCD
