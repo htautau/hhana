@@ -168,9 +168,9 @@ def bdt_workspace(analysis, categories, masses,
                 systematics=systematics,
                 unblind=unblind or 0.3,
                 uniform=True)
-            mass_category_channel[mass] = {}
-            for channel in channels.items():
-                mass_category_channel[mass][category.name] = channel
+            if mass not in mass_category_channel:
+                mass_category_channel[mass] = {}
+            mass_category_channel[mass][category.name] = channels[mass]
     return mass_category_channel, controls
 
 
