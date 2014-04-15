@@ -280,13 +280,13 @@ bdt-control-plots:
 
 .PHONY: train
 train:
-	for mass in $$(seq 100 5 150); do \
+	@for mass in $$(seq 100 5 150); do \
 		run-cluster ./train --mass $${mass}; \
 	done
 
 .PHONY: binning
 binning:
-	for year in 2011 2012; do \
+	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
 			run-cluster ./optimize-binning --systematics --year $${year} --mass $${mass}; \
 		done; \
@@ -294,7 +294,7 @@ binning:
 
 .PHONY: bdt-workspaces
 bdt-workspaces:
-	for year in 2011 2012; do \
+	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
 			run-cluster ./workspace bdt --systematics --year $${year} --masses $${mass}; \
 		done; \
