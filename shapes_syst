@@ -14,6 +14,7 @@ from ROOT import TLatex
 
 # local imports
 from mva.cmd import get_parser
+from mva.defaults import TARGET_REGION
 from mva.categories import CATEGORIES
 from mva.variables import VARIABLES
 from mva.analysis import Analysis, get_analysis
@@ -37,49 +38,50 @@ fields=[
     'dEta_jets',
     ]
 
-field_dict=dict( [(field, VARIABLES[field]) for field in fields] )
+field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
 
-backgrounds=analysis.backgrounds
-signals=analysis.signals
-ztautau=analysis.ztautau
-others=analysis.others
-qcd=analysis.qcd
-TotalBkg=CompositeSample( backgrounds, name='TotalBkg', label='Total Background' )
-TotalSig=CompositeSample( signals, name='TotalSig', label='H#rightarrow#tau#tau' )
-# TestedSamples=[ztautau,others,qcd,TotalBkg,TotalSig] 
-TestedSamples=[TotalSig] 
+backgrounds = analysis.backgrounds
+signals = analysis.signals
+ztautau = analysis.ztautau
+others = analysis.others
+qcd = analysis.qcd
+TotalBkg = CompositeSample(backgrounds, name='TotalBkg', label='Total Background')
+TotalSig = CompositeSample(signals, name='TotalSig', label='H#rightarrow#tau#tau')
 
-log.info( backgrounds )
+TestedSamples = [ztautau,others,qcd,TotalBkg,TotalSig] 
+# TestedSamples=[TotalSig] 
+
+log.info(backgrounds)
 for s in TestedSamples:
     for category in categories:
-        log.info( category )
-        events = s.events( category, 'OS' )
+        log.info(category)
+        events = s.events(category, TARGET_REGION)
         log.info ( "The total number of events in %s is %d"% (s.name,events[1].value) )
-        field_hist,field_scale = ztautau.get_field_hist( field_dict, category )
-        log.info ( str(field_hist) )
-        log.info ( str(field_scale) )
-        s.draw_array( field_hist,
-                      category,
-                      'OS',
-                      field_scale=field_scale,
-                      systematics=args.systematics )
-        log.info( str(field_hist) )
+        field_hist,field_scale = ztautau.get_field_hist(field_dict, category)
+        log.info(str(field_hist))
+        log.info(str(field_scale))
+        s.draw_array(field_hist,
+                     category,
+                     TARGET_REGION,
+                     field_scale=field_scale,
+                     systematics=args.systematics)
+        log.info(str(field_hist))
             
 
         for field,hist in field_hist.items():
             for syst,hist_syst in hist.systematics.items():
                 hist.title='NOMINAL'
                 hist_syst.title=syst[0]
-                log.info( syst )
-                plot=draw_ratio( hist,hist_syst,field,category,
-                                 textsize=18,
-                                 ratio_range=(0.8,1.2),
-                                 ratio_line_values=[0.9,1,1.1],
-                                 optional_label_text=s.label )
+                log.info(syst)
+                plot=draw_ratio(hist,hist_syst,field,category,
+                                textsize=18,
+                                ratio_range=(0.8,1.2),
+                                ratio_line_values=[0.9,1,1.1],
+                                optional_label_text=s.label )
                 save_canvas( plot,
                              'plots',
-                             '{0}/shape_{1}_{2}_{3}_{4}.png'.format( s.name,
+                             '{0}/shape_{1}_{2}_{3}_{4}.eps'.format( s.name,
                                                                      syst[0],
                                                                      field,
                                                                      category.name,
