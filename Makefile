@@ -278,25 +278,6 @@ bdt-control-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
-.PHONY: workspace-unblind
-workspace-unblind:
-	nohup ./ana workspace --unblind --mass-points all > workspace_unblind.log &
-
-.PHONY: workspace
-workspace:
-	nohup ./ana workspace --mass-points all > workspace.log &
-	nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu --mass-points all > workspace_unblind_random.log &
-
-.PHONY: workspace-const
-workspace-const:
-	nohup ./ana workspace --constrain-norms --workspace-suffix const_norms --mass-points all > workspace_const_norms.log &
-	nohup ./ana workspace --constrain-norms --unblind --mu 123 --workspace-suffix const_norms_unblinded_random_mu --mass-points all > workspace_const_norms_unblind_random.log &
-
-.PHONY: workspace-125
-workspace-125:
-	nohup ./ana workspace > workspace.log &
-	nohup ./ana workspace --unblind --mu 123 --workspace-suffix unblinded_random_mu > workspace_unblind_random.log &
-
 .PHONY: train
 train:
 	for mass in $$(seq 100 5 150); do \
@@ -308,5 +289,13 @@ binning:
 	for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
 			run-cluster ./optimize-binning --systematics --year $${year} --mass $${mass}; \
+		done; \
+	done
+
+.PHONY: bdt-workspaces
+bdt-workspaces:
+	for year in 2011 2012; do \
+		for mass in $$(seq 100 5 150); do \
+			run-cluster ./workspace bdt --systematics --year $${year} --masses $${mass}; \
 		done; \
 	done
