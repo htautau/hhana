@@ -6,6 +6,18 @@ import os
 from . import log; log = log[__name__]
 
 
+def find_measurements(path):
+    for dirpath, dirnames, filenames in os.walk(path):
+        # does this directory contain a workspace?
+        if not 'HistFactorySchema.dtd' in filenames:
+            continue
+        # find the top-level combination XMLs
+        for filename in filenames:
+            with open(os.path.join(dirpath, filename)) as f:
+                if '<Combination' in f.read():
+                    yield dirpath, filename
+
+
 def fix(input, suffix='fixed', verbose=False, **kwargs):
     """
     Traverse all workspaces and apply HSG4 fixes
@@ -14,29 +26,22 @@ def fix(input, suffix='fixed', verbose=False, **kwargs):
         raise ValueError("input must be an existing directory")
     input = os.path.normpath(input)
     output = input + '_' + suffix
-    for dirpath, dirnames, filenames in os.walk(input):
-        # does this directory contain a workspace?
-        if not 'HistFactorySchema.dtd' in filenames:
-            continue
-        # find the top-level combination XMLs
-        for filename in filenames:
-            with open(os.path.join(dirpath, filename)) as f:
-                if '<Combination' in f.read():
-                    path = os.path.join(dirpath, filename)
-                    log.info("fixing {0} ...".format(path))
-                    measurements = measurements_from_xml(
-                        path,
-                        cd_parent=True,
-                        collect_histograms=True,
-                        silence=not verbose)
-                    for meas in measurements:
-                        with MemFile():
-                            fix_measurement(meas, **kwargs)
-                            write_measurement(meas,
-                                output_path=os.path.join(
-                                    output, dirpath.replace(input, '', 1)[1:]),
-                                write_workspaces=True,
-                                silence=not verbose)
+    for dirpath, measurement_file in find_measurements(input):
+        path = os.path.join(dirpath, measurement_file)
+        log.info("fixing {0} ...".format(path))
+        measurements = measurements_from_xml(
+            path,
+            cd_parent=True,
+            collect_histograms=True,
+            silence=not verbose)
+        for meas in measurements:
+            with MemFile():
+                fix_measurement(meas, **kwargs)
+                write_measurement(meas,
+                    output_path=os.path.join(
+                        output, dirpath.replace(input, '', 1)[1:]),
+                    write_workspaces=True,
+                    silence=not verbose)
 
 
 def fix_measurement(meas, fill_empties=False):
