@@ -6,6 +6,7 @@ from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import draw
 from rootpy.memory import keepalive
 from rootpy.context import preserve_current_canvas
+from itertools import cycle
 
 gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 
@@ -13,7 +14,8 @@ gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 def pvalue_plot(poi, pvalues, pad=None,
                 xtitle='X', ytitle='P_{0}',
                 linestyle=None,
-                linecolor=None):
+                linecolor=None,
+                yrange=None):
     """
     Draw a pvalue plot
 
@@ -52,6 +54,14 @@ def pvalue_plot(poi, pvalues, pad=None,
     # determine if pvalues is list or list of lists
     if not isinstance(pvalues[0], (list, tuple)):
         pvalues = [pvalues]
+    if linecolor is not None:
+        if not isinstance(linecolor, list):
+            linecolor = [linecolor]
+        linecolor = cycle(linecolor)
+    if linestyle is not None:
+        if not isinstance(linestyle, list):
+            linestyle = [linestyle]
+        linestyle = cycle(linestyle)
 
     with preserve_current_canvas():
         if pad is None:
@@ -70,33 +80,30 @@ def pvalue_plot(poi, pvalues, pad=None,
         min_pvalue = float('inf')
         graphs = []
         for ipv, pv in enumerate(pvalues):
-            graph = Graph(len(poi), linestyle='dashed', drawstyle='L', linewidth=2)
-            
+            graph = Graph(len(poi), linestyle='dashed',
+                          drawstyle='L', linewidth=2)
             for idx, (point, pvalue) in enumerate(zip(poi, pv)):
                 graph.SetPoint(idx, point, pvalue)
-            # ---> Set the line style
-            if linestyle:
-                if isinstance(linestyle, basestring):
-                    graph.linestyle = linestyle
-                else:
-                    graph.linestyle = linestyle[ipv]
-            # ---> Set the line color
-            if linecolor:
-                if isinstance(linecolor, basestring):
-                    graph.linecolor = linecolor
-                else:
-                    graph.linecolor = linecolor[ipv]
-
+            if linestyle is not None:
+                graph.linestyle = linestyle.next()
+            if linecolor is not None:
+                graph.linecolor = linecolor.next()
             graphs.append(graph)
             curr_min_pvalue = min(pv)
             if curr_min_pvalue < min_pvalue:
                 min_pvalue = curr_min_pvalue
 
         # automatically handles axis limits
-        draw(graphs, pad=pad, same=True, logy=True,
+        axes, bounds = draw(graphs, pad=pad, same=True, logy=True,
              xtitle=xtitle, ytitle=ytitle,
              xaxis=xaxis, yaxis=yaxis, ypadding=(0.2, 0.1),
              logy_crop_value=1E-300)
+
+        if yrange is not None:
+            xaxis, yaxis = axes
+            yaxis.SetLimits(*yrange)
+            yaxis.SetRangeUser(*yrange)
+            min_pvalue = yrange[0]
 
         # draw sigma levels up to minimum of pvalues
         line = Line()
