@@ -14,11 +14,12 @@ from ROOT import TLatex
 
 # local imports
 from mva.cmd import get_parser
+from mva.norm import cache as norm_cache 
 from mva.defaults import TARGET_REGION
-from mva.categories import CATEGORIES
+from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis, get_analysis
-from mva.systematics import iter_systematics,get_systematics
+from mva.systematics import iter_systematics, get_systematics
 from mva.samples import CompositeSample
 from mva import save_canvas
 from mva import log; log=log[__name__]
@@ -30,6 +31,13 @@ categories=CATEGORIES[args.categories]
 SYSTEMATICS=get_systematics(args.year)
 analysis=get_analysis(args)
 output_suffix=analysis.get_suffix()
+
+norm_cache.qcd_ztautau_norm(ztautau=analysis.ztautau,
+                            qcd=analysis.qcd,
+                            category=Category_Preselection,
+                            param=analysis.norm_field)
+
+
 
 # list of fields to plot
 fields=[
@@ -49,8 +57,10 @@ qcd = analysis.qcd
 TotalBkg = CompositeSample(backgrounds, name='TotalBkg', label='Total Background')
 TotalSig = CompositeSample(signals, name='TotalSig', label='H#rightarrow#tau#tau')
 
-TestedSamples = [ztautau,others,qcd,TotalBkg,TotalSig] 
+TestedSamples = [ztautau,qcd,TotalBkg,TotalSig] 
 # TestedSamples=[TotalSig] 
+
+
 
 log.info(backgrounds)
 for s in TestedSamples:

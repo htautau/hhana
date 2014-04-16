@@ -1,6 +1,8 @@
 # stdlib imports
 from cStringIO import StringIO
 from collections import OrderedDict
+from multiprocessing import Process,Manager
+
 
 # root/rootpy imports
 import ROOT
@@ -65,7 +67,7 @@ class workspaceinterpretor:
         log.info('\n')
         for cat,hlist in self.hists.items():
             self.PrintHistsContents(cat,hlist)
-#         self.get_nuisance_checks(mc, simPdf, obsData, ws)
+        self.get_nuisance_checks(mc, simPdf, obsData, ws)
 
     # ---------------------------------------
     def get_nominal_hists_array(self, obsData, mc, simPdf):
@@ -146,39 +148,56 @@ class workspaceinterpretor:
         ws.saveSnapshot("StartingPoint", simPdf.getParameters(obsData))
 
 
-        nuisance_params = mc.GetNuisanceParameters()
-        params_list = self.nuisance_params(mc)
-
-        minNlls_dict = {}
-        for key,_ in params_list.items():
-            if 'alpha_ATLAS_JES_Eta_Modelling' not in key:
+        manager = Manager()
+        minNlls = manager.dict()
+        jobs = []
+        param_const = self.nuisance_params(mc)
+        for key,_ in param_const.items():
+            if 'alpha_ATLAS_TES_TRUE' not in key:
                 continue
             log.info('Scanning parameter %s'%key)
-            params_list[key]=False
-            nuis_par = nuisance_params.find(key)
-            minNlls = []
-            for val in xrange(-5, 5, 2):
+            param_const[key] = True
+            minNlls[key] = []
+            for val in xrange(-5, 6):
                 log.info( 'Fit with %s = %d'%(key, val) )
-                ws.loadSnapshot("StartingPoint")
-                nuis_par.setVal(val)
-                roo_min = asrootpy(ws).fit(param_const=params_list,print_level=-1)
-                nuisance_params.Print('v')
-                fitres = roo_min.save()
-                minNlls.append(fitres.minNll()-minNLL_hat)
-                
-            minNlls_dict[key] = minNlls
-            nuisance_params[key] = True
+                p = Process(target=self.get_nll,
+                            name='nll_scan_val%1.1f'%val,
+                            args=(minNlls, ws, mc, key, val, param_const))
+                jobs.append(p)
+                p.start()
+                log.info('%s. Is alive ? %s' % (str(p), str(p.is_alive())))
+        for job in jobs:
+            job.join()
+            
+        param_const[key]=False
+        minNlls_dict = dict(minNlls)
+        log.info( str(minNlls_dict) )
+        for key,minNlls_list in minNlls_dict.items():
+            minNlls_list = sorted(minNlls_list)
+            for vals in minNlls_list:
+                log.info(key+str(vals))
+            #         out = StringIO()
+            #         row_template = ['NLL -Nll_hat'] + [val for val in xrange(-5, 5, 2)] 
+            #         table = PrettyTable(row_template)
+            #         for key,list_nuis in minNlls_dict.items():
+            #             pretty_bin_contents=map(prettyfloat,list_nuis)
+            #             table.add_row( [key]+pretty_bin_contents ) 
+            #         print >> out, '\n'
+            #         print >> out, table.get_string(hrules=1)
+            #         log.info(out.getvalue())
+            #         log.info( str(minNlls_dict) )    
 
-        out = StringIO()
-        row_template = ['NLL -Nll_hat'] + [val for val in xrange(-5, 5, 2)] 
-        table = PrettyTable(row_template)
-        for key,list_nuis in minNlls_dict.items():
-            pretty_bin_contents=map(prettyfloat,list_nuis)
-            table.add_row( [key]+pretty_bin_contents ) 
-        print >> out, '\n'
-        print >> out, table.get_string(hrules=1)
-        log.info(out.getvalue())
-        log.info( str(minNlls_dict) )    
+
+    def get_nll(self, minNlls, ws, mc, key, val, param_const):
+        nuisance_params = mc.GetNuisanceParameters()
+        nuis_par = nuisance_params.find(key)
+        ws.loadSnapshot("StartingPoint")
+        nuis_par.setVal(val)
+        roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+        fitres = roo_min.save()
+        minNlls[key].append((val, fitres.minNll()))
+        log.info( (val, fitres.minNll()) )
+        return
 
 
     def nuisance_params(self,mc,constant=False):
