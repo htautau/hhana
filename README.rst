@@ -1,4 +1,5 @@
 .. warning::
+
     UNDER CONSTRUCTION
 
 Datasets
@@ -33,6 +34,8 @@ Run the batch jobs that train the BDTs at each mass point with::
 
     make train
 
+Go get some coffee.
+
 
 BDT Validation Plots
 ====================
@@ -46,6 +49,8 @@ category and year::
 
     make binning
 
+Go get some coffee.
+
 
 Workspaces
 ==========
@@ -57,13 +62,30 @@ Run the batch jobs that create the BDT workspaces with::
 
     make bdt-workspaces
 
+Go get some coffee.
+
 
 Fixing Workspaces
 -----------------
 
+Apply all of the HSG4 workspace fixes with::
+
+    fix-workspace workspaces/hh_nos_nonisol_ebz
+
+This will create the directory containing ``workspaces/hh_nos_nonisol_ebz_fixed``
+with all of the patched workspaces.
+
+Replace the path above with the actual path if different.
+
+Check your email.
+
 
 Combining Workspaces
 ---------------------
+
+Move to the directory containing all the workspaces to combine::
+
+    cd workspaces/hh_nos_nonisol_ebz_fixed
 
 Combine workspaces across years with::
 
@@ -73,5 +95,16 @@ Combine workspaces across years with::
       combine hh_11_combination_$mass hh_12_combination_$mass --output hh_combination_$mass --name hh_combination_$mass;
    done
 
+Check your email.
+
+
 Fitting
 =======
+
+Calculate the significance for each workspace with::
+
+    multisig workspaces/hh_nos_nonisol_ebz_fixed/
+
+
+Creating p-value Plots
+======================
