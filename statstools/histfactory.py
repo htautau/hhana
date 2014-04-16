@@ -480,30 +480,11 @@ def to_uniform_binning(hist):
     histogram with constant width bins along all axes by using the bin indices
     of the input histogram as the x-axis of the new histogram.
     """
+    # is this histogram already uniform?
+    if hist.uniform(axis=None):
+        return hist
     log.info("converting histogram `{0}` to uniform binning".format(hist.name))
-    if hist.GetDimension() == 1:
-        new_hist = Hist(
-            hist.GetNbinsX(), 0, hist.GetNbinsX(),
-            name=hist.name + '_uniform_binning', type=hist.TYPE)
-    elif hist.GetDimension() == 2:
-        new_hist = Hist2D(
-            hist.GetNbinsX(), 0, hist.GetNbinsX(),
-            hist.GetNbinsY(), 0, hist.GetNbinsY(),
-            name=hist.name + '_uniform_binning', type=hist.TYPE)
-    elif hist.GetDimension() == 3:
-        new_hist = Hist3D(
-            hist.GetNbinsX(), 0, hist.GetNbinsX(),
-            hist.GetNbinsY(), 0, hist.GetNbinsY(),
-            hist.GetNbinsZ(), 0, hist.GetNbinsZ(),
-            name=hist.name + '_uniform_binning', type=hist.TYPE)
-    else:
-        raise TypeError(
-            "unable to apply uniform binning on object "
-            "of type {0}".format(type(hist)))
-    # copy over the bin contents and errors
-    for outbin, inbin in izip(new_hist.bins(), hist.bins()):
-        outbin.value = inbin.value
-        outbin.error = inbin.error
+    new_hist = hist.uniform_binned(name=hist.name + '_uniform_binning')
     return new_hist
 
 
