@@ -65,10 +65,12 @@ Fixing Workspaces
 Combining Workspaces
 ---------------------
 
-Combine workspaces with::
+Combine workspaces across years with::
 
    for mass in $(seq 100 5 150); do
       combine hh_11_vbf_$mass hh_12_vbf_$mass --output hh_vbf_$mass --name hh_vbf_$mass;
+      combine hh_11_boosted_$mass hh_12_boosted_$mass --output hh_boosted_$mass --name hh_boosted_$mass;
+      combine hh_11_combination_$mass hh_12_combination_$mass --output hh_combination_$mass --name hh_combination_$mass;
    done
 
 Fitting
