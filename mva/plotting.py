@@ -1489,12 +1489,14 @@ def draw(name,
         legends.append(legend)
 
     # draw the objects
-    xmin, xmax, ymin, ymax = rootpy_utils.draw(
+    axes, bounds = rootpy_utils.draw(
         objects,
         pad=hist_pad,
         logy=logy,
         ypadding=ypadding,
         logy_crop_value=1E-1)
+
+    xmin, xmax, ymin, ymax = bounds
 
     # draw the legends
     hist_pad.cd()
