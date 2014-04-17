@@ -95,6 +95,7 @@ if __name__ == '__main__':
             obsData = ws.data('obsData')
             ws.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
             for par in nuispar_list:
+                log.info('Calculate NLL profile for {0}'.format(par))
                 np_scans = get_nuis_nll_nofit(ws, mc, nll_func, par, 'StartingPoint')
                 npscans_dict[par] = np_scans
         with open(master_pickle_name, 'w') as master_pickle:

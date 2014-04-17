@@ -13,7 +13,7 @@ from rootpy import asrootpy
 
 # ---> local imports
 from statstools.jobs import run_pool
-from statstools.nuisance import NuisParScan, get_nuis_nll_nofit
+from statstools.nuisance import NuisParScan
 from mva import log; log=log[__name__]
 
 NP_TESTED_VALS = [0.2*i for i in range(-25,26)] #range(-5,6)
