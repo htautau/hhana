@@ -36,7 +36,7 @@ if __name__ == '__main__':
     
     nuispar_list = []
     for par in nuispar_list_tot:
-        if 'alpha_ATLAS_TES_TRUE' in par:
+        if 'alpha' in par:
             nuispar_list.append(par)
     log.info(nuispar_list)
 
