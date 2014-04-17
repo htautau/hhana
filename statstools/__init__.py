@@ -40,8 +40,13 @@ def get_significance_workspace(workspace, blind=True, verbose=False):
     hist.SetName('%s_significance' % workspace.GetName())
     return hist
 
-def get_bestfit_nll_workspace(workspace):
-    roo_min = asrootpy(workspace).fit()
-    fitres = roo_min.save()
-    return fitres.minNll()
+def get_bestfit_nll_workspace(workspace, return_nll=False):
+    if return_nll:
+        roo_min, nll_func = asrootpy(workspace).fit(return_nll=return_nll)
+        fitres = roo_min.save()
+        return fitres.minNll(), nll_func
+    else:
+        roo_min = asrootpy(workspace).fit(return_nll=return_nll)
+        fitres = roo_min.save()
+        return fitres.minNll()
 

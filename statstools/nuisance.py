@@ -50,7 +50,14 @@ class NuisParScan(Process):
 # ------------------------------------------------
 def get_nuis_nll(ws, mc, nuispar_name, nuispar_val, ws_snapshot):
     """
-    TODO: Write description
+    Perform the global fit with all the NPs floating except the scanned one.
+    This one is fixed to a given value (between -5 and 5)
+    - Parameters:
+    - ws: RooWorkspace
+    - mc: ModelConfig
+    - nuispar_name: string name of the NP (alpha_ATLAS_***)
+    - nuispar_val: chosen value of the NP nuispar_name
+    - snapshot name of the nominal (all floating) fit
     """
     nuisance_params = mc.GetNuisanceParameters()
     nuispar = nuisance_params.find(nuispar_name)
@@ -63,6 +70,25 @@ def get_nuis_nll(ws, mc, nuispar_name, nuispar_val, ws_snapshot):
                                                nuispar_val,
                                                fitres.minNll()))
     return fitres.minNll()
+
+
+# ------------------------------------------------
+def get_nuis_nll_nofit(ws, mc, nll_func, np_name, ws_snapshot):
+    """
+    TODO: Write description
+    """
+    nuisance_params = mc.GetNuisanceParameters()
+    np = nuisance_params.find(np_name)
+    ws.loadSnapshot(ws_snapshot)
+    np_scans = []
+    NP_TESTED_VALS = range(-5,6) #[0.2*i for i in range(-25,26)] #range(-5,6)
+    for val in NP_TEST_VALS:
+        np.setVal(val)
+        np_scans.append((val, nll_func.getVal()))
+    return sorted(np_scans)
+
+
+
 
 # ------------------------------------------------
 def get_nuisance_params(mc, constant=None):
