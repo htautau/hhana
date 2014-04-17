@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+# ---> python imports		
+from multiprocessing import Process
+import pickle
+import os
+import sys
+
+# ---> rootpy imports
+from rootpy.io import root_open
+from rootpy import asrootpy
+
+# ---> higgstautau imports
+from pbs import qsub
+import cluster
+# ---> local imports
+from statstools.jobs import run_pool
+from statstools.nuisance import get_nuisance_params
+from mva import log; log=log[__name__]
+
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--jobs', type=int, default=-1)
+    parser.add_argument('--name', default='combined')
+    parser.add_argument('--file')
+    parser.add_argument('--submit', action='store_true', default=False)
+    parser.add_argument('actions', choices=['scans', 'merge'])
+    args = parser.parse_args()
+    log.info(args.file)
+
+    with root_open(args.file) as file:
+        ws = file[args.name]
+        mc = ws.obj('ModelConfig')
+        nuispar_list_tot = get_nuisance_params(mc).keys()
+    
+    nuispar_list = []
+    for par in nuispar_list_tot:
+        if 'alpha_ATLAS_TES_TRUE' in par:
+            nuispar_list.append(par)
+    log.info(nuispar_list)
+
+
+    if 'scan' in args.actions:
+        setup = cluster.get_setup(os.path.join(os.path.dirname(cluster.__file__),
+                                               'setup.noel.sfu.txt'))
+        for par in nuispar_list:
+            cmd_args = ['npscan', '%s'%args.file, '--nuis %s'%par, '--name %s'%args.name, '--jobs %d'%args.jobs]
+            cmd = ' '.join(cmd_args)
+            name = cmd.replace(" ", "_")
+            cmd = "cd %s && %s && %s" % (os.getcwd(), setup, cmd)
+            log.info(cmd)
+            if args.submit:
+                qsub(cmd, name=name)
+    if 'merge' in args.actions:
+        log.error('Not implemented yet... Sorry :-(')
+        pickle_name = os.path.splitext(args.file)[0] + '_nuispars_scan.pickle'
+        #         if os.path.exists(pickle_name):
+        #             os.remove(pickle_name)
+        #         with open(pickle_name, 'w') as pickle_file:
+        #             pickle.dump(nuispars_scans, pickle_file)

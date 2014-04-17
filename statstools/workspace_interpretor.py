@@ -1,10 +1,15 @@
 # stdlib imports
 from cStringIO import StringIO
 from collections import OrderedDict
+from multiprocessing import Process,Manager
+import pickle
+import os
 
 # root/rootpy imports
 import ROOT
 import rootpy
+from rootpy.io import root_open
+from rootpy.utils.lock import lock
 from rootpy import asrootpy
 from rootpy.plotting import Hist
 from rootpy.stats.histfactory import HistoSys, split_norm_shape
@@ -65,7 +70,6 @@ class workspaceinterpretor:
         log.info('\n')
         for cat,hlist in self.hists.items():
             self.PrintHistsContents(cat,hlist)
-#         self.get_nuisance_checks(mc, simPdf, obsData, ws)
 
     # ---------------------------------------
     def get_nominal_hists_array(self, obsData, mc, simPdf):
@@ -132,64 +136,6 @@ class workspaceinterpretor:
         print >> out, '\n'
         print >> out, table.get_string(hrules=1)
         log.info(out.getvalue())
-
-    # ------------------------------------------------
-    def get_nuisance_checks(self, mc, simPdf, obsData, ws):
-
-        poi =  mc.GetParametersOfInterest().first()
-        poi.setRange(0., 2.)
-        poi.setVal(0.)
-        roo_min = asrootpy(ws).fit()
-        fitres = roo_min.save()
-        minNLL_hat = fitres.minNll()
-        log.info( 'minimized NLL: %f'%minNLL_hat)
-        ws.saveSnapshot("StartingPoint", simPdf.getParameters(obsData))
-
-
-        nuisance_params = mc.GetNuisanceParameters()
-        params_list = self.nuisance_params(mc)
-
-        minNlls_dict = {}
-        for key,_ in params_list.items():
-            if 'alpha_ATLAS_JES_Eta_Modelling' not in key:
-                continue
-            log.info('Scanning parameter %s'%key)
-            params_list[key]=False
-            nuis_par = nuisance_params.find(key)
-            minNlls = []
-            for val in xrange(-5, 5, 2):
-                log.info( 'Fit with %s = %d'%(key, val) )
-                ws.loadSnapshot("StartingPoint")
-                nuis_par.setVal(val)
-                roo_min = asrootpy(ws).fit(param_const=params_list,print_level=-1)
-                nuisance_params.Print('v')
-                fitres = roo_min.save()
-                minNlls.append(fitres.minNll()-minNLL_hat)
-                
-            minNlls_dict[key] = minNlls
-            nuisance_params[key] = True
-
-        out = StringIO()
-        row_template = ['NLL -Nll_hat'] + [val for val in xrange(-5, 5, 2)] 
-        table = PrettyTable(row_template)
-        for key,list_nuis in minNlls_dict.items():
-            pretty_bin_contents=map(prettyfloat,list_nuis)
-            table.add_row( [key]+pretty_bin_contents ) 
-        print >> out, '\n'
-        print >> out, table.get_string(hrules=1)
-        log.info(out.getvalue())
-        log.info( str(minNlls_dict) )    
-
-
-    def nuisance_params(self,mc,constant=False):
-        nuisIter = mc.GetNuisanceParameters().createIterator()
-        params_list = {}
-        while True:
-            nuis = nuisIter.Next()
-            if not nuis:
-                break
-            params_list[nuis.GetName()] = constant
-        return params_list
 
 
 

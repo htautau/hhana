@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+# ---> python imports		
+from multiprocessing import Process
+import pickle
+import os
+
+# ---> rootpy imports
+from rootpy.io import root_open
+from rootpy import asrootpy
+
+# ---> higgstautau imports
+# from higgstautau.pbs import qsub
+
+# ---> local imports
+from statstools.jobs import run_pool
+from statstools.nuisance import NuisParScan
+from mva import log; log=log[__name__]
+
+NP_TESTED_VALS = range(-5,6)
+
+def scan_np(file_name, ws_name, np_name, pickle_name, n_jobs):
+    with root_open(file_name) as file:
+        ws = file[ws_name]
+        roo_min = asrootpy(ws).fit()
+        fitres = roo_min.save()
+        minNLL_hat = fitres.minNll()
+        log.info( 'minimized NLL: %f'%minNLL_hat)
+        mc = ws.obj('ModelConfig')
+        obsData = ws.data('obsData')
+        ws.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
+        
+        # define the workers
+        workers = []
+        for val in NP_TESTED_VALS:
+            workers.append(NuisParScan(pickle_name, ws, mc,
+                                       np_name, val,
+                                       ws_snapshot='StartingPoint'))
+
+        # run the pool
+        run_pool(workers, n_jobs=n_jobs)
+
+
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--nuis', default='alpha_ATLAS_BR_tautau')
+    parser.add_argument('--jobs', type=int, default=-1)
+    parser.add_argument('--name', default='combined')
+    parser.add_argument('file')
+    args = parser.parse_args()
+
+    log.info(args.file)
+    pickle_name = os.path.splitext(args.file)[0] + '_{0}_scan.pickle'.format(args.nuis)
+
+    scans = []
+    if os.path.exists(pickle_name):
+        os.remove(pickle_name)
+    with open(pickle_name, 'w') as pickle_file:
+        pickle.dump(scans, pickle_file)
+        
+    scan_np(args.file, args.name, args.nuis, pickle_name, args.jobs)
