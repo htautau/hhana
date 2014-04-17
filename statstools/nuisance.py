@@ -12,7 +12,7 @@ from rootpy.stats import Workspace
 # ---> local imports
 from .import log; log = log[__name__]
 
-class NuisParsScan(Process):
+class NuisParScan(Process):
     """
     TODO: Write description
     """
@@ -23,7 +23,7 @@ class NuisParsScan(Process):
                  nuispar_name,
                  nuispar_val,
                  ws_snapshot='StartingPoint'):
-        super(NuisParsScan, self).__init__()
+        super(NuisParScan, self).__init__()
         self.pickle_name = pickle_name
         self.ws = ws
         self.mc = mc
@@ -41,10 +41,10 @@ class NuisParsScan(Process):
 
         with lock(self.pickle_name):
             with open(self.pickle_name) as pickle_file:
-                nuispars_scans = pickle.load(pickle_file)
-                nuispars_scans[self.nuispar_name].append((self.nuispar_val, nll))
+                scans = pickle.load(pickle_file)
+                scans.append((self.nuispar_val, nll))
             with open(self.pickle_name, 'w') as pickle_file:
-                pickle.dump(nuispars_scans, pickle_file)
+                pickle.dump(scans, pickle_file)
 
 
 # ------------------------------------------------
