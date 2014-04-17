@@ -13,6 +13,7 @@ from rootpy import asrootpy
 from pbs import qsub
 import cluster
 # ---> local imports
+from statstools import get_bestfit_nll_workspace
 from statstools.jobs import run_pool
 from statstools.nuisance import get_nuisance_params
 from mva import log; log=log[__name__]
@@ -53,9 +54,27 @@ if __name__ == '__main__':
             if args.submit:
                 qsub(cmd, name=name)
     if 'merge' in args.actions:
-        log.error('Not implemented yet... Sorry :-(')
-        pickle_name = os.path.splitext(args.file)[0] + '_nuispars_scan.pickle'
-        #         if os.path.exists(pickle_name):
-        #             os.remove(pickle_name)
-        #         with open(pickle_name, 'w') as pickle_file:
-        #             pickle.dump(nuispars_scans, pickle_file)
+        master_pickle_name = os.path.splitext(args.file)[0] + '_nuispars_scan.pickle'
+        npscans_dict = {}
+        with root_open(args.file) as file:
+            ws = file[args.name]
+            npscans_dict['NOMINAL'] = get_bestfit_nll_workspace(ws) 
+        for par in nuispar_list:
+            pickle_name = os.path.splitext(args.file)[0] + '_{0}_scan.pickle'.format(par)
+            if os.path.exists(pickle_name):
+                with open(pickle_name) as pickle_file:
+                    npscans = pickle.load(pickle_file)
+                    npscans = sorted(npscans)
+                    npscans_dict[par] = npscans
+                    log.info( 'Get {0} scans'.format(par))
+            else:
+                log.warning( 'No scans computed for {0}'.format(par))
+        with open(master_pickle_name, 'w') as master_pickle:
+            pickle.dump(npscans_dict, master_pickle)
+
+    if 'clean' in args.actions:
+        for par in nuispar_list:
+            pickle_name = os.path.splitext(args.file)[0] + '_{0}_scan.pickle'.format(par)
+            if os.path.exists(pickle_name):
+                os.path.remove(pickle_name)
+                          

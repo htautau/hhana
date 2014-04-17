@@ -86,10 +86,3 @@ def get_nuisance_params(mc, constant=None):
             params[par_name] = True
     return params
 
-
-
-
-
-
-
-
