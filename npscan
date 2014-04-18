@@ -16,7 +16,7 @@ from statstools.jobs import run_pool
 from statstools.nuisance import NuisParScan
 from mva import log; log=log[__name__]
 
-NP_TESTED_VALS = range(-5,6)
+NP_TESTED_VALS = [0.2*i for i in range(-25,26)] #range(-5,6)
 
 def scan_np(file_name, ws_name, np_name, pickle_name, n_jobs):
     with root_open(file_name) as file:
@@ -38,8 +38,6 @@ def scan_np(file_name, ws_name, np_name, pickle_name, n_jobs):
 
         # run the pool
         run_pool(workers, n_jobs=n_jobs)
-
-
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser

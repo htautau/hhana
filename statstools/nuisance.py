@@ -14,7 +14,10 @@ from .import log; log = log[__name__]
 
 class NuisParScan(Process):
     """
-    TODO: Write description
+    Process to run a fit of a workspace by
+    fixing a NP to a given value and floating
+    all the other fit parameters. This class is meant to be instanciate
+    in a tuple or a list of processes to be run in //
     """
     def __init__(self,
                  pickle_name,
@@ -37,8 +40,8 @@ class NuisParScan(Process):
                            self.nuispar_name,
                            self.nuispar_val,
                            self.ws_snapshot)
-        # write the value into a pickle
 
+        # write the value into a pickle
         with lock(self.pickle_name):
             with open(self.pickle_name) as pickle_file:
                 scans = pickle.load(pickle_file)
@@ -50,7 +53,14 @@ class NuisParScan(Process):
 # ------------------------------------------------
 def get_nuis_nll(ws, mc, nuispar_name, nuispar_val, ws_snapshot):
     """
-    TODO: Write description
+    Perform the global fit with all the NPs floating except the scanned one.
+    This one is fixed to a given value (between -5 and 5)
+    - Parameters:
+    - ws: RooWorkspace
+    - mc: ModelConfig
+    - nuispar_name: string name of the NP (alpha_ATLAS_***)
+    - nuispar_val: chosen value of the NP nuispar_name
+    - ws_snapshot: snapshot name of the nominal (all floating) fit
     """
     nuisance_params = mc.GetNuisanceParameters()
     nuispar = nuisance_params.find(nuispar_name)
@@ -63,6 +73,33 @@ def get_nuis_nll(ws, mc, nuispar_name, nuispar_val, ws_snapshot):
                                                nuispar_val,
                                                fitres.minNll()))
     return fitres.minNll()
+
+
+# ------------------------------------------------
+def get_nuis_nll_nofit(ws, mc, nll_func, np_name, ws_snapshot):
+    """
+    Return a list of nll values computed for different values
+    of a given nuisance parameter (NP)
+    Parameters:
+    - ws: RooWorkspace
+    - mc: ModelConfig
+    - nll_func: RooAbsReal object (nll function)
+    - np_name: Name of the NP of interest
+    - ws_snapshot: Name of the nominal fit snapshot
+    TODO: Write description
+    """
+    nuisance_params = mc.GetNuisanceParameters()
+    np = nuisance_params.find(np_name)
+    ws.loadSnapshot(ws_snapshot)
+    np_scans = []
+    NP_TESTED_VALS = [0.1*i for i in range(-50,51)] #range(-5,6)
+    for val in NP_TESTED_VALS:
+        np.setVal(val)
+        np_scans.append((val, nll_func.getVal()))
+    return sorted(np_scans)
+
+
+
 
 # ------------------------------------------------
 def get_nuisance_params(mc, constant=None):
@@ -85,11 +122,4 @@ def get_nuisance_params(mc, constant=None):
         for par_name in constant:
             params[par_name] = True
     return params
-
-
-
-
-
-
-
 

@@ -13,10 +13,11 @@ from rootpy import asrootpy
 from pbs import qsub
 import cluster
 # ---> local imports
+from statstools import get_bestfit_nll_workspace
 from statstools.jobs import run_pool
-from statstools.nuisance import get_nuisance_params
+from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
+from statstools.pulls import NuisancePullScan
 from mva import log; log=log[__name__]
-
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='combined')
     parser.add_argument('--file')
     parser.add_argument('--submit', action='store_true', default=False)
-    parser.add_argument('actions', choices=['scans', 'merge'])
+    parser.add_argument('actions', choices=['scans_fit', 'merge', 'clean', 'scans_nofit', 'pulls'])
     args = parser.parse_args()
     log.info(args.file)
 
@@ -36,12 +37,12 @@ if __name__ == '__main__':
     
     nuispar_list = []
     for par in nuispar_list_tot:
-        if 'alpha_ATLAS_TES_TRUE' in par:
+        if 'alpha' in par:
             nuispar_list.append(par)
     log.info(nuispar_list)
 
-
-    if 'scan' in args.actions:
+    # ------------------------------------
+    if 'scans_fit' in args.actions:
         setup = cluster.get_setup(os.path.join(os.path.dirname(cluster.__file__),
                                                'setup.noel.sfu.txt'))
         for par in nuispar_list:
@@ -52,10 +53,80 @@ if __name__ == '__main__':
             log.info(cmd)
             if args.submit:
                 qsub(cmd, name=name)
+
+    # ------------------------------------
     if 'merge' in args.actions:
-        log.error('Not implemented yet... Sorry :-(')
-        pickle_name = os.path.splitext(args.file)[0] + '_nuispars_scan.pickle'
-        #         if os.path.exists(pickle_name):
-        #             os.remove(pickle_name)
-        #         with open(pickle_name, 'w') as pickle_file:
-        #             pickle.dump(nuispars_scans, pickle_file)
+        master_pickle_name = os.path.splitext(args.file)[0] + '_nuispars_scan.pickle'
+        npscans_dict = {}
+        with root_open(args.file) as file:
+            ws = file[args.name]
+            npscans_dict['NOMINAL'] = get_bestfit_nll_workspace(ws) 
+        for par in nuispar_list:
+            pickle_name = os.path.splitext(args.file)[0] + '_{0}_scan.pickle'.format(par)
+            if os.path.exists(pickle_name):
+                with open(pickle_name) as pickle_file:
+                    npscans = pickle.load(pickle_file)
+                    npscans = sorted(npscans)
+                    npscans_dict[par] = npscans
+                    log.info( 'Get {0} scans'.format(par))
+            else:
+                log.warning( 'No scans computed for {0}'.format(par))
+        with open(master_pickle_name, 'w') as master_pickle:
+            pickle.dump(npscans_dict, master_pickle)
+
+    # ------------------------------------
+    if 'clean' in args.actions:
+        for par in nuispar_list:
+            pickle_name = os.path.splitext(args.file)[0] + '_{0}_scan.pickle'.format(par)
+            if os.path.exists(pickle_name):
+                os.path.remove(pickle_name)
+
+    # ------------------------------------
+    if 'scans_nofit' in args.actions:
+        master_pickle_name = os.path.splitext(args.file)[0] + '_nuispars_scan_nofit.pickle'
+        npscans_dict = {}
+        with root_open(args.file) as file:
+            ws = file[args.name]
+            roo_min, nll_func = asrootpy(ws).fit(return_nll=True)
+            fitres = roo_min.save()
+            minNLL_hat = fitres.minNll()
+            log.info( 'minimized NLL: %f'%minNLL_hat)
+            npscans_dict['NOMINAL'] = minNLL_hat
+            mc = ws.obj('ModelConfig')
+            obsData = ws.data('obsData')
+            ws.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
+            for par in nuispar_list:
+                log.info('Calculate NLL profile for {0}'.format(par))
+                np_scans = get_nuis_nll_nofit(ws, mc, nll_func, par, 'StartingPoint')
+                npscans_dict[par] = np_scans
+        with open(master_pickle_name, 'w') as master_pickle:
+            pickle.dump(npscans_dict, master_pickle)
+
+
+    # ------------------------------------
+    if 'pulls' in args.actions:
+        master_pickle_name = os.path.splitext(args.file)[0] + '_pulls.pickle'
+        with open(master_pickle_name, 'w') as master_pickle:
+            pulls = {}
+            pickle.dump(pulls, master_pickle)
+        with root_open(args.file) as file:
+            ws = file[args.name]
+            roo_min = asrootpy(ws).fit()
+            fitres = roo_min.save()
+            mc = ws.obj('ModelConfig')
+            obsData = ws.data('obsData')
+            ws.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
+            PARAMS_TEST = ['alpha_ATLAS_JES_Eta_Modelling', 'alpha_ATLAS_TES_TRUE_MODELING_2012']
+            poi_name = 'SigXsecOverSM'
+            # define the workers
+            workers = []
+            for par in nuispar_list:
+                workers.append(NuisancePullScan(master_pickle_name,
+                                                ws, mc,
+                                                poi_name, par,
+                                                ws_snapshot='StartingPoint'))
+
+            # run the pool
+            run_pool(workers, n_jobs=args.jobs)
+
+
