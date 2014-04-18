@@ -16,6 +16,7 @@ import cluster
 from statstools import get_bestfit_nll_workspace
 from statstools.jobs import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
+from statstools.pulls import NuisancePullScan
 from mva import log; log=log[__name__]
 
 if __name__ == '__main__':
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='combined')
     parser.add_argument('--file')
     parser.add_argument('--submit', action='store_true', default=False)
-    parser.add_argument('actions', choices=['scans_fit', 'merge', 'clean', 'scans_nofit'])
+    parser.add_argument('actions', choices=['scans_fit', 'merge', 'clean', 'scans_nofit', 'pulls'])
     args = parser.parse_args()
     log.info(args.file)
 
@@ -100,3 +101,32 @@ if __name__ == '__main__':
                 npscans_dict[par] = np_scans
         with open(master_pickle_name, 'w') as master_pickle:
             pickle.dump(npscans_dict, master_pickle)
+
+
+    # ------------------------------------
+    if 'pulls' in args.actions:
+        master_pickle_name = os.path.splitext(args.file)[0] + '_pulls.pickle'
+        with open(master_pickle_name, 'w') as master_pickle:
+            pulls = {}
+            pickle.dump(pulls, master_pickle)
+        with root_open(args.file) as file:
+            ws = file[args.name]
+            roo_min = asrootpy(ws).fit()
+            fitres = roo_min.save()
+            mc = ws.obj('ModelConfig')
+            obsData = ws.data('obsData')
+            ws.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
+            PARAMS_TEST = ['alpha_ATLAS_JES_Eta_Modelling', 'alpha_ATLAS_TES_TRUE_MODELING_2012']
+            poi_name = 'SigXsecOverSM'
+            # define the workers
+            workers = []
+            for par in nuispar_list:
+                workers.append(NuisancePullScan(master_pickle_name,
+                                                ws, mc,
+                                                poi_name, par,
+                                                ws_snapshot='StartingPoint'))
+
+            # run the pool
+            run_pool(workers, n_jobs=args.jobs)
+
+
