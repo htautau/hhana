@@ -108,3 +108,8 @@ Calculate the significance for each workspace with::
 
 Creating p-value Plots
 ======================
+
+References
+==========
+
+https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/NuisanceParameterPullsWithRanking

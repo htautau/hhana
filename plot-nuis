@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+from mva import save_canvas
+from statstools.pvalue_plot import pvalue_plot
+from rootpy.plotting import Canvas, Legend, Graph, get_style, set_style
+from rootpy.plotting.utils import draw
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+import pickle
+import os
+import ROOT
+
+style = get_style('ATLAS', shape='square')
+style.SetPadLeftMargin(0.16)
+style.SetTitleYOffset(1.4)
+set_style(style)
+path = 'workspaces/pulls/ws_measurement_hh_combination_125_nuispars_scan.pickle'
+
+
+def plot(name, graphs):
+    c = Canvas()
+    axes, bounds = draw(graphs, pad=c, snap=False, ypadding=0,
+                        xtitle=name, ytitle='2#Delta[-log(L)]')
+    xaxis, yaxis = axes
+    xaxis.SetLimits(-3, 3)
+    xaxis.SetRangeUser(-3, 3)
+    yaxis.SetLimits(-1, 10)
+    yaxis.SetRangeUser(-1, 10)
+    leg = Legend(graphs, leftmargin=0.4,
+                 topmargin=0.1, margin=0.15,
+                 textsize=20)
+    leg.Draw()
+    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.12)
+    save_canvas(c, 'plots/nuis', name, formats=('.eps', '.png'))
+
+
+def get_data(pickle_file):
+    with open(pickle_file) as f:
+        data = pickle.load(f)
+    return data
+
+
+data = get_data(path)
+nominal_nll = data['NOMINAL']
+# plot profiles of each NP
+for nuis, values in data.items():
+    if nuis == 'NOMINAL':
+        continue
+    graph = Graph(len(values), drawstyle='L', linewidth=2)
+    for i, (x, y) in enumerate(values):
+        graph.SetPoint(i, x, 2 * (y - nominal_nll))
+    plot(nuis, [graph])
