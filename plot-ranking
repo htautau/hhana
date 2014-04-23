@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--name', default='pulls')
+parser.add_argument('file')
+args = parser.parse_args()
+
+from mva import save_canvas
+from statstools.pvalue_plot import pvalue_plot
+from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
+from rootpy.plotting.utils import draw
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+import pickle
+import os
+from ROOT import TLine
+
+style = get_style('ATLAS', shape='square')
+style.SetPadLeftMargin(0.09)
+style.SetPadBottomMargin(0.4)
+style.SetPadRightMargin(0.03)
+style.SetTitleYOffset(0.8)
+set_style(style)
+
+line = TLine()
+line.SetLineStyle(7)
+line.SetLineWidth(2)
+
+
+def plot(name, nuis, graph):
+    c = Canvas(width=1000, height=600)
+    xaxis, yaxis = c.axes(xlimits=(-0.5, len(graph) - 0.5), ylimits=(-2.5, 2.5), xbins=len(graph))
+    for i, np in enumerate(nuis):
+        xaxis.SetBinLabel(i + 1, np)
+    xaxis.SetLabelSize(10)
+    # draw guide lines
+    line.DrawLine(-0.5, 1, len(graph) - 0.5, 1)
+    line.DrawLine(-0.5, -1, len(graph) - 0.5, -1)
+    draw(graph, pad=c, snap=False, ypadding=0, same=True,
+         xaxis=xaxis, yaxis=yaxis,
+         ytitle='(#theta_{fit} - #theta_{0}) / #Delta#theta',
+         xlimits=(-0.5, len(graph) - 0.5), ylimits=(-2.5, 2.5))
+    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.08)
+    save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
+
+
+def get_data(pickle_file):
+    with open(pickle_file) as f:
+        data = pickle.load(f)
+    return data
+
+
+data = get_data(args.file)
+graph = Graph(len(data), drawstyle='P', linewidth=2, markersize=1)
+nps = []
+for i, (np, info) in enumerate(data.items()):
+    nps.append(np)
+    low, mid, high = info['np']
+    graph.SetPoint(i, i, mid)
+    graph.SetPointError(i, 0, 0, abs(mid - low), abs(mid - high))
+plot(args.name, nps, graph)
