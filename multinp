@@ -79,7 +79,7 @@ if __name__ == '__main__':
         for par in nuispar_list:
             pickle_name = os.path.splitext(args.file)[0] + '_{0}_scan.pickle'.format(par)
             if os.path.exists(pickle_name):
-                os.path.remove(pickle_name)
+                os.remove(pickle_name)
 
     # ------------------------------------
     if 'scans_nofit' in args.actions:

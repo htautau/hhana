@@ -34,8 +34,8 @@ class NuisancePullScan(Process):
 
     def run(self):
         # get the pulls 
-        poi_pull, np_pull = get_pull(self.ws, self.mc, self.poi_name,
-                                     self.np_name, self.ws_snapshot)
+        poi_prefit_pull, poi_postfit_pull, np_pull = get_pull(self.ws, self.mc, self.poi_name,
+                                                              self.np_name, self.ws_snapshot)
 
         # write the value into a pickle
         with lock(self.pickle_name):
@@ -43,7 +43,7 @@ class NuisancePullScan(Process):
                 pulls = pickle.load(pickle_file)
                 if not isinstance(pulls, dict):
                     pulls = {}
-                pulls[self.np_name] = {'poi':poi_pull, 'np':np_pull}
+                pulls[self.np_name] = {'poi_prefit':poi_prefit_pull, 'poi_postfit':poi_postfit_pull, 'np':np_pull}
             with open(self.pickle_name, 'w') as pickle_file:
                     pickle.dump(pulls, pickle_file)
 
@@ -93,11 +93,29 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     poi_down_val = poi.getVal()
 
     #--------------------
+    ws.loadSnapshot(ws_snapshot)
+    np.setVal(np_nom_val+1)
+    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+    fitres = roo_min.save()
+    fitres.Print()
+    poi_prefit_up_val = poi.getVal()
+    
+    #--------------------
+    ws.loadSnapshot(ws_snapshot)
+    np.setVal(np_nom_val-1)
+    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+    fitres = roo_min.save()
+    fitres.Print()
+    poi_prefit_down_val = poi.getVal()
+
+    #--------------------
+    poi_prefit_val = (poi_prefit_down_val, poi_nom_val, poi_prefit_up_val)
     poi_fitted_val = (poi_down_val, poi_nom_val, poi_up_val)
+    log.info( '{0} pulls = {1}'.format(poi_name, poi_prefit_val))
     log.info( '{0} pulls = {1}'.format(poi_name, poi_fitted_val))
     log.info( '{0} pulls = {1}'.format(np_name, np_fitted_val))
 
-    return poi_fitted_val, np_fitted_val
+    return poi_prefit_val, poi_fitted_val, np_fitted_val
 
     # --> Step 1: global fit + save snapshot
     # --> Step 2 (for each np)
