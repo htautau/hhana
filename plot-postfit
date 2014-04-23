@@ -47,7 +47,7 @@ def Fit_WS(workspace, output='frames.root'):
 
 
 # ---------------------------------
-def plot_from_frame(file, frame):
+def plot_from_frame(file, frame, fit_var):
     """
     """
     Ana = Analysis(2012)
@@ -101,15 +101,22 @@ def plot_from_frame(file, frame):
 
 
     plotables = [Model]
-    c = Canvas()
-    draw(plotables, pad=c, ypadding=(0.2, 0.1),
-         xtitle='MMC MASS (workspace binning)', ytitle= 'Events')
-    if '_12' in frame.GetName():
-        text='Internal 2012'
-        sqrts=8
+    if 'bdt' in fit_var :
+        xtitle= 'BDT Score (workspace binning)'
+        categories = CATEGORIES['mva']
     else:
+        xtitle='MMC MASS (workspace binning)'
+        categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
+
+    c = Canvas()
+    draw(plotables, pad=c, ypadding=(0.25, 0.1),
+         xtitle=xtitle, ytitle= 'Events')
+    if '_11' in frame.GetName():
         text='Internal 2011'
         sqrts=7
+    else:
+        text='Internal 2012'
+        sqrts=8
         
     ATLAS_label(0.2, 0.89, pad=c, sep=0.132, text=text, sqrts=sqrts)
     graph_sig.Draw( 'sameE2')
@@ -124,11 +131,11 @@ def plot_from_frame(file, frame):
                  entryheight=0.04)
     leg.Draw()
     label_name = None
-    for cat in CATEGORIES['cuts']+CATEGORIES['cuts_2011']:
+    for cat in categories:
         if cat.name in frame.GetName():
             label_name = cat.label
         
-    latex = TLatex(0.2, 0.79, label_name)
+    latex = TLatex(0.2, 0.85, label_name)
     latex.SetNDC()
     latex.SetTextSize(20)
     latex.Draw()
@@ -159,7 +166,7 @@ if __name__ == '__main__':
                 if 'rest' in name:
                     continue
                 frame = file.Get(name)
-                canvas = plot_from_frame(file, file.Get(name))
+                canvas = plot_from_frame(file, file.Get(name), args.fit_var)
                 canvas.SaveAs('plots/postfit_{0}.png'.format(name))
 
                         
