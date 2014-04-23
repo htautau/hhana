@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 import os
 
+from ROOT import TLatex
+from rootpy.memory import keepalive
 from rootpy.io import root_open
-from rootpy.plotting import Canvas, Graph, HistStack, Legend
+from rootpy.plotting import Canvas, Graph, HistStack, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 
 from mva import log; log =log[__name__]
+from mva.categories import CATEGORIES
 from mva.analysis import Analysis
 from statstools.finalfit_uncertband_plot import getPostFitPlottingObjects
 from statstools.finalfit_uncertband_plot import UncertGraph
 
-
+set_style('ATLAS', shape='rect')
 
 # ------------------------------
 def Fit_WS(workspace, output='frames.root'):
@@ -48,43 +51,87 @@ def plot_from_frame(file, frame):
     """
     """
     Ana = Analysis(2012)
+
+    # ---------------------------------
     hbkg_plus_sig = file.Get('hbkg_plus_sig_{0}'.format(frame.GetName()))
     curve_uncert_sig = frame.getCurve('FitError_AfterFit')
     graph_sig = UncertGraph(hbkg_plus_sig, curve_uncert_sig)
     graph_sig.fillstyle='//'
     graph_sig.color='black'
+    graph_sig.title = 'Uncert.'
+    graph_sig.legendstyle = 'F'
 
+    # --------------------------------
     data = frame.getHist('Data')
+    data.SetTitle('Hybrid Data')
 
+    # --------------------------------
     hist_fake = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake.color = Ana.qcd.hist_decor['color']
     hist_fake.fillstyle = 'solid'
+    hist_fake.title = Ana.qcd.label
+    hist_fake.legendstyle = 'F'
     
+    # --------------------------------
     hist_others = file.Get('h_Others_{0}'.format(frame.GetName()))
     hist_others.color = Ana.others.hist_decor['color']
     hist_others.fillstyle = 'solid'
+    hist_others.title = Ana.others.label
+    hist_others.legendstyle = 'F'
 
+    # --------------------------------
     hist_ztautau = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
     hist_ztautau.color = Ana.ztautau.hist_decor['color']
     hist_ztautau.fillstyle = 'solid'
-
+    hist_ztautau.title = Ana.ztautau.label
+    hist_ztautau.legendstyle = 'F'
+    
+    # --------------------------------
     hist_signal = file.Get('h_TotalSignal_{0}'.format(frame.GetName()))
     hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
-    hist_signal.linestyle = Ana.higgs_125.hist_decor['linestyle']
-    hist_signal.linewidth = Ana.higgs_125.hist_decor['linewidth']
-
+    hist_signal.linestyle = 'solid'
+    hist_signal.linewidth = 4
+    hist_signal.title = Ana.higgs_125.label+ ' (best fit #mu)'
+    hist_signal.legendstyle = 'F'
+    
     Model = HistStack(hists=[hist_fake, hist_others,
                              hist_ztautau, hist_signal],
                       name='Model_{0}'.format(frame.GetName()))
 
+
+
     plotables = [Model]
     c = Canvas()
-    draw(plotables, pad=c, ypadding=(0.2, 0.1))
-    #     c.SetLogy()
+    draw(plotables, pad=c, ypadding=(0.2, 0.1),
+         xtitle='MMC MASS (workspace binning)', ytitle= 'Events')
+    if '_12' in frame.GetName():
+        text='Internal 2012'
+        sqrts=8
+    else:
+        text='Internal 2011'
+        sqrts=7
+        
+    ATLAS_label(0.2, 0.89, pad=c, sep=0.132, text=text, sqrts=sqrts)
     graph_sig.Draw( 'sameE2')
-#     hbkg.Draw('SAMEHIST')
-    hbkg_plus_sig.Draw('SAMEHIST')
     data.Draw('samePE')
+
+    leg = Legend([data]+Model.GetHists()+[graph_sig],
+                 rightmargin=0.2,
+                 margin=0.35,
+                 topmargin=0.01,
+                 textsize=20,
+                 entrysep=0.02,
+                 entryheight=0.04)
+    leg.Draw()
+    label_name = None
+    for cat in CATEGORIES['cuts']+CATEGORIES['cuts_2011']:
+        if cat.name in frame.GetName():
+            label_name = cat.label
+        
+    latex = TLatex(0.2, 0.79, label_name)
+    latex.SetNDC()
+    latex.SetTextSize(20)
+    latex.Draw()
     c.RedrawAxis()
     return c
 
@@ -112,7 +159,6 @@ if __name__ == '__main__':
                 if 'rest' in name:
                     continue
                 frame = file.Get(name)
-                frame.ls()
                 canvas = plot_from_frame(file, file.Get(name))
                 canvas.SaveAs('plots/postfit_{0}.png'.format(name))
 
