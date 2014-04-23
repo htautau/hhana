@@ -23,7 +23,6 @@ from matplotlib.patches import Patch
 import ROOT
 from rootpy.context import invisible_canvas
 from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack, Graph
-from rootpy.plotting.templates import RatioPlot
 import rootpy.plotting.root2matplotlib as rplt
 from rootpy.io import root_open
 from rootpy.plotting.shapes import Line, Arrow
@@ -38,6 +37,7 @@ from rootpy.stats.histfactory import HistoSys, split_norm_shape
 from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS, save_canvas
 from .systematics import iter_systematics, systematic_name
+from .templates import RatioPlot
 from . import log; log = log[__name__]
 
 from statstools.utils import efficiency_cut, significance

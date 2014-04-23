@@ -6,7 +6,6 @@ import os
 # rootpy imports
 from rootpy.extern.argparse import ArgumentParser
 from rootpy.plotting import Hist, Graph, Legend
-from rootpy.plotting.templates import RatioPlot
 from rootpy.utils.path import mkdir_p
 
 # ROOT imports
@@ -21,6 +20,7 @@ from mva.variables import VARIABLES
 from mva.analysis import Analysis, get_analysis
 from mva.systematics import iter_systematics, get_systematics
 from mva.samples import CompositeSample
+from mva.templates import RatioPlot
 from mva import save_canvas
 from mva import log; log=log[__name__]
 from mva.plotting import draw_ratio

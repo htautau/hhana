@@ -13,11 +13,11 @@ from mva.samples import (
 from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis
+from mva.templates import RatioPlot
 from mva.systematics import iter_systematics
 from mva import save_canvas,log
 
 from rootpy.plotting import Hist, Graph, Legend
-from rootpy.plotting.templates import RatioPlot
 from rootpy.utils.path import mkdir_p
 from ROOT import TLatex
 import os
