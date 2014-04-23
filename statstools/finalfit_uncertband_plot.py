@@ -1,7 +1,7 @@
 # root/rootpy imports
-import rootpy
 import ROOT
-from rootpy.plotting import Graph
+from rootpy import asrootpy
+from rootpy.plotting import Graph, Hist
 
 # -------------------------------------
 def UncertGraph(hnom, curve_uncert):
@@ -117,11 +117,14 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
         raise RuntimeError('Could not retrieve the binWidth')
             
     # --> Create the data histogram
-    hist_data = datatmp.createHistogram("hdata_"+cat.GetName(), obs)
-    hist_data.SetName("hdata_"+cat.GetName())
-    hist_data.SetTitle("")
+    hist_data = asrootpy(datatmp.createHistogram("hdata_"+cat.GetName(), obs))
+    hist_data.name = "hdata_{0}".format(cat.GetName())
+    hist_data.title = ""
     hlist.append(hist_data)
 
+    # --> Create the signal histogram template
+    hist_sig = hist_data.Clone('h_TotalSignal_{0}'.format(cat.GetName()))
+    hist_sig.Reset()
     # --> Create the frame structure from the observable
     frame = obs.frame()
     frame.SetName(cat.GetName())
@@ -137,17 +140,22 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
         comp = funcListIter.Next()
         if not comp:
             break
-        hist_comp = comp.createHistogram(cat.GetName()+"_"+comp.GetName(), obs, ROOT.RooFit.Extended(False))
-        hist_comp.SetName("hcomp_"+comp.GetName()+"_"+cat.GetName())
-        hist_comp.SetTitle("")
+
+        name = comp.GetName().replace('L_x_', '').split('_')[0]
+        hist_comp = asrootpy(comp.createHistogram(cat.GetName()+"_"+comp.GetName(), obs, ROOT.RooFit.Extended(False)))
+        hist_comp.name = 'h_{0}_{1}'.format(name, cat.GetName())
+
+        hist_comp.title = ''
         hlist.append(hist_comp)
+
+        if 'Signal' in comp.GetName():
+            hist_sig.Add(hist_comp)
 
         Integral_comp = comp.createIntegral(ROOT.RooArgSet(obs))
         Yield_comp = Integral_comp.getVal() * binWidth.getVal()
 
         if Yield_comp==0:
             raise RuntimeError('Yield integral is wrong !!')
-
 
 
         # --> Add the components to the frame but in an invisible way
@@ -168,8 +176,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
                 print comp.GetName(),':\t',Yield_comp,' +/- ',Yield_comp_err
 
 
-
-
+    hlist.append(hist_sig)
     # --> parameter of interest (mu=sigma/sigma_sm)
     poi =  mc.GetParametersOfInterest().first()
 
@@ -193,7 +200,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
                       ROOT.RooFit.VisualizeError( fit_res,1, error_band_strategy ),
                       ROOT.RooFit.Normalization( 1,ROOT.RooAbsReal.RelativeExpected),
                       ROOT.RooFit.Name("FitError_AfterFit"),
-                       ROOT.RooFit.FillColor(ROOT.kOrange),
+                      ROOT.RooFit.FillColor(ROOT.kOrange),
                       ROOT.RooFit.LineWidth(2),
                       ROOT.RooFit.LineColor(ROOT.kBlue))
 

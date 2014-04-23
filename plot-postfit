@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+import os
+
+from rootpy.io import root_open
+from rootpy.plotting import Canvas, Graph, HistStack, Legend
+from rootpy.plotting.utils import draw
+from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
+
+from mva import log; log =log[__name__]
+from mva.analysis import Analysis
+from statstools.finalfit_uncertband_plot import getPostFitPlottingObjects
+from statstools.finalfit_uncertband_plot import UncertGraph
+
+
+
+# ------------------------------
+def Fit_WS(workspace, output='frames.root'):
+    """
+    Fit the WS and compute the histograms and TGraphAssymErrors
+    for the final plotting drawing
+    Parameters
+    ----------
+    workspace : RooWorkspace
+        HSG4 like workspace
+    """
+    # --> Get the Model Config object
+    mc = workspace.obj("ModelConfig")
+    if not mc:
+        raise RuntimeError('Could not retrieve the ModelConfig object')
+    mc.GetParametersOfInterest().first().setVal(1)
+    roo_min = workspace.fit()
+    fit_res = roo_min.save()
+    fit_res.Print()
+    # --> Get the data distribution
+    obsData = workspace.data('obsData')
+    # --> Get the simultaneous PDF
+    simPdf = mc.GetPdf()
+
+    plotting_objects = getPostFitPlottingObjects(mc,obsData,simPdf,fit_res)
+    with root_open(output, 'recreate') as output_file:
+        for obj in plotting_objects:
+            obj.Write()
+
+
+
+# ---------------------------------
+def plot_from_frame(file, frame):
+    """
+    """
+    Ana = Analysis(2012)
+    hbkg_plus_sig = file.Get('hbkg_plus_sig_{0}'.format(frame.GetName()))
+    curve_uncert_sig = frame.getCurve('FitError_AfterFit')
+    graph_sig = UncertGraph(hbkg_plus_sig, curve_uncert_sig)
+    graph_sig.fillstyle='//'
+    graph_sig.color='black'
+
+    data = frame.getHist('Data')
+
+    hist_fake = file.Get('h_Fakes_{0}'.format(frame.GetName()))
+    hist_fake.color = Ana.qcd.hist_decor['color']
+    hist_fake.fillstyle = 'solid'
+    
+    hist_others = file.Get('h_Others_{0}'.format(frame.GetName()))
+    hist_others.color = Ana.others.hist_decor['color']
+    hist_others.fillstyle = 'solid'
+
+    hist_ztautau = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
+    hist_ztautau.color = Ana.ztautau.hist_decor['color']
+    hist_ztautau.fillstyle = 'solid'
+
+    hist_signal = file.Get('h_TotalSignal_{0}'.format(frame.GetName()))
+    hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
+    hist_signal.linestyle = Ana.higgs_125.hist_decor['linestyle']
+    hist_signal.linewidth = Ana.higgs_125.hist_decor['linewidth']
+
+    Model = HistStack(hists=[hist_fake, hist_others,
+                             hist_ztautau, hist_signal],
+                      name='Model_{0}'.format(frame.GetName()))
+
+    plotables = [Model]
+    c = Canvas()
+    draw(plotables, pad=c, ypadding=(0.2, 0.1))
+    #     c.SetLogy()
+    graph_sig.Draw( 'sameE2')
+#     hbkg.Draw('SAMEHIST')
+    hbkg_plus_sig.Draw('SAMEHIST')
+    data.Draw('samePE')
+    c.RedrawAxis()
+    return c
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('file')
+    parser.add_argument('--name', default='combined')
+    parser.add_argument('--fit-var', default='bdt_score', choices=['bdt_score', 'mmc_mass'])
+    parser.add_argument('--force-fit', action='store_true', default=False)
+    args = parser.parse_args()
+
+    output = os.path.splitext(args.file)[0] + '_postfit_frames.root'
+
+    with root_open(args.file) as file:
+        if args.force_fit:
+            Fit_WS(file[args.name], output)
+
+    with root_open(output) as file:
+        file.ls()
+        for _, _, names in file.walk(class_pattern='*RooPlot*'):
+            log.info(names)
+            for name in names:
+                if 'rest' in name:
+                    continue
+                frame = file.Get(name)
+                frame.ls()
+                canvas = plot_from_frame(file, file.Get(name))
+                canvas.SaveAs('plots/postfit_{0}.png'.format(name))
+
+                        
