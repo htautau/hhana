@@ -2,29 +2,35 @@
 
 from mva import save_canvas
 from statstools.pvalue_plot import pvalue_plot
-from rootpy.plotting import Canvas, Legend, Graph, get_style, set_style
+from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
 import os
-import ROOT
+from ROOT import TLine
 
 style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.16)
 style.SetTitleYOffset(1.4)
 set_style(style)
-path = 'workspaces/pulls/ws_measurement_hh_combination_125_nuispars_scan.pickle'
+mva_path = 'workspaces/pulls/mva/ws_measurement_hh_combination_125_nuispars_scan_nofit.pickle'
+cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
+
+line = TLine()
+line.SetLineStyle(7)
+line.SetLineWidth(2)
 
 
 def plot(name, graphs):
     c = Canvas()
-    axes, bounds = draw(graphs, pad=c, snap=False, ypadding=0,
-                        xtitle=name, ytitle='2#Delta[-log(L)]')
-    xaxis, yaxis = axes
-    xaxis.SetLimits(-3, 3)
-    xaxis.SetRangeUser(-3, 3)
-    yaxis.SetLimits(-1, 10)
-    yaxis.SetRangeUser(-1, 10)
+    xaxis, yaxis = c.axes(xlimits=(-3, 3), ylimits=(-1, 10))
+    # draw guide lines
+    line.DrawLine(-3, 0, 3, 0)
+    line.DrawLine(-3, 1, 3, 1)
+    draw(graphs, pad=c, snap=False, ypadding=0, same=True,
+         xaxis=xaxis, yaxis=yaxis,
+         xtitle=name, ytitle='2#Delta[-log(L)]',
+         xlimits=(-3, 3), ylimits=(-1, 10))
     leg = Legend(graphs, leftmargin=0.4,
                  topmargin=0.1, margin=0.15,
                  textsize=20)
@@ -39,13 +45,37 @@ def get_data(pickle_file):
     return data
 
 
-data = get_data(path)
-nominal_nll = data['NOMINAL']
+def make_graph(values, nominal, max_value=8, **kwargs):
+    graph = Graph(len(values), **kwargs)    
+    i = 0
+    for x, y in values:
+        value = 2 * (y - nominal)
+        # nan?
+        if value != value:
+            continue
+        if value > max_value:
+            continue
+        graph[i] = (x, value)
+        i += 1
+    graph.num_points = i
+    return graph
+
+
+mva_data = get_data(mva_path)
+cba_data = get_data(cba_path)
+mva_nominal_nll = mva_data['NOMINAL']
+cba_nominal_nll = cba_data['NOMINAL']
 # plot profiles of each NP
-for nuis, values in data.items():
+for nuis, mva_values in mva_data.items():
     if nuis == 'NOMINAL':
         continue
-    graph = Graph(len(values), drawstyle='L', linewidth=2)
-    for i, (x, y) in enumerate(values):
-        graph.SetPoint(i, x, 2 * (y - nominal_nll))
-    plot(nuis, [graph])
+    try:
+        cba_values = cba_data[nuis]
+    except KeyError:
+        continue
+    mva_graph = make_graph(mva_values, mva_nominal_nll, drawstyle='L',
+                           linewidth=2, title='MVA')
+    cba_graph = make_graph(cba_values, cba_nominal_nll, drawstyle='L',
+                           linewidth=2, linestyle='dashed', color='red',
+                           title='CBA')
+    plot(nuis, [mva_graph, cba_graph])
