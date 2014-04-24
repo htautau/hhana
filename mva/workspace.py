@@ -140,7 +140,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
                 silence=silence)
 
 
-def bdt_workspace(analysis, categories, masses,
+def mva_workspace(analysis, categories, masses,
                   unblind=False,
                   systematics=False):
     hist_template = Hist(5, 0, 1.5, type='D')

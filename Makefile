@@ -266,15 +266,15 @@ plots:
 	#nohup ./ana plot --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11.log &
 	#nohup ./ana plot --year 2011 --categories presel --output-formats eps png > var_plots_presel_11.log &
 
-.PHONY: bdt-plots
-bdt-plots:
-	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names vbf > bdt_plots_vbf_12.log &
-	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names boosted > bdt_plots_boosted_12.log &
-	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names vbf > bdt_plots_vbf_11.log &
-	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names boosted > bdt_plots_boosted_11.log &
+.PHONY: mva-plots
+mva-plots:
+	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names vbf > mva_plots_vbf_12.log &
+	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names boosted > mva_plots_boosted_12.log &
+	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names vbf > mva_plots_vbf_11.log &
+	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names boosted > mva_plots_boosted_11.log &
 
-.PHONY: bdt-control-plots
-bdt-control-plots:
+.PHONY: mva-control-plots
+mva-control-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
@@ -292,10 +292,19 @@ binning:
 		done; \
 	done
 
-.PHONY: bdt-workspaces
-bdt-workspaces:
+.PHONY: mva-workspaces
+mva-workspaces:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			run-cluster ./workspace bdt --systematics --year $${year} --masses $${mass}; \
+			run-cluster ./workspace mva --systematics --years $${year} --masses $${mass}; \
 		done; \
 	done
+
+.PHONY: cuts-workspaces
+cuts-workspaces:
+	for mass in $$(seq 100 5 150); do \
+		run-cluster ./workspace cuts --systematics --years 2011 --categories cuts_2011 --masses $${mass}; \
+	done;
+	for mass in $$(seq 100 5 150); do \
+		run-cluster ./workspace cuts --systematics --years 2012 --categories cuts --masses $${mass}; \
+	done;

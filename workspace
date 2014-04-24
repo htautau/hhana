@@ -3,12 +3,12 @@
 import sys
 from mva import cmd
 from mva.samples import Higgs
-from mva.workspace import write_workspaces, cuts_workspace, bdt_workspace
+from mva.workspace import write_workspaces, cuts_workspace, mva_workspace
 from mva.analysis import get_analysis
 
 parser = cmd.analysis_parser(cmd.general_parser(
     multi_years=True, multi_categories=True))
-parser.add_argument('type', choices=('bdt', 'cuts'), default='bdt')
+parser.add_argument('type', choices=('mva', 'cuts'), default='mva')
 args = parser.parse_args()
 
 if args.masses == 'all':
@@ -17,7 +17,7 @@ else:
     args.masses = map(int, args.masses.split(','))
 
 if args.type == 'bdt':
-    workspace_func = bdt_workspace
+    workspace_func = mva_workspace
 else:
     workspace_func = cuts_workspace
 
@@ -39,6 +39,7 @@ for year, year_categories in zip(years, categories):
     control_regions[year] = cr
 
 suffix = analysis.get_suffix(year=False)
+suffix += '_' + args.type
 if args.output_suffix:
     suffix += '_' + args.output_suffix
 path = 'workspaces/hh{0}'.format(suffix.lower())
