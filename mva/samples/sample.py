@@ -37,29 +37,48 @@ from ..cachedtable import CachedTable
 
 
 def get_workspace_np_name(sample, syst, year):
+    """
+    HSG4 naming convention for NPs in the workspaces
+    """
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsPropertiesNuisanceParameterNames
     npname = 'ATLAS_{0}_{1:d}'.format(syst, year)
-    npname = npname.replace('JES_Detector_2012', 'JES_2012_Detector1')
-    npname = npname.replace('JES_EtaMethod_2012', 'JES_2012_Eta_StatMethod')
-    npname = npname.replace('JES_EtaModelling_2012', 'JES_Eta_Modelling')
-    npname = npname.replace('JES_FlavComp_TAU_G_2012', 'JES_FlavComp_TAU_G')
-    npname = npname.replace('JES_FlavComp_TAU_Q_2012', 'JES_FlavComp_TAU_Q')
-    npname = npname.replace('JES_FlavResp_2012', 'JES_FlavResp')
-    npname = npname.replace('JES_Modelling_2012', 'JES_2012_Modelling1')
-    npname = npname.replace('JES_PURho_TAU_GG_2012', 'JES_2012_PileRho_TAU_GG')
-    npname = npname.replace('JES_PURho_TAU_QG_2012', 'JES_2012_PileRho_TAU_QG')
-    npname = npname.replace('JES_PURho_TAU_QQ_2012', 'JES_2012_PileRho_TAU_QQ')
-    npname = npname.replace('FAKERATE_2012', 'TAU_JFAKE_2012')
-    npname = npname.replace('TAUID_2012', 'TAU_ID_2012')
-    npname = npname.replace('ISOL_2012', 'ANA_EMB_ISOL')
-    npname = npname.replace('MFS_2012', 'ANA_EMB_MFS')
-    npname = npname.replace('MET_RESOSOFTTERMS_2012', 'MET_RESOSOFT')
-    npname = npname.replace('MET_SCALESOFTTERMS_2012', 'MET_SCALESOFT')
+    # special cases
+    npname = npname.replace('JES_Detector_{0}'.format(year),
+                            'JES_{0}_Detector1'.format(year))
+    npname = npname.replace('JES_EtaMethod_{0}'.format(year),
+                            'JES_{0}_Eta_StatMethod'.format(year))
+    npname = npname.replace('JES_EtaModelling_{0}'.format(year),
+                            'JES_Eta_Modelling')
+    npname = npname.replace('JES_FlavComp_TAU_G_{0}'.format(year),
+                            'JES_FlavComp_TAU_G')
+    npname = npname.replace('JES_FlavComp_TAU_Q_{0}'.format(year),
+                            'JES_FlavComp_TAU_Q')
+    npname = npname.replace('JES_FlavResp_{0}'.format(year),
+                            'JES_FlavResp')
+    npname = npname.replace('JES_Modelling_{0}'.format(year),
+                            'JES_{0}_Modelling1'.format(year))
+    npname = npname.replace('JES_PURho_TAU_GG_{0}'.format(year),
+                            'JES_{0}_PileRho_TAU_GG'.format(year))
+    npname = npname.replace('JES_PURho_TAU_QG_{0}'.format(year),
+                            'JES_{0}_PileRho_TAU_QG'.format(year))
+    npname = npname.replace('JES_PURho_TAU_QQ_{0}'.format(year),
+                            'JES_{0}_PileRho_TAU_QQ'.format(year))
+    npname = npname.replace('FAKERATE', 'TAU_JFAKE')
+    npname = npname.replace('TAUID', 'TAU_ID')
+    npname = npname.replace('MET_RESOSOFTTERMS', 'MET_RESOSOFT')
+    npname = npname.replace('MET_SCALESOFTTERMS', 'MET_SCALESOFT')
     from .ztautau import Embedded_Ztautau
     if isinstance(sample, Embedded_Ztautau):
         npname = npname.replace('TRIGGER', 'TRIGGER_EMB_HH')
     else:
         npname = npname.replace('TRIGGER', 'TRIGGER_HH')
+    # Embedding NPs:
+    # * Decorrelate the NP between 2011 and 2012 for MFS because the cell
+    #   subtraction yield was changed from 30% in 2011 to 20% in 2012.
+    # * Correlate them for ISO, because the treatment between the two is
+    #   consistent.
+    npname = npname.replace('ISOL_{0}'.format(year), 'ANA_EMB_ISOL')
+    npname = npname.replace('MFS', 'ANA_EMB_MFS')
     return npname
 
 

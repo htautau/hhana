@@ -338,7 +338,7 @@ class Analysis(object):
         - TODO TODO TODO: continue to details parameters
         ****************
         - hybrid_data: if specified, it is a dictionnary mapping the vars key to a tuple
-                       specifying the range to be replaced by s+b prediction. 
+                       specifying the range to be replaced by s+b prediction.
         """
 
         # TODO: implement blinding
@@ -657,7 +657,8 @@ class Analysis(object):
         return bkg_arrs, sig_arrs
 
     def make_var_channels(self, hist_template, expr, categories, region,
-                          include_signal=False, masses=None):
+                          include_signal=False, masses=None,
+                          systematics=False):
         if not include_signal:
             channels = []
             for category in categories:
@@ -670,7 +671,8 @@ class Analysis(object):
                     region=region,
                     #clf=clf,
                     #cuts=signal_region,
-                    include_signal=False)
+                    include_signal=False,
+                    systematics=systematics)
                 channels.append(contr)
                 # TODO check that number of SS events is consistent with nOS
         else:
@@ -688,7 +690,8 @@ class Analysis(object):
                         #cuts=signal_region,
                         include_signal=True,
                         mass=mass,
-                        mode='workspace')
+                        mode='workspace',
+                        systematics=systematics)
                     if mass not in channels:
                         channels[mass] = {}
                     channels[mass][category.name] = contr

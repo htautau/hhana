@@ -148,7 +148,8 @@ def bdt_workspace(analysis, categories, masses,
         hist_template, 'dEta_tau1_tau2',
         CATEGORIES['mva_workspace_controls'],
         analysis.target_region,
-        include_signal=True, masses=masses)
+        include_signal=True, masses=masses,
+        systematics=systematics)
     mass_category_channel = {}
     for category in analysis.iter_categories(categories):
         for mass in masses:

@@ -3,18 +3,25 @@
 from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument('--name', default='pulls')
+parser.add_argument('--pulls', default=False, action='store_true')
+parser.add_argument('--name', default=None)
 parser.add_argument('file')
 args = parser.parse_args()
 
+if args.name is None:
+    if args.pulls:
+        args.name = 'pulls'
+    else:
+        args.name = 'ranking'
+
 from mva import save_canvas
 from statstools.pvalue_plot import pvalue_plot
-from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
+from rootpy.plotting import Canvas, Pad, Legend, Graph, Hist, get_style, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
 import os
-from ROOT import TLine
+from ROOT import TLine, TGaxis
 
 style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.09)
@@ -28,35 +35,82 @@ line.SetLineStyle(7)
 line.SetLineWidth(2)
 
 
-def plot(name, nuis, graph):
-    c = Canvas(width=1000, height=600)
-    xaxis, yaxis = c.axes(xlimits=(-0.5, len(graph) - 0.5), ylimits=(-2.5, 2.5), xbins=len(graph))
-    for i, np in enumerate(nuis):
-        xaxis.SetBinLabel(i + 1, np)
-    xaxis.SetLabelSize(10)
-    # draw guide lines
-    line.DrawLine(-0.5, 1, len(graph) - 0.5, 1)
-    line.DrawLine(-0.5, -1, len(graph) - 0.5, -1)
-    draw(graph, pad=c, snap=False, ypadding=0, same=True,
-         xaxis=xaxis, yaxis=yaxis,
-         ytitle='(#theta_{fit} - #theta_{0}) / #Delta#theta',
-         xlimits=(-0.5, len(graph) - 0.5), ylimits=(-2.5, 2.5))
-    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.08)
-    save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
-
-
 def get_data(pickle_file):
     with open(pickle_file) as f:
         data = pickle.load(f)
     return data
 
 
-data = get_data(args.file)
-graph = Graph(len(data), drawstyle='P', linewidth=2, markersize=1)
-nps = []
-for i, (np, info) in enumerate(data.items()):
-    nps.append(np)
-    low, mid, high = info['np']
-    graph.SetPoint(i, i, mid)
-    graph.SetPointError(i, 0, 0, abs(mid - low), abs(mid - high))
-plot(args.name, nps, graph)
+def plot_horizontal_pulls(name, file):
+    data = get_data(file)
+    n_points = len(data) 
+    c = Canvas(width=1000, height=600)
+    xaxis, yaxis = c.axes(xlimits=(-0.5, n_points - 0.5),
+                          ylimits=(-2.5, 2.5),
+                          xbins=n_points)
+    yaxis.title = '(#theta_{fit} - #theta_{0}) / #Delta#theta'
+    graph = Graph(n_points, drawstyle='P',
+                  linewidth=2, markersize=1)
+    nuis = []
+    for i, (np, info) in enumerate(data.items()):
+        nuis.append(np)
+        low, mid, high = info['np']
+        graph.SetPoint(i, i, mid)
+        err_up = high - mid
+        err_dn = mid - low
+        if err_up < 0:
+            # swap
+            err_up, err_dn = err_dn, err_up
+        graph.SetPointError(i, 0, 0, abs(err_dn), abs(err_up))
+        xaxis.SetBinLabel(i + 1, np.replace('_', ' '))
+    xaxis.SetLabelSize(10)
+    # draw guide lines
+    line.DrawLine(-0.5, 1, n_points - 0.5, 1)
+    line.DrawLine(-0.5, -1, n_points - 0.5, -1)
+    graph.Draw('SAME')
+    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.08)
+    save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
+
+
+def plot_ranking(name, file):
+    data = get_data(file)
+    n_points = len(data)
+    c = Canvas(width=1024, height=1448)
+    c.margin = (0, 0, 0, 0)
+    pad1 = Pad(0, 0, 1, 1)
+    pad1.margin = (0.25, 0.05, 0.09, 0.09)
+    pad1.Draw()
+    # inset for NormFactors
+    #pad2 = Pad(0.63, 0.1, 0.94, 0.22, 0)
+    xaxis, yaxis = pad1.axes(xlimits=(-2, 2), ylimits=(-0.5, n_points - 0.5))
+    xaxis.title = '(#theta_{fit} - #theta_{0}) / #Delta#theta'
+    yaxis.SetTickLength(0)
+    yaxis.SetLabelOffset(999)
+    # mu axis
+    mu_axis = TGaxis()
+    # make pull graph
+    pulls = Graph(n_points, drawstyle='P', linewidth=2, markersize=1)
+    nuis = []
+    for i, (np, info) in enumerate(data.items()):
+        nuis.append(np)
+        low, mid, high = info['np']
+        pulls.SetPoint(i, mid, i)
+        err_up = high - mid
+        err_dn = mid - low
+        if err_up < 0:
+            # swap
+            err_up, err_dn = err_dn, err_up
+        pulls.SetPointError(i, abs(err_dn), abs(err_up), 0, 0)
+    with pad1:
+        # draw guide lines
+        line.DrawLine(1, -0.5, 1, n_points - 0.5)
+        line.DrawLine(-1, -0.5, -1, n_points - 0.5)
+        pulls.Draw('SAME')
+    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=pad1, sep=0.08)
+    save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
+
+
+if args.pulls:
+    plot_horizontal_pulls(args.name, args.file)
+else:
+    plot_ranking(args.name, args.file)
