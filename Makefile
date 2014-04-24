@@ -302,9 +302,9 @@ mva-workspaces:
 
 .PHONY: cuts-workspaces
 cuts-workspaces:
-	for mass in $$(seq 100 5 150); do \
+	@for mass in $$(seq 100 5 150); do \
 		run-cluster ./workspace cuts --systematics --years 2011 --categories cuts_2011 --masses $${mass}; \
 	done;
-	for mass in $$(seq 100 5 150); do \
+	@for mass in $$(seq 100 5 150); do \
 		run-cluster ./workspace cuts --systematics --years 2012 --categories cuts --masses $${mass}; \
 	done;

@@ -58,9 +58,10 @@ Workspaces
 Creating Workpaces
 ------------------
 
-Run the batch jobs that create the BDT workspaces with::
+Run the batch jobs that create the workspaces with::
 
-    make bdt-workspaces
+    make mva-workspaces
+    make cuts-workspaces
 
 Go get some coffee.
 
