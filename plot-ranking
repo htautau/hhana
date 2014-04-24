@@ -92,8 +92,6 @@ def plot_ranking(name, file):
     xaxis.title = '(#theta_{fit} - #theta_{0}) / #Delta#theta'
     yaxis.SetTickLength(0)
     yaxis.SetLabelOffset(999)
-    # mu axis
-    mu_axis = TGaxis()
     # make pull graph
     pulls = Graph(n_points, drawstyle='P', linewidth=2, markersize=1)
     nuis = []
@@ -111,6 +109,9 @@ def plot_ranking(name, file):
     nuis_name.SetTextAlign(32)
     nuis_name.SetTextSize(12)
     with pad1:
+        # mu axis
+        mu_axis = TGaxis()
+        mu_axis.Draw()
         # draw guide lines
         line.DrawLine(1, -0.5 - 2, 1, n_points + 2 - 0.5)
         line.DrawLine(-1, -0.5 - 2, -1, n_points + 2 - 0.5)

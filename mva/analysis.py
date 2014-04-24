@@ -298,7 +298,8 @@ class Analysis(object):
                 min_score=min_score,
                 max_score=max_score,
                 suffix=suffix if not isinstance(s, Higgs) else None,
-                no_signal_fixes=no_signal_fixes)
+                no_signal_fixes=no_signal_fixes,
+                systematics=systematics)
             histfactory_samples.append(sample)
 
         # create channel for this mass point
@@ -326,21 +327,24 @@ class Analysis(object):
                           uniform=False,
                           hybrid_data=None):
         """
-        Return a dictionnary of histfactory channels for different variables (i.e. {'MMC_MASS':channel1, ...}).
-        -------------
-        Parameters:
-        - vars: dictionnary of histograms (i.e. {'MMC_MASS':hist_template, ...}
-        - category: analysis category (see mva/categories/*)
-        - region: analysis region (i.e 'OS_ISOL', ...)
-        - cuts: additional cuts that could be place when requesting the channel array
-                (See mva/categories/common.py for examples)
-        ***************
-        - TODO TODO TODO: continue to details parameters
-        ****************
-        - hybrid_data: if specified, it is a dictionnary mapping the vars key to a tuple
-                       specifying the range to be replaced by s+b prediction.
-        """
+        Return a dictionnary of histfactory channels for different variables
+        (i.e. {'MMC_MASS':channel1, ...}).
 
+        Parameters
+        ----------
+        vars: dict
+            dictionary of histograms (i.e. {'MMC_MASS':hist_template, ...}
+        category: Category
+            analysis category (see mva/categories/*)
+        region: str
+            analysis region (i.e 'OS_ISOL', ...)
+        cuts : str or Cut
+            additional cuts that could be place when requesting the channel
+            array (See mva/categories/common.py for examples)
+        hybrid_data : dict
+            if specified, it is a dictionary mapping the vars key to a tuple
+            specifying the range to be replaced by s+b prediction.
+        """
         # TODO: implement blinding
         log.info("constructing channels")
         samples = [self.data]+self.backgrounds
@@ -674,7 +678,6 @@ class Analysis(object):
                     include_signal=False,
                     systematics=systematics)
                 channels.append(contr)
-                # TODO check that number of SS events is consistent with nOS
         else:
             channels = {}
             for category in categories:
