@@ -21,7 +21,7 @@ from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
 import os
-from ROOT import TLine, TGaxis
+from ROOT import TLine, TGaxis, TLatex
 
 style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.09)
@@ -33,12 +33,18 @@ set_style(style)
 line = TLine()
 line.SetLineStyle(7)
 line.SetLineWidth(2)
+solid_line = TLine()
+solid_line.SetLineWidth(1)
 
 
 def get_data(pickle_file):
     with open(pickle_file) as f:
         data = pickle.load(f)
     return data
+
+
+def print_np(np):
+    return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
 
 
 def plot_horizontal_pulls(name, file):
@@ -62,7 +68,7 @@ def plot_horizontal_pulls(name, file):
             # swap
             err_up, err_dn = err_dn, err_up
         graph.SetPointError(i, 0, 0, abs(err_dn), abs(err_up))
-        xaxis.SetBinLabel(i + 1, np.replace('_', ' '))
+        xaxis.SetBinLabel(i + 1, print_np(np))
     xaxis.SetLabelSize(10)
     # draw guide lines
     line.DrawLine(-0.5, 1, n_points - 0.5, 1)
@@ -78,11 +84,11 @@ def plot_ranking(name, file):
     c = Canvas(width=1024, height=1448)
     c.margin = (0, 0, 0, 0)
     pad1 = Pad(0, 0, 1, 1)
-    pad1.margin = (0.25, 0.05, 0.09, 0.09)
+    pad1.margin = (0.3, 0.05, 0.09, 0.09)
     pad1.Draw()
     # inset for NormFactors
     #pad2 = Pad(0.63, 0.1, 0.94, 0.22, 0)
-    xaxis, yaxis = pad1.axes(xlimits=(-2, 2), ylimits=(-0.5, n_points - 0.5))
+    xaxis, yaxis = pad1.axes(xlimits=(-2, 2), ylimits=(-0.5 - 2, n_points + 2 - 0.5))
     xaxis.title = '(#theta_{fit} - #theta_{0}) / #Delta#theta'
     yaxis.SetTickLength(0)
     yaxis.SetLabelOffset(999)
@@ -101,10 +107,17 @@ def plot_ranking(name, file):
             # swap
             err_up, err_dn = err_dn, err_up
         pulls.SetPointError(i, abs(err_dn), abs(err_up), 0, 0)
+    nuis_name = TLatex()
+    nuis_name.SetTextAlign(32)
+    nuis_name.SetTextSize(12)
     with pad1:
         # draw guide lines
-        line.DrawLine(1, -0.5, 1, n_points - 0.5)
-        line.DrawLine(-1, -0.5, -1, n_points - 0.5)
+        line.DrawLine(1, -0.5 - 2, 1, n_points + 2 - 0.5)
+        line.DrawLine(-1, -0.5 - 2, -1, n_points + 2 - 0.5)
+        for i in xrange(n_points):
+            solid_line.DrawLine(-2, i - 0.5, 2, i - 0.5)
+            nuis_name.DrawLatex(-2.1, i, print_np(nuis[i]))
+        solid_line.DrawLine(-2, i + 0.5, 2, i + 0.5)
         pulls.Draw('SAME')
     ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=pad1, sep=0.08)
     save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
