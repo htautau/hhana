@@ -16,7 +16,7 @@ if args.masses == 'all':
 else:
     args.masses = map(int, args.masses.split(','))
 
-if args.type == 'bdt':
+if args.type == 'mva':
     workspace_func = mva_workspace
 else:
     workspace_func = cuts_workspace
