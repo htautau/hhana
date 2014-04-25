@@ -76,7 +76,7 @@ Apply all of the HSG4 workspace fixes with::
 
 Replace the path above with the actual path if different.
 
-Check your email.
+Go take a long walk.
 
 
 Combining Workspaces

@@ -66,13 +66,13 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
                      np.getVal(),
                      np.getVal() + np.getErrorHi())
     poi_nom_val = poi.getVal()
-    log.info( '{0} nominal value = {1}'.format(poi_name, poi_nom_val))
-    log.info( '{0} nominal value = {1}'.format(np_name, np_fitted_val))
+    log.info('{0} nominal value = {1}'.format(poi_name, poi_nom_val))
+    log.info('{0} nominal value = {1}'.format(np_name, np_fitted_val))
 
     # --------------
     param_const = get_nuisance_params(mc)
     for key in param_const.keys():
-            param_const[key] = True
+        param_const[key] = True
 
     #--------------------
     ws.loadSnapshot(ws_snapshot)
