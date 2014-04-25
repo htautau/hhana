@@ -134,14 +134,14 @@ def plot_ranking(name, file):
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
         postfit_impact_low, postfit_impact_high = postfit
-        prefit_graph.SetPointError(i, prefit_impact_low * 2, prefit_impact_high * 2, 0.5, 0)
-        postfit_graph.SetPointError(i, postfit_impact_low * 2, postfit_impact_high * 2, 0, 0.5)
+        prefit_graph.SetPointError(i, prefit_impact_low * 4, prefit_impact_high * 4, 0.5, 0)
+        postfit_graph.SetPointError(i, postfit_impact_low * 4, postfit_impact_high * 4, 0, 0.5)
     nuis_name = TLatex()
     nuis_name.SetTextAlign(32)
     nuis_name.SetTextSize(12)
     with pad1:
         # mu axis
-        mu_axis = TGaxis(-2, n_points + 2 - 0.5, 2, n_points + 2 - 0.5, -1, 1, 510, '-')
+        mu_axis = TGaxis(-2, n_points + 2 - 0.5, 2, n_points + 2 - 0.5, -0.5, 0.5, 510, '-')
         mu_axis.SetTitle('#Delta#hat{#mu}/#hat{#mu}')
         mu_axis.SetLabelFont(xaxis.GetLabelFont())
         mu_axis.SetTitleFont(xaxis.GetTitleFont())

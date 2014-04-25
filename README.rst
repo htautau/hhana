@@ -82,9 +82,9 @@ Go take a long walk.
 Combining Workspaces
 ---------------------
 
-Move to the directory containing all the workspaces to combine::
+Move to the directory containing all the MVA workspaces to combine::
 
-    cd workspaces/hh_nos_nonisol_ebz_fixed
+    cd workspaces/hh_nos_nonisol_ebz_mva_fixed
 
 Combine workspaces across years with::
 
@@ -95,6 +95,11 @@ Combine workspaces across years with::
    done
 
 Check your email.
+
+Move to the directory containing all the CBA workspaces to combine::
+
+    cd workspaces/hh_nos_nonisol_ebz_cuts_fixed
+
 
 
 Fitting
