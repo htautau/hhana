@@ -28,6 +28,8 @@ style.SetPadLeftMargin(0.09)
 style.SetPadBottomMargin(0.4)
 style.SetPadRightMargin(0.03)
 style.SetTitleYOffset(0.8)
+style.SetHatchesLineWidth(2)
+style.SetHatchesSpacing(0.5)
 # remove ticks on top X axis
 style.SetPadTickX(0)
 set_style(style)
@@ -99,29 +101,41 @@ def plot_ranking(name, file):
     for np, info in data.items():
         prefit_low, prefit_nom, prefit_high = info['poi_prefit']
         postfit_low, postfit_nom, postfit_high = info['poi_postfit']
-        # prefit -1 sigma impact
-        prefit_impact = (prefit_nom - prefit_low) / prefit_nom
-        # postfit +1 sigma impact
-        postfit_impact = (postfit_high - postfit_nom) / postfit_nom
-        ranking.append((np, prefit_impact, postfit_impact))
+        prefit_impact_low = (prefit_nom - prefit_low) / prefit_nom
+        prefit_impact_high = (prefit_high - prefit_nom) / prefit_nom
+        postfit_impact_low = (postfit_nom - postfit_low) / postfit_nom
+        postfit_impact_high = (postfit_high - postfit_nom) / postfit_nom
+        # for ranking use full width of postfit impact
+        postfit_impact = (max(postfit_high, postfit_low, postfit_nom) -
+                          min(postfit_high, postfit_low, postfit_nom)) / postfit_nom
+        ranking.append((np, postfit_impact,
+                        (prefit_impact_low, prefit_impact_high),
+                        (postfit_impact_low, postfit_impact_high)))
     # sort by postfit impact
-    ranking.sort(key=lambda item: abs(item[2]))
+    ranking.sort(key=lambda item: abs(item[1]))
+    for thing in ranking:
+        print thing
     # make pull graph
     pulls = Graph(n_points, drawstyle='P', linewidth=2, markersize=1)
     pulls_1sigma = pulls.Clone(drawstyle='2', linewidth=0, markersize=0,
                                fillcolor='yellow', fillstyle='solid')
-    for i, (np, prefit, postfit) in enumerate(ranking):
+    prefit_graph = pulls_1sigma.Clone(fillstyle='\\', color='blue', linewidth=2)
+    postfit_graph = pulls_1sigma.Clone(fillstyle='/', color='red', linewidth=2)
+    for i, (np, impact, prefit, postfit) in enumerate(ranking):
         info = data[np]
         low, mid, high = info['np']
-        pulls.SetPoint(i, mid, i)
         pulls_1sigma.SetPoint(i, mid, i)
+        pulls_1sigma.SetPointError(i, 1, 1, 0.5, 0.5)
         err_up = high - mid
         err_dn = mid - low
-        #if err_up < 0:
-        #    # swap
-        #    err_up, err_dn = err_dn, err_up
+        pulls.SetPoint(i, mid, i)
         pulls.SetPointError(i, err_dn, err_up, 0, 0)
-        pulls_1sigma.SetPointError(i, 1, 1, 0.5, 0.5)
+        prefit_graph.SetPoint(i, 0, i)
+        postfit_graph.SetPoint(i, 0, i)
+        prefit_impact_low, prefit_impact_high = prefit
+        postfit_impact_low, postfit_impact_high = postfit
+        prefit_graph.SetPointError(i, prefit_impact_low * 2, prefit_impact_high * 2, 0.5, 0)
+        postfit_graph.SetPointError(i, postfit_impact_low * 2, postfit_impact_high * 2, 0, 0.5)
     nuis_name = TLatex()
     nuis_name.SetTextAlign(32)
     nuis_name.SetTextSize(12)
@@ -138,6 +152,9 @@ def plot_ranking(name, file):
         mu_axis.Draw()
         # draw 1sigma pull graph
         pulls_1sigma.Draw('SAME')
+        # impact graphs
+        prefit_graph.Draw('SAME')
+        postfit_graph.Draw('SAME')
         # draw guide lines
         line.DrawLine(1, -0.5 - 2, 1, n_points + 2 - 0.5)
         line.DrawLine(-1, -0.5 - 2, -1, n_points + 2 - 0.5)
