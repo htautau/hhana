@@ -103,9 +103,9 @@ def plot_ranking(name, file):
         pulls.SetPoint(i, mid, i)
         err_up = high - mid
         err_dn = mid - low
-        if err_up < 0:
-            # swap
-            err_up, err_dn = err_dn, err_up
+        #if err_up < 0:
+        #    # swap
+        #    err_up, err_dn = err_dn, err_up
         pulls.SetPointError(i, abs(err_dn), abs(err_up), 0, 0)
     nuis_name = TLatex()
     nuis_name.SetTextAlign(32)
@@ -118,7 +118,7 @@ def plot_ranking(name, file):
         mu_axis.SetTitleFont(xaxis.GetTitleFont())
         mu_axis.SetLabelSize(xaxis.GetLabelSize())
         mu_axis.SetTitleSize(xaxis.GetTitleSize())
-        mu_axis.SetLabelOffset(-0.005)
+        mu_axis.SetLabelOffset(-0.005) # HACK
         mu_axis.SetTitleOffset(xaxis.GetTitleOffset())
         mu_axis.Draw()
         # draw guide lines
