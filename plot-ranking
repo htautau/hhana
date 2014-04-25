@@ -124,6 +124,7 @@ def plot_ranking(name, file):
         # draw guide lines
         line.DrawLine(1, -0.5 - 2, 1, n_points + 2 - 0.5)
         line.DrawLine(-1, -0.5 - 2, -1, n_points + 2 - 0.5)
+        line.DrawLine(0, -0.5 - 2, 0, n_points + 2 - 0.5)
         for i in xrange(n_points):
             solid_line.DrawLine(-2, i - 0.5, 2, i - 0.5)
             nuis_name.DrawLatex(-2.1, i, print_np(nuis[i]))
