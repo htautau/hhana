@@ -1,3 +1,8 @@
+# default minimizer options
+import ROOT
+ROOT.Math.MinimizerOptions.SetDefaultStrategy(1)
+ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
+
 import rootpy
 import os
 import logging
