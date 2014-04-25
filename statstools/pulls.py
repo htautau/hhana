@@ -1,17 +1,18 @@
-# ---> python imports
+# python imports
 from multiprocessing import Process
 import pickle
 import os
 
-# ---> root/rootpy imports
+# root/rootpy imports
 from rootpy import asrootpy
 from rootpy.io import root_open
 from rootpy.utils.lock import lock
 from rootpy.stats import Workspace
 
-# ---> local imports
+# local imports
 from nuisance import get_nuisance_params
-from .import log; log = log[__name__]
+from . import log; log = log[__name__]
+
 
 class NuisancePullScan(Process):
     """
@@ -33,9 +34,9 @@ class NuisancePullScan(Process):
         self.ws_snapshot = ws_snapshot
 
     def run(self):
-        # get the pulls 
-        poi_prefit_pull, poi_postfit_pull, np_pull = get_pull(self.ws, self.mc, self.poi_name,
-                                                              self.np_name, self.ws_snapshot)
+        # get the pulls
+        poi_prefit_pull, poi_postfit_pull, np_pull = get_pull(
+            self.ws, self.mc, self.poi_name, self.np_name, self.ws_snapshot)
 
         # write the value into a pickle
         with lock(self.pickle_name):
@@ -43,12 +44,14 @@ class NuisancePullScan(Process):
                 pulls = pickle.load(pickle_file)
                 if not isinstance(pulls, dict):
                     pulls = {}
-                pulls[self.np_name] = {'poi_prefit':poi_prefit_pull, 'poi_postfit':poi_postfit_pull, 'np':np_pull}
+                pulls[self.np_name] = {
+                    'poi_prefit': poi_prefit_pull,
+                    'poi_postfit': poi_postfit_pull,
+                    'np': np_pull}
             with open(self.pickle_name, 'w') as pickle_file:
-                    pickle.dump(pulls, pickle_file)
+                pickle.dump(pulls, pickle_file)
 
 
-# ------------------------------------------------
 def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     """
     TODO: Write a description
@@ -59,7 +62,9 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     poi = params_of_interest.find(poi_name)
 
     ws.loadSnapshot(ws_snapshot)
-    np_fitted_val = (np.getVal()+np.getErrorLo(), np.getVal(), np.getVal()+np.getErrorHi())
+    np_fitted_val = (np.getVal() + np.getErrorLo(),
+                     np.getVal(),
+                     np.getVal() + np.getErrorHi())
     poi_nom_val = poi.getVal()
     log.info( '{0} nominal value = {1}'.format(poi_name, poi_nom_val))
     log.info( '{0} nominal value = {1}'.format(np_name, np_fitted_val))
@@ -72,15 +77,15 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     #--------------------
     ws.loadSnapshot(ws_snapshot)
     np.setVal(np_fitted_val[2])
-    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+    roo_min = ws.fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
     poi_up_val = poi.getVal()
-    
+
     #--------------------
     ws.loadSnapshot(ws_snapshot)
     np.setVal(np_fitted_val[0])
-    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+    roo_min = ws.fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
     poi_down_val = poi.getVal()
@@ -88,15 +93,15 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     #--------------------
     ws.loadSnapshot(ws_snapshot)
     np.setVal(np_fitted_val[1]+1)
-    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+    roo_min = ws.fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
     poi_prefit_up_val = poi.getVal()
-    
+
     #--------------------
     ws.loadSnapshot(ws_snapshot)
     np.setVal(np_fitted_val[1]-1)
-    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
+    roo_min = ws.fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
     poi_prefit_down_val = poi.getVal()
@@ -104,9 +109,9 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     #--------------------
     poi_prefit_val = (poi_prefit_down_val, poi_nom_val, poi_prefit_up_val)
     poi_fitted_val = (poi_down_val, poi_nom_val, poi_up_val)
-    log.info( '{0} pulls = {1}'.format(poi_name, poi_prefit_val))
-    log.info( '{0} pulls = {1}'.format(poi_name, poi_fitted_val))
-    log.info( '{0} pulls = {1}'.format(np_name, np_fitted_val))
+    log.info('{0} pulls = {1}'.format(poi_name, poi_prefit_val))
+    log.info('{0} pulls = {1}'.format(poi_name, poi_fitted_val))
+    log.info('{0} pulls = {1}'.format(np_name, np_fitted_val))
 
     return poi_prefit_val, poi_fitted_val, np_fitted_val
 
@@ -117,6 +122,3 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     # Step 2.3: fit the NP and get the errors on it (two methods exist)
     # Step 2.4: Redo the global fit with all NP fixed and the one studied fixed at nom+/-err
     #           to get the variation on the POI
-
-
-    

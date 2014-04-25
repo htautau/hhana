@@ -71,10 +71,8 @@ Fixing Workspaces
 
 Apply all of the HSG4 workspace fixes with::
 
-    fix-workspace workspaces/hh_nos_nonisol_ebz
-
-This will create the directory containing ``workspaces/hh_nos_nonisol_ebz_fixed``
-with all of the patched workspaces.
+    cd workspaces
+    fix-workspace --verbose --fill-empties hh_nos_nonisol_ebz_cuts hh_nos_nonisol_ebz_mva
 
 Replace the path above with the actual path if different.
 

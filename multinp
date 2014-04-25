@@ -7,7 +7,6 @@ import sys
 
 # ---> rootpy imports
 from rootpy.io import root_open
-from rootpy import asrootpy
 
 # ---> higgstautau imports
 from pbs import qsub
@@ -18,6 +17,7 @@ from statstools.jobs import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
 from statstools.pulls import NuisancePullScan
 from mva import log; log=log[__name__]
+
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         npscans_dict = {}
         with root_open(args.file) as file:
             ws = file[args.name]
-            roo_min, nll_func = asrootpy(ws).fit(return_nll=True)
+            roo_min, nll_func = ws.fit(return_nll=True)
             fitres = roo_min.save()
             minNLL_hat = fitres.minNll()
             log.info( 'minimized NLL: %f'%minNLL_hat)
@@ -111,7 +111,9 @@ if __name__ == '__main__':
             pickle.dump(pulls, master_pickle)
         with root_open(args.file) as file:
             ws = file[args.name]
-            roo_min = asrootpy(ws).fit()
+            roo_min = ws.fit()
+            # calculate minos errors
+            roo_min.minos()
             fitres = roo_min.save()
             mc = ws.obj('ModelConfig')
             obsData = ws.data('obsData')
@@ -128,5 +130,3 @@ if __name__ == '__main__':
 
             # run the pool
             run_pool(workers, n_jobs=args.jobs)
-
-
