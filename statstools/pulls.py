@@ -59,26 +59,19 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     poi = params_of_interest.find(poi_name)
 
     ws.loadSnapshot(ws_snapshot)
-    np_nom_val = np.getVal()
+    np_fitted_val = (np.getVal()+np.getErrorLo(), np.getVal(), np.getVal()+np.getErrorHi())
     poi_nom_val = poi.getVal()
     log.info( '{0} nominal value = {1}'.format(poi_name, poi_nom_val))
-    log.info( '{0} nominal value = {1}'.format(np_name, np_nom_val))
+    log.info( '{0} nominal value = {1}'.format(np_name, np_fitted_val))
 
     # --------------
     param_const = get_nuisance_params(mc)
     for key in param_const.keys():
             param_const[key] = True
 
-    param_const[np_name] = False
-    roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
-    fitres = roo_min.save()
-    fitres.Print()
-    np_fitted_val = (np.getErrorLo(), np_nom_val, np.getErrorHi())
-    param_const[np_name] = True
-
     #--------------------
     ws.loadSnapshot(ws_snapshot)
-    np.setVal(np_nom_val+np_fitted_val[1])
+    np.setVal(np_fitted_val[2])
     roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
@@ -86,7 +79,7 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     
     #--------------------
     ws.loadSnapshot(ws_snapshot)
-    np.setVal(np_nom_val-np_fitted_val[1])
+    np.setVal(np_fitted_val[0])
     roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
@@ -94,7 +87,7 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
 
     #--------------------
     ws.loadSnapshot(ws_snapshot)
-    np.setVal(np_nom_val+1)
+    np.setVal(np_fitted_val[1]+1)
     roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
@@ -102,7 +95,7 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     
     #--------------------
     ws.loadSnapshot(ws_snapshot)
-    np.setVal(np_nom_val-1)
+    np.setVal(np_fitted_val[1]-1)
     roo_min = asrootpy(ws).fit(param_const=param_const, print_level=-1)
     fitres = roo_min.save()
     fitres.Print()
