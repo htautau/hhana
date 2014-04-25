@@ -56,8 +56,8 @@ TH1D* runSig(RooWorkspace* ws,
              const char* conditional1Snapshot = "conditionalGlobs_1",
              const char* nominalSnapshot = "nominalGlobs")
 {
-    string defaultMinimizer    = "Minuit";     // or "Minuit"
-    int defaultStrategy        = 2;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
+    string defaultMinimizer    = "Minuit2";     // or "Minuit"
+    int defaultStrategy        = 1;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
     double mu_profile_value = 1; // mu value to profile the obs data at wbefore generating the expected
     bool doUncap            = 1; // uncap p0
     bool doInj              = 0; // setup the poi for injection study (zero is faster if you're not)
