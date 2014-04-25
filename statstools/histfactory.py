@@ -183,7 +183,7 @@ def process_measurement(m,
                             "removing OverallSys `{0}` from sample `{1}`".format(name, s.name))
                         s.RemoveOverallSys(name)
 
-        # apply fill_empties
+        # apply fill_empties on nominal histograms
         if fill_empties and matched(c.name, fill_empties_channels):
             for s in c.samples:
                 if not matched(s.name, fill_empties_samples):
@@ -191,9 +191,6 @@ def process_measurement(m,
                 if not is_signal(s):
                     log.info("applying fill_empties on sample `{0}`".format(s.name))
                     s.hist = apply_fill_empties(s.hist)
-                    for histosys in s.histo_sys:
-                        histosys.high = apply_fill_empties(histosys.high)
-                        histosys.low = apply_fill_empties(histosys.low)
 
         # smooth
         if smooth_histosys and matched(c.name, smooth_histosys_channels):
