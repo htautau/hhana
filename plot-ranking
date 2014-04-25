@@ -106,7 +106,7 @@ def plot_ranking(name, file):
         #if err_up < 0:
         #    # swap
         #    err_up, err_dn = err_dn, err_up
-        pulls.SetPointError(i, abs(err_dn), abs(err_up), 0, 0)
+        pulls.SetPointError(i, err_dn, err_up, 0, 0)
     nuis_name = TLatex()
     nuis_name.SetTextAlign(32)
     nuis_name.SetTextSize(12)
