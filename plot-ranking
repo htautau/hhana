@@ -28,6 +28,8 @@ style.SetPadLeftMargin(0.09)
 style.SetPadBottomMargin(0.4)
 style.SetPadRightMargin(0.03)
 style.SetTitleYOffset(0.8)
+# remove ticks on top X axis
+style.SetPadTickX(0)
 set_style(style)
 
 line = TLine()
@@ -110,7 +112,14 @@ def plot_ranking(name, file):
     nuis_name.SetTextSize(12)
     with pad1:
         # mu axis
-        mu_axis = TGaxis()
+        mu_axis = TGaxis(-2, n_points + 2 - 0.5, 2, n_points + 2 - 0.5, -1, 1, 510, '-')
+        mu_axis.SetTitle('#Delta#hat{#mu}/#sigma_{total}')
+        mu_axis.SetLabelFont(xaxis.GetLabelFont())
+        mu_axis.SetTitleFont(xaxis.GetTitleFont())
+        mu_axis.SetLabelSize(xaxis.GetLabelSize())
+        mu_axis.SetTitleSize(xaxis.GetTitleSize())
+        mu_axis.SetLabelOffset(-0.005)
+        mu_axis.SetTitleOffset(xaxis.GetTitleOffset())
         mu_axis.Draw()
         # draw guide lines
         line.DrawLine(1, -0.5 - 2, 1, n_points + 2 - 0.5)
@@ -120,7 +129,8 @@ def plot_ranking(name, file):
             nuis_name.DrawLatex(-2.1, i, print_np(nuis[i]))
         solid_line.DrawLine(-2, i + 0.5, 2, i + 0.5)
         pulls.Draw('SAME')
-    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=pad1, sep=0.08)
+    ATLAS_label(0.02, 0.01, text="Internal", sqrts=None, pad=pad1, sep=0.1,
+                textsize=30)
     save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
 
 
