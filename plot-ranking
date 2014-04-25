@@ -3,16 +3,9 @@
 from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument('--pulls', default=False, action='store_true')
-parser.add_argument('--name', default=None)
+parser.add_argument('--name', default='ranking')
 parser.add_argument('file')
 args = parser.parse_args()
-
-if args.name is None:
-    if args.pulls:
-        args.name = 'pulls'
-    else:
-        args.name = 'ranking'
 
 from mva import save_canvas
 from statstools.pvalue_plot import pvalue_plot
@@ -49,37 +42,6 @@ def get_data(pickle_file):
 
 def print_np(np):
     return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
-
-
-def plot_horizontal_pulls(name, file):
-    data = get_data(file)
-    n_points = len(data) 
-    c = Canvas(width=1000, height=600)
-    xaxis, yaxis = c.axes(xlimits=(-0.5, n_points - 0.5),
-                          ylimits=(-2.5, 2.5),
-                          xbins=n_points)
-    yaxis.title = '(#theta_{fit} - #theta_{0}) / #Delta#theta'
-    graph = Graph(n_points, drawstyle='P',
-                  linewidth=2, markersize=1)
-    nuis = []
-    for i, (np, info) in enumerate(data.items()):
-        nuis.append(np)
-        low, mid, high = info['np']
-        graph.SetPoint(i, i, mid)
-        err_up = high - mid
-        err_dn = mid - low
-        if err_up < 0:
-            # swap
-            err_up, err_dn = err_dn, err_up
-        graph.SetPointError(i, 0, 0, abs(err_dn), abs(err_up))
-        xaxis.SetBinLabel(i + 1, print_np(np))
-    xaxis.SetLabelSize(10)
-    # draw guide lines
-    line.DrawLine(-0.5, 1, n_points - 0.5, 1)
-    line.DrawLine(-0.5, -1, n_points - 0.5, -1)
-    graph.Draw('SAME')
-    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.08)
-    save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
 
 
 def plot_ranking(name, file):
@@ -169,7 +131,4 @@ def plot_ranking(name, file):
     save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
 
 
-if args.pulls:
-    plot_horizontal_pulls(args.name, args.file)
-else:
-    plot_ranking(args.name, args.file)
+plot_ranking(args.name, args.file)
