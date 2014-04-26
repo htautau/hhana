@@ -16,6 +16,7 @@ import pickle
 import os
 from ROOT import TLine, TGaxis, TLatex
 
+# set the style
 style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.09)
 style.SetPadBottomMargin(0.4)
@@ -27,6 +28,7 @@ style.SetHatchesSpacing(0.5)
 style.SetPadTickX(0)
 set_style(style)
 
+# guide lines
 line = TLine()
 line.SetLineStyle(7)
 line.SetLineWidth(2)
@@ -35,16 +37,19 @@ solid_line.SetLineWidth(1)
 
 
 def get_data(pickle_file):
+    # read NP pull data from a pickle
     with open(pickle_file) as f:
         data = pickle.load(f)
     return data
 
 
 def print_np(np):
+    # strip unneeded text from NP names
     return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
 
 
 def plot_ranking(name, file):
+    # make the ranking plot
     data = get_data(file)
     n_points = len(data)
     c = Canvas(width=1024, height=1448)
@@ -75,14 +80,20 @@ def plot_ranking(name, file):
                         (postfit_impact_low, postfit_impact_high)))
     # sort by postfit impact
     ranking.sort(key=lambda item: abs(item[1]))
-    for thing in ranking:
-        print thing
     # make pull graph
-    pulls = Graph(n_points, drawstyle='P', linewidth=2, markersize=1)
+    pulls = Graph(n_points, drawstyle='P', linewidth=2, markersize=1,
+                  legendstyle='LEP',
+                  title="postfit value and #pm1#sigma uncertainty")
     pulls_1sigma = pulls.Clone(drawstyle='2', linewidth=0, markersize=0,
-                               fillcolor='yellow', fillstyle='solid')
-    prefit_graph = pulls_1sigma.Clone(fillstyle='\\', color='blue', linewidth=2)
-    postfit_graph = pulls_1sigma.Clone(fillstyle='/', color='red', linewidth=2)
+                               fillcolor='yellow', fillstyle='solid',
+                               legendstyle='F',
+                               title="#pm1#sigma prefit uncertainty")
+    prefit_graph = pulls_1sigma.Clone(fillstyle='\\', color='blue', linewidth=2,
+                                      legendstyle='F',
+                                      title="#pm1#sigma prefit impact on #hat{#mu}")
+    postfit_graph = pulls_1sigma.Clone(fillstyle='/', color='red', linewidth=2,
+                                       legendstyle='F',
+                                       title="#pm1#sigma postfit impact on #hat{#mu}")
     for i, (np, impact, prefit, postfit) in enumerate(ranking):
         info = data[np]
         low, mid, high = info['np']
@@ -126,8 +137,20 @@ def plot_ranking(name, file):
             nuis_name.DrawLatex(-2.1, i, print_np(ranking[i][0]))
         solid_line.DrawLine(-2, i + 0.5, 2, i + 0.5)
         pulls.Draw('SAME')
-    ATLAS_label(0.02, 0.01, text="Internal", sqrts=None, pad=pad1, sep=0.1,
+    ATLAS_label(0.03, 1. - pad1.GetTopMargin(), text="Internal", sqrts=None, pad=pad1, sep=0.1,
                 textsize=30)
+    mu_legend = Legend((prefit_graph, postfit_graph), pad=pad1,
+                       topmargin=-pad1.GetTopMargin(),
+                       leftmargin=0,
+                       entryheight=0.018,
+                       margin=0.1)
+    theta_legend = Legend((pulls, pulls_1sigma), pad=pad1,
+                          topmargin=0.85,
+                          leftmargin=0,
+                          entryheight=0.018,
+                          margin=0.1)
+    mu_legend.Draw()
+    theta_legend.Draw()
     save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
 
 
