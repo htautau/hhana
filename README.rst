@@ -117,8 +117,7 @@ Fitting
 
 Calculate the significance for each workspace with::
 
-    multisig workspaces/hh_nos_nonisol_ebz_mva_fixed
-    multisig workspaces/hh_nos_nonisol_ebz_cuts_fixed
+    multisig workspaces/hh_nos_nonisol_ebz_mva_fixed workspaces/hh_nos_nonisol_ebz_cuts_fixed
 
 
 Creating p-value Plots
