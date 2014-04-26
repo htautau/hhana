@@ -9,13 +9,18 @@ import os
 
 
 class SigProcess(Process):
-    def __init__(self, file, name, blind=True):
+    def __init__(self, file, name, blind=True, overwrite=False):
         super(SigProcess, self).__init__()
         self.file = file
         self.name = name
         self.blind = blind
+        self.overwrite = overwrite
     
     def run(self):
+        pickle_name = os.path.splitext(self.file)[0] + '.pickle'
+        if os.path.exists(pickle_name) and not self.overwrite:
+            # abort
+            return
         # get the significance of the workspace
         with root_open(self.file) as file:
             ws = file[self.name]
@@ -24,7 +29,6 @@ class SigProcess(Process):
                                               blind=self.blind)
             sig = hist[2].value
         # write the value into a pickle
-        pickle_name = os.path.splitext(self.file)[0] + '.pickle'
         with open(pickle_name, 'w') as pickle_file:
             pickle.dump({self.name: sig}, pickle_file)
 
@@ -35,6 +39,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--jobs', type=int, default=-1)
     parser.add_argument('--name', default='combined')
+    parser.add_argument('--overwrite', action='store_true', default=False)
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
@@ -51,7 +56,8 @@ if __name__ == '__main__':
             root_files.append(file)
 
     # define the workers
-    workers = [SigProcess(file, args.name) for file in root_files]
+    workers = [SigProcess(file, args.name, overwrite=args.overwrite)
+               for file in root_files]
 
     # run the pool
     run_pool(workers, n_jobs=args.jobs)

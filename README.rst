@@ -108,6 +108,8 @@ across years::
         combine hh_12_cuts_boosted_loose_$mass hh_12_cuts_boosted_tight_$mass --output hh_12_cuts_boosted_$mass --name hh_12_cuts_boosted_$mass;
         combine hh_11_cuts_vbf_lowdr_$mass hh_11_cuts_vbf_highdr_$mass --output hh_11_cuts_vbf_$mass --name hh_11_cuts_vbf_$mass;
         combine hh_12_cuts_vbf_lowdr_$mass hh_12_cuts_vbf_highdr_loose_$mass hh_12_cuts_vbf_highdr_tight_$mass --output hh_12_cuts_vbf_$mass --name hh_12_cuts_vbf_$mass;
+        combine hh_11_cuts_boosted_$mass hh_12_cuts_boosted_$mass --output hh_cuts_boosted_$mass --name hh_cuts_boosted_$mass;
+        combine hh_11_cuts_vbf_$mass hh_12_cuts_vbf_$mass --output hh_cuts_vbf_$mass --name hh_cuts_vbf_$mass;
         combine hh_11_combination_$mass hh_12_combination_$mass --output hh_combination_$mass --name hh_combination_$mass;
     done
 

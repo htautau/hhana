@@ -52,7 +52,7 @@ def plot(name, curves, labels):
 
 # overall combination
 bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
-cut_combined = map(gaus_cdf, get_sigs(cut_path, 'full_combination'))
+cut_combined = map(gaus_cdf, get_sigs(cut_path, 'combination'))
 plot('comination', [bdt_combined, cut_combined], ['MVA 7+8 TeV', 'CBA 7+8 TeV'])
 
 # 7TeV combination
@@ -67,7 +67,7 @@ plot('comination_12', [bdt_combined_12, cut_combined_12], ['MVA 8 TeV', 'CBA 8 T
 
 # vbf combination
 bdt_combined_vbf = map(gaus_cdf, get_sigs(bdt_path, 'vbf'))
-cut_combined_vbf = map(gaus_cdf, get_sigs(cut_path, 'full_cuts_vbf'))
+cut_combined_vbf = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf'))
 plot('comination_vbf', [bdt_combined_vbf, cut_combined_vbf], ['MVA VBF 7+8 TeV', 'CBA VBF 7+8 TeV'])
 
 # 7TeV vbf
@@ -82,7 +82,7 @@ plot('vbf_12', [bdt_vbf_12, cut_vbf_12], ['MVA VBF 8 TeV', 'CBA VBF 8 TeV'])
 
 # boosted combination
 bdt_combined_boosted = map(gaus_cdf, get_sigs(bdt_path, 'boosted'))
-cut_combined_boosted = map(gaus_cdf, get_sigs(cut_path, 'full_cuts_boosted'))
+cut_combined_boosted = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted'))
 plot('comination_boosted', [bdt_combined_boosted, cut_combined_boosted], ['MVA Boosted 7+8 TeV', 'CBA Boosted 7+8 TeV'])
 
 # 7TeV boosted
