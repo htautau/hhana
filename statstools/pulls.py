@@ -72,8 +72,11 @@ def get_pull(ws, mc, poi_name, np_name, ws_snapshot):
     # --------------
     param_const = get_nuisance_params(mc)
     for key in param_const.keys():
-        param_const[key] = True
-
+        if 'norm' in key:
+            log.info('Set %s to constant'%key)
+            param_const[key] = True
+    param_const[np_name] = True
+    
     #--------------------
     ws.loadSnapshot(ws_snapshot)
     np.setVal(np_fitted_val[2])
