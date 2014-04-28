@@ -82,7 +82,7 @@ def plot_ranking(name, file):
     ranking.sort(key=lambda item: abs(item[1]))
     # make pull graph
     pulls = Graph(n_points, drawstyle='P', linewidth=2, markersize=1,
-                  legendstyle='LEP',
+                  legendstyle='LP',
                   title="postfit value and #pm1#sigma uncertainty")
     pulls_1sigma = pulls.Clone(drawstyle='2', linewidth=0, markersize=0,
                                fillcolor='yellow', fillstyle='solid',
