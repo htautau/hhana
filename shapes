@@ -218,3 +218,10 @@ if not args.shapes or 'qcd' in args.shapes:
         compare(qcd_nos_nonisol, qcd_nonisol, category, 'qcd_nonisol')
 
 
+if not args.shapes or 'qcd_ztautau' in args.shapes:
+
+    ztt_eb = Embedded_Ztautau(year=args.year, label='Z#rightarrow#tau#tau')
+    qcd = Analysis(args.year, fakes_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Fakes')
+    for category in CATEGORIES['mva_all'] + [Category_Preselection]:
+        compare(ztt_eb, qcd, category, 'qcd_vs_ztautau')
+            
