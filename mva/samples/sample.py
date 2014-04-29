@@ -875,13 +875,6 @@ class Sample(object):
                         arr[field] *= field_scale[field]
             # convert to array
             arr = rec2array(arr, fields=fields)
-            # HACK HACK HACK
-            _weights = weights
-            if fields == ['dEta_jets']:
-                log.warning("HACK HACK")
-                nonzero = arr > 0
-                arr = arr[nonzero]
-                _weights = weights[nonzero]
             # include the scores if the histogram dimensionality allows
             if scores is not None and hist.GetDimension() == len(fields) + 1:
                 arr = np.c_[arr, scores]
@@ -889,7 +882,7 @@ class Sample(object):
                 raise TypeError(
                     'histogram dimensionality does not match '
                     'number of fields: %s' % (', '.join(fields)))
-            hist.fill_array(arr, weights=_weights)
+            hist.fill_array(arr, weights=weights)
             if isinstance(self, Data):
                 if hasattr(hist, 'datainfo'):
                     hist.datainfo += self.info
