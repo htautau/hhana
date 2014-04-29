@@ -2,11 +2,29 @@
 
     UNDER CONSTRUCTION
 
+Skimming
+========
+
+The skimming is performed by the ``hhskim.py`` script.
+
+Run the skims on the grid (after setting up the panda client and your VOMS
+proxy with the phys-higgs production role)::
+
+    ./skim --yall mc11_hadhad mc12_hadhad data11_hadhad data12_hadhad embed11_hadhad embed12_hadhad
+
+
 Datasets
 ========
 
-After producing the analysis ntuples in the higgstautau package they are
-prepared and merged here in the htt package.
+After the skims are finished and downloaded, update the paths in
+``higgstautau/datasets_config.yml`` and update the datasets database::
+
+    ./dsdb --reset hh
+
+Then launch the batch jobs that create all the analysis ntuples (nominal and
+systematics) with::
+
+    ./run_all_hh.sh
 
 Automatically organize ROOT and log files with::
 
@@ -19,13 +37,26 @@ Then move the running hhskim directory to production::
     mv ntuples/prod/hhskim ntuples/prod/hhskim_old
     mv ntuples/running/hhskim ntuples/prod/hhskim
 
+And finally create the merged ``hhskim.root`` and ``hhskim.h5``::
+
+    make ntup
+
 
 Background Normalizations
 =========================
 
+Generate the cache of all background normalizations::
+
+    make norms
+
 
 Variable Plots
 ==============
+
+Create all validation plots with::
+
+    make plots
+
 
 BDT Training
 ============
@@ -38,11 +69,18 @@ Go get some coffee.
 
 
 BDT Validation Plots
-====================
+--------------------
 
+Create all the BDT validation plots with::
+
+    make mva-plots
+
+
+Workspaces
+==========
 
 Binning Optimization
-====================
+--------------------
 
 Run the batch jobs to determine the optimal binning for each mass point in each
 category and year::
@@ -51,9 +89,6 @@ category and year::
 
 Go get some coffee.
 
-
-Workspaces
-==========
 
 Creating Workpaces
 ------------------
