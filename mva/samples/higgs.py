@@ -24,8 +24,8 @@ class Higgs(MC, Signal):
     MODES_DICT = {
         'gg': ('ggf', 'PowPyth_', 'PowPyth8_AU2CT10_'),
         'VBF': ('vbf', 'PowPyth_', 'PowPyth8_AU2CT10_'),
-        'Z': ('zh', 'Pyth', 'Pyth8_AU2CTEQ6L1_'),
-        'W': ('wh', 'Pyth', 'Pyth8_AU2CTEQ6L1_'),
+        'Z': ('zh', 'Pyth8_AU2CTEQ6L1_', 'Pyth8_AU2CTEQ6L1_'),
+        'W': ('wh', 'Pyth8_AU2CTEQ6L1_', 'Pyth8_AU2CTEQ6L1_'),
     }
     MODES_WORKSPACE = {
         'gg': 'ggH',
