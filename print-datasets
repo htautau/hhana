@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+from mva.samples import MC_Ztautau, Embedded_Ztautau, Others, Higgs
+
+
+def print_sample(sample):
+    for ds, trees, tables, weighted_events, xs, kfact, effic in sample.datasets:
+        print ds
+
+# background
+for year in (2011, 2012):
+    for cls in (MC_Ztautau, Embedded_Ztautau, Others):
+        sample = cls(year)
+        print_sample(sample)
+
+# signal
+for year in (2011, 2012):
+    for mode in Higgs.MODES:
+        for mass in Higgs.MASSES:
+            sample = Higgs(year=year, mode=mode, mass=mass)
+            print_sample(sample)
