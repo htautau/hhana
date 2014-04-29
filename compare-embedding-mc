@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# create an ntuple containing trees for data with classifier scores
-# and event weights
-
 from mva.cmd import get_parser
 
 args = get_parser(actions=False).parse_args()
