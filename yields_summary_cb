@@ -3,7 +3,8 @@
 # -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
 # Compute the yields for each components (Table 8 and 9 of the internal CB note)
 
-from collections import OrderedDict
+from rootpy.extern.ordereddict import OrderedDict
+from rootpy.extern.tabulartext import PrettyTable
 
 # local import
 from mva.cmd import get_parser
@@ -24,7 +25,7 @@ def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMIN
 	Retrieve the (weigthed) yield and its stat error for a sample to
     	pass a given cut after the preselection
     """
-    hist = sample.events(Category, TARGET_REGION, cuts=cuts, systematic=systematic)
+    hist = sample.events(Category, TARGET_REGION, cuts=cuts)#, systematic=systematic)
     val, err = hist[1].value,hist[1].error 
     return ufloat(val,err)
 # -------------------------------------
@@ -60,16 +61,17 @@ for category in analysis.iter_categories(args.categories,
                                          names=args.category_names):
 
 
-    if category.analysis_control:
-        continue
+#     if category.analysis_control:
+#         continue
 
     signal_yield = ufloat(0,0)
     for signal in signals:
-        signal_yield += get_yield(signal,category)
+        log.info('{0}: {1}'.format(signal.name, get_yield(signal, category)))
+        signal_yield += get_yield(signal, category)
 
-    bkg_yield = ufloat(0,0)
+    bkg_yield = ufloat(0, 0)
     for bkg in backgrounds:
-        bkg_yield += get_yield(bkg,category)
+        bkg_yield += get_yield(bkg, category)
 
     latex_line['cat_name'] += category.latex + '&'
     latex_line['Data']     += str(int(get_yield(data,category).value)) + '&'
