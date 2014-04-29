@@ -1516,7 +1516,7 @@ class MC(SystematicsSample):
         return super(MC, self).weight_fields() + [
             'mc_weight',
             'pileup_weight',
-            'ggf_weight',
+            #'ggf_weight',
         ]
 
     def weight_systematics(self):
