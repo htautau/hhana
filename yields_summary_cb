@@ -61,8 +61,8 @@ for category in analysis.iter_categories(args.categories,
                                          names=args.category_names):
 
 
-    if category.analysis_control:
-        continue
+#     if category.analysis_control:
+#         continue
 
     signal_yield = ufloat(0,0)
     for signal in signals:
