@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-# -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
-# Compute the yields for each components (Table 8 and 9 of the internal CB note)
+# python imports
+import os
+import pickle
 # rootpy imports
 from rootpy.extern.ordereddict import OrderedDict
 from rootpy.extern.tabulartext import PrettyTable
@@ -11,11 +12,8 @@ from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
 from mva.categories.common import Category_Preselection
 from mva.samples import Data
+from mva.systematics import get_systematics, iter_systematics
 from statstools.ufloat import ufloat
-
-args = get_parser(actions=False).parse_args()
-analysis = get_analysis(args)
-output_suffix = analysis.get_suffix()
 
 # -------------------------------------
 def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMINAL'):
@@ -31,6 +29,12 @@ def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMIN
     return ufloat(val,err)
 # -------------------------------------
 
+args = get_parser(actions=False).parse_args()
+analysis = get_analysis(args)
+output_suffix = analysis.get_suffix()
+
+cuts = ''
+
 
 
 data    = analysis.data
@@ -40,10 +44,10 @@ qcd     = analysis.qcd
 others  = analysis.others
 backgrounds = analysis.backgrounds
 
-
+for sys in iter_systematics(year=args.year, include_nominal=True):
+    log.info(sys)
 
 latex_line = OrderedDict()
-
 latex_line['cat_name'] = '&'
 latex_line['sep_1']    = '\\hline'
 latex_line['Higgs']    = 'H($m_H$ = 125 GeV) &'
@@ -56,61 +60,67 @@ latex_line['TotalBkg'] = 'Total Bkg. &'
 latex_line['sep_4']    = '\\hline'
 latex_line['Data']     = 'Data &'
 
+yields_tot = {}
 
-yields = {}
+for systematic in iter_systematics(year=args.year, include_nominal=True):
+    yields = {}
+    for category in analysis.iter_categories(args.categories,
+                                             args.controls,
+                                             names=args.category_names):
 
-for category in analysis.iter_categories(args.categories,
-                                         args.controls,
-                                         names=args.category_names):
-    if category.analysis_control:
-        continue
+        if category.analysis_control:
+            continue
 
-    yields[category.name] = {}
-    log.info(category.name)
-    signal_yield = ufloat(0,0)
-    for signal in signals:
-        log.info('{0}: {1}'.format(signal.name, get_yield(signal, category)))
-        signal_yield += get_yield(signal, category)
+        yields[category.name] = {}
+        log.info(category.name)
+        signal_yield = ufloat(0,0)
+        for signal in signals:
+            log.info('{0}: {1}'.format(signal.name, get_yield(signal, category, cuts=cuts, systematic=systematic)))
+            signal_yield += get_yield(signal, category)
+            
+        bkg_yield = ufloat(0, 0)
+        for bkg in backgrounds:
+            bkg_yield += get_yield(bkg, category)
+            
+        yields[category.name]['latex'] = category.latex
+        yields[category.name]['Data'] = get_yield(data, category, cuts=cuts, systematic=systematic)
+        yields[category.name]['Ztautau'] = get_yield(ztautau, category, cuts=cuts, systematic=systematic)
+        yields[category.name]['QCD'] = get_yield(qcd, category, cuts=cuts, systematic=systematic)
+        yields[category.name]['Others'] = get_yield(others, category, cuts=cuts, systematic=systematic)
+        
+        latex_line['cat_name'] += category.latex + '&'
+        latex_line['Data']     += str(int(get_yield(data,category).value)) + '&'
+        latex_line['Ztautau']  += str(get_yield(ztautau,category)) + '&'
+        latex_line['QCD']      += str(get_yield(qcd,category)) +'&'
+        latex_line['Others']   += str(get_yield(others,category)) + '&'
+        latex_line['Higgs']    += str(signal_yield) + '&'
+        latex_line['TotalBkg'] += str(bkg_yield) + '&'
 
-    bkg_yield = ufloat(0, 0)
-    for bkg in backgrounds:
-        bkg_yield += get_yield(bkg, category)
+    yields_tot[systematic[0]] = yields
 
-    yields[category.name]['latex'] = category.latex
-    yields[category.name]['Data'] = get_yield(data, category, cuts=cuts, systematics=systematics)
-    yields[category.name]['Ztautau'] = get_yield(ztautau, category, cuts=cuts, systematics=systematics)
-    yields[category.name]['QCD'] = get_yield(qcd, category, cuts=cuts, systematics=systematics)
-    yields[category.name]['Others'] = get_yield(others, category, cuts=cuts, systematics=systematics
+    latex_line['cat_name'] = latex_line['cat_name'][:-1]
+    latex_line['Higgs']    = latex_line['Higgs'][:-1]
+    latex_line['Ztautau']  = latex_line['Ztautau'][:-1]
+    latex_line['QCD']      = latex_line['QCD'][:-1]
+    latex_line['Others']   = latex_line['Others'][:-1]
+    latex_line['TotalBkg'] = latex_line['TotalBkg'][:-1]
+    latex_line['Data']     = latex_line['Data'][:-1]
+    
+    latex_line['cat_name'] += '\\\\'
+    latex_line['Higgs']    += '\\\\'
+    latex_line['Ztautau']  += '\\\\'
+    latex_line['QCD']      += '\\\\'
+    latex_line['Others']   += '\\\\'
+    latex_line['TotalBkg'] += '\\\\'
+    latex_line['Data']     += '\\\\'
+    
 
-    latex_line['cat_name'] += category.latex + '&'
-    latex_line['Data']     += str(int(get_yield(data,category).value)) + '&'
-    latex_line['Ztautau']  += str(get_yield(ztautau,category)) + '&'
-    latex_line['QCD']      += str(get_yield(qcd,category)) +'&'
-    latex_line['Others']   += str(get_yield(others,category)) + '&'
-    latex_line['Higgs']    += str(signal_yield) + '&'
-    latex_line['TotalBkg'] += str(bkg_yield) + '&'
+    with open('summary_yields'+output_suffix+'.txt', 'w+') as f_latex:
+        f_latex.write('%%---------------------------\n')
+        f_latex.write(str(systematic))
+        for _,line in latex_line.iteritems():
+            log.info(line)
+            f_latex.write(line+'\n')
 
-
-
-latex_line['cat_name'] = latex_line['cat_name'][:-1]
-latex_line['Higgs']    = latex_line['Higgs']   [:-1]
-latex_line['Ztautau']  = latex_line['Ztautau'] [:-1]
-latex_line['QCD']      = latex_line['QCD']     [:-1]
-latex_line['Others']   = latex_line['Others']  [:-1]
-latex_line['TotalBkg'] = latex_line['TotalBkg'][:-1]
-latex_line['Data']     = latex_line['Data']    [:-1]
-
-latex_line['cat_name'] += '\\\\'
-latex_line['Higgs']    += '\\\\'
-latex_line['Ztautau']  += '\\\\'
-latex_line['QCD']      += '\\\\'
-latex_line['Others']   += '\\\\'
-latex_line['TotalBkg'] += '\\\\'
-latex_line['Data']     += '\\\\'
-
-
-with open('summary_yields'+output_suffix+'.txt', 'w') as f_latex:
-    for _,line in latex_line.iteritems():
-        log.info(line)
-        f_latex.write(line+'\n')
-
+with open('toto.pickle', 'w') as fpick:
+    pickle.dump(yields_tot, fpick)
