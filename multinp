@@ -1,28 +1,26 @@
 #!/usr/bin/env python
-# ---> python imports		
+# python imports		
 from multiprocessing import Process
 import pickle
 import os
 import sys
-
-# ---> rootpy imports
+# rootpy imports
 from rootpy.io import root_open
-
-# ---> higgstautau imports
+# higgstautau imports
 from pbs import qsub
 import cluster
-# ---> local imports
+# local imports
 from statstools import get_bestfit_nll_workspace
 from statstools.jobs import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
 from statstools.pulls import NuisancePullScan
-from mva import log; log=log[__name__]
+from mva import log; log = log['multinp']
 
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--jobs', type=int, default=-1)
+    parser.add_argument('--jobs', type=int, default=1)
     parser.add_argument('--name', default='combined')
     parser.add_argument('--file')
     parser.add_argument('--submit', action='store_true', default=False)
@@ -50,9 +48,7 @@ if __name__ == '__main__':
             cmd = ' '.join(cmd_args)
             name = cmd.replace(" ", "_")
             cmd = "cd %s && %s && %s" % (os.getcwd(), setup, cmd)
-            log.info(cmd)
-            if args.submit:
-                qsub(cmd, name=name)
+            qsub(cmd, name=name, ncpus=args.jobs, dry_run=not args.submit)
 
     # ------------------------------------
     if 'merge' in args.actions:
@@ -102,7 +98,6 @@ if __name__ == '__main__':
         with open(master_pickle_name, 'w') as master_pickle:
             pickle.dump(npscans_dict, master_pickle)
 
-
     # ------------------------------------
     if 'pulls' in args.actions:
         master_pickle_name = os.path.splitext(args.file)[0] + '_pulls.pickle'
@@ -127,6 +122,5 @@ if __name__ == '__main__':
                                                 ws, mc,
                                                 poi_name, par,
                                                 ws_snapshot='StartingPoint'))
-
             # run the pool
             run_pool(workers, n_jobs=args.jobs)
