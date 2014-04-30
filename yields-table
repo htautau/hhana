@@ -1,21 +1,19 @@
 #!/usr/bin/env python
-
 # -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
 # Compute the yields for each components (Table 8 and 9 of the internal CB note)
-
+# rootpy imports
 from rootpy.extern.ordereddict import OrderedDict
 from rootpy.extern.tabulartext import PrettyTable
-
 # local import
 from mva.cmd import get_parser
-args = get_parser(actions=False).parse_args()
-
 from mva import log
 from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
 from mva.categories.common import Category_Preselection
+from mva.samples import Data
 from statstools.ufloat import ufloat
 
+args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args)
 output_suffix = analysis.get_suffix()
 
@@ -25,7 +23,10 @@ def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMIN
 	Retrieve the (weigthed) yield and its stat error for a sample to
     	pass a given cut after the preselection
     """
-    hist = sample.events(Category, TARGET_REGION, cuts=cuts)#, systematic=systematic)
+    if isinstance(sample, Data):
+        hist = sample.events(Category, TARGET_REGION, cuts=cuts)
+    else:
+        hist = sample.events(Category, TARGET_REGION, cuts=cuts, systematic=systematic)
     val, err = hist[1].value,hist[1].error 
     return ufloat(val,err)
 # -------------------------------------
@@ -56,14 +57,16 @@ latex_line['sep_4']    = '\\hline'
 latex_line['Data']     = 'Data &'
 
 
+yields = {}
+
 for category in analysis.iter_categories(args.categories,
                                          args.controls,
                                          names=args.category_names):
+    if category.analysis_control:
+        continue
 
-
-#     if category.analysis_control:
-#         continue
-
+    yields[category.name] = {}
+    log.info(category.name)
     signal_yield = ufloat(0,0)
     for signal in signals:
         log.info('{0}: {1}'.format(signal.name, get_yield(signal, category)))
@@ -72,6 +75,12 @@ for category in analysis.iter_categories(args.categories,
     bkg_yield = ufloat(0, 0)
     for bkg in backgrounds:
         bkg_yield += get_yield(bkg, category)
+
+    yields[category.name]['latex'] = category.latex
+    yields[category.name]['Data'] = get_yield(data, category, cuts=cuts, systematics=systematics)
+    yields[category.name]['Ztautau'] = get_yield(ztautau, category, cuts=cuts, systematics=systematics)
+    yields[category.name]['QCD'] = get_yield(qcd, category, cuts=cuts, systematics=systematics)
+    yields[category.name]['Others'] = get_yield(others, category, cuts=cuts, systematics=systematics
 
     latex_line['cat_name'] += category.latex + '&'
     latex_line['Data']     += str(int(get_yield(data,category).value)) + '&'
@@ -100,8 +109,8 @@ latex_line['TotalBkg'] += '\\\\'
 latex_line['Data']     += '\\\\'
 
 
-f_latex = open( 'cutbased_summary_yields'+output_suffix+'.txt','w')
-for _,line in latex_line.iteritems():
-    log.info(line)
-    f_latex.write(line+'\n')
+with open('summary_yields'+output_suffix+'.txt', 'w') as f_latex:
+    for _,line in latex_line.iteritems():
+        log.info(line)
+        f_latex.write(line+'\n')
 
