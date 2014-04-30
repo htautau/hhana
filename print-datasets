@@ -1,21 +1,37 @@
 #!/usr/bin/env python
 
-from mva.samples import MC_Ztautau, Embedded_Ztautau, Others, Higgs
+from mva.samples import MC_Ztautau, Others, Higgs
 
 
 def print_sample(sample):
+    pattern = r"{0} & {1:.3g} & {2:1.2g} \\"
     for ds, trees, tables, weighted_events, xs, kfact, effic in sample.datasets:
-        print ds
+        print pattern.format(ds.ds, xs * kfact * effic, weighted_events['NOMINAL'])
+
+
+def print_table(header, samples):
+    print
+    print r"\begin{tabular}{l|r|r}"
+    print r"\hline"
+    print r"\multicolumn{4}{c}{%s}" % header
+    print r"\hline"
+    if not isinstance(samples, list):
+        samples = [samples]
+    for sample in samples:
+        print_sample(sample)
+    print r"\hline"
+    print r"\end{tabular}"
+    print
+
 
 # background
 for year in (2011, 2012):
-    for cls in (MC_Ztautau, Embedded_Ztautau, Others):
+    for cls in (MC_Ztautau, Others):
         sample = cls(year)
-        print_sample(sample)
+        print_table(sample.name, sample)
 
 # signal
 for year in (2011, 2012):
     for mode in Higgs.MODES:
-        for mass in Higgs.MASSES:
-            sample = Higgs(year=year, mode=mode, mass=mass)
-            print_sample(sample)
+        samples = [Higgs(year=year, mode=mode, mass=mass) for mass in Higgs.MASSES]
+        print_table(mode, samples)
