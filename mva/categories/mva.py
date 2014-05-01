@@ -19,7 +19,7 @@ class Category_VBF_NO_DETAJJ_CUT(Category_Preselection):
 class Category_VBF(Category_Preselection):
     name = 'vbf'
     label = '#tau_{had}#tau_{had} VBF'
-    latex = '\\texbf{VBF}'
+    latex = '\\textbf{VBF}'
     common_cuts = Category_Preselection.common_cuts
     cuts = (
         CUTS_VBF
@@ -43,7 +43,7 @@ class Category_VBF_DEta_Control(Category_VBF):
 class Category_Boosted(Category_Preselection):
     name = 'boosted'
     label = '#tau_{had}#tau_{had} Boosted'
-    latex = '\\texbf{Boosted}'
+    latex = '\\textbf{Boosted}'
     common_cuts = Category_Preselection.common_cuts
     cuts = (
         (- Category_VBF.cuts)
@@ -70,7 +70,7 @@ class Category_Rest(Category_Preselection):
     analysis_control = True
     name = 'rest'
     label = '#tau_{had}#tau_{had} Rest'
-    latex = '\\texbf{Rest}'
+    latex = '\\textbf{Rest}'
     common_cuts = Category_Preselection.common_cuts
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts) & DETA_TAUS
     limitbins = 10

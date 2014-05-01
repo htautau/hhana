@@ -1,20 +1,89 @@
 #!/usr/bin/env python
+# python imports
 import os
-
+import pickle
+# ROOT/rootpy imports
+import ROOT
 from ROOT import TLatex
-from rootpy.memory import keepalive
+from rootpy import asrootpy
 from rootpy.io import root_open
-from rootpy.plotting import Canvas, Graph, HistStack, Legend, set_style
+from rootpy.plotting import Canvas, Graph, HistStack, Hist, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
-
+# local imports
 from mva import log; log =log[__name__]
+from mva import CACHE_DIR
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
+from mva.samples import Higgs
 from statstools.finalfit_uncertband_plot import getPostFitPlottingObjects
 from statstools.finalfit_uncertband_plot import UncertGraph
 
 set_style('ATLAS', shape='rect')
+
+#----------------------
+def get_rebinned_hist(hist_origin, binning):
+    hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned') 
+    hist_rebin[:] = hist_origin[:]
+    return hist_rebin
+    
+#----------------------
+def get_rebinned_graph(graph_origin, binning):
+    log.info(list(graph_origin.x()))
+    log.info(binning)
+    graph_rebin = Graph(len(binning)-1)
+    if len(graph_origin) != len(graph_rebin):
+        log.info('{0} != {1}'.format(len(graph_origin), len(graph_rebin)))
+        raise RuntimeError('wrong binning')
+    else:
+        for ip, (y, yerr) in enumerate(zip(graph_origin.y(), graph_origin.yerr())):
+            x_rebin_err = 0.5*(binning[ip+1]-binning[ip])
+            x_rebin = binning[ip] + x_rebin_err
+            graph_rebin.SetPoint(ip, x_rebin, y)
+            graph_rebin.SetPointError(ip, x_rebin_err, x_rebin_err, yerr[0], yerr[1])
+    return graph_rebin                     
+
+#-----------------------
+def get_category(ws_cat_name, categories):
+    for cat in categories:
+        if cat.name in name:
+            return cat
+#-----------------------
+def get_year(ws_name):
+    if '_12' and not '_11' in ws_name:
+        return 2012
+    else:
+        return 2011
+
+#-----------------------
+def get_mass(ws_name):
+    masses = Higgs.MASSES
+    for mass in masses:
+        if '_{0}_'.format(mass) in ws_name:
+            return mass
+
+#----------------------------
+def get_binning(name, categories, fit_var='mmc_mass'):
+    binning = []
+    cat = get_category(name, categories)
+    year = get_year(name)
+    mass = get_mass(name)
+    log.info(year)
+    log.info(mass)
+    log.info(cat)
+    if fit_var=='mmc_mass':
+        binning = cat.limitbins
+        if isinstance(binning, (tuple, list)):
+            return binning
+        else:
+            return binning[year]
+    else:
+        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
+            cat.name, mass, year % 1000))) as f:
+            binning = pickle.load(f)
+            binning[0] += 1E5
+            binning[-1] -= 1E5
+            return binning
 
 # ------------------------------
 def Fit_WS(workspace, output='frames.root'):
@@ -39,7 +108,7 @@ def Fit_WS(workspace, output='frames.root'):
     # --> Get the simultaneous PDF
     simPdf = mc.GetPdf()
 
-    plotting_objects = getPostFitPlottingObjects(mc,obsData,simPdf,fit_res)
+    plotting_objects = getPostFitPlottingObjects(mc, obsData, simPdf, fit_res)
     with root_open(output, 'recreate') as output_file:
         for obj in plotting_objects:
             obj.Write()
@@ -47,7 +116,7 @@ def Fit_WS(workspace, output='frames.root'):
 
 
 # ---------------------------------
-def plot_from_frame(file, frame, fit_var):
+def plot_from_frame(file, frame, fit_var, binning):
     """
     """
     Ana = Analysis(2012)
@@ -55,39 +124,46 @@ def plot_from_frame(file, frame, fit_var):
     # ---------------------------------
     hbkg_plus_sig = file.Get('hbkg_plus_sig_{0}'.format(frame.GetName()))
     curve_uncert_sig = frame.getCurve('FitError_AfterFit')
-    graph_sig = UncertGraph(hbkg_plus_sig, curve_uncert_sig)
+    graph_sig_ws = UncertGraph(hbkg_plus_sig, curve_uncert_sig)
+    graph_sig = get_rebinned_graph(graph_sig_ws, binning) 
     graph_sig.fillstyle='//'
     graph_sig.color='black'
     graph_sig.title = 'Uncert.'
     graph_sig.legendstyle = 'F'
 
     # --------------------------------
-    data = frame.getHist('Data')
+    data_ws = frame.getHist('Data')
+    # HACK HACK HACK
+    data_ws.__class__=ROOT.TGraphAsymmErrors
+    data = get_rebinned_graph(asrootpy(data_ws), binning)
     data.SetTitle('Hybrid Data')
-
     # --------------------------------
-    hist_fake = file.Get('h_Fakes_{0}'.format(frame.GetName()))
+    hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
+    hist_fake = get_rebinned_hist(hist_fake_ws, binning)
     hist_fake.color = Ana.qcd.hist_decor['color']
     hist_fake.fillstyle = 'solid'
     hist_fake.title = Ana.qcd.label
     hist_fake.legendstyle = 'F'
     
     # --------------------------------
-    hist_others = file.Get('h_Others_{0}'.format(frame.GetName()))
+    hist_others_ws = file.Get('h_Others_{0}'.format(frame.GetName()))
+    hist_others = get_rebinned_hist(hist_others_ws, binning)
     hist_others.color = Ana.others.hist_decor['color']
     hist_others.fillstyle = 'solid'
     hist_others.title = Ana.others.label
     hist_others.legendstyle = 'F'
 
     # --------------------------------
-    hist_ztautau = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
+    hist_ztautau_ws = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
+    hist_ztautau = get_rebinned_hist(hist_ztautau_ws, binning)
     hist_ztautau.color = Ana.ztautau.hist_decor['color']
     hist_ztautau.fillstyle = 'solid'
     hist_ztautau.title = Ana.ztautau.label
     hist_ztautau.legendstyle = 'F'
     
     # --------------------------------
-    hist_signal = file.Get('h_TotalSignal_{0}'.format(frame.GetName()))
+    hist_signal_ws = file.Get('h_TotalSignal_{0}'.format(frame.GetName()))
+    hist_signal = get_rebinned_hist(hist_signal_ws, binning)
     hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
     hist_signal.linestyle = 'solid'
     hist_signal.linewidth = 4
@@ -98,19 +174,18 @@ def plot_from_frame(file, frame, fit_var):
                              hist_ztautau, hist_signal],
                       name='Model_{0}'.format(frame.GetName()))
 
-
-
     plotables = [Model]
     if 'bdt' in fit_var :
-        xtitle= 'BDT Score (workspace binning)'
+        xtitle= 'BDT Score'
         categories = CATEGORIES['mva']
+        logy = True
     else:
-        xtitle='MMC MASS (workspace binning)'
+        xtitle='MMC MASS [GeV]'
         categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
-
+        logy = False
     c = Canvas()
     draw(plotables, pad=c, ypadding=(0.25, 0.1),
-         xtitle=xtitle, ytitle= 'Events')
+         xtitle=xtitle, ytitle= 'Events', logy=logy, logy_crop_value=1e-300)
     if '_11' in frame.GetName():
         text='Internal 2011'
         sqrts=7
@@ -119,7 +194,7 @@ def plot_from_frame(file, frame, fit_var):
         sqrts=8
         
     ATLAS_label(0.2, 0.89, pad=c, sep=0.132, text=text, sqrts=sqrts)
-    graph_sig.Draw( 'sameE2')
+    graph_sig.Draw('sameE2')
     data.Draw('samePE')
 
     leg = Legend([data]+Model.GetHists()+[graph_sig],
@@ -140,6 +215,7 @@ def plot_from_frame(file, frame, fit_var):
     latex.SetTextSize(20)
     latex.Draw()
     c.RedrawAxis()
+    c.SetLogy()
     return c
 
 if __name__ == '__main__':
@@ -152,6 +228,12 @@ if __name__ == '__main__':
     parser.add_argument('--force-fit', action='store_true', default=False)
     args = parser.parse_args()
 
+    if args.fit_var=='bdt_score':
+        categories = CATEGORIES['mva']
+    else:
+        categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
+
+    log.info(categories)
     output = os.path.splitext(args.file)[0] + '_postfit_frames.root'
 
     with root_open(args.file) as file:
@@ -159,14 +241,17 @@ if __name__ == '__main__':
             Fit_WS(file[args.name], output)
 
     with root_open(output) as file:
-        file.ls()
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
-            log.info(names)
             for name in names:
                 if 'rest' in name:
                     continue
+                log.info(name)
+                binning = get_binning(name, categories, fit_var=args.fit_var)
+                if args.fit_var=='mmc_mass':
+                    binning = binning[0:len(binning)-1]
+                log.info(binning)
                 frame = file.Get(name)
-                canvas = plot_from_frame(file, file.Get(name), args.fit_var)
+                canvas = plot_from_frame(file, file.Get(name), args.fit_var, binning)
                 canvas.SaveAs('plots/postfit_{0}.png'.format(name))
 
                         
