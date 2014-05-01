@@ -1,6 +1,6 @@
 
 HHSTUDENT ?= hhskim
-HHNTUP ?= ntuples/prod_v28/hhskim
+HHNTUP ?= ntuples/prod_v29/hhskim
 HHNTUP_RUNNING ?= ntuples/running/hhskim
 
 BRANCH := $(shell git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')

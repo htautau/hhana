@@ -12,7 +12,7 @@ if not os.path.exists(CACHE_DIR):
 
 ETC_DIR = os.path.join(BASE_DIR, 'etc')
 
-NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v28')
+NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v29')
 
 import ROOT
 import rootpy

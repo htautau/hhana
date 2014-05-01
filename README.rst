@@ -32,10 +32,14 @@ Automatically organize ROOT and log files with::
 
 The above also merges the output from the subjobs for embedding and data.
 
-Then move the running hhskim directory to production::
+Then move the hhskim running directory to production (replace XX with the skim
+version number)::
 
-    mv ntuples/prod/hhskim ntuples/prod/hhskim_old
-    mv ntuples/running/hhskim ntuples/prod/hhskim
+    mkdir ntuples/prod_vXX
+    mv ntuples/running/hhskim ntuples/prod_vXX
+
+Update the production path in the ``Makefile`` (``HHNTUP``)
+and ``mva/__init__.py`` (``NTUPLE_PATH``).
 
 And finally create the merged ``hhskim.root`` and ``hhskim.h5``::
 
