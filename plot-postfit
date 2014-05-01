@@ -184,8 +184,8 @@ def plot_from_frame(file, frame, fit_var, binning):
         categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
         logy = False
     c = Canvas()
-    draw(plotables, pad=c, ypadding=(0.25, 0.1),
-         xtitle=xtitle, ytitle= 'Events', logy=logy, logy_crop_value=1e-300)
+    draw(plotables, pad=c, ypadding=(0.2, 0.3),
+         xtitle=xtitle, ytitle= 'Events', logy=logy)
     if '_11' in frame.GetName():
         text='Internal 2011'
         sqrts=7
