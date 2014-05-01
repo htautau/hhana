@@ -14,6 +14,9 @@ from glob import glob
 from rootpy.io import root_open as ropen
 from rootpy.tree import Tree
 import ROOT
+import logging
+
+log = logging.getLogger('merge-ntup')
 
 if args.output is None:
     args.output = '%s.root' % args.student
@@ -31,14 +34,14 @@ with ropen(args.output, 'UPDATE') as outfile:
                 continue
             match = re.search(ds_pattern, filename)
             if not match:
-                print "%s is not a valid filename" % filename
+                log.warning("%s is not a valid filename" % filename)
                 continue
             # replace . and - with _ for natural naming in PyTables
             name = match.group('name').replace('.', '_').replace('-', '_')
             if name in outfile:
-                print "Skipping %s" % filename
+                log.warning("skipping %s" % filename)
                 continue
-            print "Merging in %s ..." % filename
+            log.info("merging in %s ..." % filename)
             with ropen(filename, 'READ') as infile:
                 intree = infile.tau
                 intree.deactivate("jet_*_original")
