@@ -7,6 +7,7 @@ in all trees in a ROOT file.
 from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
+parser.add_argument('--keys', default='RunNumber,EventNumber')
 parser.add_argument('files', nargs='+')
 args = parser.parse_args()
 
@@ -25,6 +26,8 @@ log = logging.getLogger('check-file')
 warnings.simplefilter("ignore",
     RootNumpyUnconvertibleWarning)
 
+key_fields = args.keys.split(',')
+
 
 def check_nan_inf(rec):
     for field in rec.dtype.names:
@@ -33,23 +36,25 @@ def check_nan_inf(rec):
         if np.isnan(np.sum(rec[field])):
             log.warning("invalid values for field %s" % field)
 
-
-for i, filename in enumerate(args.files):
-    log.info("checking trees in file {0} ...".format(filename))
-    with root_open(filename) as rfile:
-        # Walk through all trees in each ROOT file
-        for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
-            for treename in treenames:
-                log.info("checking tree {0} ...".format(treename))
-                tree = rfile.Get(os.path.join(dirpath, treename))
-                if len(tree) == 0:
-                    continue
-                # Use RunNumber and EventNumber to uniquely define each event
-                keys = tree2rec(tree, ['RunNumber', 'EventNumber'])
-                if keys.shape != np.unique(keys).shape:
-                    # This tree contains duplicate events
-                    idx = dup_idx(keys)
-                    log.warning("found {0} duplicate events".format(len(idx)))
-                    log.warning("(run, event): {0}".format(str(keys[idx])))
-                # Check the tree for invalid values
-                #check_nan_inf(tree.to_array())
+try:
+    for filename in args.files:
+        log.info("checking trees in file {0} ...".format(filename))
+        with root_open(filename) as rfile:
+            # Walk through all trees in each ROOT file
+            for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
+                for treename in treenames:
+                    log.info("checking tree {0} ...".format(treename))
+                    tree = rfile.Get(os.path.join(dirpath, treename))
+                    if len(tree) == 0:
+                        continue
+                    # Use RunNumber and EventNumber to uniquely define each event
+                    keys = tree2rec(tree, key_fields)
+                    if keys.shape != np.unique(keys).shape:
+                        # This tree contains duplicate events
+                        idx = dup_idx(keys)
+                        log.warning("found {0} duplicate events".format(len(idx)))
+                        log.warning("{0}: {1}".format(args.keys, str(keys[idx])))
+                    # Check the tree for invalid values
+                    #check_nan_inf(tree.to_array())
+except KeyboardInterrupt, SystemExit:
+    sys.exit(1)
