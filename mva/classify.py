@@ -11,7 +11,6 @@ from cStringIO import StringIO
 import numpy as np
 
 # matplotlib imports
-from matplotlib import pyplot as plt
 from matplotlib import cm
 
 # scikit-learn imports
@@ -20,7 +19,7 @@ from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import (
     classification_report, precision_score, accuracy_score, roc_auc_score)
-from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 # rootpy imports
@@ -45,12 +44,6 @@ from . import variables
 from . import PLOTS_DIR
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
-
-from statstools.utils import get_safe_template
-
-
-def std(X):
-    return (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
 
 
 def print_feature_ranking(clf, fields):
@@ -78,39 +71,263 @@ def print_feature_ranking(clf, fields):
         log.info(out.getvalue())
 
 
-def search_flat_bins(bkg_scores, min_score, max_score, bins):
-    scores = []
-    weights = []
-    for bkg, scores_dict in bkg_scores:
-        s, w = scores_dict['NOMINAL']
-        scores.append(s)
-        weights.append(w)
-    scores = np.concatenate(scores)
-    weights = np.concatenate(weights)
+def histogram_scores(hist_template, scores,
+                     min_score=None, max_score=None,
+                     inplace=False):
+    if not inplace:
+        hist = hist_template.Clone(name=hist_template.name + "_scores")
+        hist.Reset()
+    else:
+        hist = hist_template
+    if min_score is not None:
+        log.info("cutting out scores below %f" % min_score)
+    if max_score is not None:
+        log.info("cutting out scores above %f" % max_score)
+    if isinstance(scores, np.ndarray):
+        if min_score is not None:
+            scores = scores[scores > min_score]
+        if max_score is not None:
+            scores = scores[scores < max_score]
+        hist.fill_array(scores)
+    elif isinstance(scores, tuple):
+        # data
+        scores, weight = scores
+        if min_score is not None:
+            scores_idx = scores > min_score
+            scores = scores[scores_idx]
+            weight = weight[scores_idx]
+        if max_score is not None:
+            scores_idx = scores < max_score
+            scores = scores[scores_idx]
+            weight = weight[scores_idx]
+        assert (weight == 1).all()
+        hist.fill_array(scores)
+    elif isinstance(scores, dict):
+        # non-data with possible systematics
+        # nominal case:
+        nom_scores, nom_weight = scores['NOMINAL']
+        if min_score is not None:
+            scores_idx = nom_scores > min_score
+            nom_scores = nom_scores[scores_idx]
+            nom_weight = nom_weight[scores_idx]
+        if max_score is not None:
+            scores_idx = nom_scores < max_score
+            nom_scores = nom_scores[scores_idx]
+            nom_weight = nom_weight[scores_idx]
+        hist.fill_array(nom_scores, nom_weight)
+        # systematics
+        sys_hists = {}
+        for sys_term, (sys_scores, sys_weight) in scores.items():
+            if sys_term == 'NOMINAL':
+                continue
+            if min_score is not None:
+                scores_idx = sys_scores > min_score
+                sys_scores = sys_scores[scores_idx]
+                sys_weight = sys_weight[scores_idx]
+            if max_score is not None:
+                scores_idx = sys_scores < max_score
+                sys_scores = sys_scores[scores_idx]
+                sys_weight = sys_weight[scores_idx]
+            sys_hist = hist.Clone(name=hist.name + "_" + systematic_name(sys_term))
+            sys_hist.Reset()
+            sys_hist.fill_array(sys_scores, sys_weight)
+            sys_hists[sys_term] = sys_hist
+        hist.systematics = sys_hists
+    else:
+        raise TypeError("scores not an np.array, tuple or dict")
+    return hist
 
-    selection = (min_score <= scores) & (scores < max_score)
-    scores = scores[selection]
-    weights = weights[selection]
 
-    sort_idx = np.argsort(scores)
-    scores = scores[sort_idx]
-    weights = weights[sort_idx]
+def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
+    sys_hists = {}
+    for samp, scores_dict in scores_list:
+        for sys_term, (scores, weights) in scores_dict.items():
+            if sys_term == 'NOMINAL':
+                suffix = ''
+            else:
+                suffix = '_' + '_'.join(sys_term)
+            hist = hist_template.Clone(
+                    name=samp.name + ('_%d' % mass) + suffix)
+            hist.fill_array(scores, weights)
+            if sys_term not in sys_hists:
+                sys_hists[sys_term] = []
+            sys_hists[sys_term].append(hist)
+    f.cd()
+    for sys_term, hists in sys_hists.items():
+        bad_bins = []
+        if no_neg_bins:
+            # check for negative bins over all systematics and zero them out
+            # negative bins cause lots of problem in the limit setting
+            # negative bin contents effectively means
+            # the same as "no events here..."
+            total_hist = sum(hists)
+            for bin, content in enumerate(total_hist):
+                if content < 0:
+                    log.warning("Found negative bin %d (%f) for systematic %s" % (
+                            bin, content, sys_term))
+                    bad_bins.append(bin)
+        for hist in hists:
+            for bin in bad_bins:
+                # zero out bad bins
+                hist[bin] = 0.
+            hist.Write()
 
-    total_weight = weights.sum()
-    bin_width = total_weight / bins
 
-    # inefficient linear search for now
-    weights_cumsum = np.cumsum(weights)
-    boundaries = [min_score]
-    curr_total = bin_width
-    for i, cs in enumerate(weights_cumsum):
-        if cs >= curr_total:
-            boundaries.append((scores[i] + scores[i+1])/2)
-            curr_total += bin_width
-        if len(boundaries) == bins:
-            break
-    boundaries.append(max_score)
-    return boundaries
+def make_dataset(signals, backgrounds,
+                 category, region, fields,
+                 cuts=None):
+    signal_arrs = []
+    signal_weight_arrs = []
+    background_arrs = []
+    background_weight_arrs = []
+
+    for signal in signals:
+        rec = signal.merged_records(
+            category=category,
+            region=region,
+            fields=fields,
+            cuts=cuts)
+        signal_weight_arrs.append(rec['weight'])
+        signal_arrs.append(rec2array(rec, fields))
+
+    for background in backgrounds:
+        rec = background.merged_records(
+            category=category,
+            region=region,
+            fields=fields,
+            cuts=cuts)
+        background_weight_arrs.append(rec['weight'])
+        background_arrs.append(rec2array(rec, fields))
+
+    signal_array = np.concatenate(signal_arrs)
+    signal_weight_array = np.concatenate(signal_weight_arrs)
+    background_array = np.concatenate(background_arrs)
+    background_weight_array = np.concatenate(background_weight_arrs)
+
+    return (signal_array, signal_weight_array,
+            background_array, background_weight_array)
+
+
+def make_partitioned_dataset(signals, backgrounds,
+                             category, region, fields,
+                             partition_key,
+                             cuts=None):
+    signal_arrs = []
+    signal_weight_arrs = []
+    background_arrs = []
+    background_weight_arrs = []
+
+    for signal in signals:
+        left, right = signal.partitioned_records(
+            category=category,
+            region=region,
+            fields=fields,
+            cuts=cuts,
+            key=partition_key)
+        signal_weight_arrs.append(
+            (left['weight'], right['weight']))
+        signal_arrs.append(
+            (rec2array(left, fields),
+            rec2array(right, fields)))
+
+    for background in backgrounds:
+        left, right = background.partitioned_records(
+            category=category,
+            region=region,
+            fields=fields,
+            cuts=cuts,
+            key=partition_key)
+        background_weight_arrs.append(
+            (left['weight'], right['weight']))
+        background_arrs.append(
+            (rec2array(left, fields),
+            rec2array(right, fields)))
+
+    return (signal_arrs, signal_weight_arrs,
+            background_arrs, background_weight_arrs)
+
+
+def get_partition(s, sw, b, bw, partition_idx):
+    # select partition and merge arrays
+    s = np.concatenate(map(itemgetter(partition_idx), s))
+    sw = np.concatenate(map(itemgetter(partition_idx), sw))
+    b = np.concatenate(map(itemgetter(partition_idx), b))
+    bw = np.concatenate(map(itemgetter(partition_idx), bw))
+    return s, sw, b, bw
+
+
+def prepare_dataset(signal_train, signal_weight_train,
+                    background_train, background_weight_train,
+                    max_sig=None,
+                    max_bkg=None,
+                    norm_sig_to_bkg=True,
+                    same_size_sig_bkg=True,
+                    remove_negative_weights=False):
+    if remove_negative_weights:
+        # remove samples from the training sample with a negative weight
+        signal_train = signal_train[signal_weight_train >= 0]
+        background_train = background_train[background_weight_train >= 0]
+        signal_weight_train = signal_weight_train[signal_weight_train >= 0]
+        background_weight_train = background_weight_train[background_weight_train >= 0]
+        log.info("removing events with negative weights")
+
+    if max_sig is not None and max_sig < len(signal_train):
+        subsample = np.random.permutation(len(signal_train))[:max_sig_train]
+        signal_train = signal_train[subsample]
+        signal_weight_train = signal_weight_train[subsample]
+        log.info("signal stats reduced to user-specified maximum")
+
+    if max_bkg is not None and max_bkg < len(background_train):
+        subsample = np.random.permutation(len(background_train))[:max_bkg_train]
+        background_train = background_train[subsample]
+        background_weight_train = background_weight_train[subsample]
+        log.info("background stats reduced to user-specified maximum")
+
+    if same_size_sig_bkg:
+        if len(background_train) > len(signal_train):
+            # random subsample of background so it's the same size as signal
+            subsample = np.random.permutation(
+                len(background_train))[:len(signal_train)]
+            background_train = background_train[subsample]
+            background_weight_train = background_weight_train[subsample]
+            log.info("number of background events reduced "
+                        "to match number of signal events")
+        elif len(background_train) < len(signal_train):
+            # random subsample of signal so it's the same size as background
+            subsample = np.random.permutation(
+                len(signal_train))[:len(background_train)]
+            signal_train = signal_train[subsample]
+            signal_weight_train = signal_weight_train[subsample]
+            log.info("number of signal events reduced "
+                        "to match number of background events")
+
+    if norm_sig_to_bkg:
+        # normalize signal to background
+        signal_weight_train *= (
+            background_weight_train.sum() / signal_weight_train.sum())
+        log.info("normalizing signal to match background")
+
+    log.info("training Samples:")
+    log.info("signal: %d events, %s features" % signal_train.shape)
+    log.info("sum(signal weights): %f" % signal_weight_train.sum())
+    log.info("background: %d events, %s features" % background_train.shape)
+    log.info("sum(background weights): %f" % background_weight_train.sum())
+    log.info("total: %d events" % (
+        signal_train.shape[0] +
+        background_train.shape[0]))
+
+    sample_train = np.concatenate((background_train, signal_train))
+    sample_weight_train = np.concatenate(
+        (background_weight_train, signal_weight_train))
+    labels_train = np.concatenate(
+        (np.zeros(len(background_train)), np.ones(len(signal_train))))
+
+    # random permutation of training sample
+    perm = np.random.permutation(len(labels_train))
+    sample_train = sample_train[perm]
+    sample_weight_train = sample_weight_train[perm]
+    labels_train = labels_train[perm]
+    return sample_train, labels_train, sample_weight_train
 
 
 class Classifier(object):
@@ -127,7 +344,6 @@ class Classifier(object):
                  region,
                  cuts=None,
                  spectators=None,
-                 standardize=False,
                  output_suffix="",
                  clf_output_suffix="",
                  partition_key='EventNumber',
@@ -146,7 +362,6 @@ class Classifier(object):
         self.category = category
         self.region = region
         self.spectators = spectators
-        self.standardize = standardize
         self.output_suffix = output_suffix
         self.clf_output_suffix = clf_output_suffix
         self.partition_key = partition_key
@@ -230,47 +445,19 @@ class Classifier(object):
               same_size_sig_bkg=True,
               remove_negative_weights=False,
               cv_nfold=10,
-              n_jobs=-1,
-              **clf_params):
+              n_jobs=-1):
         """
         Determine best BDTs on left and right partitions. Each BDT will then be
         used on the other partition.
         """
-        signal_recs = []
-        signal_arrs = []
-        signal_weight_arrs = []
-
-        for signal in signals:
-            left, right = signal.partitioned_records(
-                category=self.category,
-                region=self.region,
-                fields=self.all_fields,
-                cuts=cuts,
-                key=self.partition_key)
-            signal_weight_arrs.append(
-               (left['weight'], right['weight']))
-            signal_arrs.append(
-               (rec2array(left, self.fields),
-                rec2array(right, self.fields)))
-            signal_recs.append((left, right))
-
-        background_recs = []
-        background_arrs = []
-        background_weight_arrs = []
-
-        for background in backgrounds:
-            left, right = background.partitioned_records(
-                category=self.category,
-                region=self.region,
-                fields=self.all_fields,
-                cuts=cuts,
-                key=self.partition_key)
-            background_weight_arrs.append(
-               (left['weight'], right['weight']))
-            background_arrs.append(
-               (rec2array(left, self.fields),
-                rec2array(right, self.fields)))
-            background_recs.append((left, right))
+        signal_arrs, signal_weight_arrs, \
+        background_arrs, background_weight_arrs = make_partitioned_dataset(
+            signals, backgrounds,
+            category=self.category,
+            region=self.region,
+            fields=self.fields,
+            cuts=cuts,
+            partition_key=self.partition_key)
 
         self.clfs = [None, None]
 
@@ -281,127 +468,22 @@ class Classifier(object):
                 self.category.name, self.mass,
                 self.clf_output_suffix, partition_idx))
 
-            # train a classifier
-            # merge arrays and create training samples
-            signal_train = np.concatenate(map(itemgetter(partition_idx),
-                signal_arrs))
-            signal_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                signal_weight_arrs))
-            background_train = np.concatenate(map(itemgetter(partition_idx),
-                background_arrs))
-            background_weight_train = np.concatenate(map(itemgetter(partition_idx),
-                background_weight_arrs))
+            signal_train, signal_weight_train, \
+            background_train, background_weight_train = get_partition(
+                signal_arrs, signal_weight_arrs,
+                background_arrs, background_weight_arrs,
+                partition_idx)
 
-            if remove_negative_weights:
-                # remove samples from the training sample with a negative weight
-                signal_train = signal_train[signal_weight_train >= 0]
-                background_train = background_train[background_weight_train >= 0]
-                signal_weight_train = signal_weight_train[signal_weight_train >= 0]
-                background_weight_train = background_weight_train[background_weight_train >= 0]
-                log.info("removing events with negative weights")
-
-            if max_sig is not None and max_sig < len(signal_train):
-                subsample = np.random.permutation(len(signal_train))[:max_sig_train]
-                signal_train = signal_train[subsample]
-                signal_weight_train = signal_weight_train[subsample]
-                log.info("signal stats reduced to user-specified maximum")
-
-            if max_bkg is not None and max_bkg < len(background_train):
-                subsample = np.random.permutation(len(background_train))[:max_bkg_train]
-                background_train = background_train[subsample]
-                background_weight_train = background_weight_train[subsample]
-                log.info("background stats reduced to user-specified maximum")
-
-            if same_size_sig_bkg:
-                if len(background_train) > len(signal_train):
-                    # random subsample of background so it's the same size as signal
-                    subsample = np.random.permutation(
-                        len(background_train))[:len(signal_train)]
-                    background_train = background_train[subsample]
-                    background_weight_train = background_weight_train[subsample]
-                    log.info("number of background events reduced "
-                             "to match number of signal events")
-                elif len(background_train) < len(signal_train):
-                    # random subsample of signal so it's the same size as background
-                    subsample = np.random.permutation(
-                        len(signal_train))[:len(background_train)]
-                    signal_train = signal_train[subsample]
-                    signal_weight_train = signal_weight_train[subsample]
-                    log.info("number of signal events reduced "
-                             "to match number of background events")
-
-            if norm_sig_to_bkg:
-                # normalize signal to background
-                signal_weight_train *= (
-                    background_weight_train.sum() / signal_weight_train.sum())
-                log.info("normalizing signal to match background")
-
-            log.info("training Samples:")
-            log.info("signal: %d events, %s features" % signal_train.shape)
-            log.info("sum(signal weights): %f" % signal_weight_train.sum())
-            log.info("background: %d events, %s features" % background_train.shape)
-            log.info("sum(background weights): %f" % background_weight_train.sum())
-            log.info("total: %d events" % (
-                signal_train.shape[0] +
-                background_train.shape[0]))
-
-            sample_train = np.concatenate((background_train, signal_train))
-            sample_weight_train = np.concatenate(
-                (background_weight_train, signal_weight_train))
-            labels_train = np.concatenate(
-                (np.zeros(len(background_train)), np.ones(len(signal_train))))
-
-            if self.standardize: # TODO use same std for classification
-                sample_train = std(sample_train)
-
-            # random permutation of training sample
-            perm = np.random.permutation(len(labels_train))
-            sample_train = sample_train[perm]
-            sample_weight_train = sample_weight_train[perm]
-            labels_train = labels_train[perm]
+            sample_train, labels_train, sample_weight_train = prepare_dataset(
+                signal_train, signal_weight_train,
+                background_train, background_weight_train,
+                max_sig=max_sig,
+                max_bkg=max_bkg,
+                norm_sig_to_bkg=norm_sig_to_bkg,
+                same_size_sig_bkg=same_size_sig_bkg,
+                remove_negative_weights=remove_negative_weights)
 
             log.info("training a new classifier...")
-
-            #log.info("plotting input variables as they are given to the BDT")
-            ## draw plots of the input variables
-            #for i, branch in enumerate(self.fields):
-            #    log.info("plotting %s ..." % branch)
-            #    branch_data = sample_train[:,i]
-            #    if 'scale' in variables.VARIABLES[branch]:
-            #        branch_data *= variables.VARIABLES[branch]['scale']
-            #    _min, _max = branch_data.min(), branch_data.max()
-            #    plt.figure()
-            #    plt.hist(branch_data[labels_train==0],
-            #            bins=20, range=(_min, _max),
-            #            weights=sample_weight_train[labels_train==0],
-            #            label='Background', histtype='stepfilled',
-            #            alpha=.5)
-            #    plt.hist(branch_data[labels_train==1],
-            #            bins=20, range=(_min, _max),
-            #            weights=sample_weight_train[labels_train==1],
-            #            label='Signal', histtype='stepfilled', alpha=.5)
-            #    label = variables.VARIABLES[branch]['title']
-            #    if 'units' in variables.VARIABLES[branch]:
-            #        label += ' [%s]' % variables.VARIABLES[branch]['units']
-            #    plt.xlabel(label)
-            #    plt.legend()
-            #    plt.savefig(os.path.join(PLOTS_DIR, 'train_var_%s_%s%s.png' % (
-            #        self.category.name, branch, self.output_suffix)))
-
-            #log.info("plotting sample weights ...")
-            #_min, _max = sample_weight_train.min(), sample_weight_train.max()
-            #plt.figure()
-            #plt.hist(sample_weight_train[labels_train==0],
-            #        bins=20, range=(_min, _max),
-            #        label='Background', histtype='stepfilled',
-            #        alpha=.5)
-            #plt.hist(sample_weight_train[labels_train==1],
-            #        bins=20, range=(_min, _max),
-            #        label='Signal', histtype='stepfilled', alpha=.5)
-            #plt.xlabel('sample weight')
-            #plt.legend()
-            #plt.savefig(os.path.join(PLOTS_DIR, 'train_sample_weight_%s%s.png' % (
-            #    self.category.name, self.output_suffix)))
 
             if partition_idx == 0:
 
@@ -421,20 +503,20 @@ class Classifier(object):
                     'base_estimator__min_samples_leaf': min_samples_leaf,
                 }
 
-                #AdaBoostClassifier.staged_score = staged_score
-
+                # create a BDT
                 clf = AdaBoostClassifier(
                     DecisionTreeClassifier(),
                     learning_rate=.1,
                     algorithm='SAMME.R',
                     random_state=0)
 
+                # more efficient grid-search for boosting
                 grid_clf = BoostGridSearchCV(
                     clf, grid_params,
                     max_n_estimators=max_n_estimators,
                     min_n_estimators=min_n_estimators,
                     #score_func=accuracy_score,
-                    score_func=roc_auc_score,
+                    score_func=roc_auc_score, # area under the ROC curve
                     cv = StratifiedKFold(labels_train, cv_nfold),
                     n_jobs=n_jobs)
 
@@ -454,6 +536,7 @@ class Classifier(object):
                 log.info("")
                 log.info("training new classifiers ...")
 
+                # perform the cross-validated grid-search
                 grid_clf.fit(
                     sample_train, labels_train,
                     sample_weight=sample_weight_train)
@@ -601,7 +684,7 @@ class Classifier(object):
                  unblind=False,
                  fit=None,
                  output_formats=None):
-
+        # TODO: move to Analysis
         category = self.category
         region = self.region
 
@@ -820,165 +903,3 @@ class Classifier(object):
             unblind=True,
             fit=fit)
         """
-
-
-def purity_score(bdt, X):
-
-    norm = 0.
-    total = None
-    for w, est in zip(bdt.estimator_weights_, bdt.estimators_):
-        norm += w
-        probs = est.predict_proba(X)
-        purity = probs[:, 0]
-        if total is None:
-            total = purity * w
-        else:
-            total += purity * w
-    total /= norm
-    return total
-
-
-def staged_score(self, X, y, sample_weight, n_estimators=-1):
-    """
-    calculate maximum signal significance
-    """
-    bins = 50
-    for p in self.staged_predict_proba(X, n_estimators=n_estimators):
-
-        scores = p[:,-1]
-
-        # weighted mean accuracy
-        y_pred = scores >= .5
-        acc = np.average((y_pred == y), weights=sample_weight)
-
-        min_score, max_score = scores.min(), scores.max()
-        b_hist = Hist(bins, min_score, max_score + 0.0001)
-        s_hist = b_hist.Clone()
-
-        scores_s, w_s = scores[y==1], sample_weight[y==1]
-        scores_b, w_b = scores[y==0], sample_weight[y==0]
-
-        # fill the histograms
-        s_hist.fill_array(scores_s, w_s)
-        b_hist.fill_array(scores_b, w_b)
-
-        # reverse cumsum
-        #bins = list(b_hist.xedges())[:-1]
-        s_counts = np.array(s_hist)
-        b_counts = np.array(b_hist)
-        S = s_counts[::-1].cumsum()[::-1]
-        B = b_counts[::-1].cumsum()[::-1]
-
-        # S / sqrt(S + B)
-        s_sig = np.divide(list(S), np.sqrt(list(S + B)))
-
-        #max_bin = np.argmax(np.ma.masked_invalid(significance)) #+ 1
-        #max_sig = significance[max_bin]
-        #max_cut = bins[max_bin]
-
-        s_sig_max = np.max(np.ma.masked_invalid(s_sig))
-        yield s_sig_max * acc
-
-
-def histogram_scores(hist_template, scores,
-                     min_score=None, max_score=None,
-                     inplace=False):
-
-    if not inplace:
-        hist = hist_template.Clone(name=hist_template.name + "_scores")
-        hist.Reset()
-    else:
-        hist = hist_template
-    if min_score is not None:
-        log.info("cutting out scores below %f" % min_score)
-    if max_score is not None:
-        log.info("cutting out scores above %f" % max_score)
-    if isinstance(scores, np.ndarray):
-        if min_score is not None:
-            scores = scores[scores > min_score]
-        if max_score is not None:
-            scores = scores[scores < max_score]
-        hist.fill_array(scores)
-    elif isinstance(scores, tuple):
-        # data
-        scores, weight = scores
-        if min_score is not None:
-            scores_idx = scores > min_score
-            scores = scores[scores_idx]
-            weight = weight[scores_idx]
-        if max_score is not None:
-            scores_idx = scores < max_score
-            scores = scores[scores_idx]
-            weight = weight[scores_idx]
-        assert (weight == 1).all()
-        hist.fill_array(scores)
-    elif isinstance(scores, dict):
-        # non-data with possible systematics
-        # nominal case:
-        nom_scores, nom_weight = scores['NOMINAL']
-        if min_score is not None:
-            scores_idx = nom_scores > min_score
-            nom_scores = nom_scores[scores_idx]
-            nom_weight = nom_weight[scores_idx]
-        if max_score is not None:
-            scores_idx = nom_scores < max_score
-            nom_scores = nom_scores[scores_idx]
-            nom_weight = nom_weight[scores_idx]
-        hist.fill_array(nom_scores, nom_weight)
-        # systematics
-        sys_hists = {}
-        for sys_term, (sys_scores, sys_weight) in scores.items():
-            if sys_term == 'NOMINAL':
-                continue
-            if min_score is not None:
-                scores_idx = sys_scores > min_score
-                sys_scores = sys_scores[scores_idx]
-                sys_weight = sys_weight[scores_idx]
-            if max_score is not None:
-                scores_idx = sys_scores < max_score
-                sys_scores = sys_scores[scores_idx]
-                sys_weight = sys_weight[scores_idx]
-            sys_hist = hist.Clone(name=hist.name + "_" + systematic_name(sys_term))
-            sys_hist.Reset()
-            sys_hist.fill_array(sys_scores, sys_weight)
-            sys_hists[sys_term] = sys_hist
-        hist.systematics = sys_hists
-    else:
-        raise TypeError("scores not an np.array, tuple or dict")
-    return hist
-
-
-def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
-
-    sys_hists = {}
-    for samp, scores_dict in scores_list:
-        for sys_term, (scores, weights) in scores_dict.items():
-            if sys_term == 'NOMINAL':
-                suffix = ''
-            else:
-                suffix = '_' + '_'.join(sys_term)
-            hist = hist_template.Clone(
-                    name=samp.name + ('_%d' % mass) + suffix)
-            hist.fill_array(scores, weights)
-            if sys_term not in sys_hists:
-                sys_hists[sys_term] = []
-            sys_hists[sys_term].append(hist)
-    f.cd()
-    for sys_term, hists in sys_hists.items():
-        bad_bins = []
-        if no_neg_bins:
-            # check for negative bins over all systematics and zero them out
-            # negative bins cause lots of problem in the limit setting
-            # negative bin contents effectively means
-            # the same as "no events here..."
-            total_hist = sum(hists)
-            for bin, content in enumerate(total_hist):
-                if content < 0:
-                    log.warning("Found negative bin %d (%f) for systematic %s" % (
-                            bin, content, sys_term))
-                    bad_bins.append(bin)
-        for hist in hists:
-            for bin in bad_bins:
-                # zero out bad bins
-                hist[bin] = 0.
-            hist.Write()

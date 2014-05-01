@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+
+import numpy as np
+from sklearn.ensemble import ExtraTreesClassifier
+import pylab as pl
+
+from mva.categories import (
+    Category_Preselection, Category_VBF, Category_Boosted)
+from mva.classify import make_dataset, prepare_dataset
+from mva.analysis import Analysis
+from mva.samples import Higgs
+from mva.defaults import TRAIN_FAKES_REGION, TARGET_REGION
+
+analysis = Analysis(
+    year=2012,
+    systematics=False,
+    fakes_region=TRAIN_FAKES_REGION)
+analysis.normalize(Category_Preselection)
+
+backgrounds_train = analysis.backgrounds
+
+for category in (Category_VBF, Category_Boosted):
+    
+    features = category.features
+    n_features = len(features)
+
+    signals_train = [
+        Higgs(year=2012,
+              mass=125,
+              modes=category.train_signal_modes,
+              trigger=True),
+        ]
+    
+    # create the dataset
+    sig, sig_w, bkg, bkg_w = make_dataset(signals_train, backgrounds_train,
+                                          fields=features,
+                                          category=category,
+                                          region=TARGET_REGION)
+
+    sample, labels, weights = prepare_dataset(sig, sig_w, bkg, bkg_w)
+
+    # Build a forest and compute the feature importances
+    forest = ExtraTreesClassifier(n_estimators=250, random_state=0)
+
+    forest.fit(sample, labels, sample_weight=weights)
+    importances = forest.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in forest.estimators_], axis=0)
+    indices = np.argsort(importances)[::-1]
+
+    # Print the feature ranking
+    print "Feature ranking:"
+
+    for f in range(n_features):
+        print "%d. (%f) %s" % (f + 1, importances[indices[f]], features[indices[f]])
+
+    # Plot the feature importances of the forest
+    pl.figure()
+    pl.title("Feature importances")
+    pl.bar(range(n_features), importances[indices],
+           color="r", yerr=std[indices], align="center")
+    pl.xticks(range(n_features), indices)
+    pl.xlim([-1, n_features])
+    pl.savefig('ranking_{0}.png'.format(category.name))
