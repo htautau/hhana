@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-
 """
-Check for duplicate events or invalid values (NaN, inf)
-in all trees in a ROOT file.
+Find the file containing a specific event in a dataset
 """
 from rootpy.extern.argparse import ArgumentParser
 

@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+"""
+Remove duplicate events from trees in files
+"""
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('files', nargs='+')
+args = parser.parse_args()
+
+import sys
+import os
+from rootpy.io import root_open
+from rootpy.tree import Tree
+import logging
+
+log = logging.getLogger('fix-file')
+
+try:
+    for filename in args.files:
+        log.info("fixing file {0} ...".format(filename))
+        infile = root_open(filename)
+        outfile = root_open(filename + '.fixed', 'recreate')
+        currdir = outfile
+        # Walk through all trees in each ROOT file
+        for dirpath, dirs, things in infile.walk():
+            if dirpath:
+                currdir = outfile.Get(dirpath)
+            for thing in things:
+                thing = infile.Get(os.path.join(dirpath, thing))
+                if isinstance(thing, Tree):
+                    thing.create_buffer()
+                    currdir.cd()
+                    outtree = Tree(name=thing.name)
+                    outtree.set_buffer(thing._buffer, create_branches=True)
+                    events = dict()
+                    for event in thing:
+                        key = (event.RunNumber, event.EventNumber)
+                        if key in events:
+                            log.warning("skipping duplicate event "
+                                        "(run: {0} event: {1})".format(*key))
+                            continue
+                        events[key] = None
+                        outtree.Fill()
+                    outtree.Write()
+                else:
+                    currdir.cd()
+                    thing.Write()
+            for dir in dirs:
+                currdir.mkdir(dir.GetName())
+except KeyboardInterrupt, SystemExit:
+    sys.exit(1)
