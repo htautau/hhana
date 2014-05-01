@@ -53,6 +53,7 @@ try:
                         # This tree contains duplicate events
                         idx = dup_idx(keys)
                         log.warning("found {0} duplicate events".format(len(idx)))
+                        log.warning("indices: {0}".format(str(idx)))
                         log.warning("{0}: {1}".format(args.keys, str(keys[idx])))
                     # Check the tree for invalid values
                     #check_nan_inf(tree.to_array())
