@@ -42,7 +42,7 @@ try:
         with root_open(filename) as rfile:
             # Walk through all trees in each ROOT file
             for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
-                for treename in treenames:
+                for treename in sorted(treenames):
                     log.info("checking tree {0} ...".format(treename))
                     tree = rfile.Get(os.path.join(dirpath, treename))
                     if len(tree) == 0:
