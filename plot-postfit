@@ -74,8 +74,10 @@ def get_binning(name, categories, fit_var='mmc_mass'):
     if fit_var=='mmc_mass':
         binning = cat.limitbins
         if isinstance(binning, (tuple, list)):
+            binning[-1] = 250
             return binning
         else:
+            binning[year][-1] = 250
             return binning[year]
     else:
         with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
@@ -122,14 +124,14 @@ def plot_from_frame(file, frame, fit_var, binning):
     Ana = Analysis(2012)
 
     # ---------------------------------
-    hbkg_plus_sig = file.Get('hbkg_plus_sig_{0}'.format(frame.GetName()))
-    curve_uncert_sig = frame.getCurve('FitError_AfterFit')
-    graph_sig_ws = UncertGraph(hbkg_plus_sig, curve_uncert_sig)
-    graph_sig = get_rebinned_graph(graph_sig_ws, binning) 
-    graph_sig.fillstyle='//'
-    graph_sig.color='black'
-    graph_sig.title = 'Uncert.'
-    graph_sig.legendstyle = 'F'
+    hbkg = file.Get('hbkg_{0}'.format(frame.GetName()))
+    curve_uncert_bkg = frame.getCurve('FitError_AfterFit_Mu0')
+    graph_bkg_ws = UncertGraph(hbkg, curve_uncert_bkg)
+    graph_bkg = get_rebinned_graph(graph_bkg_ws, binning) 
+    graph_bkg.fillstyle='//'
+    graph_bkg.color='black'
+    graph_bkg.title = 'Uncert.'
+    graph_bkg.legendstyle = 'F'
 
     # --------------------------------
     data_ws = frame.getHist('Data')
@@ -175,8 +177,8 @@ def plot_from_frame(file, frame, fit_var, binning):
                       name='Model_{0}'.format(frame.GetName()))
 
     plotables = [Model]
-    if 'bdt' in fit_var :
-        xtitle= 'BDT Score'
+    if fit_var=='bdt_score':
+        xtitle = 'BDT Score'
         categories = CATEGORIES['mva']
         logy = True
     else:
@@ -184,7 +186,7 @@ def plot_from_frame(file, frame, fit_var, binning):
         categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
         logy = False
     c = Canvas()
-    draw(plotables, pad=c, ypadding=(0.2, 0.3),
+    draw(plotables, pad=c, ypadding=(0.3, 0.3),
          xtitle=xtitle, ytitle= 'Events', logy=logy)
     if '_11' in frame.GetName():
         text='Internal 2011'
@@ -194,10 +196,10 @@ def plot_from_frame(file, frame, fit_var, binning):
         sqrts=8
         
     ATLAS_label(0.2, 0.89, pad=c, sep=0.132, text=text, sqrts=sqrts)
-    graph_sig.Draw('sameE2')
+    graph_bkg.Draw('sameE2')
     data.Draw('samePE')
 
-    leg = Legend([data]+Model.GetHists()+[graph_sig],
+    leg = Legend([data]+Model.GetHists()+[graph_bkg],
                  rightmargin=0.2,
                  margin=0.35,
                  topmargin=0.01,
@@ -215,7 +217,8 @@ def plot_from_frame(file, frame, fit_var, binning):
     latex.SetTextSize(20)
     latex.Draw()
     c.RedrawAxis()
-    c.SetLogy()
+    if fit_var == 'bdt_score':
+        c.SetLogy()
     return c
 
 if __name__ == '__main__':
@@ -247,10 +250,7 @@ if __name__ == '__main__':
                     continue
                 log.info(name)
                 binning = get_binning(name, categories, fit_var=args.fit_var)
-                if args.fit_var=='mmc_mass':
-                    binning = binning[0:len(binning)-1]
                 log.info(binning)
-                frame = file.Get(name)
                 canvas = plot_from_frame(file, file.Get(name), args.fit_var, binning)
                 canvas.SaveAs('plots/postfit_{0}.png'.format(name))
 
