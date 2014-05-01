@@ -15,63 +15,41 @@ import os
 from rootpy.io import root_open
 import numpy as np
 from root_numpy import RootNumpyUnconvertibleWarning
+from root_numpy import dup_idx, tree2rec
 import warnings
+import logging
 
+log = logging.getLogger('check-file')
 
 # Ignore all conversion warnings from root_numpy
 warnings.simplefilter("ignore",
     RootNumpyUnconvertibleWarning)
 
 
-def dup_idx(l):
-    """
-    Return the indices of all duplicated array elements
-    I am very proud of this epic kung fu
-    I promise to document it someday :)
-    """
-    _, b = np.unique(l, return_inverse=True)
-    return np.nonzero(np.logical_or.reduce(
-        b[:, np.newaxis] == np.nonzero(np.bincount(b) > 1),
-        axis=1))[0]
-
-
 def check_nan_inf(rec):
-
     for field in rec.dtype.names:
         # Sum each column and check if this is NaN
         # This catches occurrences of both NaN and +/-inf in a column
         if np.isnan(np.sum(rec[field])):
-            print "invalid values for field %s" % field
+            log.warning("invalid values for field %s" % field)
 
 
 for i, filename in enumerate(args.files):
-    print filename
+    log.info("checking trees in file {0} ...".format(filename))
     with root_open(filename) as rfile:
         # Walk through all trees in each ROOT file
         for dirpath, dirs, treenames in rfile.walk(class_pattern='TTree'):
             for treename in treenames:
-                print treename
+                log.info("checking tree {0} ...".format(treename))
                 tree = rfile.Get(os.path.join(dirpath, treename))
-                events = len(tree)
-                if not events:
+                if len(tree) == 0:
                     continue
                 # Use RunNumber and EventNumber to uniquely define each event
-                keys = tree.to_array(['RunNumber', 'EventNumber'])
+                keys = tree2rec(tree, ['RunNumber', 'EventNumber'])
                 if keys.shape != np.unique(keys).shape:
                     # This tree contains duplicate events
-                    print "BAD  %s" % treename
-                    print dup_idx(keys)
-                else:
-                    print "GOOD %s" % treename
-                ## Check the tree for invalid values
+                    idx = dup_idx(keys)
+                    log.warning("found {0} duplicate events".format(len(idx)))
+                    log.warning("(run, event): {0}".format(str(keys[idx])))
+                # Check the tree for invalid values
                 #check_nan_inf(tree.to_array())
-                # Check fraction of even and odd EventNumbers
-                even = tree.GetEntries('((abs(MET_phi_original*100)%2)>=1)&&((abs(MET_phi_original*100)%2)<2)')
-                odd =  tree.GetEntries('((abs(MET_phi_original*100)%2)>=0)&&((abs(MET_phi_original*100)%2)<1)')
-                assert even + odd == events
-                print "even: %f" % (even / float(events))
-                print "odd:  %f" % (odd / float(events))
-
-    if i < len(args.files) - 1:
-        # not the last file, print a blank line
-        print
