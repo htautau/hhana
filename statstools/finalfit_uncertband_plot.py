@@ -69,7 +69,7 @@ def getPostFitPlottingObjects(mc, obsData, simPdf, fit_res):
         if not cat:
             break
         print 'retrieve plotting objects of ', cat.GetName()
-        frame,hlist = getFrame(cat, obsData, simPdf, mc, fit_res)
+        frame, hlist = getFrame(cat, obsData, simPdf, mc, fit_res)
         plotting_objects += [frame]+hlist
     return plotting_objects
 

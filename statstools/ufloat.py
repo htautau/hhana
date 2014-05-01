@@ -33,11 +33,12 @@ class ufloat(object):
                 '${{}}^{{+{2:.'+str(pos)+'f}}}_{{-{3:.'+str(pos)+'f}}}$')
         return fmt.format(self.value, self.stat, self.syst[0], self.syst[1])
 
-    def __iadd__(self,other):
+    def __iadd__(self, other):
         self.value += other.value
-        self.stat = math.sqrt( self.stat+self.stat + other.stat*other.stat )
+        self.stat = math.sqrt(self.stat*self.stat+other.stat*other.stat)
         if self.syst is not None and other.syst is not None:
-            self.syst = math.sqrt( self.stat+self.stat + other.stat*other.stat )
+            self.syst = (math.sqrt(self.syst[0]*self.syst[0]+other.syst[0]*other.syst[0]),
+                         math.sqrt(self.syst[1]*self.syst[1]+other.syst[1]*other.syst[1]))
         return self
 
     def __add__(self,other):
