@@ -311,4 +311,4 @@ cuts-workspaces:
 
 .PHONY: higgs-pt
 higgs-pt:
-	./higgs-pt ntuples/running/hhskim/hhskim*tautauhh*.root
+	./higgs-pt $(HHNTUP_RUNNING)/hhskim*tautauhh*.root

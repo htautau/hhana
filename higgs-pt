@@ -39,6 +39,8 @@ class Job(Process):
         path, name = os.path.split(filename)
         # copy to new file
         output = os.path.join(path, 'weighted.' + name)
+        if os.path.exists(output):
+            return 
         log.info("copying {0} to {1} ...".format(filename, output))
         shutil.copy(filename, output)
         energy = 8 if 'mc12' in name else 7
