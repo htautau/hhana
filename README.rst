@@ -32,6 +32,23 @@ Automatically organize ROOT and log files with::
 
 The above also merges the output from the subjobs for embedding and data.
 
+Add the Higgs pt weights::
+
+    make higgs-pt
+
+This creates copies of all signal ROOT files
+``ntuples/running/hhskim/hhskim*tautauhh*.root`` at
+``ntuples/running/hhskim/weighted.hhskim*tautauhh*.root``.
+
+Make a backup of the original signal files::
+
+    mkdir ntuples/running/hhskim/higgs_unweighted
+    mv ntuples/running/hhskim/hhskim*tautauhh*.root ntuples/running/hhskim/higgs_unweighted
+
+Then remove ``weighted.`` from the weighted signal files::
+
+    rename weighted. "" ntuples/running/hhskim/weighted.hhskim*tautauhh*.root
+
 Then move the hhskim running directory to production (replace XX with the skim
 version number)::
 
