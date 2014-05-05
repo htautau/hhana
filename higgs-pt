@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+"""
+https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsCrossSection
+https://dgillber.web.cern.ch/dgillber/Higgs_pT_reweigh/
+"""
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('files', nargs='+')
+args = parser.parse_args()
+
+import sys
+import os
+import shutil
+from rootpy.io import root_open
+from rootpy.tree import TreeModel, FloatCol
+import numpy as np
+from root_numpy import array2tree
+import logging
+
+log = logging.getLogger('higgs-pt')
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+data = os.path.join(HERE,
+    'dat/Higgs_pT_Njets_reweighing_April2014_wPowPy6Htautau.root')
+
+WEIGHT = {}
+with root_open(data) as dat:
+    WEIGHT[7] = (dat.Reweigh_PowPy6_To_HRes2Dynamic_01jets,
+                 dat.Reweigh_PowPy6_To_HRes2Dynamic_geq2jets)
+    WEIGHT[8] = (dat.Reweigh_Powheg_To_HRes2Dynamic_01jets,
+                 dat.Reweigh_Powheg_To_HRes2Dynamic_geq2jets)
+    for hist in WEIGHT[7] + WEIGHT[8]:
+        hist.SetDirectory(0)
+
+
+def add_weights(tree, energy):
+    tree.create_buffer()
+    class Model(TreeModel):
+        ggf_weight = FloatCol()
+    tree.set_buffer(Model(), create_branches=True)
+    ggf_weight_branch = tree.GetBranch('ggf_weight')
+    tree.activate(['true_resonance_pt', 'num_true_jets_no_overlap', 'ggf_weight'],
+                  exclusive=True)
+    weights_01, weights_2 = WEIGHT[energy]
+    for event in tree:
+        # MeV -> GeV
+        pt = tree.true_resonance_pt / 1E3
+        if tree.num_true_jets_no_overlap < 2:
+            tree.ggf_weight = weights_01.Interpolate(pt)
+        else:
+            tree.ggf_weight = weights_2.Interpolate(pt)
+        ggf_weight_branch.Fill()
+    tree.activate('*')
+
+try:
+    for filename in args.files:
+        # copy to new file
+        output = filename + '.weighted.root'
+        log.info("copying {0} to {1} ...".format(filename, output))
+        shutil.copy(filename, output)
+        energy = 8 if 'mc12' in filename else 7
+        with root_open(output, 'UPDATE') as file:
+            tree = file.tau
+            if '_ggH' in filename:
+                log.info("adding {0} TeV weights to {1} ...".format(
+                    energy, output))
+                add_weights(tree, energy)
+            else:
+                log.info("adding unit weights to {0} ...".format(output))
+                array = np.array(np.ones(len(tree)), 
+                                 dtype=np.dtype([('ggf_weight', 'float32')]))
+                array2tree(array, tree=tree)
+            tree.Write()
+except KeyboardInterrupt, SystemExit:
+    sys.exit(1)
