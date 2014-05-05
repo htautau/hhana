@@ -55,14 +55,15 @@ def add_weights(tree, energy):
 
 try:
     for filename in args.files:
+        path, name = os.path.split(filename)
         # copy to new file
-        output = filename + '.weighted.root'
+        output = os.path.join(path, 'weighted.' + name)
         log.info("copying {0} to {1} ...".format(filename, output))
         shutil.copy(filename, output)
-        energy = 8 if 'mc12' in filename else 7
+        energy = 8 if 'mc12' in name else 7
         with root_open(output, 'UPDATE') as file:
             tree = file.tau
-            if '_ggH' in filename:
+            if '_ggH' in name:
                 log.info("adding {0} TeV weights to {1} ...".format(
                     energy, output))
                 add_weights(tree, energy)

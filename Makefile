@@ -308,3 +308,9 @@ cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
 		run-cluster ./workspace cuts --systematics --years 2012 --categories cuts --masses $${mass}; \
 	done;
+
+.PHONY: higgs-pt
+higgs-pt:
+	@for file in ntuples/running/hhskim/hhskim*tautauhh*.root; do \
+		run-cluster ./higgs-pt $$file; \
+	done;
