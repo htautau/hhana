@@ -311,6 +311,4 @@ cuts-workspaces:
 
 .PHONY: higgs-pt
 higgs-pt:
-	@for file in ntuples/running/hhskim/hhskim*tautauhh*.root; do \
-		run-cluster ./higgs-pt $$file; \
-	done;
+	./higgs-pt ntuples/running/hhskim/hhskim*tautauhh*.root

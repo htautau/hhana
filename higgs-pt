@@ -3,12 +3,6 @@
 https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsCrossSection
 https://dgillber.web.cern.ch/dgillber/Higgs_pT_reweigh/
 """
-from rootpy.extern.argparse import ArgumentParser
-
-parser = ArgumentParser()
-parser.add_argument('files', nargs='+')
-args = parser.parse_args()
-
 import sys
 import os
 import shutil
@@ -17,6 +11,7 @@ from rootpy.tree import TreeModel, FloatCol
 import numpy as np
 from root_numpy import array2tree
 import logging
+from multiprocessing import Process
 
 log = logging.getLogger('higgs-pt')
 
@@ -32,6 +27,33 @@ with root_open(data) as dat:
                  dat.Reweigh_Powheg_To_HRes2Dynamic_geq2jets)
     for hist in WEIGHT[7] + WEIGHT[8]:
         hist.SetDirectory(0)
+
+
+class Job(Process):
+    def __init__(self, filename):
+        super(Job, self).__init__()
+        self.filename = filename
+
+    def run(self):
+        filename = self.filename
+        path, name = os.path.split(filename)
+        # copy to new file
+        output = os.path.join(path, 'weighted.' + name)
+        log.info("copying {0} to {1} ...".format(filename, output))
+        shutil.copy(filename, output)
+        energy = 8 if 'mc12' in name else 7
+        with root_open(output, 'UPDATE') as file:
+            tree = file.tau
+            if '_ggH' in name:
+                log.info("adding {0} TeV weights to {1} ...".format(
+                    energy, output))
+                add_weights(tree, energy)
+            else:
+                log.info("adding unit weights to {0} ...".format(output))
+                array = np.array(np.ones(len(tree)), 
+                                 dtype=np.dtype([('ggf_weight', 'float32')]))
+                array2tree(array, tree=tree)
+            tree.Write()
 
 
 def add_weights(tree, energy):
@@ -53,25 +75,15 @@ def add_weights(tree, energy):
         ggf_weight_branch.Fill()
     tree.activate('*')
 
-try:
-    for filename in args.files:
-        path, name = os.path.split(filename)
-        # copy to new file
-        output = os.path.join(path, 'weighted.' + name)
-        log.info("copying {0} to {1} ...".format(filename, output))
-        shutil.copy(filename, output)
-        energy = 8 if 'mc12' in name else 7
-        with root_open(output, 'UPDATE') as file:
-            tree = file.tau
-            if '_ggH' in name:
-                log.info("adding {0} TeV weights to {1} ...".format(
-                    energy, output))
-                add_weights(tree, energy)
-            else:
-                log.info("adding unit weights to {0} ...".format(output))
-                array = np.array(np.ones(len(tree)), 
-                                 dtype=np.dtype([('ggf_weight', 'float32')]))
-                array2tree(array, tree=tree)
-            tree.Write()
-except KeyboardInterrupt, SystemExit:
-    sys.exit(1)
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('files', nargs='+')
+    args = parser.parse_args()
+
+    from statstools.jobs import run_pool
+    
+    jobs = [Job(f) for f in args.files]
+    run_pool(jobs, n_jobs=-1)

@@ -2,7 +2,7 @@ import multiprocessing
 import time
 
 
-def run_pool(workers, n_jobs=12):
+def run_pool(workers, n_jobs=12, sleep=0.1):
     # defensive copy
     workers = workers[:]
     if n_jobs < 1:
@@ -19,7 +19,7 @@ def run_pool(workers, n_jobs=12):
                 active = multiprocessing.active_children()
             if len(workers) == 0 and len(active) == 0:
                 break
-            time.sleep(0.1)
+            time.sleep(sleep)
     except KeyboardInterrupt, SystemExit:
         if p is not None:
             p.terminate()
