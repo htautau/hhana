@@ -12,6 +12,7 @@ import numpy as np
 from root_numpy import array2tree
 import logging
 from multiprocessing import Process
+import ROOT
 
 log = logging.getLogger('higgs-pt')
 
@@ -55,7 +56,7 @@ class Job(Process):
                 array = np.array(np.ones(len(tree)), 
                                  dtype=np.dtype([('ggf_weight', 'float32')]))
                 array2tree(array, tree=tree)
-            tree.Write()
+            tree.Write(tree.name, ROOT.TObject.kOverwrite)
 
 
 def add_weights(tree, energy):
@@ -76,6 +77,8 @@ def add_weights(tree, energy):
             tree.ggf_weight = weights_2.Interpolate(pt)
         ggf_weight_branch.Fill()
     tree.activate('*')
+    ggf_weight_branch.SetEntries(len(tree))
+    tree.SetEntries(-1)
 
 
 if __name__ == '__main__':
