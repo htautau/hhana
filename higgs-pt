@@ -65,8 +65,9 @@ def add_weights(tree, energy):
         ggf_weight = FloatCol()
     tree.set_buffer(Model(), create_branches=True)
     ggf_weight_branch = tree.GetBranch('ggf_weight')
-    tree.activate(['true_resonance_pt', 'num_true_jets_no_overlap', 'ggf_weight'],
-                  exclusive=True)
+    # ROOT BUG:
+    #tree.activate(['true_resonance_pt', 'num_true_jets_no_overlap', 'ggf_weight'],
+    #              exclusive=True)
     weights_01, weights_2 = WEIGHT[energy]
     for event in tree:
         # MeV -> GeV
@@ -76,8 +77,7 @@ def add_weights(tree, energy):
         else:
             tree.ggf_weight = weights_2.Interpolate(pt)
         ggf_weight_branch.Fill()
-    tree.activate('*')
-    ggf_weight_branch.SetEntries(len(tree))
+    #tree.activate('*')
     tree.SetEntries(-1)
 
 
