@@ -85,6 +85,103 @@ def get_table_statonly(yields_nom):
         if not 'hline' in line:
             line += '\\\\'
     return latex_lines
+#!/usr/bin/env python
+# python imports
+import os
+import pickle
+# root/rootpy imports
+from rootpy.extern.ordereddict import OrderedDict
+# local imports
+# -------------------------------------
+def get_table_template():
+    latex_lines = OrderedDict()
+    latex_lines['cat_name'] = '&'
+    latex_lines['sep_1']    = '\\hline'
+    latex_lines['Signal_Z'] = 'ZH($m_H$ = 125 GeV) &'
+    latex_lines['Signal_W'] = 'WH($m_H$ = 125 GeV) &'
+    latex_lines['Signal_gg'] = 'ggH($m_H$ = 125 GeV) &'
+    latex_lines['Signal_VBF'] = 'VBF H($m_H$ = 125 GeV) &'
+    latex_lines['Higgs']    = 'H($m_H$ = 125 GeV) &'
+    latex_lines['sep_2']    = '\\hline'
+    latex_lines['Ztautau']  = 'Z$\\rightarrow\\tau\\tau$ &'
+    latex_lines['QCD']      = 'Multi-jets &'
+    latex_lines['Others']   = 'Others &'
+    latex_lines['sep_3']    = '\\hline'
+    latex_lines['TotalBkg'] = 'Total Bkg. &'
+    latex_lines['sep_4']    = '\\hline'
+    latex_lines['Data']     = 'Data &'
+    return latex_lines
+
+yields_postfit = {'channel_rest_12_125': {'bkg': (19351.31806624733, 242.00235530019825),
+                                          'L_x_Signal_VBF_125_channel_rest_12_125_overallSyst_x_Exp': (2.866650339087284, 1.2157173683092006),
+                                          'L_x_Ztautau_channel_rest_12_125_overallSyst_x_StatUncert': (2291.5347914506715, 78.60545564519799),
+                                          'L_x_Others_channel_rest_12_125_overallSyst_x_StatUncert': (88.84880236900035, 2.4590601180915104),
+                                          'L_x_Signal_gg_125_channel_rest_12_125_overallSyst_x_Exp': (16.340102872763385, 6.929672095517004),
+                                          'L_x_Signal_Z_125_channel_rest_12_125_overallSyst_x_Exp': (0.6713563599302014, 0.28471543109504355),
+                                          'L_x_Fakes_channel_rest_12_125_overallSyst_x_StatUncert': (3424.91045924034, 105.49557798854312),
+                                          'L_x_Signal_W_125_channel_rest_12_125_overallSyst_x_Exp': (1.0484501436228186, 0.44463708462412727)},
+                  'channel_rest_11_125': {'L_x_Signal_VBF_125_channel_rest_11_125_overallSyst_x_Exp': (0.3531015421272947, 0.14986398223393071),
+                                          'L_x_Signal_W_125_channel_rest_11_125_overallSyst_x_Exp': (0.1252326492563438, 0.05315146291968015),
+                                          'L_x_Ztautau_channel_rest_11_125_overallSyst_x_StatUncert': (439.3730741943507, 59.73001279146011),
+                                          'L_x_Others_channel_rest_11_125_overallSyst_x_StatUncert': (8.738870678939078, 0.1873165893292185),
+                                          'L_x_Signal_Z_125_channel_rest_11_125_overallSyst_x_Exp': (0.08335587521208783, 0.03537804827081337),
+                                          'L_x_Signal_gg_125_channel_rest_11_125_overallSyst_x_Exp': (1.977068648554709, 0.8391109793438677),
+                                          'bkg': (2855.6694519093926, 92.54592544902921),
+                                          'L_x_Fakes_channel_rest_11_125_overallSyst_x_StatUncert': (408.5352611201989, 61.8850837313938)},
+                  'channel_boosted_125_11': {'L_x_Others_channel_boosted_125_11_overallSyst_x_StatUncert': (8.74476695744645, 1.3320048490956318),
+                                             'L_x_Ztautau_channel_boosted_125_11_overallSyst_x_StatUncert': (311.63980488300206, 23.77621987040146),
+                                             'bkg': (383.13770381440537, 18.71065842457083),
+                                             'L_x_Signal_gg_125_channel_boosted_125_11_overallSyst_x_HistSyst': (3.3552995772275738, 1.9073295546206417),
+                                             'L_x_Fakes_channel_boosted_125_11_overallSyst_x_StatUncert': (62.82950092314413, 15.617124728019881),
+                                             'L_x_Signal_VBF_125_channel_boosted_125_11_overallSyst_x_HistSyst': (0.5388013870231493, 0.2205843712206758),
+                                             'L_x_Signal_W_125_channel_boosted_125_11_overallSyst_x_HistSyst': (0.3176546397335577, 0.13065297617130944),
+                                             'L_x_Signal_Z_125_channel_boosted_125_11_overallSyst_x_HistSyst': (0.18046253800719156, 0.07435131280937979)},
+                  'channel_boosted_125_12': {'L_x_Signal_gg_125_channel_boosted_125_12_overallSyst_x_HistSyst': (20.03596601562145, 11.03951596129043),
+                                             'L_x_Others_channel_boosted_125_12_overallSyst_x_StatUncert': (97.899300686624, 10.66830817872033),
+                                             'L_x_Signal_VBF_125_channel_boosted_125_12_overallSyst_x_HistSyst': (4.358911696641917, 1.8664841191632464),
+                                             'L_x_Signal_Z_125_channel_boosted_125_12_overallSyst_x_HistSyst': (1.5758882077533878, 0.6754679204006552),
+                                             'L_x_Signal_W_125_channel_boosted_125_12_overallSyst_x_HistSyst': (2.6924966401371835, 1.1552988205609036),
+                                             'bkg': (2748.684180164626, 41.4086041396997),
+                                             'L_x_Fakes_channel_boosted_125_12_overallSyst_x_StatUncert': (604.2991029151765, 18.562788374073612),
+                                             'L_x_Ztautau_channel_boosted_125_12_overallSyst_x_StatUncert': (2046.4684106221775, 52.33641701680575)},
+                  'channel_vbf_125_11': {'bkg': (104.5207711445265, 7.910919830801163),
+                                         'L_x_Signal_gg_125_channel_vbf_125_11_overallSyst_x_HistSyst': (0.8738344216295353, 0.5570795525216413),
+                                         'L_x_Fakes_channel_vbf_125_11_overallSyst_x_StatUncert': (33.07636160556236, 5.702310281780084),
+                                         'L_x_Signal_Z_125_channel_vbf_125_11_overallSyst_x_HistSyst': (0.013461089655962643, 0.006135478695864455),
+                                         'L_x_Others_channel_vbf_125_11_overallSyst_x_StatUncert': (2.490589451896394, 0.4224810382238867),
+                                         'L_x_Signal_W_125_channel_vbf_125_11_overallSyst_x_HistSyst': (0.021148405856671874, 0.010286462068129677),
+                                         'L_x_Signal_VBF_125_channel_vbf_125_11_overallSyst_x_HistSyst': (0.9355786292124494, 0.4163896899917541),
+                                         'L_x_Ztautau_channel_vbf_125_11_overallSyst_x_StatUncert': (68.95314946390053, 6.474100470403543)},
+                  'channel_vbf_125_12': {'L_x_Signal_W_125_channel_vbf_125_12_overallSyst_x_HistSyst': (0.1780640137412409, 0.07831785466058258),
+                                         'bkg': (890.387252880885, 18.29439395807035),
+                                         'L_x_Signal_VBF_125_channel_vbf_125_12_overallSyst_x_HistSyst': (8.587801942469547, 3.716400628662932),
+                                         'L_x_Fakes_channel_vbf_125_12_overallSyst_x_StatUncert': (394.3362171184462, 15.75613888425391),
+                                         'L_x_Signal_gg_125_channel_vbf_125_12_overallSyst_x_HistSyst': (6.716781805841171, 3.996312696909734),
+                                         'L_x_Others_channel_vbf_125_12_overallSyst_x_StatUncert': (41.12549866371302, 3.651142131303007),
+                                         'L_x_Signal_Z_125_channel_vbf_125_12_overallSyst_x_HistSyst': (0.1082107022900582, 0.04658349436197798),
+                                         'L_x_Ztautau_channel_vbf_125_12_overallSyst_x_StatUncert': (454.87081772908994, 13.235016127406007)}}
+
+latex_lines = get_table_template()
+for cat, yields in yields_postfit.items():
+    print cat
+    latex_lines['cat_name'] += cat + '&' 
+    latex_lines['Signal_Z'] = 'ZH($m_H$ = 125 GeV) &'
+    latex_lines['Signal_W'] = 'WH($m_H$ = 125 GeV) &'
+    latex_lines['Signal_gg'] = 'ggH($m_H$ = 125 GeV) &'
+    latex_lines['Signal_VBF'] = 'VBF H($m_H$ = 125 GeV) &'
+    latex_lines['Higgs']    = 'H($m_H$ = 125 GeV) &'
+    latex_lines['sep_2']    = '\\hline'
+    latex_lines['Ztautau']  = 'Z$\\rightarrow\\tau\\tau$ &'
+    latex_lines['QCD']      = 'Multi-jets &'
+    latex_lines['Others']   = 'Others &'
+    latex_lines['sep_3']    = '\\hline'
+    latex_lines['TotalBkg'] = 'Total Bkg. &'
+    latex_lines['sep_4']    = '\\hline'
+    latex_lines['Data']     = 'Data &'
+for _, line in latex_lines.items():
+    if not 'hline' in line:
+        line += '\\\\'
+print latex_lines
 
 # -------------------------------------
 def get_table(master_yields, syst_list):
@@ -130,13 +227,11 @@ def get_table_variation(master_yield, variations):
     return latex_lines
 
 
-
-
 # ------------------------------------------------
 # -----  MAIN DRIVER 
 # ------------------------------------------------
 
-if 'compute_syst' in args.actions:
+if 'compute_yields' in args.actions:
     data    = analysis.data
     signals = analysis.signals
     ztautau = analysis.ztautau
@@ -153,8 +248,8 @@ if 'compute_syst' in args.actions:
         for category in analysis.iter_categories(args.categories,
                                                  args.controls,
                                                  names=args.category_names):
-            if category.analysis_control:
-                continue
+            #             if category.analysis_control:
+            #                 continue
             yields[category.name] = {}
             log.info(category.name)
             signal_yield = ufloat(0, 0)
@@ -183,8 +278,6 @@ if 'print_table' in args.actions:
         master_yields = pickle.load(file)
         log.info(master_yields.keys())
         log.info(master_yields['NOMINAL'].keys())
-        log.info(master_yields['NOMINAL']['vbf'].keys())
-        log.info(master_yields['NOMINAL']['vbf']['Ztautau'])
     
         log.info('------------- STAT ONLY NOMINAL TABLE ------------')
         table_stat = get_table_statonly(master_yields['NOMINAL'])
