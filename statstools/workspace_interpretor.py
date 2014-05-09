@@ -51,7 +51,7 @@ class workspaceinterpretor:
     """
     A class to read and retrieve HSG4-type WS components
     - Parameters:
-    - A HSG4 workspace
+       - A HSG4 workspace
     """
     # ---------------------------------------
     def __init__(self,ws):
@@ -68,8 +68,15 @@ class workspaceinterpretor:
         log.info('------- START OF THE SANITY CHECK -----------')
         log.info('------- START OF THE SANITY CHECK -----------')
         log.info('\n')
-        for cat,hlist in self.hists.items():
-            self.PrintHistsContents(cat,hlist)
+        for cat, hlist in self.hists.items():
+            self.PrintHistsContents(cat, hlist)
+
+
+    
+#     Integral_bkg_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
+#     Yield_bkg_total = Integral_bkg_total.getVal() * binWidth.getVal()
+
+
 
     # ---------------------------------------
     def get_nominal_hists_array(self, obsData, mc, simPdf):
@@ -83,30 +90,29 @@ class workspaceinterpretor:
             log.info("Scanning category {0}".format(cat.GetName()))
             hists_comp = []
 
-            # --> Get the total (signal+bkg) model pdf
+            # --> Get the total model pdf, the observables and the POI
             pdftmp = simPdf.getPdf(cat.GetName())
-            # --> Get the list of observables
             obstmp  = pdftmp.getObservables(mc.GetObservables())
-            # --> Get the first (and only) observable (mmc mass for cut based)
             obs = obstmp.first()
-            # --> Get the parameter of interest
             poi =  mc.GetParametersOfInterest().first()
 
             # --> Create the data histogram
-            datatmp = obsData.reduce( "{0}=={1}::{2}".format(simPdf.indexCat().GetName(),simPdf.indexCat().GetName(),cat.GetName()) )
+            datatmp = obsData.reduce("{0}=={1}::{2}".format(simPdf.indexCat().GetName(),
+                                                            simPdf.indexCat().GetName(),
+                                                            cat.GetName()))
             datatmp.__class__=ROOT.RooAbsData # --> Ugly fix !!!
             log.info("Retrieve the data histogram")
-            hists_comp.append( ('data', asrootpy(datatmp.createHistogram('',obs))) )
+            hists_comp.append(('data', asrootpy(datatmp.createHistogram('',obs))))
 
             # --> Create the total model histogram
             log.info("Retrieve the total background")
             poi.setVal(0.0)
-            hists_comp.append( ('background', asrootpy(pdftmp.createHistogram("cat_%s"%cat.GetName(),obs))) )
+            hists_comp.append(('background', asrootpy(pdftmp.createHistogram("cat_%s"%cat.GetName(),obs))))
 
             # --> Create the total model histogram
             log.info("Retrieve the total model (signal+background)")
             poi.setVal(1.0)
-            hists_comp.append( ('background+signal', asrootpy(pdftmp.createHistogram("model_cat_%s"%cat.GetName(),obs))) )
+            hists_comp.append(('background+signal', asrootpy(pdftmp.createHistogram("model_cat_%s"%cat.GetName(),obs))))
             poi.setVal(0.0)
 
             comps = pdftmp.getComponents()
@@ -125,14 +131,14 @@ class workspaceinterpretor:
         return hists_array
 
     # ------------------------------------------------
-    def PrintHistsContents(self,cat,hlist):
+    def PrintHistsContents(self, cat, hlist):
         log.info(cat)
         row_template = [cat]+list(hlist[0][1].bins_range())
         out = StringIO()
         table = PrettyTable(row_template)
         for pair in hlist:
             pretty_bin_contents=map(prettyfloat,pair[1].y())
-            table.add_row( [pair[0]]+pretty_bin_contents ) 
+            table.add_row([pair[0]]+pretty_bin_contents) 
         print >> out, '\n'
         print >> out, table.get_string(hrules=1)
         log.info(out.getvalue())

@@ -2,6 +2,8 @@
 import ROOT
 from rootpy import asrootpy
 from rootpy.plotting import Graph, Hist
+# local imports
+from . import log; log=log[__name__]
 
 # -------------------------------------
 def UncertGraph(hnom, curve_uncert):
@@ -64,17 +66,19 @@ def getPostFitPlottingObjects(mc, obsData, simPdf, fit_res):
     plotting_objects = []
     # --> get the list of categories and iterate over (VBF,Boosted and Rest for HSG4 hadhad)
     catIter = simPdf.indexCat().typeIterator()
+    yields = {}
     while True:
         cat = catIter.Next()
         if not cat:
             break
-        print 'retrieve plotting objects of ', cat.GetName()
-        frame, hlist = getFrame(cat, obsData, simPdf, mc, fit_res)
+        log.info('retrieve plotting objects of {0}'.format(cat.GetName()))
+        frame, hlist, yields_cat = getFrame(cat, obsData, simPdf, mc, fit_res, compute_yields=True)
+        yields[cat.GetName()] = yields_cat
         plotting_objects += [frame]+hlist
-    return plotting_objects
+    return plotting_objects, yields
 
 # ------------------------------------------------------------------------------
-def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=False):
+def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_yields=False):
     """
     Build a frame with the different fit components and their uncertainties
 
@@ -98,6 +102,8 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
     """
 
     hlist = []
+    if compute_yields:
+        yields = {}
     # --> Get the total (signal+bkg) model pdf
     pdftmp = simPdf.getPdf(cat.GetName())
     if not pdftmp:
@@ -171,9 +177,9 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
                         ROOT.RooFit.VisualizeError(fit_res,1,error_band_strategy),
                         ROOT.RooFit.Name("FitError_AfterFit_"+comp.GetName()),
                         ROOT.RooFit.Invisible())
-            if verbose:
+            if compute_yields:
                 Yield_comp_err = Integral_comp.getPropagatedError(fit_res)* binWidth.getVal()
-                print comp.GetName(),':\t',Yield_comp,' +/- ',Yield_comp_err
+                yields[comp.GetName()] = (Yield_comp, Yield_comp_err)
 
 
     hlist.append(hist_sig)
@@ -192,13 +198,13 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
 
     # --> Add the components to the frame but in an invisible way
     pdftmp.plotOn(frame,
-                   ROOT.RooFit.Normalization(Yield_total,ROOT.RooAbsReal.NumEvent),
+                   ROOT.RooFit.Normalization(Yield_total, ROOT.RooAbsReal.NumEvent),
                    ROOT.RooFit.Name("Bkg_plus_sig"))
 
     if fit_res:
         pdftmp.plotOn(frame,
-                      ROOT.RooFit.VisualizeError( fit_res,1, error_band_strategy ),
-                      ROOT.RooFit.Normalization( 1,ROOT.RooAbsReal.RelativeExpected),
+                      ROOT.RooFit.VisualizeError(fit_res,1, error_band_strategy ),
+                      ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
                       ROOT.RooFit.Name("FitError_AfterFit"),
                       ROOT.RooFit.FillColor(ROOT.kOrange),
                       ROOT.RooFit.LineWidth(2),
@@ -215,22 +221,25 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, verbose=F
     hist_bkg.SetTitle("")
     hlist.append(hist_bkg)
     pdftmp.plotOn(frame,
-                  ROOT.RooFit.Normalization(Yield_bkg_total,ROOT.RooAbsReal.NumEvent),
+                  ROOT.RooFit.Normalization(Yield_bkg_total, ROOT.RooAbsReal.NumEvent),
                   ROOT.RooFit.Name("Bkg"),
                   ROOT.RooFit.LineStyle(ROOT.kDashed))
     if fit_res:
         pdftmp.plotOn(frame,
-                      ROOT.RooFit.VisualizeError( fit_res,1, error_band_strategy),
-                      ROOT.RooFit.Normalization( 1,ROOT.RooAbsReal.RelativeExpected),
+                      ROOT.RooFit.VisualizeError(fit_res,1, error_band_strategy),
+                      ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
                       ROOT.RooFit.Name("FitError_AfterFit_Mu0"),
                       ROOT.RooFit.FillColor(ROOT.kOrange),
                       ROOT.RooFit.LineWidth(2),
                       ROOT.RooFit.LineColor(ROOT.kBlue))
-        if verbose:
-            Yield_bkg_total_err = Integral_bkg_total.getPropagatedError( fit_res )* binWidth.getVal()
-            print 'Total bkg yiedl:\t',Yield_bkg_total,' +/- ',Yield_bkg_total_err
+        if compute_yields:
+            Yield_bkg_total_err = Integral_bkg_total.getPropagatedError(fit_res)*binWidth.getVal()
+            yields['bkg'] = (Yield_bkg_total, Yield_bkg_total_err)
     poi.setVal(1)
-    return frame,hlist
+    if compute_yields:
+        return frame, hlist, yields
+    else:
+        return frame, hlist
 
 
 

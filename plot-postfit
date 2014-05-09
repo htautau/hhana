@@ -110,7 +110,8 @@ def Fit_WS(workspace, output='frames.root'):
     # --> Get the simultaneous PDF
     simPdf = mc.GetPdf()
 
-    plotting_objects = getPostFitPlottingObjects(mc, obsData, simPdf, fit_res)
+    plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, simPdf, fit_res)
+    log.info(yields)
     with root_open(output, 'recreate') as output_file:
         for obj in plotting_objects:
             obj.Write()
