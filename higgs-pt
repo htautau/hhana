@@ -2,6 +2,7 @@
 """
 https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsCrossSection
 https://dgillber.web.cern.ch/dgillber/Higgs_pT_reweigh/
+https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HiggsPTReWeighting
 """
 import sys
 import os
@@ -17,8 +18,8 @@ import ROOT
 log = logging.getLogger('higgs-pt')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-data = os.path.join(HERE,
-    'dat/Higgs_pT_Njets_reweighing_April2014_wPowPy6Htautau.root')
+data = os.path.join(HERE, 'dat/Higgs_pT_Njets_reweighing_April2014-3_7TeV.root')
+uncert_data = os.path.join(HERE, 'dat/HRes_HpT_uncert.root')
 
 WEIGHT = {}
 with root_open(data) as dat:
@@ -28,6 +29,10 @@ with root_open(data) as dat:
                  dat.Reweigh_Powheg_To_HRes2Dynamic_geq2jets)
     for hist in WEIGHT[7] + WEIGHT[8]:
         hist.SetDirectory(0)
+
+with root_open(uncert_data) as dat:
+    UNCERT = dat.HRes_upper_envelope
+    UNCERT.SetDirectory(0)
 
 
 class Job(Process):
@@ -54,30 +59,39 @@ class Job(Process):
             else:
                 log.info("adding unit weights to {0} ...".format(output))
                 array = np.array(np.ones(len(tree)), 
-                                 dtype=np.dtype([('ggf_weight', 'float32')]))
+                                 dtype=np.dtype([
+                                     ('ggf_weight', 'float32'),
+                                     ('ggf_weight_high', 'float32'),
+                                     ('ggf_weight_low', 'float32')]))
                 array2tree(array, tree=tree)
             tree.Write(tree.name, ROOT.TObject.kOverwrite)
 
 
 def add_weights(tree, energy):
     tree.create_buffer()
+
     class Model(TreeModel):
         ggf_weight = FloatCol()
+        ggf_weight_high = FloatCol()
+        ggf_weight_low = FloatCol()
+
     tree.set_buffer(Model(), create_branches=True)
-    ggf_weight_branch = tree.GetBranch('ggf_weight')
-    # ROOT BUG:
-    #tree.activate(['true_resonance_pt', 'num_true_jets_no_overlap', 'ggf_weight'],
-    #              exclusive=True)
+    branches = [tree.GetBranch(b) for b in [
+        'ggf_weight', 'ggf_weight_high', 'ggf_weight_low']]
     weights_01, weights_2 = WEIGHT[energy]
     for event in tree:
         # MeV -> GeV
         pt = tree.true_resonance_pt / 1E3
         if tree.num_true_jets_no_overlap < 2:
-            tree.ggf_weight = weights_01.Interpolate(pt)
+            weight = weights_01.Interpolate(pt)
         else:
-            tree.ggf_weight = weights_2.Interpolate(pt)
-        ggf_weight_branch.Fill()
-    #tree.activate('*')
+            weight = weights_2.Interpolate(pt)
+        uncert = UNCERT.Interpolate(pt)
+        tree.ggf_weight = weight
+        tree.ggf_weight_high = weight * uncert
+        tree.ggf_weight_low = weight * (2 - uncert)
+        for branch in branches:
+            branch.Fill()
     tree.SetEntries(-1)
 
 
