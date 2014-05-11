@@ -33,30 +33,45 @@ class Higgs(MC, Signal):
         'Z': 'ZH',
         'W': 'WH',
     }
+
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
+    # TODO: UPDATE
     QCD_SCALE = map(lambda token: token.strip().split(), '''\
-    QCDscale_qqH     VBF    0j_nonboosted    1.020/0.980
-    QCDscale_qqH     VBF    1j_nonboosted    1.020/0.980
+    QCDscale_qqH     VBF    rest             1.020/0.980
     QCDscale_qqH     VBF    boosted          1.014/0.986
     QCDscale_qqH     VBF    VBF              1.020/0.980
-    QCDscale_VH      VH     0j_nonboosted    1.01/0.99
-    QCDscale_VH      VH     1j_nonboosted    1.022/0.978
+    QCDscale_VH      VH     rest             1.01/0.99
     QCDscale_VH      VH     boosted          1.041/0.960
     QCDscale_VH      VH     VBF              1.01/0.99
-    QCDscale_ggH     ggH    0j_nonboosted    1.23/0.81
-    QCDscale_ggH1in  ggH    0j_nonboosted    0.92/1.09
-    QCDscale_ggH1in  ggH    1j_nonboosted    1.24/0.81
+    QCDscale_ggH     ggH    rest             1.23/0.81
+    QCDscale_ggH1in  ggH    rest             0.92/1.09
     QCDscale_ggH1in  ggH    boosted          1.32/0.76
     QCDscale_ggH2in  ggH    boosted          0.90/1.11
     QCDscale_ggH2in  ggH    VBF              1.24/0.81'''.split('\n'))
+
     GEN_QMASS = map(lambda token: token.strip().split(), '''\
     Gen_Qmass_ggH    ggH    VBF              1.19/0.81
     Gen_Qmass_ggH    ggH    boosted          1.24/0.76
-    Gen_Qmass_ggH    ggH    1j_nonboosted    1.04/0.96
-    Gen_Qmass_ggH    ggH    0j_nonboosted    1/1'''.split('\n'))
-    QCDscale_ggH3in_file = root_open(
-        os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
+    Gen_Qmass_ggH    ggH    rest             1.04/0.96'''.split('\n'))
+
+    #QCDscale_ggH3in_file = root_open(
+    #    os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
     NORM_BY_THEORY = True
+
+    #def weight_systematics(self):
+    #    systematics = super(Higgs, self).weight_systematics()
+    #    if self.ggf_weight:
+    #        systematics.update({
+    #            'QCDscale_ggH1in'})
+    #    return systematics
+
+    def weight_fields(self):
+        fields = super(Higgs, self).weight_fields()
+        if self.ggf_weight:
+            return fields + [
+                self.ggf_weight_field,
+            ]
+        return fields
 
     def histfactory(self, sample, category, systematics=False):
         if not systematics:
@@ -152,6 +167,7 @@ class Higgs(MC, Signal):
                  mode=None, modes=None,
                  mass=None, masses=None,
                  sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
+                 ggf_weight=True,
                  **kwargs):
         if masses is None:
             if mass is not None:
@@ -231,6 +247,8 @@ class Higgs(MC, Signal):
         else:
             self.mass = None
 
+        self.ggf_weight = ggf_weight
+        self.ggf_weight_field = 'ggf_weight'
         super(Higgs, self).__init__(
             year=year, label=label, name=name, **kwargs)
 

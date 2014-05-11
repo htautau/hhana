@@ -1492,7 +1492,7 @@ class MC(SystematicsSample):
 
     def systematics_components(self):
         components = super(MC, self).systematics_components()
-        return components + [
+        components = components + [
             'JES_Modelling',
             'JES_Detector',
             'JES_EtaModelling',
@@ -1500,16 +1500,17 @@ class MC(SystematicsSample):
             'JES_PURho',
             'JES_FlavComp',
             'JES_FlavResp',
-            #'JVF',
             'JER',
             'FAKERATE',
         ]
+        if self.year == 2012:
+            components.append('JVF')
+        return components
 
     def weight_fields(self):
         return super(MC, self).weight_fields() + [
             'mc_weight',
             'pileup_weight',
-            #'ggf_weight',
         ]
 
     def weight_systematics(self):
