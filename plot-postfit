@@ -88,7 +88,7 @@ def get_binning(name, categories, fit_var='mmc_mass'):
             return binning
 
 # ------------------------------
-def Fit_WS(workspace, output='frames.root'):
+def Fit_WS(workspace, output_basename='frames'):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -112,10 +112,13 @@ def Fit_WS(workspace, output='frames.root'):
 
     plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, simPdf, fit_res)
     log.info(yields)
-    with root_open(output, 'recreate') as output_file:
+    output_root = output_basename + '.root'
+    output_pickle = output_basename + '.pickle'
+    with root_open(output_root, 'recreate') as output_file:
         for obj in plotting_objects:
             obj.Write()
-
+    with open(output_pickle, 'w') as pickle_file:
+        pickle.dump(yields, pickle_file)
 
 
 # ---------------------------------
@@ -238,13 +241,13 @@ if __name__ == '__main__':
         categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
 
     log.info(categories)
-    output = os.path.splitext(args.file)[0] + '_postfit_frames.root'
+    output = os.path.splitext(args.file)[0] + '_postfit'
 
     with root_open(args.file) as file:
         if args.force_fit:
             Fit_WS(file[args.name], output)
 
-    with root_open(output) as file:
+    with root_open(output+'.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
             for name in names:
                 if 'rest' in name:
