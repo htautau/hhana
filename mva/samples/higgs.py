@@ -78,10 +78,10 @@ class Higgs(MC, Signal):
             return
         if len(self.modes) != 1:
             raise TypeError(
-                    'histfactory sample only valid for single production mode')
+                'histfactory sample only valid for single production mode')
         if len(self.masses) != 1:
             raise TypeError(
-                    'histfactory sample only valid for single mass point')
+                'histfactory sample only valid for single mass point')
         mode = self.modes[0]
 
         if mode in ('Z', 'W'):
