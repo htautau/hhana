@@ -2,31 +2,19 @@
 # python imports
 import os
 import pickle
+from multiprocessing import Process
 # rootpy imports
 from rootpy.extern.ordereddict import OrderedDict
+from rootpy.utils.lock import lock
 # local import
-from mva.cmd import get_parser
 from mva import log
 from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
-from mva.categories import CATEGORIES
 from mva.categories.common import Category_Preselection
 from mva.samples import Data
-from mva.systematics import get_systematics, iter_systematics
 from statstools.ufloat import ufloat
+from statstools.jobs import run_pool
 
-parser = get_parser(actions=False)
-parser.add_argument('actions', choices=['compute_yields','print_table'], default=['print_table'])
-parser.add_argument('--cut', help= 'additional cut to be applied', default=None)
-args = parser.parse_args()
-analysis = get_analysis(args)
-output_suffix = analysis.get_suffix()
-log.info(output_suffix)
-
-categories = CATEGORIES[args.categories]
-systematics = get_systematics(args.year)
-pickle_name = 'yields_{0}{1}.pickle'.format(args.categories, output_suffix)
-log.info(pickle_name)
 # -------------------------------------
 def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMINAL'):
     """ 
@@ -39,6 +27,62 @@ def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMIN
         hist = sample.events(Category, TARGET_REGION, cuts=cuts, systematic=systematic)
     val, err = hist[1].value, hist[1].error 
     return val, err
+
+#------------------------------------
+class YieldsProcess(Process):
+    def __init__(self, systematic, cuts, pickle_name, args): 
+        """
+        Process to compute the yield table for a given systematic variation
+        Arguments:
+        - systematic: name of the given systematic
+        - cuts: additional cut requested
+        - pickle_name: name of the output pickle file
+        - args: args to be given to the get_analysis method
+        """
+        super(YieldsProcess, self).__init__()
+        self.systematic = systematic
+        self.cuts = cuts
+        self.pickle_name = pickle_name
+        self.args = args
+    def run(self):
+        yields = {}
+        analysis = get_analysis(self.args)
+        for category in analysis.iter_categories(self.args.categories,
+                                                 self.args.controls,
+                                                 names=self.args.category_names):
+            #             if category.analysis_control:
+            #                 continue
+            yields[category.name] = {}
+            signal_yield = ufloat(0, 0)
+            for signal in analysis.signals:
+                yield_tuple = get_yield(signal, category, cuts=self.cuts, systematic=self.systematic)
+                yields[category.name][signal.name] = yield_tuple
+                signal_yield += ufloat(yield_tuple[0], yield_tuple[1])
+            bkg_yield = ufloat(0, 0)
+            for bkg in analysis.backgrounds:
+                yield_tuple = get_yield(bkg, category, cuts=self.cuts, systematic=self.systematic)
+                bkg_yield += ufloat(yield_tuple[0], yield_tuple[1])
+            yields[category.name]['latex']   = category.latex
+            yields[category.name]['Data']    = get_yield(analysis.data, category, cuts=self.cuts, systematic=self.systematic)
+            yields[category.name]['Ztautau'] = get_yield(analysis.ztautau, category, cuts=self.cuts, systematic=self.systematic)
+            yields[category.name]['QCD']     = get_yield(analysis.qcd, category, cuts=self.cuts, systematic=self.systematic)
+            yields[category.name]['Others']  = get_yield(analysis.others, category, cuts=self.cuts, systematic=self.systematic)
+            yields[category.name]['Higgs']   = (signal_yield.value, signal_yield.stat)
+            yields[category.name]['TotalBkg']= (bkg_yield.value, bkg_yield.stat)
+
+        if os.path.exists(self.pickle_name):
+            with lock(self.pickle_name):
+                yields_tot = pickle.load(open(self.pickle_name))
+                with open(self.pickle_name, 'w') as pickle_file:
+                    yields_tot[self.systematic] = yields
+                    pickle.dump(yields_tot, pickle_file)
+        else:
+            with lock(self.pickle_name):
+                with open(self.pickle_name, 'w') as pickle_file:
+                    yields_tot = {}
+                    yields_tot[self.systematic] = yields
+                    pickle.dump(yields_tot, pickle_file)
+
 
 # -------------------------------------
 def print_yield(yield_tuple, syst=None):
@@ -78,8 +122,8 @@ def get_table_template():
 # -------------------------------------
 def get_table_statonly(yields_nom):
     latex_lines = get_table_template()
-    for cat in categories:
-        for sample, yields in yields_nom[cat.name].items():
+    for cat in yields_nom.keys():
+        for sample, yields in yields_nom[cat].items():
             if sample=='latex':
                 latex_lines['cat_name'] += yields + '&'
             else:
@@ -92,8 +136,8 @@ def get_table_statonly(yields_nom):
 # -------------------------------------
 def get_table(master_yields, syst_list):
     latex_lines = get_table_template()
-    for cat in categories:
-        for sample, yields in master_yields['NOMINAL'][cat.name].items():
+    for cat in master_yields['NOMINAL'].keys():
+        for sample, yields in master_yields['NOMINAL'][cat].items():
             if sample=='latex':
                 latex_lines['cat_name'] += yields + '&'
             else:
@@ -103,7 +147,7 @@ def get_table(master_yields, syst_list):
                         syst = (syst[0], 'NOMINAL')
                     up_syst = get_syst_variation_dict(master_yields, syst[0])
                     do_syst = get_syst_variation_dict(master_yields, syst[1])
-                    syst_var = (up_syst[cat.name][sample], do_syst[cat.name][sample])
+                    syst_var = (up_syst[cat][sample], do_syst[cat][sample])
                     yields_print += ufloat(0, 0, syst=syst_var)
                 latex_lines[sample] += str(yields_print) + '&'
     for _, line in latex_lines.items():
@@ -115,17 +159,16 @@ def get_table(master_yields, syst_list):
 def get_table_variation(master_yield, variations):
     if len(variations)<2:
         variations = (variations[0], 'NOMINAL')
-    yields_nom = master_yield['NOMINAL']
     up_var = get_syst_variation_dict(master_yield, variations[0])
     do_var = get_syst_variation_dict(master_yield, variations[1])
 
     latex_lines = get_table_template()
-    for cat in categories:
-        for sample, yields in yields_nom[cat.name].items():
+    for cat in master_yields['NOMINAL'].keys():
+        for sample, yields in master_yield['NOMINAL'][cat].items():
             if sample=='latex':
                 latex_lines['cat_name'] += str(yields) + '&'
             else:
-                syst_tuple = (up_var[cat.name][sample], do_var[cat.name][sample])
+                syst_tuple = (up_var[cat][sample], do_var[cat][sample])
                 latex_lines[sample] += print_yield((0, 0), syst=syst_tuple) + '&'
     for _, line in latex_lines.items():
         if not 'hline' in line:
@@ -137,67 +180,48 @@ def get_table_variation(master_yield, variations):
 # -----  MAIN DRIVER 
 # ------------------------------------------------
 
-if 'compute_yields' in args.actions:
-    data    = analysis.data
-    signals = analysis.signals
-    ztautau = analysis.ztautau
-    qcd     = analysis.qcd
-    others  = analysis.others
-    backgrounds = analysis.backgrounds
+if __name__ == '__main__':
+    from mva.cmd import get_parser
+    from mva.systematics import iter_systematics
 
-    for sys in iter_systematics(year=args.year, include_nominal=True):
-        log.info(sys)
-
-    yields_tot = {}
-    for systematic in iter_systematics(year=args.year, include_nominal=True):
-        yields = {}
-        for category in analysis.iter_categories(args.categories,
-                                                 args.controls,
-                                                 names=args.category_names):
-            #             if category.analysis_control:
-            #                 continue
-            yields[category.name] = {}
-            log.info(category.name)
-            signal_yield = ufloat(0, 0)
-            for signal in signals:
-                log.info('{0}: {1}'.format(signal.name, get_yield(signal, category, cuts=args.cut, systematic=systematic)))
-                yield_tuple = get_yield(signal, category, cuts=args.cut, systematic=systematic)
-                yields[category.name][signal.name] = yield_tuple
-                signal_yield += ufloat(yield_tuple[0], yield_tuple[1])
-            bkg_yield = ufloat(0, 0)
-            for bkg in backgrounds:
-                yield_tuple = get_yield(bkg, category, cuts=args.cut, systematic=systematic)
-                bkg_yield += ufloat(yield_tuple[0], yield_tuple[1])
-            yields[category.name]['latex']   = category.latex
-            yields[category.name]['Data']    = get_yield(data, category, cuts=args.cut, systematic=systematic)
-            yields[category.name]['Ztautau'] = get_yield(ztautau, category, cuts=args.cut, systematic=systematic)
-            yields[category.name]['QCD']     = get_yield(qcd, category, cuts=args.cut, systematic=systematic)
-            yields[category.name]['Others']  = get_yield(others, category, cuts=args.cut, systematic=systematic)
-            yields[category.name]['Higgs']   = (signal_yield.value, signal_yield.stat)
-            yields[category.name]['TotalBkg']= (bkg_yield.value, bkg_yield.stat)
-            yields_tot[systematic] = yields
-
-    with open(pickle_name, 'w') as fpick:
-        pickle.dump(yields_tot, fpick)
-
-if 'print_table' in args.actions:
-    with open(pickle_name) as file:
-        master_yields = pickle.load(file)
-        log.info(master_yields.keys())
-        log.info(master_yields['NOMINAL'].keys())
+    parser = get_parser(actions=False)
+    parser.add_argument('actions', choices=['compute_yields','print_table'], default=['print_table'])
+    parser.add_argument('--cuts', help= 'additional cuts to be applied', default=None)
+    parser.add_argument('--jobs', type=int, default=-1, help='Number of jobs')
+    args = parser.parse_args()
     
-        log.info('------------- STAT ONLY NOMINAL TABLE ------------')
-        table_stat = get_table_statonly(master_yields['NOMINAL'])
-        for _, line in table_stat.items():
-            log.info(line)
+    pickle_name = 'yields_{0}_{1}.pickle'.format(args.categories, args.year)
+    log.info(pickle_name)
 
-        log.info('------------- NOMINAL TABLE ------------')
-        syst_list = []
-        for _, syst in systematics.items():
-            syst_list.append(syst)
-        table = get_table(master_yields, syst_list)
-        for _, line in table.items():
-            log.info(line)
+
+    if 'compute_yields' in args.actions:
+        systematics = [sys for sys in iter_systematics(year=args.year, include_nominal=True)]
+        log.info(systematics)
+        # define the workers
+        workers = [YieldsProcess(systematic, args.cuts, pickle_name, args)
+                   for systematic in systematics]
+        log.info(workers)
+        # run the pool
+        run_pool(workers, n_jobs=args.jobs)
+
+    if 'print_table' in args.actions:
+        with open(pickle_name) as file:
+            master_yields = pickle.load(file)
+            log.info(master_yields.keys())
+            log.info(master_yields['NOMINAL'].keys())
+    
+            log.info('------------- STAT ONLY NOMINAL TABLE ------------')
+            table_stat = get_table_statonly(master_yields['NOMINAL'])
+            for _, line in table_stat.items():
+                log.info(line)
+
+            log.info('------------- NOMINAL TABLE ------------')
+            syst_list = []
+            for _, syst in systematics.items():
+                syst_list.append(syst)
+            table = get_table(master_yields, syst_list)
+            for _, line in table.items():
+                log.info(line)
 
 #     log.info('------------- List of systematic variations ------------')
 #     for key, syst in systematics.items():
