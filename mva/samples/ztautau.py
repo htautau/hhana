@@ -57,6 +57,7 @@ class Pythia_Ztautau(MC_Ztautau):
 class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def systematics_components(self):
+        # No FAKERATE for embedding since fakes are data
         return super(Embedded_Ztautau, self).systematics_components() + [
             'MFS',
             'ISOL',
@@ -100,8 +101,6 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
                         'tau1_trigger_eff',
                         'tau2_trigger_eff']},
             })
-        # no FR for embedding since the fakes are data
-        del systematics['FAKERATE']
         return systematics
 
     def cut_systematics(self):

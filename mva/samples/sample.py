@@ -922,6 +922,8 @@ class SystematicsSample(Sample):
             'TAUID',
             'TRIGGER',
         ]
+        # No FAKERATE for embedding since fakes are data
+        # so don't include FAKERATE here
         if self.year == 2011:
             return common + [
                 'TES_TRUE_FINAL',
@@ -936,18 +938,7 @@ class SystematicsSample(Sample):
             ]
 
     def weight_systematics(self):
-        systematics = {
-            'FAKERATE': {
-                'UP': [
-                    'tau1_fakerate_sf_high',
-                    'tau2_fakerate_sf_high'],
-                'DOWN': [
-                    'tau1_fakerate_sf_low',
-                    'tau2_fakerate_sf_low'],
-                'NOMINAL': [
-                    'tau1_fakerate_sf',
-                    'tau2_fakerate_sf']}
-            }
+        systematics = {}
         if self.year == 2011:
             tauid = {
                 'TAUID': {
@@ -1511,10 +1502,25 @@ class MC(SystematicsSample):
         return super(MC, self).weight_fields() + [
             'mc_weight',
             'pileup_weight',
+            # uncertainty on these are small and are ignored:
+            'tau1_fakerate_sf_reco',
+            'tau2_fakerate_sf_reco',
         ]
 
     def weight_systematics(self):
         systematics = super(MC, self).weight_systematics()
+        systematics.update({
+            'FAKERATE': {
+                'UP': [
+                    'tau1_fakerate_sf_high',
+                    'tau2_fakerate_sf_high'],
+                'DOWN': [
+                    'tau1_fakerate_sf_low',
+                    'tau2_fakerate_sf_low'],
+                'NOMINAL': [
+                    'tau1_fakerate_sf',
+                    'tau2_fakerate_sf']}
+            })
         if self.year == 2011:
             systematics.update({
                 'TRIGGER': {
