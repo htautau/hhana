@@ -3,9 +3,9 @@
 Compare Higgs yields with and without ggF reweighting 
 """
 from mva.samples import Higgs
-from mva.categories import Category_Preselection, Category_Boosted, Category_VBF
+from mva.categories import Category_Preselection, Category_Boosted, Category_VBF, Category_Rest
 
-categories = (Category_Preselection, Category_Boosted, Category_VBF)
+categories = (Category_Preselection, Category_Boosted, Category_VBF, Category_Rest)
 
 higgs = Higgs(2012, ggf_weight=False)
 higgs_weighted = Higgs(2012)
