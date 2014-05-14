@@ -70,6 +70,7 @@ class YieldsProcess(Process):
             yields[category.name]['Higgs']   = (signal_yield.value, signal_yield.stat)
             yields[category.name]['TotalBkg']= (bkg_yield.value, bkg_yield.stat)
 
+        log.info('Write to pickle {0}'.format(self.systematic))
         if os.path.exists(self.pickle_name):
             with lock(self.pickle_name):
                 yields_tot = pickle.load(open(self.pickle_name))
@@ -128,9 +129,9 @@ def get_table_statonly(yields_nom):
                 latex_lines['cat_name'] += yields + '&'
             else:
                 latex_lines[sample] += print_yield(yields) + '&'
-    for _, line in latex_lines.items():
-        if not 'hline' in line:
-            line += '\\\\'
+    for sample in latex_lines.keys():
+        if not 'hline' in latex_lines[sample]:
+            latex_lines[sample] += '\\\\'
     return latex_lines
 
 # -------------------------------------
@@ -150,9 +151,9 @@ def get_table(master_yields, syst_list):
                     syst_var = (up_syst[cat][sample], do_syst[cat][sample])
                     yields_print += ufloat(0, 0, syst=syst_var)
                 latex_lines[sample] += str(yields_print) + '&'
-    for _, line in latex_lines.items():
-        if not 'hline' in line:
-            line += '\\\\'
+    for sample in latex_lines.keys():
+        if not 'hline' in latex_lines[sample]:
+            latex_lines[sample] += '\\\\'
     return latex_lines
 
 # -------------------------------------
@@ -183,7 +184,7 @@ def get_table_variation(master_yield, variations):
 if __name__ == '__main__':
     from mva.cmd import get_parser
     from mva.systematics import iter_systematics
-
+    from mva.systematics import get_systematics
     parser = get_parser(actions=False)
     parser.add_argument('actions', choices=['compute_yields','print_table'], default=['print_table'])
     parser.add_argument('--cuts', help= 'additional cuts to be applied', default=None)
@@ -191,6 +192,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     pickle_name = 'yields_{0}_{1}.pickle'.format(args.categories, args.year)
+    latex_name  = 'yields_{0}_{1}.txt'.format(args.categories, args.year)
     log.info(pickle_name)
 
 
@@ -210,18 +212,27 @@ if __name__ == '__main__':
             log.info(master_yields.keys())
             log.info(master_yields['NOMINAL'].keys())
     
-            log.info('------------- STAT ONLY NOMINAL TABLE ------------')
-            table_stat = get_table_statonly(master_yields['NOMINAL'])
-            for _, line in table_stat.items():
-                log.info(line)
+            with open(latex_name, 'w') as flatex:
+                log.info('------------- STAT ONLY NOMINAL TABLE ------------')
+                flatex.write('%%------------- STAT ONLY NOMINAL TABLE ------------\n')
+                table_stat = get_table_statonly(master_yields['NOMINAL'])
+                for _, line in table_stat.items():
+                    log.info(line)
+                    flatex.write(line+'\n')
 
-            log.info('------------- NOMINAL TABLE ------------')
-            syst_list = []
-            for _, syst in systematics.items():
-                syst_list.append(syst)
-            table = get_table(master_yields, syst_list)
-            for _, line in table.items():
-                log.info(line)
+                log.info('------------- NOMINAL TABLE ------------')
+                flatex.write('%%------------- NOMINAL TABLE ------------\n')
+                syst_list = []
+                systematics = get_systematics(year=args.year)
+                log.info(systematics)
+                for _, syst in systematics.items():
+                    syst_list.append(syst)
+                table = get_table(master_yields, syst_list)
+                for _, line in table.items():
+                    log.info(line)
+                    flatex.write(line+'\n')
+                    
+
 
 #     log.info('------------- List of systematic variations ------------')
 #     for key, syst in systematics.items():

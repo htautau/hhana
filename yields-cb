@@ -88,50 +88,47 @@ vbf_cuts['$\\eta_{min,j}<\\tau_1,\\tau_2<\\eta_{max,j}$'] = CUTS_VBF & DETA_JETS
 
 vbf_cats = []
 if args.year==2012:
-    vbf_cats = [ Category_Cuts_VBF_LowDR,
-                 Category_Cuts_VBF_HighDR_Tight,
-                 Category_Cuts_VBF_HighDR_Loose,
-                 ]
+    vbf_cats = [Category_Cuts_VBF_LowDR,
+                Category_Cuts_VBF_HighDR_Tight,
+                Category_Cuts_VBF_HighDR_Loose,]
 
 elif args.year==2011:
-    vbf_cats = [ Category_Cuts_VBF_LowDR,
-                 Category_Cuts_VBF_HighDR
-                 ]
+    vbf_cats = [Category_Cuts_VBF_LowDR,
+                Category_Cuts_VBF_HighDR,]
     
 f_latex = open('cutbased_yields'+output_suffix+'.txt','w')
-f_latex.write( 'Data \t H(125) \t VH \t ggH \t VBF \t Ztautau \t QCD \t Others \n' )
-f_latex.write( 'Preselection & '+get_yield_latexline( analysis, Category=Category_Preselection,cut='') +'\n' )
-f_latex.write( '\\hline \\hline \n')
+f_latex.write('Data \t H(125) \t VH \t ggH \t VBF \t Ztautau \t QCD \t Others \n')
+f_latex.write('Preselection & '+get_yield_latexline( analysis, Category=Category_Preselection,cut='') +'\n')
+f_latex.write('\\hline \\hline \n')
 for name,current_cut in vbf_cuts.iteritems():
-    latex_line = get_yield_latexline( analysis, cut=current_cut )
-    f_latex.write( name+' & '+latex_line+'\n' )
-    log.info( name )
+    latex_line = get_yield_latexline(analysis, cut=current_cut)
+    f_latex.write(name+' & '+latex_line+'\n')
+    log.info(name)
 
 for cat in vbf_cats:
-    latex_line = get_yield_latexline( analysis, Category=cat )
-    f_latex.write( cat.latex+' & '+latex_line+'\n' )
-    log.info( cat.name )
+    latex_line = get_yield_latexline(analysis, Category=cat)
+    f_latex.write(cat.latex+' & '+latex_line+'\n')
+    log.info(cat.name)
 
-f_latex.write( '\\hline\n' )
+f_latex.write('\\hline\n')
 
 boosted_cuts = OrderedDict()
 boosted_cuts['Preselection'] = -CUTS_2J
 boosted_cuts['$|\\Delta\\eta_{\\tau\\tau}|$'] = -CUTS_2J & DETA_TAUS
 boosted_cuts['$p_T^{H}$'] = -CUTS_2J & DETA_TAUS & RESONANCE_PT 
 
-boosted_cats = [ Category_Cuts_Boosted_Tight,
-                 Category_Cuts_Boosted_Loose
-                 ]
+boosted_cats = [Category_Cuts_Boosted_Tight,
+                Category_Cuts_Boosted_Loose]
 
 for name,current_cut in boosted_cuts.iteritems():
-    latex_line = get_yield_latexline( analysis, cut=current_cut )
-    f_latex.write( name+' & '+latex_line+'\n' )
-    log.info( name )
+    latex_line = get_yield_latexline(analysis, cut=current_cut)
+    f_latex.write(name+' & '+latex_line+'\n')
+    log.info(name)
 
 for cat in boosted_cats:
-    latex_line = get_yield_latexline( analysis, Category=cat )
-    f_latex.write( cat.latex+' & '+latex_line+'\n' )
-    log.info( cat.latex )
+    latex_line = get_yield_latexline(analysis, Category=cat)
+    f_latex.write(cat.latex+' & '+latex_line+'\n')
+    log.info(cat.latex)
 
 
 
