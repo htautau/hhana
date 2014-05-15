@@ -7,15 +7,17 @@ from mva.categories import Category_Preselection, Category_Boosted, Category_VBF
 
 categories = (Category_Preselection, Category_Boosted, Category_VBF, Category_Rest)
 
-higgs = Higgs(2012, ggf_weight=False)
-higgs_weighted = Higgs(2012)
-higgs_ggf = Higgs(2012, ggf_weight=False, mode='gg')
-higgs_ggf_weighted = Higgs(2012, mode='gg')
+for year in (2011, 2012):
+    print year
+    higgs = Higgs(year, ggf_weight=False)
+    higgs_weighted = Higgs(year)
+    higgs_ggf = Higgs(year, ggf_weight=False, mode='gg')
+    higgs_ggf_weighted = Higgs(year, mode='gg')
 
-for category in categories:
-    print category.name
-    print "unweighted total: {0:.2f}".format(higgs.events(category)[1].value)
-    print "weighted total: {0:.2f}".format(higgs_weighted.events(category)[1].value)
-    print "unweighted ggH: {0:.2f}".format(higgs_ggf.events(category)[1].value)
-    print "weighted ggH: {0:.2f}".format(higgs_ggf_weighted.events(category)[1].value)
-    print
+    for category in categories:
+        print category.name
+        print "unweighted total: {0:.2f}".format(higgs.events(category)[1].value)
+        print "weighted total: {0:.2f}".format(higgs_weighted.events(category)[1].value)
+        print "unweighted ggH: {0:.2f}".format(higgs_ggf.events(category)[1].value)
+        print "weighted ggH: {0:.2f}".format(higgs_ggf_weighted.events(category)[1].value)
+        print

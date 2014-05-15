@@ -64,7 +64,6 @@ def get_workspace_np_name(sample, syst, year):
     npname = npname.replace('JES_PURho_TAU_QQ_{0}'.format(year),
                             'JES_{0}_PileRho_TAU_QQ'.format(year))
     npname = npname.replace('FAKERATE', 'TAU_JFAKE')
-    npname = npname.replace('TAUID', 'TAU_ID')
     npname = npname.replace('MET_RESOSOFTTERMS', 'MET_RESOSOFT')
     npname = npname.replace('MET_SCALESOFTTERMS', 'MET_SCALESOFT')
     from .ztautau import Embedded_Ztautau
@@ -660,15 +659,21 @@ class Sample(object):
     def weights(self, systematic='NOMINAL'):
         weight_fields = self.weight_fields()
         if isinstance(self, SystematicsSample):
-            systerm, variation = SystematicsSample.get_sys_term_variation(
-                systematic)
+            systerm, variation = \
+                SystematicsSample.get_sys_term_variation(systematic)
             for term, variations in self.weight_systematics().items():
-                if term == systerm:
+                # handle cases like TAU_ID and TAU_ID_STAT
+                if (systerm is not None
+                    and systerm.startswith(term)
+                    and systematic[0][len(term) + 1:] in variations):
+                    weight_fields += variations[systematic[0][len(term) + 1:]]
+                elif term == systerm:
                     weight_fields += variations[variation]
                 else:
                     weight_fields += variations['NOMINAL']
         # HACK
         if not self.trigger and 'tau1_trigger_sf' in weight_fields:
+            log.info("replacing trigger_sf with trigger_eff")
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
@@ -919,7 +924,7 @@ class SystematicsSample(Sample):
         common = [
             'MET_RESOSOFTTERMS',
             'MET_SCALESOFTTERMS',
-            'TAUID',
+            'TAU_ID',
             'TRIGGER',
         ]
         # No FAKERATE for embedding since fakes are data
@@ -931,6 +936,7 @@ class SystematicsSample(Sample):
             ]
         else:
             return common + [
+                'TAU_ID_STAT',
                 'TES_TRUE_INSITUINTERPOL',
                 'TES_TRUE_SINGLEPARTICLEINTERPOL',
                 'TES_TRUE_MODELING',
@@ -941,7 +947,7 @@ class SystematicsSample(Sample):
         systematics = {}
         if self.year == 2011:
             tauid = {
-                'TAUID': {
+                'TAU_ID': {
                     'UP': [
                         'tau1_id_sf_high',
                         'tau2_id_sf_high'],
@@ -954,7 +960,13 @@ class SystematicsSample(Sample):
                 }
         else:
             tauid = {
-                'TAUID': {
+                'TAU_ID': {
+                    'STAT_UP': [
+                        'tau1_id_sf_stat_high',
+                        'tau2_id_sf_stat_high'],
+                    'STAT_DOWN': [
+                        'tau1_id_sf_stat_low',
+                        'tau2_id_sf_stat_low'],
                     'UP': [
                         'tau1_id_sf_sys_high',
                         'tau2_id_sf_sys_high'],
@@ -963,7 +975,7 @@ class SystematicsSample(Sample):
                         'tau2_id_sf_sys_low'],
                     'NOMINAL': [
                         'tau1_id_sf',
-                        'tau2_id_sf']}
+                        'tau2_id_sf']},
                 }
         systematics.update(tauid)
         return systematics
@@ -1493,6 +1505,7 @@ class MC(SystematicsSample):
             'JES_FlavResp',
             'JER',
             'FAKERATE',
+            'PU_RESCALE',
         ]
         if self.year == 2012:
             components.append('JVF')
@@ -1501,7 +1514,6 @@ class MC(SystematicsSample):
     def weight_fields(self):
         return super(MC, self).weight_fields() + [
             'mc_weight',
-            'pileup_weight',
             # uncertainty on these are small and are ignored:
             'tau1_fakerate_sf_reco',
             'tau2_fakerate_sf_reco',
@@ -1519,8 +1531,12 @@ class MC(SystematicsSample):
                     'tau2_fakerate_sf_low'],
                 'NOMINAL': [
                     'tau1_fakerate_sf',
-                    'tau2_fakerate_sf']}
-            })
+                    'tau2_fakerate_sf']},
+            'PU_RESCALE': {
+                'UP': ['pileup_weight_high'],
+                'DOWN': ['pileup_weight_low'],
+                'NOMINAL': ['pileup_weight'],
+            }})
         if self.year == 2011:
             systematics.update({
                 'TRIGGER': {

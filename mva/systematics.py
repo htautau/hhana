@@ -44,9 +44,11 @@ SYSTEMATICS_COMMON = {
     'MFS': (('MFS_UP',), ('MFS_DOWN',)),
     'ISOL': (('ISOL_UP',), ('ISOL_DOWN',)),
 
+    'PU_RESCALE': (('PU_RESCALE_UP',), ('PU_RESCALE_DOWN',)),
+
     'TRIGGER': (('TRIGGER_UP',), ('TRIGGER_DOWN',)),
     'FAKERATE': (('FAKERATE_UP',), ('FAKERATE_DOWN',)),
-    'TAUID': (('TAUID_UP',), ('TAUID_DOWN',)),
+    'TAU_ID': (('TAU_ID_UP',), ('TAU_ID_DOWN',)),
 
     'QCD_FIT': (('QCDFIT_UP',), ('QCDFIT_DOWN',)),
     'Z_FIT': (('ZFIT_UP',), ('ZFIT_DOWN',)),
@@ -66,6 +68,7 @@ SYSTEMATICS_2012 = {
     'TES_TRUE_MODELING': (('TES_TRUE_MODELING_UP',), ('TES_TRUE_MODELING_DOWN',)),
     'TES_FAKE_TOTAL': (('TES_FAKE_TOTAL_UP',), ('TES_FAKE_TOTAL_DOWN',)),
     'JVF': (('JVF_UP',), ('JVF_DOWN',)),
+    'TAU_ID_STAT': (('TAU_ID_STAT_UP',), ('TAU_ID_STAT_DOWN',)),
 }
 SYSTEMATICS_2012.update(SYSTEMATICS_COMMON)
 
@@ -74,8 +77,12 @@ SYSTEMATICS_BY_WEIGHT = [
     ('TRIGGER_DOWN',),
     ('FAKERATE_UP',),
     ('FAKERATE_DOWN',),
-    ('TAUID_UP',),
-    ('TAUID_DOWN',),
+    ('TAU_ID_UP',),
+    ('TAU_ID_DOWN',),
+    ('TAU_ID_STAT_UP',),
+    ('TAU_ID_STAT_DOWN',),
+    ('PU_RESCALE_UP',),
+    ('PU_RESCALE_DOWN',),
 ]
 
 
