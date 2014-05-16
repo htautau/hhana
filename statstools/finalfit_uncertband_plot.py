@@ -129,8 +129,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
     hlist.append(hist_data)
 
     if compute_yields:
-        Integral_data = datatmp.createIntegral(ROOT.RooArgSet(obs))
-        Yield_data = Integral_data.getVal() * binWidth.getVal()
+        Yield_data = hist_data.Integral()
         yields['Data'] = (Yield_data, 0)
 
     # --> Create the signal histogram template

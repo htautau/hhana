@@ -18,6 +18,7 @@ from mva.analysis import Analysis
 from mva.samples import Higgs
 from statstools.finalfit_uncertband_plot import getPostFitPlottingObjects
 from statstools.finalfit_uncertband_plot import UncertGraph
+from statstools.nuisance import get_nuisance_params
 
 set_style('ATLAS', shape='rect')
 
@@ -88,7 +89,7 @@ def get_binning(name, categories, fit_var='mmc_mass'):
             return binning
 
 # ------------------------------
-def Fit_WS(workspace, output_basename='frames'):
+def Fit_WS(workspace, output_basename='frames', fix_np=False):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -102,9 +103,19 @@ def Fit_WS(workspace, output_basename='frames'):
     if not mc:
         raise RuntimeError('Could not retrieve the ModelConfig object')
     mc.GetParametersOfInterest().first().setVal(1)
-    roo_min = workspace.fit()
+    if fix_np:
+        nuis_pars = get_nuisance_params(mc)
+        for name in nuis_pars.keys():
+            nuis_pars[name] = True
+        roo_min = workspace.fit(param_const=nuis_pars)
+    else:
+        roo_min = workspace.fit()
     fit_res = roo_min.save()
-    fit_res.Print()
+    fit_res.Print('v')
+
+    if fix_np:
+        mc.GetParametersOfInterest().first().setVal(1)
+
     # --> Get the data distribution
     obsData = workspace.data('obsData')
     # --> Get the simultaneous PDF
@@ -233,6 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='combined')
     parser.add_argument('--fit-var', default='bdt_score', choices=['bdt_score', 'mmc_mass'])
     parser.add_argument('--force-fit', action='store_true', default=False)
+    parser.add_argument('--fix-np', action='store_true', default=False)
     args = parser.parse_args()
 
     if args.fit_var=='bdt_score':
@@ -241,11 +253,15 @@ if __name__ == '__main__':
         categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
 
     log.info(categories)
-    output = os.path.splitext(args.file)[0] + '_postfit'
+    output = os.path.splitext(args.file)[0]
+    if args.fix_np:
+        output += '_prefit'
+    else:
+        output += '_postfit'
 
     with root_open(args.file) as file:
         if args.force_fit:
-            Fit_WS(file[args.name], output)
+            Fit_WS(file[args.name], output, fix_np=args.fix_np)
 
     with root_open(output+'.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
@@ -256,6 +272,7 @@ if __name__ == '__main__':
                 binning = get_binning(name, categories, fit_var=args.fit_var)
                 log.info(binning)
                 canvas = plot_from_frame(file, file.Get(name), args.fit_var, binning)
-                canvas.SaveAs('plots/postfit_{0}.png'.format(name))
-
-                        
+                if args.fix_np:
+                    canvas.SaveAs('plots/prefit_{0}.png'.format(name))
+                else:
+                    canvas.SaveAs('plots/postfit_{0}.png'.format(name))

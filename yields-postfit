@@ -42,8 +42,8 @@ if __name__ == '__main__':
     parser.add_argument('file')
     args = parser.parse_args()
 
-    output = os.path.splitext(args.file)[0] + '_postfit.pickle'
-    with open(output) as fpickle:
+    #     output = os.path.splitext(args.file)[0] + '_postfit.pickle'
+    with open(args.file) as fpickle:
         yields_postfit = pickle.load(fpickle)
         
         latex_lines = get_table_template()
