@@ -33,7 +33,7 @@ data_jvf = Data(2011, student='hhskim_11_JVF', label='7 TeV Data JVF Cut')
 for category in (Category_VBF, Category_Boosted):
     compare(data, data_jvf, field_dict,
             category, TARGET_REGION,
-            'JVF_2011', 2011, normalize=False)
+            'JVF_data_2011', 2011, normalize=False)
 
 
 fields.append('mmc1_mass')
@@ -46,7 +46,7 @@ higgs_jvf = Higgs(2011, student='hhskim_11_JVF', label='7 TeV Higgs JVF Cut')
 for category in (Category_VBF, Category_Boosted):
     compare(higgs, higgs_jvf, field_dict,
             category, TARGET_REGION,
-            'JVF_2011', 2011, normalize=False)
+            'JVF_signal_2011', 2011, normalize=False)
 
 # BDT score
 analysis = Analysis(2011)
