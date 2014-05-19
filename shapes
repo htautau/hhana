@@ -16,6 +16,7 @@ from mva.analysis import Analysis
 from mva.templates import RatioPlot
 from mva.systematics import iter_systematics
 from mva import save_canvas,log
+from mva.defaults import TARGET_REGION
 
 parser = ArgumentParser()
 parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012))
@@ -121,8 +122,8 @@ def draw_ratio(a, b, field, category, textsize=22):
 def compare(a, b, category, name):
     a_hists, field_scale = a.get_field_hist(field_dict, category)
     b_hists, _ = b.get_field_hist(field_dict, category)
-    a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
-    b.draw_array(b_hists, category, 'OS', field_scale=field_scale)
+    a.draw_array(a_hists, category, TARGET_REGION, field_scale=field_scale)
+    b.draw_array(b_hists, category, TARGET_REGION, field_scale=field_scale)
     for field in fields:
         # draw ratio plot
         a_hist = a_hists[field]

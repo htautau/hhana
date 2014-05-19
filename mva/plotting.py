@@ -1915,11 +1915,13 @@ def draw_ROC(bkg_scores, sig_scores):
     plt.grid()
     plt.savefig(os.path.join(PLOTS_DIR, 'ROC.png'), bbox_inches='tight')
 
-def draw_ratio( a, b, field, category,
-                textsize=22,
-                ratio_range=(0,2),
-                ratio_line_values=[0.5,1,1.5],
-                optional_label_text=None ):
+
+def draw_ratio(a, b, field, category,
+               textsize=22,
+               ratio_range=(0,2),
+               ratio_line_values=[0.5,1,1.5],
+               optional_label_text=None,
+               normalize=True):
     """
     Draw a canvas with two Hists normalized to unity on top
     and a ratio plot between the two hist
@@ -1929,17 +1931,23 @@ def draw_ratio( a, b, field, category,
     - field: variable field (see variables.py)
     - category: analysis category (see categories/*)
     """
-    plot = RatioPlot( xtitle=VARIABLES[field]['root'],
-                      ytitle='Normalized Events',
-                      ratio_title='A / B',
-                      ratio_range=ratio_range,
-                      ratio_line_values=ratio_line_values )
-    a_integral = a.integral()
-    if a_integral != 0:
-        a /= a_integral
-    b_integral = b.integral()
-    if b_integral != 0:
-        b /= b_integral
+    if field in VARIABLES:
+        xtitle = VARIABLES[field]['root']
+    else:
+        xtitle = field
+    plot = RatioPlot(xtitle=xtitle,
+                     ytitle='{0}Events'.format(
+                         'Normalized ' if normalize else ''),
+                     ratio_title='A / B',
+                     ratio_range=ratio_range,
+                     ratio_line_values=ratio_line_values)
+    if normalize:
+        a_integral = a.integral()
+        if a_integral != 0:
+            a /= a_integral
+        b_integral = b.integral()
+        if b_integral != 0:
+            b /= b_integral
     a.title = 'A: ' + a.title
     b.title = 'B: ' + b.title
     a.color = 'black'
@@ -2004,15 +2012,17 @@ def draw_ratio( a, b, field, category,
     return plot
 
 
-def compare(a, b, field_dict, category, name, year ):
+def compare(a, b, field_dict, category, region, name, year,
+            path='plots/shapes', **kwargs):
     a_hists, field_scale = a.get_field_hist(field_dict, category)
     b_hists, _ = b.get_field_hist(field_dict, category)
-    a.draw_array(a_hists, category, 'OS', field_scale=field_scale)
-    b.draw_array(b_hists, category, 'OS', field_scale=field_scale)
+    a.draw_array(a_hists, category, region, field_scale=field_scale)
+    b.draw_array(b_hists, category, region, field_scale=field_scale)
     for field,_ in field_dict.items():
         # draw ratio plot
         a_hist = a_hists[field]
         b_hist = b_hists[field]
-        plot = draw_ratio(a_hist, b_hist, field,field_dict, category)
-        save_canvas(plot, 'plots/shapes', '{0}/shape_{0}_{1}_{2}_{3}.png'.format(
+        plot = draw_ratio(a_hist, b_hist,
+                          field, category, **kwargs)
+        save_canvas(plot, path, '{0}/shape_{0}_{1}_{2}_{3}.png'.format(
             name, field, category.name, year % 1000))

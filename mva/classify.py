@@ -517,7 +517,7 @@ class Classifier(object):
                     min_n_estimators=min_n_estimators,
                     #score_func=accuracy_score,
                     score_func=roc_auc_score, # area under the ROC curve
-                    cv = StratifiedKFold(labels_train, cv_nfold),
+                    cv=StratifiedKFold(labels_train, cv_nfold),
                     n_jobs=n_jobs)
 
                 #grid_clf = GridSearchCV(

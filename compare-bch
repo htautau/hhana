@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+from mva.analysis import Analysis
+from mva.samples import Higgs
+from mva.categories import Category_VBF, Category_Boosted
+from mva.defaults import TARGET_REGION
+from mva.plotting import draw_ratio
+from rootpy.plotting import Hist
+from root_numpy import fill_hist
+
+higgs = Higgs(2012, mass=125, modes=('gg', 'VBF'))
+higgs_bch = Higgs(2012, mass=125, modes=('gg', 'VBF'),
+                  student='hhskim_BCH',
+                  suffix='_BCH.mc12b')
+
+# compare BDT score distributions
+analysis = Analysis(2012)
+for category in (Category_VBF, Category_Boosted):
+    clf = analysis.get_clf(category, mass=125, load=True)
+    scores, weights = higgs.scores(
+        clf, category, TARGET_REGION,
+        systematics=False)['NOMINAL']
+    scores_bch, weights_bch = higgs_bch.scores(
+        clf, category, TARGET_REGION,
+        systematics=False)['NOMINAL']
+    min_score = min(scores.min(), scores_bch.min())
+    max_score = max(scores.max(), scores_bch.max())
+    hist = Hist(20, min_score - 1E-5, max_score + 1E-5, title='H 125 GeV')
+    hist_bch = Hist(20, min_score - 1E-5, max_score + 1E-5, title='H 125 GeV with BCH fix')
+    fill_hist(hist, scores, weights)
+    fill_hist(hist_bch, scores_bch, weights_bch)
+    plot = draw_ratio(hist, hist_bch, 'BDT Score', category, normalize=False)
+    plot.SaveAs('bch_compare_{0}.png'.format(category.name))
+    print category.name, hist.integral(), hist_bch.integral()

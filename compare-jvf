@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+from mva.analysis import Analysis
+from mva.samples import Data, Higgs
+from mva.categories import Category_VBF, Category_Boosted
+from mva.defaults import TARGET_REGION
+from mva.plotting import compare, draw_ratio
+from rootpy.plotting import Hist
+from root_numpy import fill_hist
+from mva.variables import VARIABLES
+
+
+# list of fields to plot
+fields = [
+    'MET_et',
+    'resonance_pt',
+    'dR_tau1_tau2',
+    'numJets',
+    'jet1_eta', 'jet2_eta',
+    'dEta_jets',
+    'eta_product_jets',
+    'mass_jet1_jet2',
+    'tau1_centrality',
+    'tau2_centrality',
+    'vector_sum_pt',
+]
+field_dict = dict([(field, VARIABLES[field]) for field in fields])
+
+data = Data(2011, label='7 TeV Data')
+data_jvf = Data(2011, student='hhskim_11_JVF', label='7 TeV Data JVF Cut')
+
+# compare data with and without JVF cut
+for category in (Category_VBF, Category_Boosted):
+    compare(data, data_jvf, field_dict,
+            category, TARGET_REGION,
+            'JVF_2011', 2011, normalize=False)
+
+
+fields.append('mmc1_mass')
+field_dict = dict([(field, VARIABLES[field]) for field in fields])
+
+higgs = Higgs(2011, label='7 TeV Higgs')
+higgs_jvf = Higgs(2011, student='hhskim_11_JVF', label='7 TeV Higgs JVF Cut')
+
+# compare signal
+for category in (Category_VBF, Category_Boosted):
+    compare(higgs, higgs_jvf, field_dict,
+            category, TARGET_REGION,
+            'JVF_2011', 2011, normalize=False)
+
+# BDT score
+analysis = Analysis(2011)
+for category in (Category_VBF, Category_Boosted):
+    clf = analysis.get_clf(category, mass=125, load=True)
+    scores, weights = higgs.scores(
+        clf, category, TARGET_REGION,
+        systematics=False)['NOMINAL']
+    scores_jvf, weights_jvf = higgs_jvf.scores(
+        clf, category, TARGET_REGION,
+        systematics=False)['NOMINAL']
+    min_score = min(scores.min(), scores_jvf.min())
+    max_score = max(scores.max(), scores_jvf.max())
+    hist = Hist(20, min_score - 1E-5, max_score + 1E-5, title='7 TeV Higgs')
+    hist_jvf = Hist(20, min_score - 1E-5, max_score + 1E-5, title='7 TeV Higgs JVF cut')
+    fill_hist(hist, scores, weights)
+    fill_hist(hist_jvf, scores_jvf, weights_jvf)
+    plot = draw_ratio(hist, hist_jvf, 'BDT Score', category, normalize=False)
+    plot.SaveAs('jvf_compare_{0}.png'.format(category.name))
