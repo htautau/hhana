@@ -13,7 +13,7 @@ def UncertGraph(hnom, curve_uncert):
 
     Parameters
     ----------
-    hnom: TH1F,TH1D,...
+    hnom: TH1F, TH1D,...
         The histogram of nominal values
     curve_uncert: RooCurve
         The uncertainty band around the nominal value
@@ -64,7 +64,7 @@ def getPostFitPlottingObjects(mc, obsData, simPdf, fit_res):
     fit_res: RooFitResult
     """
     plotting_objects = []
-    # --> get the list of categories and iterate over (VBF,Boosted and Rest for HSG4 hadhad)
+    # --> get the list of categories and iterate over (VBF, Boosted and Rest for HSG4 hadhad)
     catIter = simPdf.indexCat().typeIterator()
     yields = {}
     while True:
@@ -90,7 +90,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
     simPdf : RooSimultaneous PDF
     mc : ModelConfig object
     fit_res: RooFitResult
-        Result of the fit (covariance matrix, NLL value,...)
+        Result of the fit (covariance matrix, NLL value, ...)
     error_band_strategy : True/False
         True: Use the linear approximation to extract the error band
         False: Use a sampling method
@@ -171,14 +171,14 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
         # --> Add the components to the frame but in an invisible way
         pdfmodel.plotOn(frame,
                         ROOT.RooFit.Components(comp.GetName()),
-                        ROOT.RooFit.Normalization(Yield_comp,ROOT.RooAbsReal.NumEvent),
+                        ROOT.RooFit.Normalization(Yield_comp, ROOT.RooAbsReal.NumEvent),
                         ROOT.RooFit.Name("NoStacked_"+comp.GetName()),
                         ROOT.RooFit.Invisible())
         if fit_res:
             # --> Add the components uncertainty band 
             comp.plotOn(frame,
-                        ROOT.RooFit.Normalization(1,ROOT.RooAbsReal.RelativeExpected ),
-                        ROOT.RooFit.VisualizeError(fit_res,1,error_band_strategy),
+                        ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
+                        ROOT.RooFit.VisualizeError(fit_res, 1, error_band_strategy),
                         ROOT.RooFit.Name("FitError_AfterFit_"+comp.GetName()),
                         ROOT.RooFit.Invisible())
             if compute_yields:
@@ -207,7 +207,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
 
     if fit_res:
         pdftmp.plotOn(frame,
-                      ROOT.RooFit.VisualizeError(fit_res,1, error_band_strategy ),
+                      ROOT.RooFit.VisualizeError(fit_res, 1, error_band_strategy),
                       ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
                       ROOT.RooFit.Name("FitError_AfterFit"),
                       ROOT.RooFit.FillColor(ROOT.kOrange),
@@ -230,7 +230,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
                   ROOT.RooFit.LineStyle(ROOT.kDashed))
     if fit_res:
         pdftmp.plotOn(frame,
-                      ROOT.RooFit.VisualizeError(fit_res,1, error_band_strategy),
+                      ROOT.RooFit.VisualizeError(fit_res, 1, error_band_strategy),
                       ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
                       ROOT.RooFit.Name("FitError_AfterFit_Mu0"),
                       ROOT.RooFit.FillColor(ROOT.kOrange),
@@ -239,7 +239,8 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
         if compute_yields:
             Yield_bkg_total_err = Integral_bkg_total.getPropagatedError(fit_res)*binWidth.getVal()
             yields['bkg'] = (Yield_bkg_total, Yield_bkg_total_err)
-    poi.setVal(1)
+
+    poi.setVal(1.)
     if compute_yields:
         return frame, hlist, yields
     else:

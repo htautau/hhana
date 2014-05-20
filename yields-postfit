@@ -48,6 +48,8 @@ if __name__ == '__main__':
         
         latex_lines = get_table_template()
         for cat, yields in yields_postfit.items():
+            if '_11' in cat:
+                continue
             log.info(cat)
             latex_lines['cat_name'] += cat + '&' 
             latex_lines['Signal_Z']  += get_sample_yield(yields_postfit, cat, 'Signal_Z') + '&'
@@ -58,10 +60,10 @@ if __name__ == '__main__':
             latex_lines['QCD']       += get_sample_yield(yields_postfit, cat, 'Fakes') + '&'
             latex_lines['Others']    += get_sample_yield(yields_postfit, cat, 'Others') + '&'
             latex_lines['TotalBkg']  += get_sample_yield(yields_postfit, cat, 'bkg') + '&'
+            latex_lines['Data']      += get_sample_yield(yields_postfit, cat, 'Data') + '&'
 
         for _, line in latex_lines.items():
             if not 'hline' in line:
-                log.info(line)
                 line += '\\\\'
 
         for _, line in latex_lines.items():
