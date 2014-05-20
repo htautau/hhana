@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+# python imports
+import os
+import pickle
+# ROOT/rootpy imports
+from rootpy import ROOT
+from ROOT import TLatex
+from rootpy import asrootpy
+from rootpy.io import root_open, Directory
+from rootpy.stats import Workspace
+from rootpy.stats.histfactory import Measurement
+from rootpy.io.file import _DirectoryBase
+from rootpy.plotting import Canvas, Graph, HistStack, Hist, Legend, set_style
+from rootpy.plotting.utils import draw
+from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
+# local imports
+from mva import log; log =log[__name__]
+set_style('ATLAS', shape='rect')
+
+
+#             log.info(overall_sys)
+            
+class Yields(object):
+    """
+    """
+    def __init__(self, file, meas, channel, sample):
+        self.file = file
+        self.meas = meas
+        self.channel = channel
+        self.sample = sample
+        self.yield_nom = self.integral_nom()
+
+    def integral_nom(self):
+        hist = self.file[self.sample.GetHistoPath()+self.sample.GetHistoName()]
+        return hist.Integral()
+
+    def integral_sys(self):
+        overall_systs = self.sample.GetOverallSysList()
+        for syst in overall_systs:
+            log.info('{0}: {1}/{2}'.format(syst.GetName(),
+                                           self.yield_nom*syst.GetHigh(),
+                                           self.yield_nom*syst.GetLow()))
+
+def GetStuff(file, meas):
+    channels = meas.GetChannels()
+    for channel in meas.GetChannels():
+        log.info(channel)
+        samples = channel.GetSamples()
+        for sample in samples:
+            log.info(sample)
+            my_yields = Yields(file, meas, channel, sample)
+            log.info(my_yields.integral_nom())
+            my_yields.integral_sys()
+#             histo_sys = sample.GetHistoSysList()
+#             histo_shape = sample.GetShapeSysList()
+#             overall_sys = sample.GetOverallSysList()
+#             hist = file[sample.GetHistoPath()+sample.GetHistoName()]
+#             log.info(hist.Integral())
+# #             log.info(histo_sys)
+#             log.info(histo_shape)
+
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('file')
+    parser.add_argument('--name', default='combined')
+    args = parser.parse_args()
+    
+    with root_open(args.file) as file:
+        for meas in file:
+            if isinstance(meas, Measurement):
+                log.info(meas)
+                GetStuff(file, meas)

@@ -70,3 +70,6 @@ grid-merge
 HistFactorySchema.dtd
 tmp
 *.o
+*.txt
+workspaces_comparison
+dev_scripts
