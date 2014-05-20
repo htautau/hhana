@@ -56,6 +56,7 @@ if __name__ == '__main__':
             latex_lines['Signal_W']  += get_sample_yield(yields_postfit, cat, 'Signal_W') + '&'
             latex_lines['Signal_gg'] += get_sample_yield(yields_postfit, cat, 'Signal_gg') + '&'
             latex_lines['Signal_VBF']+= get_sample_yield(yields_postfit, cat, 'Signal_VBF') + '&'
+            latex_lines['Higgs']     += get_sample_yield(yields_postfit, cat, 'TotalSignal') + '&'
             latex_lines['Ztautau']   += get_sample_yield(yields_postfit, cat, 'Ztautau') + '&'
             latex_lines['QCD']       += get_sample_yield(yields_postfit, cat, 'Fakes') + '&'
             latex_lines['Others']    += get_sample_yield(yields_postfit, cat, 'Others') + '&'

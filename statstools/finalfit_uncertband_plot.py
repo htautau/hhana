@@ -3,7 +3,11 @@ import ROOT
 from rootpy import asrootpy
 from rootpy.plotting import Graph, Hist
 # local imports
+from .ufloat import ufloat
 from . import log; log=log[__name__]
+
+
+
 
 # -------------------------------------
 def UncertGraph(hnom, curve_uncert):
@@ -186,7 +190,14 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
                 yields[comp.GetName()] = (Yield_comp, Yield_comp_err)
 
 
+
     hlist.append(hist_sig)
+    if compute_yields:
+        yields_sig_tot = ufloat(0, 0) #treat the systematic as stat uncert (symmetric and quadratic sum)
+        for comp_name, vals in yields.items():
+            if 'Signal' in comp_name:
+                yields_sig_tot += ufloat(vals[0], vals[1])
+        yields['TotalSignal'] = (yields_sig_tot.value, yields_sig_tot.stat)
     # --> parameter of interest (mu=sigma/sigma_sm)
     poi =  mc.GetParametersOfInterest().first()
 

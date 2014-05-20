@@ -3,8 +3,9 @@
 import os
 import pickle
 # ROOT/rootpy imports
-import ROOT
+from rootpy import ROOT
 from ROOT import TLatex
+from ROOT import RooFitResult
 from rootpy import asrootpy
 from rootpy.io import root_open
 from rootpy.plotting import Canvas, Graph, HistStack, Hist, Legend, set_style
@@ -21,6 +22,16 @@ from statstools.finalfit_uncertband_plot import UncertGraph
 from statstools.nuisance import get_nuisance_params
 
 set_style('ATLAS', shape='rect')
+
+class Prefit_RooFitResult(RooFitResult):
+    """
+    """
+    def __init__(self, postfit_res):
+        super(Prefit_RooFitResult, self).__init__(postfit_res.GetName()+'_prefit')
+        self.setConstParList(postfit_res.constPars())
+        self.setInitParsList(postfit_res.floatParsInit())
+        self.setFinalParsList(postfit_res.floatParsInit())
+        self.setCovarianceMatrix(postfit_res.covarianceMatrix())
 
 #----------------------
 def get_rebinned_hist(hist_origin, binning):
@@ -103,18 +114,13 @@ def Fit_WS(workspace, output_basename='frames', fix_np=False):
     if not mc:
         raise RuntimeError('Could not retrieve the ModelConfig object')
     mc.GetParametersOfInterest().first().setVal(1)
-    if fix_np:
-        nuis_pars = get_nuisance_params(mc)
-        for name in nuis_pars.keys():
-            nuis_pars[name] = True
-        roo_min = workspace.fit(param_const=nuis_pars)
-    else:
-        roo_min = workspace.fit()
+    roo_min = workspace.fit()
     fit_res = roo_min.save()
     fit_res.Print('v')
-
+    corr_mat = fit_res.correlationMatrix()
+    corr_mat.Print('v')
     if fix_np:
-        mc.GetParametersOfInterest().first().setVal(1)
+        fit_res = Prefit_RooFitResult(fit_res)
 
     # --> Get the data distribution
     obsData = workspace.data('obsData')
@@ -252,6 +258,7 @@ if __name__ == '__main__':
     else:
         categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
 
+    help(Prefit_RooFitResult)
     log.info(categories)
     output = os.path.splitext(args.file)[0]
     if args.fix_np:
