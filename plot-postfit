@@ -2,10 +2,11 @@
 # python imports
 import os
 import pickle
+from array import array
 # ROOT/rootpy imports
 from rootpy import ROOT
 from ROOT import TLatex
-from ROOT import RooFitResult
+from ROOT import RooFitResult, RooArgList, RooArgSet
 from rootpy import asrootpy
 from rootpy.io import root_open
 from rootpy.plotting import Canvas, Graph, HistStack, Hist, Legend, set_style
@@ -20,7 +21,7 @@ from mva.samples import Higgs
 from statstools.finalfit_uncertband_plot import getPostFitPlottingObjects
 from statstools.finalfit_uncertband_plot import UncertGraph
 from statstools.nuisance import get_nuisance_params
-from statstools import Prefit_RooFitResult
+from statstools import Prefit_RooFitResult, Partial_RooFitResult
 
 set_style('ATLAS', shape='rect')
 
@@ -91,7 +92,7 @@ def get_binning(name, categories, fit_var='mmc_mass'):
             return binning
 
 # ------------------------------
-def Fit_WS(workspace, output_basename='frames', fix_np=False):
+def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=False):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -112,13 +113,25 @@ def Fit_WS(workspace, output_basename='frames', fix_np=False):
     roo_min = workspace.fit()
     fit_res = roo_min.save()
     fit_res.Print()
-    corr_mat = fit_res.correlationMatrix()
-    if fix_np:
-        fit_res = Prefit_RooFitResult(fit_res, True)
+    if prefit:
+        fit_res = Prefit_FitResult(fit_res, prefit_decorelate)
         workspace.loadSnapshot('StartingPoint')
 
-    fit_res.covarianceMatrix().Print()
-    plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, mc.GetPdf(), fit_res)
+    StatListIndices = []
+    SystListIndices = []
+    for index, arg in  enumerate(asrootpy(fit_res.floatParsFinal())):
+        if 'gamma' in arg.GetName():
+            StatListIndices.append(index)
+        elif 'alpha' in arg.GetName():
+            SystListIndices.append(index)
+    log.info('Indices of stat params: {0}'.format(StatListIndices))
+    log.info('Indices of syst params: {0}'.format(SystListIndices))
+    stat_fitres = Partial_RooFitResult(fit_res, len(StatListIndices), array('i', StatListIndices))
+    syst_fitres = Partial_RooFitResult(fit_res, len(SystListIndices), array('i', SystListIndices))
+    stat_fitres.covarianceMatrix().Print()
+    syst_fitres.covarianceMatrix().Print()
+
+    plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, mc.GetPdf(), stat_fitres)
     log.info(yields)
     output_root = output_basename + '.root'
     output_pickle = output_basename + '.pickle'
@@ -241,7 +254,8 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='combined')
     parser.add_argument('--fit-var', default='bdt_score', choices=['bdt_score', 'mmc_mass'])
     parser.add_argument('--force-fit', action='store_true', default=False)
-    parser.add_argument('--fix-np', action='store_true', default=False)
+    parser.add_argument('--prefit', action='store_true', default=False)
+    parser.add_argument('--prefit-decorelate', action='store_true', default=False)
     args = parser.parse_args()
 
     if args.fit_var=='bdt_score':
@@ -251,14 +265,15 @@ if __name__ == '__main__':
 
     log.info(categories)
     output = os.path.splitext(args.file)[0]
-    if args.fix_np:
+    if args.prefit:
         output += '_prefit'
     else:
         output += '_postfit'
 
     with root_open(args.file) as file:
         if args.force_fit:
-            Fit_WS(file[args.name], output, fix_np=args.fix_np)
+            Fit_WS(file[args.name], output,
+                   prefit=args.prefit, prefit_decorelate=args.prefit_decorelate)
 
     with root_open(output+'.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
@@ -269,7 +284,7 @@ if __name__ == '__main__':
                 binning = get_binning(name, categories, fit_var=args.fit_var)
                 log.info(binning)
                 canvas = plot_from_frame(file, file.Get(name), args.fit_var, binning)
-                if args.fix_np:
+                if args.prefit:
                     canvas.SaveAs('plots/prefit_{0}.png'.format(name))
                 else:
                     canvas.SaveAs('plots/postfit_{0}.png'.format(name))
