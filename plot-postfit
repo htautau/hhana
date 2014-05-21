@@ -122,12 +122,17 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
     for index, arg in  enumerate(asrootpy(fit_res.floatParsFinal())):
         if 'gamma' in arg.GetName():
             StatListIndices.append(index)
-        else:
+        elif 'alpha' in arg.GetName():
             SystListIndices.append(index)
+        else:
+            StatListIndices.append(index)
+            SystListIndices.append(index)
+            
     log.info('Indices of stat params: {0}'.format(StatListIndices))
     log.info('Indices of syst params: {0}'.format(SystListIndices))
     stat_fitres = Partial_RooFitResult(fit_res, len(StatListIndices), array('i', StatListIndices))
     syst_fitres = Partial_RooFitResult(fit_res, len(SystListIndices), array('i', SystListIndices))
+    fit_res.covarianceMatrix().Print()
     stat_fitres.covarianceMatrix().Print()
     syst_fitres.covarianceMatrix().Print()
 
