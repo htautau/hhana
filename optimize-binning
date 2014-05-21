@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from mva import CONST_PARAMS, CACHE_DIR
 from mva.categories import Category_VBF, Category_Boosted
+from mva.samples import QCD, Ztautau
 from mva.analysis import Analysis
 from mva.defaults import TARGET_REGION
 
@@ -46,68 +47,6 @@ def map_pool(process, args, n_jobs=-1, **kwargs):
     procs = [process(*arg, **kwargs) for arg in args]
     run_pool(procs, n_jobs=n_jobs)
     return [p.output for p in procs]
-
-
-def get_best_edge(scores, edges, pos=0,
-                  steps=100, min_bkg=10,
-                  mass=125,
-                  systematics=False):
-    if pos + 2 == 0:
-        left, right = edges[pos:]
-    else:
-        left, right = edges[pos:pos+2]
-    # Only consider edges that give non-negative yields for all backgrounds
-    # (negative weights on the background events can be present)
-    # and edges that will hold at least unweighted min_bkg events in the
-    # new bin.
-    bkg_weighted = []
-    bkg_unweighted = []
-    sums_weighted = []
-    for bkg, scores_dict in scores.bkg_scores:
-        weighted = Hist(steps, left, right)
-        unweighted = weighted.Clone()
-        s, w = scores_dict['NOMINAL']
-        fill_hist(weighted, s, w)
-        fill_hist(unweighted, s)
-        bkg_weighted.append(weighted)
-        bkg_unweighted.append(unweighted)
-        # reverse cumsum
-        sums_weighted.append(
-            np.cumsum(np.array(list(weighted.y()))[::-1])[::-1])
-    tot_unweighted = sum(bkg_unweighted)
-    sum_unweighted = np.cumsum(np.array(list(tot_unweighted.y()))[::-1])[::-1]
-    all_positive = np.logical_and.reduce([b >= 0. for b in sums_weighted])
-    if not np.any(all_positive):
-        return None, None, None, None, -1
-    sum_unweighted_valid = sum_unweighted >= min_bkg
-    if not np.any(sum_unweighted_valid):
-        return None, None, None, None, -1
-    last_bin_min_bkg = np.where(sum_unweighted_valid)[-1][-1]
-    # bump last bin down until each background is positive
-    last_bin_min_bkg -= all_positive[:last_bin_min_bkg + 1][::-1].argmax()
-    last_bin_edge = bkg_weighted[0].xedges(int(last_bin_min_bkg))
-    probe_edges = np.linspace(left, last_bin_edge, steps)[1:]
-    sigs = map_pool(SigProcess,
-                    [(scores, edges, x, pos + 1) for x in probe_edges],
-                    mass=mass,
-                    systematics=systematics)
-    best_sig = np.max(sigs[10:])
-    best_edge_idx = np.argmax(sigs[10:]) + 10
-    best_edge = probe_edges[best_edge_idx]
-    # get unweighted number of background events in this new bin
-    bkg_unweighted = []
-    for bkg, scores_dict in scores.bkg_scores:
-        unweighted = Hist([left, best_edge, right])
-        s, w = scores_dict['NOMINAL']
-        fill_hist(unweighted, s)
-        bkg_unweighted.append(unweighted)
-    tot_unweighted = sum(bkg_unweighted)
-    # stop if next bin would be too small
-    if tot_unweighted[1].value < min_bkg:
-        return None, None, None, None, -1
-    nbkg = tot_unweighted[2].value
-    assert(nbkg >= min_bkg)
-    return probe_edges, sigs, nbkg, best_edge, best_sig
 
 
 def get_workspace(scores, binning,
@@ -153,6 +92,125 @@ def get_sig(scores, binning, edge=None, pos=1,
     return 0 if sig != sig else sig
 
 
+def get_best_edge(scores, edges, pos=0,
+                  steps=100,
+                  min_bkg_unweighted=10,
+                  min_bkg_weighted=0,
+                  mass=125,
+                  systematics=False):
+    if pos + 2 == 0:
+        left, right = edges[pos:]
+    else:
+        left, right = edges[pos:pos+2]
+
+    # Only consider edges that give non-negative yields for all backgrounds
+    # (negative weights on the background events can be present) and edges that
+    # will hold at least min_bkg_unweighted events in the new bin.
+    bkg_weighted = []
+    bkg_unweighted = []
+    sep_sums_weighted = []
+    sep_sums_weighted_critical = []
+    for bkg, scores_dict in scores.bkg_scores:
+        weighted = Hist(steps, left, right)
+        unweighted = weighted.Clone()
+        s, w = scores_dict['NOMINAL']
+        fill_hist(weighted, s, w)
+        fill_hist(unweighted, s)
+        bkg_weighted.append(weighted)
+        bkg_unweighted.append(unweighted)
+        # reverse cumsum
+        sep_sums_weighted.append(
+            np.cumsum(np.array(list(weighted.y()))[::-1])[::-1])
+        if isinstance(bkg, (QCD, Ztautau)):
+            sep_sums_weighted_critical.append(sums_weighted)
+
+    tot_unweighted = sum(bkg_unweighted)
+    sum_unweighted = np.cumsum(np.array(list(tot_unweighted.y()))[::-1])[::-1]
+    tot_weighted = sum(bkg_weighted)
+    sum_weighted = np.cumsum(np.array(list(tot_weighted.y()))[::-1])[::-1]
+
+    # require all backgrounds are nonnegative
+    all_nonneg = np.logical_and.reduce([
+        b >= 0. for b in sep_sums_weighted])
+
+    # require that critical backgrounds (QCD and Ztt) are positive
+    critical_positive = np.logical_and.reduce([
+        b > 0. for b in sep_sums_weighted_critical])
+
+    all_positive = np.logical_and(all_nonneg, critical_positive)
+    if not np.any(all_positive):
+        # not possible to create any new bins
+        return None, None, None, None, -1
+
+    sum_unweighted_valid = sum_unweighted >= min_bkg_unweighted
+    if not np.any(sum_unweighted_valid):
+        # not possible to create any new bins
+        return None, None, None, None, -1
+    
+    sum_weighted_valid = sum_weighted >= min_bkg_weighted
+    if not np.any(sum_weighted_valid):
+        # not possible to create any new bins
+        return None, None, None, None, -1
+
+    # get last bin edge that satisfies background requirements
+    last_bin_min_bkg_unweighted = np.where(sum_unweighted_valid)[-1][-1]
+    last_bin_min_bkg_weighted = np.where(sum_weighted_valid)[-1][-1]
+    last_bin_min_bkg = min(last_bin_min_bkg_unweighted,
+                           last_bin_min_bkg_weighted)
+    
+    last_bin_min_bkg -= all_positive[:last_bin_min_bkg + 1][::-1].argmax()
+    last_bin_edge = bkg_weighted[0].xedges(int(last_bin_min_bkg))
+
+    # get significance for each candidate bin edge
+    probe_edges = np.linspace(left, last_bin_edge, steps)[1:]
+    sigs = map_pool(SigProcess,
+                    [(scores, edges, x, pos + 1) for x in probe_edges],
+                    mass=mass,
+                    systematics=systematics)
+
+    # get best significance and best edge location
+    best_sig = np.max(sigs[10:])
+    best_edge_idx = np.argmax(sigs[10:]) + 10
+    best_edge = probe_edges[best_edge_idx]
+
+    # get unweighted and weighted number of background events in this new bin
+    bkg_unweighted = []
+    bkg_weighted = []
+    for bkg, scores_dict in scores.bkg_scores:
+        unweighted = Hist([left, best_edge, right])
+        weighted = unweighted.Clone()
+        s, w = scores_dict['NOMINAL']
+        fill_hist(unweighted, s)
+        fill_hist(weighted, s, w)
+        bkg_unweighted.append(unweighted)
+        bkg_weighted.append(weighted)
+    tot_unweighted = sum(bkg_unweighted)
+    tot_weighted = sum(bkg_weighted)
+    bkg_unweighted_left = tot_unweighted[1].value
+    bkg_unweighted_right = tot_unweighted[2].value
+    bkg_weighted_left = tot_weighted[1].value
+    bkg_weighted_right = tot_weighted[2].value
+   
+    # Sanity check:
+    # the number of background in the higher bin
+    # should already never be less than min_bkg due
+    # to the numpy magic above
+    assert(bkg_unweighted_right >= min_bkg_unweighted)
+    assert(bkg_weighted_right >= min_bkg_weighted)
+
+    # stop if lower bin would be too small
+    if bkg_unweighted_left < min_bkg_unweighted:
+        return None, None, None, None, -1
+    if bkg_weighted_left < min_bkg_weighted:
+        return None, None, None, None, -1
+
+    # stop if lower bin would contain less background than the higher bin
+    if bkg_weighted_left < bkg_weighted_right:
+        return None, None, None, None, -1
+    
+    return probe_edges, sigs, bkg_weighted_right, best_edge, best_sig
+
+
 if __name__ == '__main__':
     
     from rootpy.extern.argparse import ArgumentParser
@@ -161,7 +219,6 @@ if __name__ == '__main__':
     parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
     parser.add_argument('--min-bkg', type=int, default=10)
     parser.add_argument('--steps', type=int, default=100)
-    parser.add_argument('--growth', type=float, default=0.1)
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
     args = parser.parse_args()
@@ -204,7 +261,7 @@ if __name__ == '__main__':
 
         # plot the distributions
         b_hist = Hist(20, min_score, max_score, color='blue',
-                    linewidth=3, linestyle='dashed')
+                      linewidth=3, linestyle='dashed')
         s_hist = b_hist.Clone(color='red')
         fill_hist(b_hist, *b)
         fill_hist(s_hist, *s)
@@ -234,13 +291,15 @@ if __name__ == '__main__':
         # show significance vs middle bin edge location
         binning = [min_score, max_score]
         prev_best_sig = 0
-        min_bkg = args.min_bkg
+        nbkg = 0
         while True:
             # linear scan
             edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
                 scores, binning,
                 steps=args.steps,
-                min_bkg=min_bkg,
+                min_bkg_unweighted=args.min_bkg,
+                # use nbkg from previous bin so background increases to left
+                min_bkg_weighted=nbkg,
                 mass=mass,
                 systematics=args.systematics)
             if best_sig <= 0:
@@ -254,16 +313,18 @@ if __name__ == '__main__':
                      color='black', linestyle='-', linewidth=2)
             binning.insert(1, best_edge)
             prev_best_sig = best_sig
-            min_bkg = int(max(args.min_bkg, nbkg * args.growth))
 
-        # try to insert an edge in highest bin
+        # Try to insert an edge in the highest bin.
+        # Sometimes there is a local maximum above the first inserted bin edge
+        # from above. Adding a bin edge here will usually improve the significance.
         edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
-                scores, binning,
-                pos=-2,
-                steps=args.steps,
-                min_bkg=min_bkg,
-                mass=mass,
-                systematics=args.systematics)
+            scores, binning,
+            pos=-2,
+            steps=args.steps,
+            min_bkg_unweighted=args.min_bkg,
+            min_bkg_weighted=0,
+            mass=mass,
+            systematics=args.systematics)
         if best_sig > prev_best_sig:
             ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
