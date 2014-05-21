@@ -941,6 +941,11 @@ class SystematicsSample(Sample):
                 'TES_TRUE_SINGLEPARTICLEINTERPOL',
                 'TES_TRUE_MODELING',
                 'TES_FAKE_TOTAL',
+                'TRIGGER_STAT_PERIODA',
+                'TRIGGER_STAT_PERIODBD_BARREL',
+                'TRIGGER_STAT_PERIODBD_ENDCAP',
+                'TRIGGER_STAT_PERIODEM_BARREL',
+                'TRIGGER_STAT_PERIODEM_ENDCAP',
             ]
 
     def weight_systematics(self):
@@ -1508,7 +1513,9 @@ class MC(SystematicsSample):
             'PU_RESCALE',
         ]
         if self.year == 2012:
-            components.append('JVF')
+            components += [
+                'JVF',
+            ]
         return components
 
     def weight_fields(self):
