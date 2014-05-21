@@ -1560,7 +1560,39 @@ class MC(SystematicsSample):
                         'tau2_trigger_sf_sys_low'],
                     'NOMINAL': [
                         'tau1_trigger_sf',
-                        'tau2_trigger_sf']}})
+                        'tau2_trigger_sf']},
+                'TRIGGER_STAT': {
+                    'PERIODA_UP': [
+                        'tau1_trigger_sf_stat_scale_PeriodA_high',
+                        'tau2_trigger_sf_stat_scale_PeriodA_high'],
+                    'PERIODA_DOWN': [
+                        'tau1_trigger_sf_stat_scale_PeriodA_low',
+                        'tau2_trigger_sf_stat_scale_PeriodA_low'],
+                    'PERIODBD_BARREL_UP': [
+                        'tau1_trigger_sf_stat_scale_PeriodBD_Barrel_high',
+                        'tau2_trigger_sf_stat_scale_PeriodBD_Barrel_high'],
+                    'PERIODBD_BARREL_DOWN': [
+                        'tau1_trigger_sf_stat_scale_PeriodBD_Barrel_low',
+                        'tau2_trigger_sf_stat_scale_PeriodBD_Barrel_low'],
+                    'PERIODBD_ENDCAP_UP': [
+                        'tau1_trigger_sf_stat_scale_PeriodBD_EndCap_high',
+                        'tau2_trigger_sf_stat_scale_PeriodBD_EndCap_high'],
+                    'PERIODBD_ENDCAP_DOWN': [
+                        'tau1_trigger_sf_stat_scale_PeriodBD_EndCap_low',
+                        'tau2_trigger_sf_stat_scale_PeriodBD_EndCap_low'],
+                    'PERIODEM_BARREL_UP': [
+                        'tau1_trigger_sf_stat_scale_PeriodEM_Barrel_high',
+                        'tau2_trigger_sf_stat_scale_PeriodEM_Barrel_high'],
+                    'PERIODEM_BARREL_DOWN': [
+                        'tau1_trigger_sf_stat_scale_PeriodEM_Barrel_low',
+                        'tau2_trigger_sf_stat_scale_PeriodEM_Barrel_low'],
+                    'PERIODEM_ENDCAP_UP': [
+                        'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_high',
+                        'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_high'],
+                    'PERIODEM_ENDCAP_DOWN': [
+                        'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_low',
+                        'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_low'],
+                    'NOMINAL': []}})
         return systematics
 
 

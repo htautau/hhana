@@ -100,7 +100,38 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
                     'NOMINAL': [
                         'tau1_trigger_eff',
                         'tau2_trigger_eff']},
-            })
+                'TRIGGER_STAT': {
+                    'PERIODA_UP': [
+                        'tau1_trigger_eff_stat_scale_PeriodA_high',
+                        'tau2_trigger_eff_stat_scale_PeriodA_high'],
+                    'PERIODA_DOWN': [
+                        'tau1_trigger_eff_stat_scale_PeriodA_low',
+                        'tau2_trigger_eff_stat_scale_PeriodA_low'],
+                    'PERIODBD_BARREL_UP': [
+                        'tau1_trigger_eff_stat_scale_PeriodBD_Barrel_high',
+                        'tau2_trigger_eff_stat_scale_PeriodBD_Barrel_high'],
+                    'PERIODBD_BARREL_DOWN': [
+                        'tau1_trigger_eff_stat_scale_PeriodBD_Barrel_low',
+                        'tau2_trigger_eff_stat_scale_PeriodBD_Barrel_low'],
+                    'PERIODBD_ENDCAP_UP': [
+                        'tau1_trigger_eff_stat_scale_PeriodBD_EndCap_high',
+                        'tau2_trigger_eff_stat_scale_PeriodBD_EndCap_high'],
+                    'PERIODBD_ENDCAP_DOWN': [
+                        'tau1_trigger_eff_stat_scale_PeriodBD_EndCap_low',
+                        'tau2_trigger_eff_stat_scale_PeriodBD_EndCap_low'],
+                    'PERIODEM_BARREL_UP': [
+                        'tau1_trigger_eff_stat_scale_PeriodEM_Barrel_high',
+                        'tau2_trigger_eff_stat_scale_PeriodEM_Barrel_high'],
+                    'PERIODEM_BARREL_DOWN': [
+                        'tau1_trigger_eff_stat_scale_PeriodEM_Barrel_low',
+                        'tau2_trigger_eff_stat_scale_PeriodEM_Barrel_low'],
+                    'PERIODEM_ENDCAP_UP': [
+                        'tau1_trigger_eff_stat_scale_PeriodEM_EndCap_high',
+                        'tau2_trigger_eff_stat_scale_PeriodEM_EndCap_high'],
+                    'PERIODEM_ENDCAP_DOWN': [
+                        'tau1_trigger_eff_stat_scale_PeriodEM_EndCap_low',
+                        'tau2_trigger_eff_stat_scale_PeriodEM_EndCap_low'],
+                    'NOMINAL': []}})
         return systematics
 
     def cut_systematics(self):
