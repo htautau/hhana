@@ -119,10 +119,10 @@ def get_best_edge(scores, edges, pos=0,
         bkg_weighted.append(weighted)
         bkg_unweighted.append(unweighted)
         # reverse cumsum
-        sep_sums_weighted.append(
-            np.cumsum(np.array(list(weighted.y()))[::-1])[::-1])
+        sums = np.cumsum(np.array(list(weighted.y()))[::-1])[::-1]
+        sep_sums_weighted.append(sums)
         if isinstance(bkg, (QCD, Ztautau)):
-            sep_sums_weighted_critical.append(sums_weighted)
+            sep_sums_weighted_critical.append(sums)
 
     tot_unweighted = sum(bkg_unweighted)
     sum_unweighted = np.cumsum(np.array(list(tot_unweighted.y()))[::-1])[::-1]

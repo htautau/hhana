@@ -1496,6 +1496,7 @@ def draw(name,
         ypadding=ypadding,
         logy_crop_value=1E-1)
 
+    xaxis, yaxis = axes
     xmin, xmax, ymin, ymax = bounds
 
     # draw the legends
@@ -1523,19 +1524,29 @@ def draw(name,
         label = name
         if len(binwidths) == 1 and binwidths[0] != '1':
             ylabel = '%s / %s' % (ylabel, binwidths[0])
-    model_stack.yaxis.SetTitle(ylabel)
+    yaxis.SetTitle(ylabel)
 
-    base_hist = model_stack
+    divisions = min(model[0].nbins(), 7) if integer else 507
+    if range is None:
+        range = model[0].bounds()
+
     if show_ratio:
         # hide x labels on top hist
-        model_stack.xaxis.SetLabelOffset(100)
+        xaxis.SetLabelOffset(100)
         base_hist = ratio_hist_tmp
         base_hist.xaxis.SetTitleOffset(
             base_hist.xaxis.GetTitleOffset() * 3)
         base_hist.xaxis.SetLabelOffset(
             base_hist.xaxis.GetLabelOffset() * 4)
         #base_hist.yaxis.CenterTitle(True)
-    base_hist.xaxis.SetTitle(label)
+        base_hist.xaxis.SetLimits(*range)
+        base_hist.xaxis.SetRangeUser(*range)
+        base_hist.xaxis.SetNdivisions(divisions)
+    else:
+        xaxis.SetTitle(label)
+        xaxis.SetLimits(*range)
+        xaxis.SetRangeUser(*range)
+        xaxis.SetNdivisions(divisions)
 
     # draw the category label
     hist_pad.cd()
@@ -1576,17 +1587,6 @@ def draw(name,
     hist_pad.Update()
     hist_pad.Modified()
     #hist_pad.RedrawAxis()
-
-    divisions = min(model[0].nbins(), 7) if integer else 507
-    model_stack.xaxis.SetNdivisions(divisions)
-    if range is None:
-        range = model[0].bounds()
-    model_stack.xaxis.SetLimits(*range)
-    model_stack.xaxis.SetRangeUser(*range)
-    if show_ratio:
-        base_hist.xaxis.SetLimits(*range)
-        base_hist.xaxis.SetRangeUser(*range)
-        base_hist.xaxis.SetNdivisions(divisions)
 
     # draw arrows
     if arrow_values is not None:
