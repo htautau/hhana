@@ -122,7 +122,7 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
     for index, arg in  enumerate(asrootpy(fit_res.floatParsFinal())):
         if 'gamma' in arg.GetName():
             StatListIndices.append(index)
-        elif 'alpha' in arg.GetName():
+        else:
             SystListIndices.append(index)
     log.info('Indices of stat params: {0}'.format(StatListIndices))
     log.info('Indices of syst params: {0}'.format(SystListIndices))
