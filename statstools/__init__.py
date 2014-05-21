@@ -17,7 +17,7 @@ from rootpy.stats import histfactory
 
 from .asymptotics import AsymptoticsCLs
 from .significance import runSig
-
+from .fitresult import Prefit_RooFitResult
 
 def get_limit(channels,
           unblind=False,

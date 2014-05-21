@@ -75,6 +75,7 @@ def getPostFitPlottingObjects(mc, obsData, simPdf, fit_res):
         cat = catIter.Next()
         if not cat:
             break
+        log.info('============================================')
         log.info('retrieve plotting objects of {0}'.format(cat.GetName()))
         frame, hlist, yields_cat = getFrame(cat, obsData, simPdf, mc, fit_res, compute_yields=True)
         yields[cat.GetName()] = yields_cat
@@ -125,6 +126,10 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
     binWidth = pdftmp.getVariables().find('binWidth_obs_x_{0}_0'.format(cat.GetName()))
     if not binWidth:
         raise RuntimeError('Could not retrieve the binWidth')
+    # --> parameter of interest (mu=sigma/sigma_sm)
+    poi =  mc.GetParametersOfInterest().first()
+    poi_fitted_val = poi.getVal()
+    log.info('POI: {0} = {1} +/- {2}'.format(poi.GetName(), poi.getVal(), poi.getError()))
             
     # --> Create the data histogram
     hist_data = asrootpy(datatmp.createHistogram("hdata_"+cat.GetName(), obs))
@@ -136,9 +141,6 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
         Yield_data = hist_data.Integral()
         yields['Data'] = (Yield_data, 0)
 
-    # --> Create the signal histogram template
-    hist_sig = hist_data.Clone('h_TotalSignal_{0}'.format(cat.GetName()))
-    hist_sig.Reset()
     # --> Create the frame structure from the observable
     frame = obs.frame()
     frame.SetName(cat.GetName())
@@ -146,6 +148,11 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
                    ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),
                    ROOT.RooFit.Name("Data"),
                    ROOT.RooFit.MarkerSize(1))
+
+    # --> Create the signal histogram template
+    hist_sig = hist_data.Clone('h_TotalSignal_{0}'.format(cat.GetName()))
+    hist_sig.Reset()
+
     # --> get the list of components (hadhad HSG4: QCD,Other,Ztautau, Signal_Z, Signal_W, Signal_gg, Signal_VBF)
     # --> and iterate over 
     pdfmodel = pdftmp.getComponents().find(cat.GetName()+'_model')
@@ -156,6 +163,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
             break
 
         name = comp.GetName().replace('L_x_', '').split('_')[0]
+        log.info('Scan component {0}'.format(comp.GetName()))
         hist_comp = asrootpy(comp.createHistogram(cat.GetName()+"_"+comp.GetName(), obs, ROOT.RooFit.Extended(False)))
         hist_comp.name = 'h_{0}_{1}'.format(name, cat.GetName())
 
@@ -198,8 +206,6 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
             if 'Signal' in comp_name:
                 yields_sig_tot += ufloat(vals[0], vals[1])
         yields['TotalSignal'] = (yields_sig_tot.value, yields_sig_tot.stat)
-    # --> parameter of interest (mu=sigma/sigma_sm)
-    poi =  mc.GetParametersOfInterest().first()
 
     # --> bkg+signal PDF central value and error
     Integral_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
@@ -251,7 +257,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
             Yield_bkg_total_err = Integral_bkg_total.getPropagatedError(fit_res)*binWidth.getVal()
             yields['bkg'] = (Yield_bkg_total, Yield_bkg_total_err)
 
-    poi.setVal(1.)
+    poi.setVal(poi_fitted_val)
     if compute_yields:
         return frame, hlist, yields
     else:
