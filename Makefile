@@ -246,8 +246,8 @@ norms:
 		done; \
 	done
 
-.PHONY: stats-plots
-stats-plots:
+.PHONY: model-plots
+model-plots:
 	for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
 			nohup ./ana plot --fakes-region $${model} --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
@@ -261,10 +261,10 @@ plots:
 	nohup ./ana plot --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12.log &
 	nohup ./ana plot --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12.log &
 	nohup ./ana plot --year 2012 --categories presel --output-formats eps png > var_plots_presel_12.log &
-	#nohup ./ana plot --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11.log &
-	#nohup ./ana plot --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11.log &
-	#nohup ./ana plot --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11.log &
-	#nohup ./ana plot --year 2011 --categories presel --output-formats eps png > var_plots_presel_11.log &
+	nohup ./ana plot --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11.log &
+	nohup ./ana plot --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11.log &
+	nohup ./ana plot --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11.log &
+	nohup ./ana plot --year 2011 --categories presel --output-formats eps png > var_plots_presel_11.log &
 
 .PHONY: mva-plots
 mva-plots:
