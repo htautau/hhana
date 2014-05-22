@@ -315,8 +315,8 @@ if __name__ == '__main__':
         s = (s, sw)
         b = (b, bw)
         
-        fig = plt.figure()
-        ax1 = fig.add_subplot(111)
+        # setup the mpl figure and axes
+        fig, (ax1, ax_rebin) = plt.subplots(nrows=1, ncols=2, figsize=(15, 6))
         ax1.set_ylabel('Significance')
         ax1.set_xlabel('BDT Score')
         ax2 = ax1.twiny()
@@ -324,6 +324,10 @@ if __name__ == '__main__':
         ax3 = ax1.twinx()
         ax3.set_ylabel('Events')
         ax3.set_yscale('log')
+        ax_rebin.set_xlabel('BDT Score')
+        # share ylabel from right of left plot
+        #ax_rebin.set_ylabel('Events')
+        ax_rebin.set_yscale('log')
 
         # plot the distributions
         b_hist = Hist(20, min_score, max_score, color='blue',
@@ -354,37 +358,36 @@ if __name__ == '__main__':
         from itertools import cycle
         lines = ["-", "--", "-.", ":"]
         linecycler = cycle(lines)
-
-        # show significance vs middle bin edge location
+        
+        # initial single bin from min to max score
         binning = [float(min_score), float(max_score)]
         prev_best_sig = 0
-        while True:
-            # linear scan
-            edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
-                scores, binning,
-                steps=args.steps,
-                min_bkg_unweighted=args.min_bkg_unweighted,
-                min_bkg_weighted=args.min_bkg_weighted,
-                mass=mass,
-                systematics=args.systematics,
-                n_jobs=args.procs)
-            if best_sig <= 0:
-                # no valid edge found
-                break
-            if (best_sig - prev_best_sig) / best_sig < 0.005:
-                # improvement is not worth the new bin
-                break
-            ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
-            ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
-                     color='black', linestyle='-', linewidth=2)
-            binning.insert(1, float(best_edge))
-            prev_best_sig = best_sig
 
-        # Try to insert edges in the highest bin.
+        # find best initial split
+        edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
+            scores, binning,
+            steps=args.steps,
+            min_bkg_unweighted=args.min_bkg_unweighted,
+            min_bkg_weighted=args.min_bkg_weighted,
+            mass=mass,
+            systematics=args.systematics,
+            n_jobs=args.procs)
+
+        if best_sig <= 0:
+            raise RuntimeError("unable to make first split")
+
+        prev_best_sig = best_sig
+        # show significance vs middle bin edge location
+        ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
+        ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
+                    color='black', linestyle='-', linewidth=2)
+        binning.insert(1, float(best_edge))
+        
+        # continue splitting right
         # Sometimes there is a local maximum above the first inserted bin edge
         # from above. Adding a bin edge here will usually improve the significance.
         while True:
-            edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
+            edges, sigs, _, best_edge, best_sig = get_best_edge(
                 scores, binning,
                 pos=-2,
                 steps=args.steps,
@@ -396,30 +399,42 @@ if __name__ == '__main__':
             if best_sig <= prev_best_sig:
                 # no improvement or impossible to add an edge
                 break
+            # show significance vs middle bin edge location
             ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                      color='red', linestyle='-', linewidth=2)
             binning.insert(-1, float(best_edge))
             prev_best_sig = best_sig
-
-        # try inserting N bins into the first bin
-        #max_sig = prev_best_sig
-        #best_binning = binning
-        #best_const_edges = None
-        #for n in xrange(2, 10):
-        #    const_edges = np.linspace(binning[0], binning[1], n, endpoint=False)[1:]
-        #    new_binning = binning[:]
-        #    new_binning[1:1] = const_edges
-        #    sig = get_sig(scores, new_binning, edge=None, pos=1,
-        #                  mass=mass,
-        #                  systematics=args.systematics)
-        #    if sig > max_sig:
-        #        max_sig = sig
-        #        best_binning = new_binning
-        #        best_const_edges = const_edges
-        #for edge in best_const_edges:
-        #    ax1.plot((edge, edge), (0, abs(max_sig)),
-        #             color='red', linestyle='-', linewidth=2)
+        
+        # continue splitting left
+        while True:
+            edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
+                scores, binning,
+                steps=args.steps,
+                min_bkg_unweighted=args.min_bkg_unweighted,
+                #min_bkg_weighted=args.min_bkg_weighted,
+                min_bkg_weighted=nbkg,
+                mass=mass,
+                systematics=args.systematics,
+                n_jobs=args.procs)
+            if best_sig <= prev_best_sig:
+                # no improvement or impossible to add an edge
+                break
+            # show significance vs middle bin edge location
+            ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
+            ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
+                     color='black', linestyle='-', linewidth=2)
+            binning.insert(1, float(best_edge))
+            prev_best_sig = best_sig
+        
+        # draw the rebinned scores
+        b_hist = Hist(binning, color='blue',
+                      linewidth=3, linestyle='dashed')
+        s_hist = b_hist.Clone(color='red')
+        fill_hist(b_hist, *b)
+        fill_hist(s_hist, *s)
+        rplt.hist(b_hist, axes=ax_rebin, label='Background')
+        rplt.hist(s_hist, axes=ax_rebin, label='Signal')
 
         #handles1, labels1 = ax1.get_legend_handles_labels()
         #handles2, labels2 = ax2.get_legend_handles_labels()
