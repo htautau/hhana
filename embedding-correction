@@ -3,6 +3,7 @@
 from mva.samples import MC_Ztautau
 from mva.defaults import TARGET_REGION
 from mva.categories import Category_Preselection
+from mva import log
 
 from rootpy.io import root_open
 from rootpy.plotting import Hist2D, Canvas
@@ -13,8 +14,13 @@ output = root_open('embedding_corrections.root', 'RECREATE')
 for year in (2011, 2012):
     # normal trigger correcions
     ztt_mccor = MC_Ztautau(year)
+    log.info(ztt_mccor.cuts())
+    log.info(', '.join(ztt_mccor.weights()))
+
     # embedding trigger corrections
     ztt_ebcor = MC_Ztautau(year, trigger=False)
+    log.info(ztt_ebcor.cuts())
+    log.info(', '.join(ztt_ebcor.weights()))
 
     # maps of pt tau1 vs pt tau2
     mccor_hist = Hist2D([35, 45, 60, 100],
