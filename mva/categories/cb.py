@@ -98,9 +98,9 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
     limitbins = {}
-    limitbins[2011] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,INF]
+    limitbins[2011] = [0,64,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,INF]
     #     limitbins[2012] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF]
-    limitbins[2012] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,156,176,INF]
+    limitbins[2012] = [0,64,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,156,176,INF]
     norm_category = Category_Preselection
 
 
