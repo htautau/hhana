@@ -110,13 +110,25 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
     obsData = workspace.data('obsData')
     workspace.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
 
+    # --> Set the prefit error on the nuisance parameters
+    for arg in asrootpy(mc.GetNuisanceParameters()):
+        if 'norm' not in arg.GetName():
+            arg.setError(max(abs(arg.getErrorLo()), abs(arg.getErrorHi())))
+
     roo_min = workspace.fit()
     fit_res = roo_min.save()
     fit_res.Print()
+    for arg in asrootpy(fit_res.floatParsInit()):
+        # protection agains nan in the propagation of the error
+        arg.setError(max(arg.getError(), 1e-10))
+        log.info('{0}= {1} +/- {2}'.format(arg.GetName(), arg.getVal(), arg.getError()))
+
     if prefit:
-        fit_res = Prefit_FitResult(fit_res, prefit_decorelate)
+        fit_res = Prefit_RooFitResult(fit_res, prefit_decorelate)
         workspace.loadSnapshot('StartingPoint')
 
+    
+    fit_res.covarianceMatrix().Print()
     StatListIndices = []
     SystListIndices = []
     for index, arg in  enumerate(asrootpy(fit_res.floatParsFinal())):
@@ -132,11 +144,11 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
     log.info('Indices of syst params: {0}'.format(SystListIndices))
     stat_fitres = Partial_RooFitResult(fit_res, len(StatListIndices), array('i', StatListIndices))
     syst_fitres = Partial_RooFitResult(fit_res, len(SystListIndices), array('i', SystListIndices))
-    fit_res.covarianceMatrix().Print()
-    stat_fitres.covarianceMatrix().Print()
-    syst_fitres.covarianceMatrix().Print()
+    #     fit_res.covarianceMatrix().Print()
+    #     stat_fitres.covarianceMatrix().Print()
+    #     syst_fitres.covarianceMatrix().Print()
 
-    plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, mc.GetPdf(), stat_fitres)
+    plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, mc.GetPdf(), fit_res)
     log.info(yields)
     output_root = output_basename + '.root'
     output_pickle = output_basename + '.pickle'

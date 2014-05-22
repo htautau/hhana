@@ -1,13 +1,10 @@
 # root/rootpy imports
-import ROOT
+from rootpy import ROOT
+from ROOT import RooArgList, RooArgSet, RooAddition
 from rootpy import asrootpy
 from rootpy.plotting import Graph, Hist
 # local imports
-from .ufloat import ufloat
 from . import log; log=log[__name__]
-
-
-
 
 # -------------------------------------
 def UncertGraph(hnom, curve_uncert):
@@ -136,7 +133,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
     hist_data.name = "hdata_{0}".format(cat.GetName())
     hist_data.title = ""
     hlist.append(hist_data)
-
+    #--> compute the data yields
     if compute_yields:
         Yield_data = hist_data.Integral()
         yields['Data'] = (Yield_data, 0)
@@ -152,7 +149,8 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
     # --> Create the signal histogram template
     hist_sig = hist_data.Clone('h_TotalSignal_{0}'.format(cat.GetName()))
     hist_sig.Reset()
-
+    signal_comps = RooArgList()
+    bkg_comps = RooArgList()
     # --> get the list of components (hadhad HSG4: QCD,Other,Ztautau, Signal_Z, Signal_W, Signal_gg, Signal_VBF)
     # --> and iterate over 
     pdfmodel = pdftmp.getComponents().find(cat.GetName()+'_model')
@@ -166,16 +164,17 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
         log.info('Scan component {0}'.format(comp.GetName()))
         hist_comp = asrootpy(comp.createHistogram(cat.GetName()+"_"+comp.GetName(), obs, ROOT.RooFit.Extended(False)))
         hist_comp.name = 'h_{0}_{1}'.format(name, cat.GetName())
-
         hist_comp.title = ''
         hlist.append(hist_comp)
 
         if 'Signal' in comp.GetName():
+            signal_comps.add(comp)
             hist_sig.Add(hist_comp)
-
-        Integral_comp = comp.createIntegral(ROOT.RooArgSet(obs))
+        else:
+            bkg_comps.add(comp)
+        Integral_comp = comp.createIntegral(RooArgSet(obs))
         Yield_comp = Integral_comp.getVal() * binWidth.getVal()
-
+        log.info('Integral = {0}'.format(Yield_comp))
         if Yield_comp==0:
             raise RuntimeError('Yield integral is wrong !!')
 
@@ -197,23 +196,28 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
                 Yield_comp_err = Integral_comp.getPropagatedError(fit_res)* binWidth.getVal()
                 yields[comp.GetName()] = (Yield_comp, Yield_comp_err)
 
-
-
     hlist.append(hist_sig)
+    # --> total signal yields
     if compute_yields:
-        yields_sig_tot = ufloat(0, 0) #treat the systematic as stat uncert (symmetric and quadratic sum)
-        for comp_name, vals in yields.items():
-            if 'Signal' in comp_name:
-                yields_sig_tot += ufloat(vals[0], vals[1])
-        yields['TotalSignal'] = (yields_sig_tot.value, yields_sig_tot.stat)
+        signal_tot_comp = RooAddition('pdf_sum_sig', 'pdf_sum_sig', signal_comps)
+        Integral_signal = signal_tot_comp.createIntegral(RooArgSet(obs))
+        yields_sig_tot = Integral_signal.getVal()*binWidth.getVal()
+        yields_sig_tot_err = Integral_signal.getPropagatedError(fit_res)* binWidth.getVal()
+        yields['TotalSignal'] = (yields_sig_tot, yields_sig_tot_err)
+        bkg_tot_comp = RooAddition('pdf_sum_sig', 'pdf_sum_sig', bkg_comps)
+        Integral_bkg = bkg_tot_comp.createIntegral(RooArgSet(obs))
+        yields_bkg_tot = Integral_bkg.getVal()*binWidth.getVal()
+        yields_bkg_tot_err = Integral_bkg.getPropagatedError(fit_res)* binWidth.getVal()
+        yields['bkg'] = (yields_bkg_tot, yields_bkg_tot_err)
+        log.info('Bkg Total Yield: {0}'.format(yields_bkg_tot))
 
     # --> bkg+signal PDF central value and error
-    Integral_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
+    Integral_total = pdfmodel.createIntegral(RooArgSet(obs))
     Yield_total = Integral_total.getVal() * binWidth.getVal()
-
-    hist_bkg_plus_sig = pdfmodel.createHistogram("hbkg_plus_sig_"+cat.GetName(), obs, ROOT.RooFit.Extended(False))
-    hist_bkg_plus_sig.SetName("hbkg_plus_sig_"+cat.GetName())
-    hist_bkg_plus_sig.SetTitle("")
+    log.info('Postfit Total Yield: {0}'.format(Yield_total))
+    hist_bkg_plus_sig = asrootpy(pdfmodel.createHistogram("hbkg_plus_sig_"+cat.GetName(), obs, ROOT.RooFit.Extended(False)))
+    hist_bkg_plus_sig.name = 'hbkg_plus_sig_'+cat.GetName()
+    hist_bkg_plus_sig.title = ''
     hist_bkg_plus_sig.Scale(Yield_total)
     hlist.append(hist_bkg_plus_sig)
 
@@ -233,7 +237,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
 
     # --> bkg only PDF central value and error
     poi.setVal(0.)
-    Integral_bkg_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
+    Integral_bkg_total = pdfmodel.createIntegral(RooArgSet(obs))
     Yield_bkg_total = Integral_bkg_total.getVal() * binWidth.getVal()
 
     hist_bkg = pdfmodel.createHistogram("hbkg_"+cat.GetName(), obs, ROOT.RooFit.Extended(False))
@@ -253,15 +257,12 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
                       ROOT.RooFit.FillColor(ROOT.kOrange),
                       ROOT.RooFit.LineWidth(2),
                       ROOT.RooFit.LineColor(ROOT.kBlue))
-        if compute_yields:
-            Yield_bkg_total_err = Integral_bkg_total.getPropagatedError(fit_res)*binWidth.getVal()
-            yields['bkg'] = (Yield_bkg_total, Yield_bkg_total_err)
+        #if compute_yields:
+            # Yield_bkg_total_err = Integral_bkg_total.getPropagatedError(fit_res)*binWidth.getVal()
+            # yields['bkg'] = (Yield_bkg_total, Yield_bkg_total_err)
 
     poi.setVal(poi_fitted_val)
     if compute_yields:
         return frame, hlist, yields
     else:
         return frame, hlist
-
-
-

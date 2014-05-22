@@ -7,6 +7,11 @@ C.register_code(
     #define PREFIT_ROOFITRESULT
     #include <RooFitResult.h>
     #include <TMatrixDSym.h>
+    #include <RooRealVar.h>
+    
+    #include <iostream>
+    #include <algorithm>
+    #include <math.h>
     class Prefit_RooFitResult: public RooFitResult {
       public:
         Prefit_RooFitResult(RooFitResult* _fitres, bool decorelate=false): RooFitResult(), fitres(_fitres)
@@ -14,11 +19,21 @@ C.register_code(
           RooFitResult::setConstParList(fitres->constPars());
           RooFitResult::setInitParList(fitres->floatParsInit());
           RooFitResult::setFinalParList(fitres->floatParsInit());
-          TMatrixDSym cov = fitres->covarianceMatrix();
-          if (decorelate)
-            for(int icol=0; icol<cov.GetNcols(); icol++)
-              for(int irow=0; irow<cov.GetNrows(); irow++)
-                cov(icol, irow) = (icol==irow ? cov(icol, irow) : 0);
+          TMatrixDSym corr = fitres->correlationMatrix();
+          TMatrixDSym cov(corr.GetNrows());
+          for (int ii=0 ; ii<_finalPars->getSize() ; ii++){
+            for (int jj=0 ; jj<_finalPars->getSize() ; jj++){
+               //Double_t error_ii = std::max(fabs(((RooRealVar*)_finalPars->at(ii))->getErrorHi()),
+               //                             fabs(((RooRealVar*)_finalPars->at(ii))->getErrorLo()));
+               //Double_t error_jj = std::max(fabs(((RooRealVar*)_finalPars->at(jj))->getErrorHi()),
+               //                             fabs(((RooRealVar*)_finalPars->at(jj))->getErrorLo()));
+               Double_t error_ii = ((RooRealVar*)_finalPars->at(ii))->getError();
+               Double_t error_jj = ((RooRealVar*)_finalPars->at(jj))->getError();
+                cov(ii, jj) = corr(ii, jj)*error_ii*error_jj;
+                if (decorelate)
+                  cov(ii, jj) = ii==jj ? cov(ii, jj)/corr(ii,jj):0.;
+              }
+            }  
           RooFitResult::setCovarianceMatrix(cov);
           
         }
@@ -44,12 +59,10 @@ C.register_code(
         Partial_RooFitResult(const RooFitResult& _fitres, Int_t nparams, const Int_t *index_params): RooFitResult(_fitres)
         {
            TMatrixDSym origin_cov = this->covarianceMatrix();
-           TMatrixDSym new_cov(0, origin_cov.GetNrows()-1);
+           TMatrixDSym new_cov(origin_cov.GetNrows());
            new_cov *= 0.; //set the matrix to 0s.
-           //for(int icol=0; icol<new_cov.GetNcols(); icol++)
-             //for(int irow=0; irow<new_cov.GetNrows(); irow++)
-               //new_cov(icol, irow) = 0.;
-
+           for(int icol=0; icol<new_cov.GetNcols(); icol++)
+             new_cov(icol,icol) = 1e-20;
            for(int ind=0; ind<nparams; ind++){
              Int_t index = index_params[ind];
              for(int icol=0; icol<new_cov.GetNcols(); icol++)
