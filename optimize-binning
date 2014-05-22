@@ -191,11 +191,17 @@ def get_valid_range(bkg_scores, left, right, steps,
     # get first bin edge that satisfies background requirements
     first_bin_min_bkg_unweighted = np.where(sum_unweighted_left_valid)[-1][0]
     first_bin_min_bkg_weighted = np.where(sum_weighted_left_valid)[-1][0]
-    first_bin_min_bkg = min(first_bin_min_bkg_unweighted,
+    first_bin_min_bkg = max(first_bin_min_bkg_unweighted,
                             first_bin_min_bkg_weighted)
     
     # bump first bin edge up until background requirements are satisfied
     first_bin_min_bkg += all_positive_left[first_bin_min_bkg:].argmax()
+
+    # require more background on left of cut than right
+    # (avoids complex noisy binnings and promotes a nice background shape)
+    first_bin_min_bkg = max(first_bin_min_bkg,
+        (sum_weighted_left >= np.concatenate([[sum_weighted_right[0]], sum_weighted_right])[:-1]).argmax() - 1)
+
     # sanity check
     assert(first_bin_min_bkg < len(bkg_weighted[0]))
 
