@@ -300,7 +300,7 @@ if __name__ == '__main__':
         linecycler = cycle(lines)
 
         # show significance vs middle bin edge location
-        binning = [min_score, max_score]
+        binning = [float(min_score), float(max_score)]
         prev_best_sig = 0
         nbkg = 0
         while True:
@@ -323,7 +323,7 @@ if __name__ == '__main__':
             ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                      color='black', linestyle='-', linewidth=2)
-            binning.insert(1, best_edge)
+            binning.insert(1, float(best_edge))
             prev_best_sig = best_sig
 
         # Try to insert edges in the highest bin.
@@ -345,7 +345,7 @@ if __name__ == '__main__':
             ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                      color='red', linestyle='-', linewidth=2)
-            binning.insert(-1, best_edge)
+            binning.insert(-1, float(best_edge))
             prev_best_sig = best_sig
 
         # try inserting N bins into the first bin
