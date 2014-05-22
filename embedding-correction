@@ -8,36 +8,41 @@ from rootpy.io import root_open
 from rootpy.plotting import Hist2D, Canvas
 from root_numpy import fill_hist
 
-# normal trigger correcions
-ztt_mccor = MC_Ztautau(2012)
-# embedding trigger corrections
-ztt_ebcor = MC_Ztautau(2012, trigger=False)
+output = root_open('embedding_corrections.root', 'RECREATE')
 
-# maps of pt tau1 vs pt tau2
-mccor_hist = Hist2D([35, 40, 45, 50, 60, 80, 100],
-                    [25, 30, 35, 40, 45, 50, 60, 80, 100],
-                    name='mc_map')
-ebcor_hist = mccor_hist.Clone(name='eb_map')
+for year in (2011, 2012):
+    # normal trigger correcions
+    ztt_mccor = MC_Ztautau(year)
+    # embedding trigger corrections
+    ztt_ebcor = MC_Ztautau(year, trigger=False)
 
-# get the arrays
-fields = ['tau1_pt', 'tau2_pt']
-mccor_arr = ztt_mccor.array(Category_Preselection, TARGET_REGION, fields)
-ebcor_arr = ztt_ebcor.array(Category_Preselection, TARGET_REGION, fields)
+    # maps of pt tau1 vs pt tau2
+    mccor_hist = Hist2D([35, 45, 60, 100],
+                        [25, 35, 45, 60, 100],
+                        name='mc_map_{0}'.format(year % 1000))
+    ebcor_hist = mccor_hist.Clone(name='eb_map_{0}'.format(year % 1000))
 
-# fill the histograms from the arrays
-fill_hist(mccor_hist, mccor_arr[:,0:-1] / 1000, mccor_arr[:,-1])
-fill_hist(ebcor_hist, ebcor_arr[:,0:-1] / 1000, ebcor_arr[:,-1])
+    # get the arrays
+    fields = ['tau1_pt', 'tau2_pt']
+    mccor_arr = ztt_mccor.array(Category_Preselection, TARGET_REGION, fields)
+    ebcor_arr = ztt_ebcor.array(Category_Preselection, TARGET_REGION, fields)
 
-# normalize
-mccor_hist /= mccor_hist.integral()
-ebcor_hist /= ebcor_hist.integral()
+    # fill the histograms from the arrays
+    fill_hist(mccor_hist, mccor_arr[:,0:-1] / 1000, mccor_arr[:,-1])
+    fill_hist(ebcor_hist, ebcor_arr[:,0:-1] / 1000, ebcor_arr[:,-1])
 
-# ratio
-ebmccor_hist = mccor_hist / ebcor_hist
-ebmccor_hist.name = 'ebmc_weight'
+    # normalize
+    mccor_hist /= mccor_hist.integral()
+    ebcor_hist /= ebcor_hist.integral()
 
-# save the histograms
-with root_open('embedding_corrections.root', 'RECREATE'):
+    # ratio
+    ebmccor_hist = mccor_hist / ebcor_hist
+    ebmccor_hist.name = 'ebmc_weight_{0}'.format(year % 1000)
+
+    # save the histograms
+    output.cd()
     mccor_hist.Write()
     ebcor_hist.Write()
     ebmccor_hist.Write()
+
+output.Close()
