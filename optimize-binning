@@ -159,8 +159,15 @@ def get_best_edge(scores, edges, pos=0,
     last_bin_min_bkg = min(last_bin_min_bkg_unweighted,
                            last_bin_min_bkg_weighted)
     
+    # bump last bin edge down until background requirements are satisfied
     last_bin_min_bkg -= all_positive[:last_bin_min_bkg + 1][::-1].argmax()
-    last_bin_edge = bkg_weighted[0].xedges(int(last_bin_min_bkg))
+    # sanity check
+    assert(last_bin_min_bkg >= 0)
+    last_bin_edge = bkg_weighted[0].xedgesl(int(last_bin_min_bkg) + 1)
+
+    if last_bin_edge <= left:
+        # not possible to create any new bins
+        return None, None, None, None, -1
 
     # get significance for each candidate bin edge
     probe_edges = np.linspace(left, last_bin_edge, steps)[1:]
@@ -207,8 +214,8 @@ def get_best_edge(scores, edges, pos=0,
         return None, None, None, None, -1
 
     # stop if lower bin would contain less background than the higher bin
-    if bkg_weighted_left < bkg_weighted_right:
-        return None, None, None, None, -1
+    #if bkg_weighted_left < bkg_weighted_right:
+    #    return None, None, None, None, -1
     
     return probe_edges, sigs, bkg_weighted_right, best_edge, best_sig
 
@@ -319,19 +326,22 @@ if __name__ == '__main__':
             binning.insert(1, best_edge)
             prev_best_sig = best_sig
 
-        # Try to insert an edge in the highest bin.
+        # Try to insert edges in the highest bin.
         # Sometimes there is a local maximum above the first inserted bin edge
         # from above. Adding a bin edge here will usually improve the significance.
-        edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
-            scores, binning,
-            pos=-2,
-            steps=args.steps,
-            min_bkg_unweighted=args.min_bkg,
-            min_bkg_weighted=0,
-            mass=mass,
-            systematics=args.systematics,
-            n_jobs=args.procs)
-        if best_sig > prev_best_sig:
+        while True:
+            edges, sigs, nbkg, best_edge, best_sig = get_best_edge(
+                scores, binning,
+                pos=-2,
+                steps=args.steps,
+                min_bkg_unweighted=args.min_bkg,
+                min_bkg_weighted=0,
+                mass=mass,
+                systematics=args.systematics,
+                n_jobs=args.procs)
+            if best_sig <= prev_best_sig:
+                # no improvement or impossible to add an edge
+                break
             ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),
                      color='red', linestyle='-', linewidth=2)
