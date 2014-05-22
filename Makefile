@@ -281,7 +281,7 @@ mva-control-plots:
 .PHONY: train
 train:
 	@for mass in $$(seq 100 5 150); do \
-		run-cluster ./train --mass $${mass}; \
+		PPN=15 run-cluster ./train --mass $${mass} --procs 15; \
 	done
 
 .PHONY: binning

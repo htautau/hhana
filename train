@@ -8,6 +8,7 @@ parser.add_argument('--nfold', type=int, default=10,
 parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
 parser.add_argument('--categories', nargs='*')
 parser.add_argument('--suffix', default=None)
+parser.add_argument('--procs', type=int, default=-1)
 args = parser.parse_args()
 
 from mva.categories import (
@@ -15,9 +16,6 @@ from mva.categories import (
 from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.defaults import TRAIN_FAKES_REGION
-import multiprocessing
-
-n_jobs = (multiprocessing.cpu_count() * 3) / 4
 
 analysis = Analysis(
     year=2012,
@@ -63,4 +61,4 @@ for category in (Category_VBF, Category_Boosted):
     clf.train(signals=signals_train,
               backgrounds=backgrounds_train,
               cv_nfold=args.nfold,
-              n_jobs=n_jobs)
+              n_jobs=args.procs)
