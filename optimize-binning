@@ -97,7 +97,8 @@ def get_best_edge(scores, edges, pos=0,
                   min_bkg_unweighted=10,
                   min_bkg_weighted=0,
                   mass=125,
-                  systematics=False):
+                  systematics=False,
+                  n_jobs=-1):
     if pos + 2 == 0:
         left, right = edges[pos:]
     else:
@@ -166,7 +167,8 @@ def get_best_edge(scores, edges, pos=0,
     sigs = map_pool(SigProcess,
                     [(scores, edges, x, pos + 1) for x in probe_edges],
                     mass=mass,
-                    systematics=systematics)
+                    systematics=systematics,
+                    n_jobs=n_jobs)
 
     # get best significance and best edge location
     best_sig = np.max(sigs[10:])
@@ -221,6 +223,7 @@ if __name__ == '__main__':
     parser.add_argument('--steps', type=int, default=100)
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
+    parser.add_argument('--procs', type=int, default=-1)
     args = parser.parse_args()
     year = args.year
     mass = args.mass
@@ -276,7 +279,8 @@ if __name__ == '__main__':
                 for bins in nfixed_bins], 
             fill_empties=True,
             mass=mass,
-            systematics=args.systematics)
+            systematics=args.systematics,
+            n_jobs=args.procs)
         max_fixed_sig = np.max(fixed_sigs)
         max_fixed_nbins = nfixed_bins[np.argmax(fixed_sigs)]
         
@@ -301,7 +305,8 @@ if __name__ == '__main__':
                 # use nbkg from previous bin so background increases to left
                 min_bkg_weighted=nbkg,
                 mass=mass,
-                systematics=args.systematics)
+                systematics=args.systematics,
+                n_jobs=args.procs)
             if best_sig <= 0:
                 # no valid edge found
                 break
@@ -324,7 +329,8 @@ if __name__ == '__main__':
             min_bkg_unweighted=args.min_bkg,
             min_bkg_weighted=0,
             mass=mass,
-            systematics=args.systematics)
+            systematics=args.systematics,
+            n_jobs=args.procs)
         if best_sig > prev_best_sig:
             ax1.plot(edges, sigs, color='red', linestyle=next(linecycler))
             ax1.plot((best_edge, best_edge), (0, abs(best_sig)),

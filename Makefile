@@ -1,8 +1,14 @@
 
+# student name
 HHSTUDENT ?= hhskim
+# ntuple production directory
 HHNTUP ?= ntuples/prod_v29/hhskim
+# ntuple running directory
 HHNTUP_RUNNING ?= ntuples/running/hhskim
+# maximum number of processors to request in PBS
+PPN_MAX ?= 15
 
+# current git branch
 BRANCH := $(shell git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
 
 .PHONY: dump
@@ -275,14 +281,14 @@ mva-control-plots:
 .PHONY: train
 train:
 	@for mass in $$(seq 100 5 150); do \
-		PPN=15 run-cluster ./train --mass $${mass} --procs 15; \
+		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --procs $(PPN_MAX); \
 	done
 
 .PHONY: binning
 binning:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			run-cluster ./optimize-binning --systematics --year $${year} --mass $${mass}; \
+			PPN=$(PPN_MAX) run-cluster ./optimize-binning --systematics --year $${year} --mass $${mass} --procs $(PPN_MAX); \
 		done; \
 	done
 
