@@ -116,6 +116,7 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
         raise RuntimeError('Could not retrieve the list of observable')
     # --> Get the first (and only) observable (mmc mass for cut based)
     obs  = obstmp.first()
+    log.info('Observable: {0}'.format(obs.GetName()))
     # --> Get the RooDataHist of the given category
     datatmp = obsData.reduce("{0}=={1}::{2}".format(simPdf.indexCat().GetName(), simPdf.indexCat().GetName(), cat.GetName()))
     datatmp.__class__=ROOT.RooAbsData # --> Ugly fix !!!

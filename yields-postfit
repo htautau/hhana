@@ -61,7 +61,7 @@ if __name__ == '__main__':
             latex_lines['QCD']       += get_sample_yield(yields_postfit, cat, 'Fakes') + '&'
             latex_lines['Others']    += get_sample_yield(yields_postfit, cat, 'Others') + '&'
             latex_lines['TotalBkg']  += get_sample_yield(yields_postfit, cat, 'bkg') + '&'
-            latex_lines['Data']      += get_sample_yield(yields_postfit, cat, 'Data') + '&'
+            latex_lines['Data']      += str(int(yields_postfit[cat]['Data'][0])) + '&'
 
         for _, line in latex_lines.items():
             if not 'hline' in line:
