@@ -70,7 +70,8 @@ def fix_measurement(meas, fill_empties=False):
         drop_np_types=["OverallSys"],
         drop_np_samples=['Ztautau'],
         #symmetrize_names=["*JVF*", "*TES_TRUE*", "*EMB_MFS*"],
-        #symmetrize_types=["overallsys", "histosys"]
+        symmetrize_names=["*TES_TRUE_MODELING*"],
+        symmetrize_types=["overallsys", "histosys"]
         )
     #--smooth-histosys --smooth-histosys-iterations 1 \
     #--smooth-histosys-samples Fakes Ztautau Others "Signal_VBF_*" "Signal_gg_*" \
