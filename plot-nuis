@@ -13,8 +13,11 @@ style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.16)
 style.SetTitleYOffset(1.4)
 set_style(style)
-mva_path = 'workspaces/pulls/mva/ws_measurement_hh_combination_125_nuispars_scan_nofit.pickle'
-cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
+#mva_path = 'workspaces/pulls/mva/ws_measurement_hh_combination_125_nuispars_scan_nofit.pickle'
+#cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
+
+mva_path = 'workspaces/22_05_2014/hh_nos_nonisol_ebz_mva/hh_12_combination_125_fixed_tessym/ws_measurement_hh_12_combination_125_nuispars_scan.pickle'
+cba_path = '/cluster/data11/endw/analysis/HSG4/htt/workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
 
 line = TLine()
 line.SetLineStyle(7)
@@ -78,4 +81,5 @@ for nuis, mva_values in mva_data.items():
     cba_graph = make_graph(cba_values, cba_nominal_nll, drawstyle='L',
                            linewidth=2, linestyle='dashed', color='red',
                            title='CBA')
-    plot(nuis, [mva_graph, cba_graph])
+#     plot(nuis, [mva_graph, cba_graph])
+    plot(nuis, [mva_graph])
