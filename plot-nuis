@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from mva import save_canvas
+from mva import save_canvas, log; log = log[__name__]
 from statstools.pvalue_plot import pvalue_plot
 from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
 from rootpy.plotting.utils import draw
@@ -16,7 +16,11 @@ set_style(style)
 #mva_path = 'workspaces/pulls/mva/ws_measurement_hh_combination_125_nuispars_scan_nofit.pickle'
 #cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
 
-mva_path = 'workspaces/22_05_2014/hh_nos_nonisol_ebz_mva/hh_12_combination_125_fixed_tessym/ws_measurement_hh_12_combination_125_nuispars_scan.pickle'
+mva_path = './workspaces/22_05_2014/hh_nos_nonisol_ebz_mva_fixed/hh_combination_125/ws_measurement_hh_combination_125_nuispars_scan.pickle'
+mva_path_12_vbf = './workspaces/22_05_2014/hh_nos_nonisol_ebz_mva_fixed/hh_12_vbf_125/ws_measurement_hh_12_vbf_125_nuispars_scan.pickle'
+mva_path_11_vbf = './workspaces/22_05_2014/hh_nos_nonisol_ebz_mva_fixed/hh_11_vbf_125/ws_measurement_hh_11_vbf_125_nuispars_scan.pickle'
+mva_path_12_boosted = './workspaces/22_05_2014/hh_nos_nonisol_ebz_mva_fixed/hh_12_boosted_125/ws_measurement_hh_12_boosted_125_nuispars_scan.pickle'
+mva_path_11_boosted = './workspaces/22_05_2014/hh_nos_nonisol_ebz_mva_fixed/hh_11_boosted_125/ws_measurement_hh_11_boosted_125_nuispars_scan.pickle'
 cba_path = '/cluster/data11/endw/analysis/HSG4/htt/workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
 
 line = TLine()
@@ -65,21 +69,54 @@ def make_graph(values, nominal, max_value=8, **kwargs):
 
 
 mva_data = get_data(mva_path)
+mva_data_vbf_12 = get_data(mva_path_12_vbf)
+mva_data_vbf_11 = get_data(mva_path_11_vbf)
+mva_data_boosted_12 = get_data(mva_path_12_boosted)
+mva_data_boosted_11 = get_data(mva_path_11_boosted)
 cba_data = get_data(cba_path)
+
 mva_nominal_nll = mva_data['NOMINAL']
+mva_nominal_nll_vbf_12 = mva_data_vbf_12['NOMINAL']
+mva_nominal_nll_vbf_11 = mva_data_vbf_11['NOMINAL']
+mva_nominal_nll_boosted_12 = mva_data_boosted_12['NOMINAL']
+mva_nominal_nll_boosted_11 = mva_data_boosted_11['NOMINAL']
+
 cba_nominal_nll = cba_data['NOMINAL']
+
 # plot profiles of each NP
 for nuis, mva_values in mva_data.items():
+    log.info(nuis)
     if nuis == 'NOMINAL':
         continue
     try:
-        cba_values = cba_data[nuis]
+        #         cba_values = cba_data[nuis]
+        mva_values_vbf_12 = mva_data_vbf_12[nuis]
+        mva_values_boosted_12 = mva_data_boosted_12[nuis]
+        mva_values_vbf_11 = mva_data_vbf_11[nuis]
+        mva_values_boosted_11 = mva_data_boosted_11[nuis]
     except KeyError:
+        log.info('Do not play with {0}'.format(nuis))
         continue
     mva_graph = make_graph(mva_values, mva_nominal_nll, drawstyle='L',
-                           linewidth=2, title='MVA')
-    cba_graph = make_graph(cba_values, cba_nominal_nll, drawstyle='L',
-                           linewidth=2, linestyle='dashed', color='red',
-                           title='CBA')
+                           linewidth=2, title='MVA Combined')
+    mva_graph_vbf_12 = make_graph(mva_values_vbf_12, mva_nominal_nll_vbf_12, drawstyle='L',
+                                  linewidth=2, color='green', linestyle='dashed', title='MVA VBF 2012')
+    mva_graph_boosted_12 = make_graph(mva_values_boosted_12, mva_nominal_nll_boosted_12, drawstyle='L',
+                                      linewidth=2, color='red', linestyle='dashed', title='MVA Boosted 2012')
+    mva_graph_vbf_11 = make_graph(mva_values_vbf_11, mva_nominal_nll_vbf_11, drawstyle='L',
+                                  linewidth=2, color='blue', linestyle='longdash', title='MVA VBF 2011')
+    mva_graph_boosted_11 = make_graph(mva_values_boosted_11, mva_nominal_nll_boosted_11, drawstyle='L',
+                                      linewidth=2, color='purple', linestyle='longdash', title='MVA Boosted 2011')
+
+#     mva_graph_vbf_11 = make_graph(mva_values, mva_nominal_nll_vbf_11, drawstyle='L',
+#                                   linewidth=2, title='MVA VBF 2011')
+#     mva_graph_boosted_11 = make_graph(mva_values, mva_nominal_nll_boosted_11, drawstyle='L',
+#                                       linewidth=2, title='MVA Boosted 2011')
+#     cba_graph = make_graph(cba_values, cba_nominal_nll, drawstyle='L',
+#                            linewidth=2, linestyle='dashed', color='red',
+#                            title='CBA')
 #     plot(nuis, [mva_graph, cba_graph])
-    plot(nuis, [mva_graph])
+#     plot(nuis+'_2012', [mva_graph, mva_graph_vbf_12, mva_graph_boosted_12])
+#     plot(nuis+'_2011', [mva_graph, mva_graph_vbf_11, mva_graph_boosted_11])
+    plot(nuis, [mva_graph, mva_graph_vbf_12, mva_graph_boosted_12, mva_graph_vbf_11, mva_graph_boosted_11])
+#     plot(nuis, [mva_graph, mva_graph_vbf_12, mva_graph_boosted_12])
