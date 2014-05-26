@@ -44,7 +44,11 @@ def fix(input, suffix='fixed', verbose=False, **kwargs):
                     silence=not verbose)
 
 
-def fix_measurement(meas, fill_empties=False):
+def fix_measurement(meas,
+                    fill_empties=False,
+                    prune_shapes=False,
+                    chi2_threshold=0.99,
+                    symmetrize=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
@@ -56,30 +60,40 @@ def fix_measurement(meas, fill_empties=False):
         drop_np_samples=['Others'],
         prune_overallsys=True,
         prune_overallsys_threshold=0.5, # percent
-        uniform_binning=True,
-        #fill_empties=True,
-        #fill_empties_samples=['Fakes', 'Ztautau']
-        )
-    #--prune-histosys --prune-histosys-method chi2 --prune-histosys-threshold 0.99 \
-    #--prune-histosys-blacklist QCDscale_ggH3in \
-    #--rebin-channels channel_vbf_${mass} channel_boosted_${mass} \
-    #--rebin 10 from Makefile
+        uniform_binning=True)
 
+    if fill_empties:
+        # fill empty bins with the average sample weight
+        # the so-called "Kyle-fix"
+        process_measurement(meas,
+            fill_empties=True,
+            fill_empties_samples=['Fakes', 'Ztautau'])
+
+    # ignore OverallSys on Ztt that is redundant with Ztt norm
     process_measurement(meas,
         drop_np_names=["*TAU_ID*"],
         drop_np_types=["OverallSys"],
-        drop_np_samples=['Ztautau'],
-        #symmetrize_names=["*JVF*", "*TES_TRUE*", "*EMB_MFS*"],
-        symmetrize_names=["*TES_TRUE_MODELING*"],
-        symmetrize_types=["overallsys", "histosys"]
-        )
-    #--smooth-histosys --smooth-histosys-iterations 1 \
-    #--smooth-histosys-samples Fakes Ztautau Others "Signal_VBF_*" "Signal_gg_*" \
-    #--prune-histosys --prune-histosys-samples Fakes Others Ztautau \
-    #--prune-histosys-method max --prune-histosys-threshold 0.1
+        drop_np_samples=['Ztautau'])
 
-    if fill_empties:
+    if prune_shapes:
+        # prune NPs with chi2 method
         process_measurement(meas,
-            fill_empties=True,
-            fill_empties_samples=['Fakes', 'Ztautau']
-            )
+            prune_histosys=True,
+            prune_histosys_method='chi2',
+            prune_histosys_threshold=chi2_threshold)
+            #prune_histosys_blacklist=['QCDscale_ggH3in']) ?
+        # prune NPs with max deviation method
+        process_measurement(meas,
+            prune_histosys=True,
+            prune_histosys_method='max',
+            prune_histosys_threshold=0.1, # 10%
+            prune_histosys_samples=['Fakes', 'Others', 'Ztautau']
+
+    if symmetrize:
+        # symmetrize NPs with double minima or kinks
+        process_measurement(meas,
+            symmetrize_names=[
+                "*TES_TRUE_MODELING*",
+                "*ANA_EMB_ISOL*",
+                "*ANA_EMB_MFS_2011*"],
+            symmetrize_types=["overallsys", "histosys"])

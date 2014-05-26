@@ -29,7 +29,8 @@ class Category(object):
     cuts = Cut()
     common_cuts = Cut()
     from .. import samples
-    train_signal_modes = samples.Higgs.MODES[:]
+    # by default ignore VH modes in the training
+    train_signal_modes = ['VBF', 'gg']
     clf_bins = 8
     # only unblind up to this number of bins in half-blind mode
     # flat, onebkg or constant (see mva/stats/utils.py)

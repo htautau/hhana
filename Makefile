@@ -284,6 +284,18 @@ train:
 		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --procs $(PPN_MAX); \
 	done
 
+.PHONY: train-boosted
+train-boosted:
+	@for mass in $$(seq 100 5 150); do \
+		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --categories boosted --procs $(PPN_MAX); \
+	done
+
+.PHONY: train-vbf
+train-vbf:
+	@for mass in $$(seq 100 5 150); do \
+		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --categories vbf --procs $(PPN_MAX); \
+	done
+
 .PHONY: binning
 binning:
 	@for year in 2011 2012; do \

@@ -27,7 +27,7 @@ class Category_VBF(Category_Preselection):
         )
     limitbins = 20
     features = features_vbf
-    # train with only VBF
+    # train with only VBF mode
     signal_train_modes = ['VBF']
     norm_category = Category_Preselection
 
@@ -53,7 +53,8 @@ class Category_Boosted(Category_Preselection):
     limitbins = 20
     # warning: some variables will be undefined for some events
     features = features_boosted
-    # train with all modes
+    # train with only ggF mode
+    signal_train_modes = ['gg']
     norm_category = Category_Preselection
 
 

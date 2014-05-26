@@ -291,7 +291,7 @@ def prepare_dataset(signal_train, signal_weight_train,
             background_train = background_train[subsample]
             background_weight_train = background_weight_train[subsample]
             log.info("number of background events reduced "
-                        "to match number of signal events")
+                     "to match number of signal events")
         elif len(background_train) < len(signal_train):
             # random subsample of signal so it's the same size as background
             subsample = np.random.permutation(
@@ -299,7 +299,7 @@ def prepare_dataset(signal_train, signal_weight_train,
             signal_train = signal_train[subsample]
             signal_weight_train = signal_weight_train[subsample]
             log.info("number of signal events reduced "
-                        "to match number of background events")
+                     "to match number of background events")
 
     if norm_sig_to_bkg:
         # normalize signal to background
