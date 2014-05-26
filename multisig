@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from multiprocessing import Process
+from rootpy.io import root_open
 from statstools.jobs import run_pool
 from statstools import get_significance_workspace
-from rootpy.io import root_open
 import pickle
 import os
 
