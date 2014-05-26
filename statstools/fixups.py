@@ -82,12 +82,12 @@ def fix_measurement(meas,
             prune_histosys_method='chi2',
             prune_histosys_threshold=chi2_threshold)
             #prune_histosys_blacklist=['QCDscale_ggH3in']) ?
-        # prune NPs with max deviation method
+        # prune NPs with max deviation method (only background)
         process_measurement(meas,
             prune_histosys=True,
             prune_histosys_method='max',
             prune_histosys_threshold=0.1, # 10%
-            prune_histosys_samples=['Fakes', 'Others', 'Ztautau']
+            prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
 
     if symmetrize:
         # symmetrize NPs with double minima or kinks

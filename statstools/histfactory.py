@@ -347,6 +347,9 @@ def matched(name, patterns, ignore_case=False):
 def apply_split_norm_shape(s):
     from rootpy.stats.histfactory import split_norm_shape
     for histosys in s.histo_sys:
+        # skip histosys for which overallsys already exist
+        if s.GetOverallSys(histosys.name) is not None:
+            continue
         log.info("splitting HistoSys `{0}` in sample `{1}`".format(
             histosys.name, s.name))
         norm, shape = split_norm_shape(histosys, s.hist)
