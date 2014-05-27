@@ -122,25 +122,12 @@ Run the batch jobs that create the workspaces with::
 Go get some coffee.
 
 
-Fixing Workspaces
------------------
-
-Apply all of the HSG4 workspace fixes with::
-
-    cd workspaces
-    fix-workspace --verbose --fill-empties hh_nos_nonisol_ebz_cuts hh_nos_nonisol_ebz_mva
-
-Replace the path above with the actual path if different.
-
-Go take a long walk.
-
-
 Combining Workspaces
 ---------------------
 
 Move to the directory containing all the MVA workspaces to combine::
 
-    cd workspaces/hh_nos_nonisol_ebz_mva_fixed
+    cd workspaces/hh_nos_nonisol_ebz_mva
 
 Combine workspaces across years with::
 
@@ -154,7 +141,7 @@ Check your email.
 
 Move to the directory containing all the CBA workspaces to combine::
 
-    cd workspaces/hh_nos_nonisol_ebz_cuts_fixed
+    cd workspaces/hh_nos_nonisol_ebz_cuts
 
 Create VBF and boosted combinations for each year, and a combination
 across years::
@@ -168,6 +155,19 @@ across years::
         combine hh_11_cuts_vbf_$mass hh_12_cuts_vbf_$mass --name hh_cuts_vbf_$mass;
         combine hh_11_combination_$mass hh_12_combination_$mass --name hh_combination_$mass;
     done
+
+
+Fixing Workspaces
+-----------------
+
+Apply all of the HSG4 workspace fixes with::
+
+    cd workspaces
+    fix-workspace --verbose --fill-empties hh_nos_nonisol_ebz_cuts hh_nos_nonisol_ebz_mva
+
+Replace the path above with the actual path if different.
+
+Go take a long walk.
 
 
 Fitting
