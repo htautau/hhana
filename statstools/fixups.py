@@ -48,7 +48,8 @@ def fix_measurement(meas,
                     fill_empties=False,
                     prune_shapes=False,
                     chi2_threshold=0.99,
-                    symmetrize=False):
+                    symmetrize=False,
+                    symmetrize_partial=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
@@ -97,4 +98,5 @@ def fix_measurement(meas,
                 "*TES_TRUE_MODELING*",
                 "*ANA_EMB_ISOL*",
                 "*ANA_EMB_MFS_2011*"],
-            symmetrize_types=["overallsys", "histosys"])
+            symmetrize_types=["overallsys", "histosys"],
+            symmetrize_partial=symmetrize_partial)
