@@ -9,8 +9,11 @@ parser.add_argument('--fill-empties', action='store_true', default=False)
 parser.add_argument('--prune-shapes', action='store_true', default=False)
 parser.add_argument('--chi2-threshold', type=float, default=0.99)
 parser.add_argument('--symmetrize', action='store_true', default=False)
+parser.add_argument('--symmetrize-partial', action='store_true', default=False)
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
+
+args.symmetrize = args.symmetrize or args.symmetrize_partial
 
 from statstools.fixups import fix
 
@@ -19,4 +22,5 @@ for path in args.paths:
         fill_empties=args.fill_empties,
         prune_shapes=args.prune_shapes,
         chi2_threshold=args.chi2_threshold,
-        symmetrize=args.symmetrize)
+        symmetrize=args.symmetrize,
+        symmetrize_partial=args.symmetrize_partial)

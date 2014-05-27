@@ -46,6 +46,7 @@ def process_measurement(m,
                         symmetrize_types=None,
                         symmetrize_samples=None,
                         symmetrize_channels=None,
+                        symmetrize_partial=False,
 
                         smooth_histosys=False,
                         smooth_histosys_iterations=1,
@@ -271,20 +272,18 @@ def process_measurement(m,
                 if not matched(s.name, symmetrize_samples):
                     continue
                 if matched('histosys', symmetrize_types, ignore_case=True):
-                    names = []
                     for np in s.histo_sys:
                         if matched(np.name, symmetrize_names, ignore_case=True):
-                            log.info("symmetrizing HistoSys `{0}` in sample `{1}`".format(
-                                np.name, s.name))
-                            symmetrize_histosys(np, s.hist)
+                            if symmetrize_histosys(np, s.hist, partial=symmetrize_partial):
+                                log.info("symmetrized HistoSys `{0}` in sample `{1}`".format(
+                                    np.name, s.name))
 
                 if matched('overallsys', symmetrize_types, ignore_case=True):
-                    names = []
                     for np in s.overall_sys:
                         if matched(np.name, symmetrize_names, ignore_case=True):
-                            log.info("symmetrizing OverallSys `{0}` in sample `{1}`".format(
-                                np.name, s.name))
-                            symmetrize_overallsys(np, nominal=1.)
+                            if symmetrize_overallsys(np, nominal=1., partial=symmetrize_partial):
+                                log.info("symmetrized OverallSys `{0}` in sample `{1}`".format(
+                                    np.name, s.name))
 
         # convert to uniform binning
         if uniform_binning:
@@ -358,34 +357,78 @@ def apply_split_norm_shape(s):
         s.AddOverallSys(norm)
 
 
-def symmetrize_histosys(np, nominal):
+def symmetrize_histosys(np, nominal, partial=False):
+    """
+    Full Symmetrization (default)
+    -----------------------------
+    If high and low are on one side of nominal in a given bin, then
+    then set the side with the lower absolute deviation to have the
+    same absolute variation as the other, but on the other side of nominal.
+
+    Partial Symmetrization
+    ----------------------
+    Same as above but set the side with the lower absolute deviation
+    to the nominal value.
+    """
     high = np.high.Clone(name=np.high.name + '_symmetrized', shallow=True)
     low = np.low.Clone(name=np.low.name + '_symmetrized', shallow=True)
+    symmetrized = False
     for high_bin, low_bin, nom_bin in izip(high.bins(), low.bins(),
                                            nominal.bins()):
         high_value = high_bin.value
         low_value = low_bin.value
         nom_value = nom_bin.value
-        delta = max(abs(high_value - nom_value),
-                    abs(low_value - nom_value))
-        if high_value >= low_value:
-            high_bin.value = nom_value + delta
-            low_bin.value = nom_value - delta
+        up = high_value - nom_value
+        dn = low_value - nom_value
+        if up * dn > 0:
+            symmetrized = True
+            # same side variation
+            if abs(up) > abs(dn):
+                if partial:
+                    low_bin.value = nom_value
+                else:
+                    low_bin.value = nom_value - up
+            else:
+                if partial:
+                    high_bin.value = nom_value
+                else:
+                    high_bin.value = nom_value - dn
+    if symmetrized:
+        np.high = high
+        np.low = low
+    return symmetrized
+
+
+def symmetrize_overallsys(np, nominal=1., partial=False):
+    """
+    Full Symmetrization (default)
+    -----------------------------
+    If high and low are on one side of nominal, then
+    then set the side with the lower absolute deviation to have the
+    same absolute variation as the other, but on the other side of nominal.
+
+    Partial Symmetrization
+    ----------------------
+    Same as above but set the side with the lower absolute deviation
+    to the nominal value.
+    """
+    up = np.high - nominal
+    dn = np.low - nominal
+    if up * dn > 0:
+        symmetrized = True
+        # same side variation
+        if abs(up) > abs(dn):
+            if partial:
+                np.low = nominal
+            else:
+                np.low = nominal - up
         else:
-            high_bin.value = nom_value - delta
-            low_bin.value = nom_value + delta
-    np.high = high
-    np.low = low
-
-
-def symmetrize_overallsys(np, nominal=1.):
-    delta = max(abs(np.high - nominal), abs(np.low - nominal))
-    if np.high >= np.low:
-        np.high = nominal + delta
-        np.low = nominal - delta
-    else:
-        np.high = nominal - delta
-        np.low = nominal + delta
+            if partial:
+                np.high = nominal
+            else:
+                np.high = nominal - dn
+        return True
+    return False
 
 
 def shape_chi2_test(nom, up, down, threshold):
