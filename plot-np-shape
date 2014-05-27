@@ -4,8 +4,9 @@ import os
 # ROOT/rootpy imports
 from rootpy import ROOT
 from rootpy.extern.argparse import ArgumentParser
-from rootpy.stats.histfactory import measurements_from_xml, HistoSys, OverallSys
+from rootpy.stats.histfactory import measurements_from_xml, HistoSys, OverallSys, Sample
 from rootpy.plotting import Hist, Legend, Graph, Canvas
+from rootpy.plotting.utils import get_band
 # local imports
 from statstools.fixups import find_measurements
 from statstools import log; log = log[__name__]
@@ -16,7 +17,10 @@ parser = ArgumentParser()
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
+
 class MultipleCanvas(Canvas):
+    """
+    """
     def __init__(self, canvas_list):
         if not isinstance(canvas_list, (tuple, list)):
             raise RuntimeError('Wrong argument')
@@ -26,10 +30,12 @@ class MultipleCanvas(Canvas):
             canv.Draw()
 
 def draw_ratio(nom, sys_var,
-               textsize=22,
+               textsize=18,
                ratio_range=(0,2),
                ratio_line_values=[0.5,1,1.5],
                sys_name='syst',
+               sample_name=None,
+               category_name=None,
                optional_label_text=None):
     """
     Draw a canvas with an Hists and its up/down systematic variations 
@@ -71,6 +77,17 @@ def draw_ratio(nom, sys_var,
     ratio_do = Hist.divide(do, nom, fill_value=-1)
     ratio_do.drawstyle = 'hist'
     ratio_do.color = 'blue'
+    ratio_unity = Hist.divide(nom, nom, fill_value=-1)
+    ratio_band_do = get_band(ratio_unity, ratio_do)
+    ratio_band_up = get_band(ratio_unity, ratio_up)
+    ratio_band_do.fillstyle = '/'
+    ratio_band_do.fillcolor = 'blue'
+    ratio_band_do.linewidth = 0
+    ratio_band_do.drawstyle = '20'
+    ratio_band_up.fillstyle = '\\'
+    ratio_band_up.fillcolor = 'red'
+    ratio_band_up.linewidth = 0
+    ratio_band_up.drawstyle = '20'
 
     ratio_range = (min(list(ratio_up.y())+list(ratio_do.y())),
                    max(list(ratio_up.y())+list(ratio_do.y())))
@@ -83,15 +100,15 @@ def draw_ratio(nom, sys_var,
                      ytitle='Events',
                      ratio_title='Ratio',
                      ratio_height=0.4,
-                     ratio_range=ratio_range,
-                     ratio_line_values=ratio_line_values)
+                     ratio_range=ratio_range)
+#                     ratio_line_values=ratio_line_values)
 
     plot.draw('main', [nom, up, do], ypadding=(0.3, 0.))
-    plot.draw('ratio', [ratio_up, ratio_do])
+    plot.draw('ratio', [ratio_up, ratio_do, ratio_band_up, ratio_band_do])
     with plot.pad('main') as pad:
         # legend
         leg = Legend([nom, up, do],
-                     leftmargin=0.25, topmargin=0.1,
+                     leftmargin=0.65, topmargin=0.13,
                      margin=0.18, textsize=textsize)
         leg.Draw()
         # draw the category label
@@ -103,22 +120,30 @@ def draw_ratio(nom, sys_var,
         label.SetTextSize(textsize)
         label.Draw()
         # show p-value and chi^2
-        pvalue = nom.Chi2Test(up, 'WW')
-        pvalue_label = ROOT.TLatex(
-            pad.GetLeftMargin() + 0.04, 0.8,
-            "p-value={0:.2f}".format(pvalue))
-        pvalue_label.SetNDC(True)
-        pvalue_label.SetTextFont(43)
-        pvalue_label.SetTextSize(textsize)
-        pvalue_label.Draw()
-        chi2 = nom.Chi2Test(up, 'WW CHI2/NDF')
-        chi2_label = ROOT.TLatex(
+        chi2_up = nom.Chi2Test(up, 'WW CHI2/NDF')
+        chi2_up_label = ROOT.TLatex(
+            pad.GetLeftMargin() + 0.04, 0.64,
+            "+1#sigma: #chi^{{2}}/ndf={0:.2f}".format(chi2_up))
+        chi2_up_label.SetNDC(True)
+        chi2_up_label.SetTextFont(43)
+        chi2_up_label.SetTextSize(textsize)
+        chi2_up_label.Draw()
+        chi2_do = nom.Chi2Test(do, 'WW CHI2/NDF')
+        chi2_do_label = ROOT.TLatex(
             pad.GetLeftMargin() + 0.04, 0.72,
-            "#frac{{#chi^{{2}}}}{{ndf}}={0:.2f}".format(chi2))
-        chi2_label.SetNDC(True)
-        chi2_label.SetTextFont(43)
-        chi2_label.SetTextSize(textsize)
-        chi2_label.Draw()
+            "-1#sigma: #chi^{{2}}/ndf={0:.2f}".format(chi2_do))
+        chi2_do_label.SetNDC(True)
+        chi2_do_label.SetTextFont(43)
+        chi2_do_label.SetTextSize(textsize)
+        chi2_do_label.Draw()
+        if sample_name is not None:
+            if category_name is not None:
+                sample_cat_text = '{0}; {1}'.format(category_name, sample_name)
+                sample_cat_label = ROOT.TLatex(pad.GetLeftMargin()+0.04, 0.8, sample_cat_text)
+                sample_cat_label.SetNDC(True)
+                sample_cat_label.SetTextFont(43)
+                sample_cat_label.SetTextSize(textsize)
+                sample_cat_label.Draw()
         if optional_label_text is not None:
             optional_label = ROOT.TLatex(pad.GetLeftMargin()+0.55,0.87,
                                          optional_label_text )
@@ -130,18 +155,8 @@ def draw_ratio(nom, sys_var,
 
 
 
-def get_merged_samples(channel):
-    merged_samples = []
-    signal_samples = []
-    for sample in channel.samples():
-        if 'Signal' in sample.name:
-            signal_samples.append(sample)
-        else:
-            merged_samples.append(sample)
-    return merged_samples
 
-def plot_np(meas):
-    log.info('tot')
+
 
 
 #------------
@@ -170,11 +185,13 @@ for input_path in args.paths:
                     hnom = sample.hist
                     for name, osys, hsys in sample.iter_sys():
                         if isinstance(osys, OverallSys):
-                            log.info('[{0}, {1}]'.format(osys.low, osys.high))
+                            log.info('{0}: [{1}, {2}]'.format(name, osys.low, osys.high))
                         if isinstance(hsys, HistoSys):
                             hsys_low, hsys_high = sample.sys_hist(name)
                             plot = draw_ratio(hnom, (hsys_high, hsys_low),
-                                              sys_name=name)
+                                              sys_name=name,
+                                              sample_name = sample.name,
+                                              category_name = channel.name)
                             save_canvas(plot, 'plots',
                                         '{0}/shape_{1}_{2}_{3}.png'.format(meas.name,
                                                                            channel.name,

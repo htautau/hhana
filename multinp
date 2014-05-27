@@ -36,8 +36,6 @@ if __name__ == '__main__':
     for par in nuispar_list_tot:
         if 'alpha' in par:
             nuispar_list.append(par)
-        if 'norm' in par:
-            nuispar_list.append(par)
     log.info(nuispar_list)
 
     # ------------------------------------
