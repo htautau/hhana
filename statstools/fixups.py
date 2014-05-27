@@ -45,7 +45,6 @@ def fix(input, suffix='fixed', verbose=False, **kwargs):
 
 
 def fix_measurement(meas,
-                    fill_empties=False,
                     prune_shapes=False,
                     chi2_threshold=0.99,
                     symmetrize=False,
@@ -54,6 +53,18 @@ def fix_measurement(meas,
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
     """
+    if symmetrize:
+        # symmetrize NPs with double minima or kinks
+        # do this before splitting into shape+norm
+        process_measurement(meas,
+            symmetrize_names=[
+                "*TES_TRUE_FINAL_2011*"
+                "*TES_TRUE_MODELING*",
+                "*ANA_EMB_ISOL*",
+                "*ANA_EMB_MFS_2011*"],
+            symmetrize_types=["histosys"],
+            symmetrize_partial=symmetrize_partial)
+
     process_measurement(meas,
         split_norm_shape=True,
         drop_np_names=["*"],
@@ -62,13 +73,6 @@ def fix_measurement(meas,
         prune_overallsys=True,
         prune_overallsys_threshold=0.5, # percent
         uniform_binning=True)
-
-    if fill_empties:
-        # fill empty bins with the average sample weight
-        # the so-called "Kyle-fix"
-        process_measurement(meas,
-            fill_empties=True,
-            fill_empties_samples=['Fakes', 'Ztautau'])
 
     # ignore OverallSys on Ztt that is redundant with Ztt norm
     process_measurement(meas,
@@ -90,13 +94,8 @@ def fix_measurement(meas,
             prune_histosys_threshold=0.1, # 10%
             prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
 
-    if symmetrize:
-        # symmetrize NPs with double minima or kinks
-        process_measurement(meas,
-            symmetrize_names=[
-                "*TES_TRUE_FINAL_2011*"
-                "*TES_TRUE_MODELING*",
-                "*ANA_EMB_ISOL*",
-                "*ANA_EMB_MFS_2011*"],
-            symmetrize_types=["overallsys", "histosys"],
-            symmetrize_partial=symmetrize_partial)
+    # fill empty bins with the average sample weight
+    # the so-called "Kyle-fix"
+    process_measurement(meas,
+        fill_empties=True,
+        fill_empties_samples=['Fakes', 'Ztautau'])

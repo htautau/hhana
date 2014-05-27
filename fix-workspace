@@ -5,7 +5,6 @@ from rootpy.extern.argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('--quiet', default=False, action='store_true')
 parser.add_argument('--suffix', default='fixed')
-parser.add_argument('--fill-empties', action='store_true', default=False)
 parser.add_argument('--prune-shapes', action='store_true', default=False)
 parser.add_argument('--chi2-threshold', type=float, default=0.99)
 parser.add_argument('--symmetrize', action='store_true', default=False)
@@ -19,7 +18,6 @@ from statstools.fixups import fix
 
 for path in args.paths:
     fix(path, suffix=args.suffix, verbose=not args.quiet,
-        fill_empties=args.fill_empties,
         prune_shapes=args.prune_shapes,
         chi2_threshold=args.chi2_threshold,
         symmetrize=args.symmetrize,
