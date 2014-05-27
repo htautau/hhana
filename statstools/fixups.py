@@ -93,6 +93,7 @@ def fix_measurement(meas,
         # symmetrize NPs with double minima or kinks
         process_measurement(meas,
             symmetrize_names=[
+                "*TES_TRUE_FINAL_2011*"
                 "*TES_TRUE_MODELING*",
                 "*ANA_EMB_ISOL*",
                 "*ANA_EMB_MFS_2011*"],
