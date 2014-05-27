@@ -11,6 +11,19 @@ parser.add_argument('--path', default=None)
 parser.add_argument('files', nargs='+')
 args = parser.parse_args()
 
+root_file = '{0}.root'.format(args.name)
+xml_path = args.name
+
+if args.path is not None:
+    root_file = os.path.join(args.path, root_file)
+    xml_path = os.path.join(args.path, xml_path)
+
+if os.path.exists(root_file):
+    sys.exit("output ROOT file already exists: {0}".format(root_file))
+    
+if os.path.exists(xml_path):
+    sys.exit("XML output directory already exists: {0}".format(xml_path))
+
 from rootpy.stats.histfactory import (
     measurements_from_xml, write_measurement,
     make_measurement)
@@ -56,13 +69,6 @@ combined_measurement = make_measurement(
     args.name, channels,
     POI=measurements[0].poi,
     const_params=measurements[0].const_params)
-
-root_file = '{0}.root'.format(args.name)
-xml_path = args.name
-
-if args.path is not None:
-    root_file = os.path.join(args.path, root_file)
-    xml_path = os.path.join(args.path, xml_path)
 
 # write out the new measurement and workspace
 write_measurement(

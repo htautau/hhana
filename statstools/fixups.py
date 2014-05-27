@@ -27,6 +27,7 @@ def fix(input, suffix='fixed', verbose=False, **kwargs):
     input = os.path.normpath(input)
     output = input + '_' + suffix
     for dirpath, measurement_file in find_measurements(input):
+        output_path = os.path.join(output, dirpath.replace(input, '', 1)[1:])
         path = os.path.join(dirpath, measurement_file)
         log.info("fixing {0} ...".format(path))
         measurements = measurements_from_xml(
@@ -35,11 +36,13 @@ def fix(input, suffix='fixed', verbose=False, **kwargs):
             collect_histograms=True,
             silence=not verbose)
         for meas in measurements:
+            root_file = os.path.join(output_path, '{0}.root'.format(meas.name))
+            xml_path = os.path.join(output_path, meas.name)
             with MemFile():
                 fix_measurement(meas, **kwargs)
                 write_measurement(meas,
-                    output_path=os.path.join(
-                        output, dirpath.replace(input, '', 1)[1:]),
+                    root_file=root_file,
+                    xml_path=xml_path,
                     write_workspaces=True,
                     silence=not verbose)
 
