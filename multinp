@@ -32,10 +32,11 @@ if __name__ == '__main__':
         ws = file[args.name]
         mc = ws.obj('ModelConfig')
         nuispar_list_tot = get_nuisance_params(mc).keys()
-    
     nuispar_list = []
     for par in nuispar_list_tot:
         if 'alpha' in par:
+            nuispar_list.append(par)
+        if 'norm' in par:
             nuispar_list.append(par)
     log.info(nuispar_list)
 
