@@ -492,7 +492,7 @@ class Classifier(object):
                     (cv_nfold - 1.) / cv_nfold)
                 min_leaf_low = max(10, int(min_leaf_high / 100.))
 
-                min_leaf_step = max((min_leaf_high - min_leaf_low) / 30, 1)
+                min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
                 max_n_estimators = 200
                 min_n_estimators = 1
 

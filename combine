@@ -7,7 +7,7 @@ from rootpy.extern.argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('--name', default='combined')
 parser.add_argument('--verbose', action='store_true', default=False)
-parser.add_argument('--output', default='combined')
+parser.add_argument('--path', default=None)
 parser.add_argument('files', nargs='+')
 args = parser.parse_args()
 
@@ -57,9 +57,17 @@ combined_measurement = make_measurement(
     POI=measurements[0].poi,
     const_params=measurements[0].const_params)
 
+root_file = '{0}.root'.format(args.name)
+xml_path = args.name
+
+if args.path is not None:
+    root_file = os.path.join(args.path, root_file)
+    xml_path = os.path.join(args.path, xml_path)
+
 # write out the new measurement and workspace
 write_measurement(
     combined_measurement,
-    output_path=args.output,
+    root_file=root_file,
+    xml_path=xml_path,
     write_workspaces=True,
     silence=not args.verbose)
