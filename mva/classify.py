@@ -488,19 +488,24 @@ class Classifier(object):
             if partition_idx == 0:
 
                 # grid search params
-                min_leaf_high = int((sample_train.shape[0] / 8) *
-                    (cv_nfold - 1.) / cv_nfold)
-                min_leaf_low = max(10, int(min_leaf_high / 100.))
+                # min_samples_leaf
+                #min_leaf_high = int((sample_train.shape[0] / 8) *
+                #    (cv_nfold - 1.) / cv_nfold)
+                #min_leaf_low = max(10, int(min_leaf_high / 100.))
+                #min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
+                #min_samples_leaf = range(
+                #    min_leaf_low, min_leaf_high, min_leaf_step)
 
-                min_leaf_step = max((min_leaf_high - min_leaf_low) / 100, 1)
+                # min_fraction_leaf
+                min_fraction_leaf = np.linspace(0.001, 0.3, 200)
+
+                # n_estimators
                 max_n_estimators = 200
                 min_n_estimators = 1
 
-                min_samples_leaf = range(
-                    min_leaf_low, min_leaf_high, min_leaf_step)
-
                 grid_params = {
-                    'base_estimator__min_samples_leaf': min_samples_leaf,
+                    #'base_estimator__min_samples_leaf': min_samples_leaf,
+                    'base_estimator__min_fraction_leaf': min_fraction_leaf,
                 }
 
                 # create a BDT
@@ -552,13 +557,13 @@ class Classifier(object):
                 plot_grid_scores(
                     grid_scores,
                     best_point={
-                        'base_estimator__min_samples_leaf':
-                        clf.base_estimator.min_samples_leaf,
+                        'base_estimator__min_fraction_leaf':
+                        clf.base_estimator.min_fraction_leaf,
                         'n_estimators':
                         clf.n_estimators},
                     params={
-                        'base_estimator__min_samples_leaf':
-                        'min leaf',
+                        'base_estimator__min_fraction_leaf':
+                        'leaf fraction',
                         'n_estimators':
                         'trees'},
                     name=(self.category.name +
@@ -571,22 +576,19 @@ class Classifier(object):
                     pickle.dump(grid_scores, f)
 
                 # scale up the min-leaf and retrain on the whole set
-                min_samples_leaf = clf.base_estimator.min_samples_leaf
-
-                clf = sklearn.clone(clf)
-                clf.base_estimator.min_samples_leaf = int(
-                    min_samples_leaf *
-                        cv_nfold / float(cv_nfold - 1))
-
-                clf.fit(sample_train, labels_train,
-                        sample_weight=sample_weight_train)
-
-                log.info("After scaling up min_leaf")
-                out = StringIO()
-                print >> out
-                print >> out
-                print >> out, clf
-                log.info(out.getvalue())
+                #min_samples_leaf = clf.base_estimator.min_samples_leaf
+                #clf = sklearn.clone(clf)
+                #clf.base_estimator.min_samples_leaf = int(
+                #    min_samples_leaf *
+                #        cv_nfold / float(cv_nfold - 1))
+                #clf.fit(sample_train, labels_train,
+                #        sample_weight=sample_weight_train)
+                #log.info("After scaling up min_leaf")
+                #out = StringIO()
+                #print >> out
+                #print >> out
+                #print >> out, clf
+                #log.info(out.getvalue())
 
             else: # training on the other partition
                 log.info("training a new classifier ...")
@@ -611,7 +613,7 @@ class Classifier(object):
                     export_graphviz(tree,
                         out_file=os.path.join(
                             clf_filename,
-                            'tree_{0:d}.dot'.format(itree)),
+                            'tree_{0:04d}.dot'.format(itree)),
                         feature_names=self.all_fields)
 
             with open('{0}.pickle'.format(clf_filename), 'w') as f:

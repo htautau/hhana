@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import os
+import pickle
+from rootpy.plotting import Graph, Canvas, Legend, set_style
+from rootpy.plotting.utils import draw
+import ROOT
+ROOT.gROOT.SetBatch()
+
+set_style('ATLAS')
+
+basepath = 'workspaces/pruning'
+
+def get_sig(path):
+    with open(os.path.join(basepath, path), 'r') as pickle_file:
+        sig_dict = pickle.load(pickle_file)
+    return sig_dict['combined']
+
+baseline = get_sig('hh_combination_125_fixed/measurement_hh_combination_125.pickle')
+
+chi2_thresh = [0.80, 0.85, 0.90, 0.95, 0.96, 0.97, 0.98, 0.99, 1]
+
+graph_symm = Graph(len(chi2_thresh), color='red', title='Full Symmetrization',
+                   drawstyle='P', legendstyle='P')
+graph_part_symm = graph_symm.Clone(color='blue', title='Partial Symmetrization')
+
+for i, thresh in enumerate(chi2_thresh):
+    thresh_str = '1' if thresh == 1 else '%1.2f' % thresh
+    sig = get_sig('hh_combination_125_chi2_{0}_sym/measurement_hh_combination_125.pickle'.format(thresh_str))
+    graph_symm.SetPoint(i, thresh, (sig - baseline) / baseline)
+    sig = get_sig('hh_combination_125_chi2_{0}_part_sym/measurement_hh_combination_125.pickle'.format(thresh_str))
+    graph_part_symm.SetPoint(i, thresh, (sig - baseline) / baseline)
+
+c = Canvas()
+draw([graph_symm, graph_part_symm], pad=c,
+     xtitle='#chi^{2} threshold',
+     ytitle='(#sigma^{pruned} - #sigma) / #sigma',
+     ypadding=(0.35, 0.2),
+     xpadding=(0.1, 0))
+legend = Legend([graph_symm, graph_part_symm], pad=c,
+                leftmargin=0.05,
+                rightmargin=0.45)
+legend.Draw()
+c.SaveAs('pruning.png')

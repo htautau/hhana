@@ -61,5 +61,6 @@ for category in (Category_VBF, Category_Boosted):
     clf.train(signals=signals_train,
               backgrounds=backgrounds_train,
               remove_negative_weights=True,
+              same_size_sig_bkg=False,
               cv_nfold=args.nfold,
               n_jobs=args.procs)

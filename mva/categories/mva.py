@@ -53,8 +53,8 @@ class Category_Boosted(Category_Preselection):
     limitbins = 20
     # warning: some variables will be undefined for some events
     features = features_boosted
-    # train with only ggF mode
-    signal_train_modes = ['gg']
+    # train with all modes (inherited from Category in base.py)
+    #signal_train_modes =
     norm_category = Category_Preselection
 
 

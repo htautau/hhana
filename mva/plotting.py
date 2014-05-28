@@ -1732,7 +1732,7 @@ def plot_grid_scores(grid_scores, best_point, params, name,
         def leaf_formatter(x, pos):
             if x < 0 or x >= len(leaves):
                 return ''
-            return str(leaves[int(x)])
+            return '%.2f' % leaves[int(x)]
 
         ax.xaxis.set_major_formatter(FuncFormatter(tree_formatter))
         ax.yaxis.set_major_formatter(FuncFormatter(leaf_formatter))
