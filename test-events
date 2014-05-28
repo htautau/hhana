@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+from mva.analysis import Analysis
+from mva.samples import Higgs
+from mva.categories import Category_VBF, Category_Boosted
+from mva.defaults import TARGET_REGION
+from rootpy.plotting import Hist
+from root_numpy import fill_hist
+
+higgs = Higgs(2012, mass=125)
+analysis = Analysis(2012)
+
+for category in (Category_VBF, Category_Boosted):
+    clf = analysis.get_clf(category, mass=125, load=True)
+    scores, weights = higgs.scores(
+        clf, category, TARGET_REGION,
+        systematics=False)['NOMINAL']
+    hist = Hist(20, scores.min() - 1E-5, scores.max() + 1E-5)
+    fill_hist(hist, scores, weights)
+    # should be equal!
+    print higgs.events(category, TARGET_REGION)[1].value, hist.integral()
