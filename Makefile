@@ -300,7 +300,7 @@ train-vbf:
 binning:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			PPN=$(PPN_MAX) run-cluster ./optimize-binning --systematics --year $${year} --mass $${mass} --procs $(PPN_MAX); \
+			PPN=$(PPN_MAX) run-cluster ./optimize-binning --year $${year} --mass $${mass} --procs $(PPN_MAX); \
 		done; \
 	done
 

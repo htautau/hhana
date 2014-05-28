@@ -16,28 +16,31 @@ def get_sig(path):
         sig_dict = pickle.load(pickle_file)
     return sig_dict['combined']
 
-baseline = get_sig('hh_combination_125_fixed/measurement_hh_combination_125.pickle')
+baseline = get_sig('hh_combination_125_raw_fixed/hh_combination_125/measurement_hh_combination_125.pickle')
 
-chi2_thresh = [0.80, 0.85, 0.90, 0.95, 0.96, 0.97, 0.98, 0.99, 1]
+chi2_thresh = [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.96, 0.97, 0.98, 0.99, 1]
 
 graph_symm = Graph(len(chi2_thresh), color='red', title='Full Symmetrization',
                    drawstyle='P', legendstyle='P')
 graph_part_symm = graph_symm.Clone(color='blue', title='Partial Symmetrization')
+graph_nosymm = graph_symm.Clone(color='black', title='No Symmetrization')
 
 for i, thresh in enumerate(chi2_thresh):
     thresh_str = '1' if thresh == 1 else '%1.2f' % thresh
-    sig = get_sig('hh_combination_125_chi2_{0}_sym/measurement_hh_combination_125.pickle'.format(thresh_str))
-    graph_symm.SetPoint(i, thresh, (sig - baseline) / baseline)
-    sig = get_sig('hh_combination_125_chi2_{0}_part_sym/measurement_hh_combination_125.pickle'.format(thresh_str))
-    graph_part_symm.SetPoint(i, thresh, (sig - baseline) / baseline)
+    sig = get_sig('hh_combination_125_raw_chi2_{0}_sym/hh_combination_125/measurement_hh_combination_125.pickle'.format(thresh_str))
+    graph_symm.SetPoint(i, thresh, (sig - baseline) / sig)
+    sig = get_sig('hh_combination_125_raw_chi2_{0}_part_sym/hh_combination_125/measurement_hh_combination_125.pickle'.format(thresh_str))
+    graph_part_symm.SetPoint(i, thresh, (sig - baseline) / sig)
+    sig = get_sig('hh_combination_125_raw_chi2_{0}/hh_combination_125/measurement_hh_combination_125.pickle'.format(thresh_str))
+    graph_nosymm.SetPoint(i, thresh, (sig - baseline) / sig)
 
 c = Canvas()
-draw([graph_symm, graph_part_symm], pad=c,
+draw([graph_symm, graph_part_symm, graph_nosymm], pad=c,
      xtitle='#chi^{2} threshold',
      ytitle='(#sigma^{pruned} - #sigma) / #sigma',
-     ypadding=(0.35, 0.2),
+     ypadding=(0.4, 0.2),
      xpadding=(0.1, 0))
-legend = Legend([graph_symm, graph_part_symm], pad=c,
+legend = Legend([graph_symm, graph_part_symm, graph_nosymm], pad=c,
                 leftmargin=0.05,
                 rightmargin=0.45)
 legend.Draw()

@@ -60,11 +60,12 @@ def fix_measurement(meas,
         # symmetrize NPs with double minima or kinks
         # do this before splitting into shape+norm
         process_measurement(meas,
-            symmetrize_names=[
-                "*TES_TRUE_FINAL_2011*"
-                "*TES_TRUE_MODELING*",
-                "*ANA_EMB_ISOL*",
-                "*ANA_EMB_MFS_2011*"],
+            #symmetrize_names=[
+            #    "*TES_TRUE_FINAL_2011*"
+            #    "*TES_TRUE_MODELING*",
+            #    "*ANA_EMB_ISOL*",
+            #    "*ANA_EMB_MFS_2011*"],
+            symmetrize_names=['*'],
             symmetrize_types=["histosys"],
             symmetrize_partial=symmetrize_partial)
 
@@ -78,10 +79,10 @@ def fix_measurement(meas,
         uniform_binning=True)
 
     # ignore OverallSys on Ztt that is redundant with Ztt norm
-    process_measurement(meas,
-        drop_np_names=["*TAU_ID*"],
-        drop_np_types=["OverallSys"],
-        drop_np_samples=['Ztautau'])
+    #process_measurement(meas,
+    #    drop_np_names=["*TAU_ID*"],
+    #    drop_np_types=["OverallSys"],
+    #    drop_np_samples=['Ztautau'])
 
     if prune_shapes:
         # prune NPs with chi2 method

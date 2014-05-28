@@ -51,7 +51,6 @@ def map_pool(process, args, n_jobs=-1, **kwargs):
 
 def get_workspace(scores, binning,
                   mass=125,
-                  fill_empties=False,
                   systematics=False):
     hist_template = Hist(binning)
     background = []
@@ -71,20 +70,18 @@ def get_workspace(scores, binning,
     measurement = make_measurement('MVA', channel,
         POI='SigXsecOverSM',
         const_params=CONST_PARAMS)
-    fix_measurement(measurement, fill_empties=fill_empties)
+    fix_measurement(measurement)
     return make_workspace(measurement, silence=False)
 
 
 def get_sig(scores, binning, edge=None, pos=1,
             mass=125,
-            fill_empties=False,
             systematics=False):
     if edge is not None:
         binning = binning[:]
         binning.insert(pos, edge)
     ws = get_workspace(scores, binning,
                        mass=mass,
-                       fill_empties=fill_empties,
                        systematics=systematics)
     hist = get_significance_workspace(ws)
     sig = hist[2].value
@@ -344,7 +341,6 @@ if __name__ == '__main__':
             SigProcess,
             [(scores, np.linspace(min_score, max_score, bins + 1))
                 for bins in nfixed_bins], 
-            fill_empties=True,
             mass=mass,
             systematics=args.systematics,
             n_jobs=args.procs)
