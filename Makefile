@@ -6,7 +6,7 @@ HHNTUP ?= ntuples/prod_v29/hhskim
 # ntuple running directory
 HHNTUP_RUNNING ?= ntuples/running/hhskim
 # maximum number of processors to request in PBS
-PPN_MAX ?= 15
+PBS_PPN_MAX ?= 15
 
 # current git branch
 BRANCH := $(shell git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
@@ -22,6 +22,19 @@ clean-h5:
 	rm -f $(HHNTUP)/$(HHSTUDENT).h5
 
 clean-ntup: clean-root clean-h5
+
+clean-grl:
+	rm -f $(HHNTUP)/observed_grl_11.xml
+	rm -f $(HHNTUP)/observed_grl_12.xml
+	rm -f ~/observed_grl_11.xml
+	rm -f ~/observed_grl_12.xml
+	rm -f $(HHNTUP)/merged_grl_11.xml
+	rm -f $(HHNTUP)/merged_grl_12.xml
+
+clean-pyc:                                                                      
+	find mva statstools -name "*.pyc" -exec rm {} \;
+
+clean: clean-pyc
 
 check-files:
 	./checkfile $(HHNTUP_RUNNING)/$(HHSTUDENT)*.root
@@ -208,19 +221,6 @@ grl-12: ~/observed_grl_12.xml
 
 grl: grl-11 grl-12
 
-clean-grl:
-	rm -f $(HHNTUP)/observed_grl_11.xml
-	rm -f $(HHNTUP)/observed_grl_12.xml
-	rm -f ~/observed_grl_11.xml
-	rm -f ~/observed_grl_12.xml
-	rm -f $(HHNTUP)/merged_grl_11.xml
-	rm -f $(HHNTUP)/merged_grl_12.xml
-
-clean-pyc:                                                                      
-	find . -name "*.pyc" -exec rm {} \;
-
-clean: clean-pyc
-
 bundle:
 	rm -f ~/higgstautau-mva-plots.tar.gz
 	find plots/variables/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
@@ -281,26 +281,26 @@ mva-control-plots:
 .PHONY: train
 train:
 	@for mass in $$(seq 100 5 150); do \
-		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --procs $(PPN_MAX); \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-boosted
 train-boosted:
 	@for mass in $$(seq 100 5 150); do \
-		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --categories boosted --procs $(PPN_MAX); \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-vbf
 train-vbf:
 	@for mass in $$(seq 100 5 150); do \
-		PPN=$(PPN_MAX) run-cluster ./train --mass $${mass} --categories vbf --procs $(PPN_MAX); \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: binning
 binning:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			PPN=$(PPN_MAX) run-cluster ./optimize-binning --year $${year} --mass $${mass} --procs $(PPN_MAX); \
+			PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year $${year} --mass $${mass} --procs $(PBS_PPN_MAX); \
 		done; \
 	done
 
@@ -308,17 +308,17 @@ binning:
 mva-workspaces:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			run-cluster ./workspace mva --systematics --years $${year} --masses $${mass}; \
+			PBS_MEM=18gb run-cluster ./workspace mva --systematics --years $${year} --masses $${mass}; \
 		done; \
 	done
 
 .PHONY: cuts-workspaces
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
-		run-cluster ./workspace cuts --systematics --years 2011 --categories cuts_2011 --masses $${mass}; \
+		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --years 2011 --categories cuts_2011 --masses $${mass}; \
 	done;
 	@for mass in $$(seq 100 5 150); do \
-		run-cluster ./workspace cuts --systematics --years 2012 --categories cuts --masses $${mass}; \
+		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --years 2012 --categories cuts --masses $${mass}; \
 	done;
 
 .PHONY: higgs-pt

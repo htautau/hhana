@@ -497,7 +497,7 @@ class Classifier(object):
                 #    min_leaf_low, min_leaf_high, min_leaf_step)
 
                 # min_fraction_leaf
-                min_fraction_leaf = np.linspace(0.001, 0.3, 200)
+                min_fraction_leaf = np.linspace(0.001, 0.15, 200)
 
                 # n_estimators
                 max_n_estimators = 200
