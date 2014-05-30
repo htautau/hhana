@@ -1,9 +1,41 @@
+from .jobs import run_pool
 from .histfactory import process_measurement
 from rootpy.stats.histfactory import measurements_from_xml, write_measurement
 from rootpy.io import MemFile
 import os
 
 from . import log; log = log[__name__]
+
+from multiprocessing import Process
+
+
+class Worker(Process):
+    def __init__(self, path, output_path, verbose=False, **kwargs):
+        super(Worker, self).__init__()
+        self.path = path
+        self.output_path = output_path
+        self.verbose = verbose
+        self.kwargs = kwargs
+
+    def run(self):
+        path = self.path
+        output_path = self.output_path
+        kwargs = self.kwargs
+        measurements = measurements_from_xml(
+            path,
+            cd_parent=True,
+            collect_histograms=True,
+            silence=not self.verbose)
+        for meas in measurements:
+            root_file = os.path.join(output_path, '{0}.root'.format(meas.name))
+            xml_path = os.path.join(output_path, meas.name)
+            with MemFile():
+                fix_measurement(meas, **kwargs)
+                write_measurement(meas,
+                    root_file=root_file,
+                    xml_path=xml_path,
+                    write_workspaces=True,
+                    silence=not self.verbose)
 
 
 def find_measurements(path):
@@ -18,7 +50,7 @@ def find_measurements(path):
                     yield dirpath, filename
 
 
-def fix(input, suffix='fixed', verbose=False, **kwargs):
+def fix(input, suffix='fixed', verbose=False, n_jobs=-1, **kwargs):
     """
     Traverse all workspaces and apply HSG4 fixes
     """
@@ -26,25 +58,15 @@ def fix(input, suffix='fixed', verbose=False, **kwargs):
         raise ValueError("input must be an existing directory")
     input = os.path.normpath(input)
     output = input + '_' + suffix
+    # find all measurements to fix
+    workers = []
     for dirpath, measurement_file in find_measurements(input):
         output_path = os.path.join(output, dirpath.replace(input, '', 1)[1:])
         path = os.path.join(dirpath, measurement_file)
         log.info("fixing {0} ...".format(path))
-        measurements = measurements_from_xml(
-            path,
-            cd_parent=True,
-            collect_histograms=True,
-            silence=not verbose)
-        for meas in measurements:
-            root_file = os.path.join(output_path, '{0}.root'.format(meas.name))
-            xml_path = os.path.join(output_path, meas.name)
-            with MemFile():
-                fix_measurement(meas, **kwargs)
-                write_measurement(meas,
-                    root_file=root_file,
-                    xml_path=xml_path,
-                    write_workspaces=True,
-                    silence=not verbose)
+        workers.append(Worker(path, output_path, verbose=verbose, **kwargs))
+    # run the workers
+    run_pool(workers, n_jobs=n_jobs)
 
 
 def fix_measurement(meas,
