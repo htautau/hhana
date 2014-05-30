@@ -11,12 +11,13 @@ from root_numpy import fill_hist
 # begin configuration
 modes = [
     'gg',
-    'VBF',
+    #'VBF',
 ]
 ggf_weight = True
 # end configuration
 
-higgs = Higgs(2012, mass=125, modes=modes, ggf_weight=ggf_weight)
+higgs = Higgs(2012, mass=125, modes=modes, ggf_weight=ggf_weight,
+              student='hhskim_BCH')
 higgs_bch = Higgs(2012, mass=125, modes=modes, ggf_weight=ggf_weight,
                   student='hhskim_BCH',
                   suffix='_BCH.mc12b')
@@ -25,8 +26,8 @@ print "default raw number of events", higgs.events(weighted=False)[1].value
 print "BCH-fixed sample raw number of events", higgs_bch.events(weighted=False)[1].value
 
 FAIL_BCH_TIGHT = {
-    Category_VBF: '!tau1_BCHTight&&!tau2_BCHTight&&!jet1_BCHTight&&!jet2_BCHTight',
-    Category_Boosted: '!tau1_BCHTight&&!tau2_BCHTight',
+    Category_VBF: 'tau1_BCHTight||tau2_BCHTight||jet1_BCHTight||jet2_BCHTight',
+    Category_Boosted: 'tau1_BCHTight||tau2_BCHTight',
 }
 
 analysis = Analysis(2012)
@@ -66,4 +67,22 @@ for category in (Category_VBF, Category_Boosted):
             higgs.events(category, TARGET_REGION, cuts=FAIL_BCH_TIGHT[category])[1].value) / higgs.events(category, TARGET_REGION)[1].value
     print category.name, diff 
     print
+    
+    bch = higgs_bch.events(category, TARGET_REGION)[1].value
+    bch_fail = higgs_bch.events(category,
+        TARGET_REGION, cuts=FAIL_BCH_TIGHT[category])[1].value
+    
+    default = higgs.events(category, TARGET_REGION)[1].value
+    default_fail = higgs.events(category,
+            TARGET_REGION, cuts=FAIL_BCH_TIGHT[category])[1].value
+
+    print "BCH-fixed sample events: ", bch
+    print "BCH-fixed sample events failing tight: ", bch_fail
+    
+    print "default sample events: ", default
+    print "default sample events failing tight: ", default_fail
+
+    print "N(r5470, fail tight BCH-cut) / N(r5470, no cuts)", bch_fail / bch
+    print "N(default, fail tight BCH-cut) / N(default, no cuts)", default_fail / default
+    
     print '-' * 20
