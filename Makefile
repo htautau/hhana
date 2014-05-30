@@ -308,17 +308,17 @@ binning:
 mva-workspaces:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_MEM=18gb run-cluster ./workspace mva --systematics --years $${year} --masses $${mass}; \
+			PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass}; \
 		done; \
 	done
 
 .PHONY: cuts-workspaces
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --years 2011 --categories cuts_2011 --masses $${mass}; \
+		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
 	done;
 	@for mass in $$(seq 100 5 150); do \
-		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --years 2012 --categories cuts --masses $${mass}; \
+		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
 	done;
 
 .PHONY: higgs-pt
