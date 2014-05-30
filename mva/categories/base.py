@@ -31,10 +31,6 @@ class Category(object):
     from .. import samples
     # by default train with all modes
     train_signal_modes = samples.Higgs.MODES[:]
-    clf_bins = 8
-    # only unblind up to this number of bins in half-blind mode
-    # flat, onebkg or constant (see mva/stats/utils.py)
-    limitbinning = 'constant'
     plot_label = None
 
     @classmethod

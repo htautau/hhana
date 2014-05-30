@@ -553,6 +553,7 @@ class Analysis(object):
                 category, region,
                 cuts=cuts, scores=data_scores,
                 uniform=uniform)
+            """
             if unblind is False:
                 # blind full histogram
                 data_sample.hist[:] = (0, 0)
@@ -566,6 +567,7 @@ class Analysis(object):
                         for s, scores in all_sig_scores[mass]]), unblind)
                 blind_bin = hist_template.FindBin(max_unblind_score)
                 data_sample.hist[blind_bin:] = (0, 0)
+            """
 
         # create signal HistFactory samples
         sig_samples = []
@@ -583,6 +585,7 @@ class Analysis(object):
             sig_samples.append(sample)
 
         # replace data in blind bins with signal + background
+        """
         if hybrid_data and unblind is not True:
             sum_sig_bkg = sum([s.hist for s in (bkg_samples + sig_samples)])
             if unblind is False:
@@ -594,6 +597,7 @@ class Analysis(object):
                 data_sample.hist[bin:] = sum_sig_bkg[bin:]
             elif isinstance(unblind, float):
                 data_sample.hist[blind_bin:] = sum_sig_bkg[blind_bin:]
+        """
 
         # create channel for this mass point
         channel = histfactory.make_channel(

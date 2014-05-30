@@ -155,9 +155,7 @@ def mva_workspace(analysis, categories, masses,
         for mass in masses:
             clf = analysis.get_clf(category, load=True, mass=mass)
             # get the binning (see the optimize-binning script)
-            with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
-                                   category.name, mass, analysis.year % 1000))) as f:
-                binning = pickle.load(f)
+            binning = clf.binning(year, overflow=1E5)
             log.info("binning: {0}".format(str(binning)))
             # construct a "channel" for each mass point
             scores, channel = analysis.clf_channels(

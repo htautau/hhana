@@ -414,6 +414,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     if 'evaluate' in args.actions and not is_control:
         # create BDT validation plots
         clf = analysis.get_clf(category, load=True, mass=125, transform=True)
+        binning = clf.binning(analysis.year)
         clf.evaluate(
             analysis,
             signal_region=signal_region,
@@ -421,4 +422,5 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             unblind=args.unblind,
             systematics=SYSTEMATICS if args.systematics else None,
             output_formats=args.output_formats,
+            bins=binning,
             signal_scale=50,)

@@ -25,7 +25,6 @@ class Category_VBF(Category_Preselection):
         CUTS_VBF
         & Cut('dEta_jets > 2.0')
         )
-    limitbins = 20
     features = features_vbf
     # train with only VBF mode
     signal_train_modes = ['VBF']
@@ -50,8 +49,6 @@ class Category_Boosted(Category_Preselection):
         & CUTS_BOOSTED
         & Cut(MET_CENTRALITY.format(pi / 6))
         )
-    limitbins = 20
-    # warning: some variables will be undefined for some events
     features = features_boosted
     # train with all modes (inherited from Category in base.py)
     #signal_train_modes =
@@ -74,5 +71,4 @@ class Category_Rest(Category_Preselection):
     latex = '\\textbf{Rest}'
     common_cuts = Category_Preselection.common_cuts
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts) & DETA_TAUS
-    limitbins = 10
     norm_category = Category_Preselection

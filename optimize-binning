@@ -280,7 +280,7 @@ if __name__ == '__main__':
     parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
     parser.add_argument('--min-bkg-unweighted', type=int, default=5)
     parser.add_argument('--min-bkg-weighted', type=float, default=1.)
-    parser.add_argument('--steps', type=int, default=50)
+    parser.add_argument('--steps', type=int, default=100)
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
     parser.add_argument('--procs', type=int, default=-1)
@@ -296,7 +296,7 @@ if __name__ == '__main__':
 
     for category in (Category_Boosted, Category_VBF):
         analysis.normalize(category)
-        clf = analysis.get_clf(category, load=True, mass=mass)
+        clf = analysis.get_clf(category, load=True, mass=mass, transform=True)
         scores = analysis.get_scores(
             clf, category, TARGET_REGION, mode='workspace',
             masses=[mass], systematics=args.systematics)
@@ -413,8 +413,8 @@ if __name__ == '__main__':
                 mass=mass,
                 systematics=args.systematics,
                 n_jobs=args.procs)
-            if best_sig <= prev_best_sig:
-                # no improvement or impossible to add an edge
+            if best_sig <= 1.001 * prev_best_sig:
+                # no reasonable improvement or impossible to add an edge
                 break
             # show significance vs middle bin edge location
             ax1.plot(edges, sigs, color='black', linestyle=next(linecycler))
@@ -440,10 +440,6 @@ if __name__ == '__main__':
         fig.savefig('plots/binning/binning_{0}_{1}_{2}.png'.format(
                     category.name, mass, year % 1000))
         
-        # avoid overflow
-        binning[0] -= 1E5
-        binning[-1] += 1E5
-
         # save the binning
         with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
                                category.name, mass, year % 1000)), 'w') as f:

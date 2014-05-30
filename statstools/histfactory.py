@@ -516,6 +516,15 @@ def smooth_shape(sample, nominal, histosys, iterations=1):
     histosys.low.name = low_name
 
 
+def uniform_channel(c):
+    c.data.hist = to_uniform_binning(c.data.hist)
+    for s in c.samples:
+        s.hist = to_uniform_binning(s.hist)
+        for histosys in s.histo_sys:
+            histosys.high = to_uniform_binning(histosys.high)
+            histosys.low = to_uniform_binning(histosys.low)
+
+
 def to_uniform_binning(hist):
     """
     For some obscure technical reason, HistFactory can't handle histograms with

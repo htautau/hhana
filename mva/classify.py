@@ -386,6 +386,16 @@ class Classifier(object):
         # each trained on the opposite partition
         self.clfs = None
 
+    def binning(self, year, overflow=None):
+        # get the binning (see the optimize-binning script)
+        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
+                               self.category.name, self.mass, year % 1000))) as f:
+            binning = pickle.load(f)
+        if overflow is not None:
+            binning[0] -= overflow
+            binning[-1] += overflow
+        return binning
+
     def load(self, swap=False):
         """
         If swap is True then use the internal classifiers on the "wrong"
@@ -672,8 +682,10 @@ class Classifier(object):
                 scores = self.transform(scores)
             else:
                 # default logistic transformation
+                #scores = -1 + 2.0 / (1.0 +
+                #    np.exp(-math.log(self.clfs[0].n_estimators) * scores))
                 scores = -1 + 2.0 / (1.0 +
-                    np.exp(-self.clfs[0].n_estimators * scores / 10))
+                    np.exp(-self.clfs[0].n_estimators * scores / 15))
 
         return scores, weight
 
@@ -685,6 +697,7 @@ class Classifier(object):
                  signal_scale=50,
                  unblind=False,
                  fit=None,
+                 bins=20,
                  output_formats=None):
         # TODO: move to Analysis
         category = self.category
@@ -695,17 +708,21 @@ class Classifier(object):
         log.info("plotting classifier output in control region ...")
         log.info(control_region)
 
+        from statstools.histfactory import uniform_channel
+
         _, channel = analysis.clf_channels(self,
             category, region, cuts=control_region,
             mass=125,
             mode='combined',
-            bins=category.clf_bins + 2,
+            bins=bins,
             systematics=systematics,
             unblind=True,
             no_signal_fixes=True)
 
+        uniform_channel(channel)
+
         # prefit
-        draw_channel(channel[125],
+        draw_channel(channel,
             category=category,
             plot_label='Sideband CR',
             data_info=str(analysis.data.info),
@@ -714,7 +731,7 @@ class Classifier(object):
             systematics=systematics,
             output_formats=output_formats,
             ypadding=(0.4, 0.),
-            range=(-1, 1),
+            #range=(-1, 1),
             signal_scale=signal_scale,
             signal_on_top=False,
             show_ratio=True)
@@ -723,14 +740,16 @@ class Classifier(object):
         # show the background model and 125 GeV signal in the signal region
         log.info("plotting classifier output in the signal region ...")
 
-        scores, channels = analysis.clf_channels(self,
+        scores, channel = analysis.clf_channels(self,
             category, region, cuts=signal_region,
             mass=125,
             mode='combined',
             systematics=systematics,
-            bins=category.limitbins / 2,
+            bins=bins,
             unblind=unblind or 0.3,
             no_signal_fixes=True)
+
+        uniform_channel(channel)
 
         bkg_scores = scores.bkg_scores
         sig_scores = scores.all_sig_scores[125]
@@ -738,7 +757,7 @@ class Classifier(object):
         max_score = scores.max_score
 
         draw_channel(
-            channels[125],
+            channel,
             category=category,
             plot_label=category.plot_label,
             #plot_label='Mass Signal Region' if signal_region else None,
@@ -748,7 +767,7 @@ class Classifier(object):
             data_info=str(analysis.data.info),
             output_name='event_bdt_score_signal_region' + self.output_suffix,
             name='BDT score',
-            range=(-1, 1),
+            #range=(-1, 1),
             systematics=systematics,
             output_formats=output_formats,
             show_ratio=True,
