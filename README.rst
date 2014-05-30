@@ -163,8 +163,8 @@ Fixing Workspaces
 Apply all of the HSG4 workspace fixes with::
 
     cd workspaces
-    fix-workspace --quiet --symmetrize-partial --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
-    fix-workspace --quiet --symmetrize-partial --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
+    fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
+    fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
 
 
 Fitting
