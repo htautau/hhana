@@ -17,9 +17,8 @@ args.symmetrize = args.symmetrize or args.symmetrize_partial
 
 from statstools.fixups import fix
 
-for path in args.paths:
-    fix(path, n_jobs=args.jobs, suffix=args.suffix, verbose=not args.quiet,
-        prune_shapes=args.prune_shapes,
-        chi2_threshold=args.chi2_threshold,
-        symmetrize=args.symmetrize,
-        symmetrize_partial=args.symmetrize_partial)
+fix(args.paths, n_jobs=args.jobs, suffix=args.suffix, verbose=not args.quiet,
+    prune_shapes=args.prune_shapes,
+    chi2_threshold=args.chi2_threshold,
+    symmetrize=args.symmetrize,
+    symmetrize_partial=args.symmetrize_partial)

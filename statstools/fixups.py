@@ -50,21 +50,23 @@ def find_measurements(path):
                     yield dirpath, filename
 
 
-def fix(input, suffix='fixed', verbose=False, n_jobs=-1, **kwargs):
+def fix(inputs, suffix='fixed', verbose=False, n_jobs=-1, **kwargs):
     """
     Traverse all workspaces and apply HSG4 fixes
     """
-    if not os.path.isdir(input):
-        raise ValueError("input must be an existing directory")
-    input = os.path.normpath(input)
-    output = input + '_' + suffix
-    # find all measurements to fix
+    if not isinstance(inputs, (list, tuple)):
+        inputs = [inputs]
     workers = []
-    for dirpath, measurement_file in find_measurements(input):
-        output_path = os.path.join(output, dirpath.replace(input, '', 1)[1:])
-        path = os.path.join(dirpath, measurement_file)
-        log.info("fixing {0} ...".format(path))
-        workers.append(Worker(path, output_path, verbose=verbose, **kwargs))
+    for input in inputs:
+        if not os.path.isdir(input):
+            raise ValueError("input must be an existing directory")
+        input = os.path.normpath(input)
+        output = input + '_' + suffix
+        for dirpath, measurement_file in find_measurements(input):
+            output_path = os.path.join(output, dirpath.replace(input, '', 1)[1:])
+            path = os.path.join(dirpath, measurement_file)
+            log.info("fixing {0} ...".format(path))
+            workers.append(Worker(path, output_path, verbose=verbose, **kwargs))
     # run the workers
     run_pool(workers, n_jobs=n_jobs)
 

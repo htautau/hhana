@@ -189,6 +189,10 @@ ntup-update:
 	@./merge-ntup -s $(HHSTUDENT) -o $(HHNTUP)/$(HHSTUDENT).root $(HHNTUP_RUNNING)/$(HHSTUDENT).*.root
 	@root2hdf5 --update --complib lzo --complevel 0 --quiet $(HHNTUP)/$(HHSTUDENT).root
 
+.PHONY: higgs-pt
+higgs-pt:
+	./higgs-pt $(HHNTUP_RUNNING)/hhskim*tautauhh*.root
+
 .PHONY: $(HHNTUP)/merged_grl_11.xml
 $(HHNTUP)/merged_grl_11.xml:
 	ls $(HHNTUP)/data/hhskim.data11-*.root | sed 's/$$/:\/lumi/g' | xargs grl or > $@
@@ -278,12 +282,6 @@ mva-control-plots:
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
 	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
-.PHONY: train
-train:
-	@for mass in $$(seq 100 5 150); do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --procs $(PBS_PPN_MAX); \
-	done
-
 .PHONY: train-boosted
 train-boosted:
 	@for mass in $$(seq 100 5 150); do \
@@ -295,6 +293,9 @@ train-vbf:
 	@for mass in $$(seq 100 5 150); do \
 		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
 	done
+
+.PHONY: train
+train: train-vbf train-boosted
 
 .PHONY: binning
 binning:
@@ -321,6 +322,29 @@ cuts-workspaces:
 		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
 	done;
 
-.PHONY: higgs-pt
-higgs-pt:
-	./higgs-pt $(HHNTUP_RUNNING)/hhskim*tautauhh*.root
+.PHONY: workspaces
+workspaces: mva-workspaces cuts-workspaces
+
+.PHONY: pruning
+pruning:
+	@for ana in mva cuts; do \
+		cd workspaces; \
+		mkdir pruning_$${ana}; \
+		cd pruning_$${ana}; \
+		for mass in $$(seq 100 5 150); do \
+			cp -r ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass} .; \
+			cp ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass}.root .; \
+		done; \
+		for thresh in 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.96 0.97 0.98 0.99 1; do \
+			fix-workspace --quiet --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh} hh_combination_[0-9][0-9][0-9]; \
+			fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_sym hh_combination_[0-9][0-9][0-9]; \
+			fix-workspace --quiet --symmetrize-partial --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_part_sym hh_combination_[0-9][0-9][0-9]; \
+		done; \
+	done
+
+.PHONY: fix-workspaces
+fix-workspaces:
+	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
+	@for ana in mva cuts; do \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster cd workspaces && fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_$${ana}; \
+	done
