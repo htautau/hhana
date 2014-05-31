@@ -165,20 +165,3 @@ Apply all of the HSG4 workspace fixes with::
     cd workspaces
     fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
     fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
-
-
-Fitting
-=======
-
-Calculate the significance for each workspace with::
-
-    multisig workspaces/hh_nos_nonisol_ebz_mva_fixed workspaces/hh_nos_nonisol_ebz_cuts_fixed
-
-
-Creating p-value Plots
-======================
-
-References
-==========
-
-https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/NuisanceParameterPullsWithRanking

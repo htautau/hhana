@@ -60,5 +60,8 @@ References
 .. [JetCalibrationWinter2011] *Jet calibration tools for 2011 dataset*
    `JetCalibrationToolsWinter2011 <https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/JetCalibrationToolsWinter2011>`_
 
-.. [TauSystematicsWinter2012] 
+.. [TauSystematicsWinter2012]
    `TauSystematicsWinterConf2012 <https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/TauSystematicsWinterConf2012>`_
+
+.. [NuisanceParameterPullsWithRanking]
+   `Ranking plots <https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/NuisanceParameterPullsWithRanking>`_
