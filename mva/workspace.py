@@ -141,6 +141,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
 
 
 def mva_workspace(analysis, categories, masses,
+                  clf_mass=None,
                   unblind=False,
                   systematics=False):
     hist_template = Hist(5, 0, 1.5, type='D')
@@ -153,7 +154,9 @@ def mva_workspace(analysis, categories, masses,
     mass_category_channel = {}
     for category in analysis.iter_categories(categories):
         for mass in masses:
-            clf = analysis.get_clf(category, load=True, mass=mass, transform=True)
+            clf = analysis.get_clf(category, load=True,
+                                   mass=clf_mass or mass,
+                                   transform=True)
             # get the binning (see the optimize-binning script)
             binning = clf.binning(analysis.year, overflow=1E5)
             log.info("binning: {0}".format(str(binning)))

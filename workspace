@@ -9,6 +9,7 @@ from mva.analysis import get_analysis
 parser = cmd.analysis_parser(cmd.general_parser(
     multi_years=True, multi_categories=True))
 parser.add_argument('type', choices=('mva', 'cuts'), default='mva')
+parser.add_argument('--clf-mass', type=int, default=None)
 args = parser.parse_args()
 
 if args.masses == 'all':
@@ -16,8 +17,10 @@ if args.masses == 'all':
 else:
     args.masses = map(int, args.masses.split(','))
 
+params = {}
 if args.type == 'mva':
     workspace_func = mva_workspace
+    params['clf_mass'] = args.clf_mass
 else:
     workspace_func = cuts_workspace
 
@@ -34,7 +37,8 @@ for year, year_categories in zip(years, categories):
     analysis = get_analysis(args, year=year)
     sr, cr = workspace_func(analysis, year_categories, args.masses,
                             unblind=args.unblind,
-                            systematics=args.systematics)
+                            systematics=args.systematics,
+                            **params)
     signal_regions[year] = sr
     control_regions[year] = cr
 
