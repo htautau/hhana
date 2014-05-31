@@ -327,7 +327,7 @@ workspaces: mva-workspaces cuts-workspaces
 
 .PHONY: pruning
 pruning:
-	@for ana in mva cuts; do \
+	@for ana in cuts; do \
 		cd workspaces; \
 		mkdir pruning_$${ana}; \
 		cd pruning_$${ana}; \
@@ -335,11 +335,13 @@ pruning:
 			cp -r ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass} .; \
 			cp ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass}.root .; \
 		done; \
+		fix-workspace --quiet hh_combination_[0-9][0-9][0-9]; \
 		for thresh in 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.96 0.97 0.98 0.99 1; do \
 			fix-workspace --quiet --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh} hh_combination_[0-9][0-9][0-9]; \
 			fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_sym hh_combination_[0-9][0-9][0-9]; \
 			fix-workspace --quiet --symmetrize-partial --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_part_sym hh_combination_[0-9][0-9][0-9]; \
 		done; \
+		cd ..; \
 	done
 
 .PHONY: fix-workspaces
