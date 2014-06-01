@@ -23,8 +23,8 @@ for year in (2011, 2012):
     log.info(', '.join(ztt_ebcor.weights()))
 
     # maps of pt tau1 vs pt tau2
-    mccor_hist = Hist2D([35, 45, 60, 100],
-                        [25, 35, 45, 60, 100],
+    mccor_hist = Hist2D([35, 45, 60, 1E100],
+                        [25, 35, 45, 60, 1E100],
                         name='mc_map_{0}'.format(year % 1000))
     ebcor_hist = mccor_hist.Clone(name='eb_map_{0}'.format(year % 1000))
 

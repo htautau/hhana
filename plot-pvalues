@@ -12,13 +12,14 @@ set_style('ATLAS', shape='rect')
 gaus_cdf = ROOT.Math.gaussian_cdf_c
 
 bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
+single_bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
 cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
 masses = range(100, 155, 5)
 colors = ['black', 'red', 'blue', 'purple', 'darkgreen']
 lines = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash', 'verylongdash']
 
 
-def get_sigs(path, category, year=None):
+def get_sigs(path, category, year=None, meas=True):
     if year is None:
         dir_pattern = 'hh_{0}_{{0}}'.format(category)
     else:
@@ -27,7 +28,7 @@ def get_sigs(path, category, year=None):
     for mass in masses:
         dirname = dir_pattern.format(mass)
         with open(os.path.join(path, dirname,
-                  'measurement_{0}.pickle'.format(dirname)), 'r') as pickle_file:
+                  '{1}{0}.pickle'.format(dirname, 'measurement_' if meas else '')), 'r') as pickle_file:
             sig_dict = pickle.load(pickle_file)
             sigs.append(sig_dict['combined'])
     return sigs
@@ -49,6 +50,10 @@ def plot(name, curves, labels):
     ATLAS_label(0.75, 0.88, text="Internal", sqrts=None, pad=c, sep=0.09)
     save_canvas(c, 'plots/pvalues', name, formats=('.eps', '.png'))
 
+# compare single BDT vs multiple trainings
+bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
+single_bdt_combined = map(gaus_cdf, get_sigs(single_bdt_path, 'combination', meas=False))
+plot('compare_single_multi', [bdt_combined, single_bdt_combined], ['Multi-BDT', '125 GeV BDT'])
 
 # overall combination
 bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))

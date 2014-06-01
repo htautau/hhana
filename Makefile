@@ -272,26 +272,26 @@ plots:
 
 .PHONY: mva-plots
 mva-plots:
-	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names vbf > mva_plots_vbf_12.log &
-	nohup ./ana train evaluate --year 2012 --output-formats eps png --category-names boosted > mva_plots_boosted_12.log &
-	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names vbf > mva_plots_vbf_11.log &
-	#nohup ./ana train evaluate --year 2011 --output-formats eps png --category-names boosted > mva_plots_boosted_11.log &
+	nohup ./ana evaluate --year 2012 --output-formats eps png --category-names vbf > mva_plots_vbf_12.log &
+	nohup ./ana evaluate --year 2012 --output-formats eps png --category-names boosted > mva_plots_boosted_12.log &
+	nohup ./ana evaluate --year 2011 --output-formats eps png --category-names vbf > mva_plots_vbf_11.log &
+	nohup ./ana evaluate --year 2011 --output-formats eps png --category-names boosted > mva_plots_boosted_11.log &
 
 .PHONY: mva-control-plots
 mva-control-plots:
-	nohup ./ana train evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
-	nohup ./ana train evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
+	nohup ./ana evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
+	nohup ./ana evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
 .PHONY: train-boosted
 train-boosted:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-vbf
 train-vbf:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --mass $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train

@@ -147,7 +147,7 @@ def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
             else:
                 suffix = '_' + '_'.join(sys_term)
             hist = hist_template.Clone(
-                    name=samp.name + ('_%d' % mass) + suffix)
+                    name=samp.name + ('_{0}'.format(mass)) + suffix)
             hist.fill_array(scores, weights)
             if sys_term not in sys_hists:
                 sys_hists[sys_term] = []
@@ -163,8 +163,9 @@ def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
             total_hist = sum(hists)
             for bin, content in enumerate(total_hist):
                 if content < 0:
-                    log.warning("Found negative bin %d (%f) for systematic %s" % (
-                            bin, content, sys_term))
+                    log.warning("Found negative bin %d (%f) for "
+                                "systematic %s" % (
+                                    bin, content, sys_term))
                     bad_bins.append(bin)
         for hist in hists:
             for bin in bad_bins:
@@ -409,7 +410,7 @@ class Classifier(object):
 
             category_name = self.category.get_parent().name
             clf_filename = os.path.join(CACHE_DIR, 'classify',
-                'clf_%s_%d%s_%d.pickle' % (
+                'clf_{0}_{1}{2}_{3}.pickle'.format(
                 category_name, self.mass,
                 self.clf_output_suffix, partition_idx))
 
@@ -474,7 +475,7 @@ class Classifier(object):
         for partition_idx in range(2):
 
             clf_filename = os.path.join(CACHE_DIR, 'classify',
-                'clf_%s_%d%s_%d' % (
+                'clf_{0}_{1}{2}_{3}'.format(
                 self.category.name, self.mass,
                 self.clf_output_suffix, partition_idx))
 
@@ -577,9 +578,9 @@ class Classifier(object):
                         'n_estimators':
                         'trees'},
                     name=(self.category.name +
-                          ("_%d" % self.mass) +
+                          ("_{0}".format(self.mass)) +
                           self.output_suffix +
-                          ("_%d" % partition_idx)))
+                          ("_{0}".format(partition_idx))))
 
                 # save grid scores
                 with open('{0}_grid_scores.pickle'.format(clf_filename), 'w') as f:

@@ -5,7 +5,7 @@ from rootpy.extern.argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('--nfold', type=int, default=10,
     help='the number of folds in the cross-validation')
-parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
+parser.add_argument('--masses', nargs='+', default=['125',])
 parser.add_argument('--categories', nargs='*')
 parser.add_argument('--suffix', default=None)
 parser.add_argument('--procs', type=int, default=-1)
@@ -16,6 +16,14 @@ from mva.categories import (
 from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.defaults import TRAIN_FAKES_REGION
+
+if args.masses == ['all',]:
+    args.masses = Higgs.MASSES[:]
+    masses_label = 'all'
+else:
+    args.masses = map(int, args.masses)
+    args.masses.sort()
+    masses_label = '_'.join(map(str, args.mass)) 
 
 analysis = Analysis(
     year=2012,
@@ -47,7 +55,7 @@ for category in (Category_VBF, Category_Boosted):
 
     signals_train = [
         Higgs(year=2012,
-              mass=args.mass,
+              masses=args.masses,
               modes=category.train_signal_modes,
               trigger=True),
         ]
@@ -57,7 +65,7 @@ for category in (Category_VBF, Category_Boosted):
     # events vs a few high-weight events, therefore spiky
     # distributions...
 
-    clf = analysis.get_clf(category, load=False, mass=args.mass)
+    clf = analysis.get_clf(category, load=False, mass=masses_label)
     clf.train(signals=signals_train,
               backgrounds=backgrounds_train,
               remove_negative_weights=True,

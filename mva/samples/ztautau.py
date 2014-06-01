@@ -152,6 +152,7 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def __init__(self, *args, **kwargs):
         self.tauspinner = kwargs.pop('tauspinner', True)
+        self.posterior_trigger_correction = kwargs.pop('posterior_trigger_correction', True)
         super(Embedded_Ztautau, self).__init__(*args, **kwargs)
 
 
