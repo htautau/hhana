@@ -1091,7 +1091,14 @@ class SystematicsSample(Sample):
             self.datasets.append(
                 (ds, tables, weighted_events, xs, kfact, effic))
 
-    def draw_array(self, field_hist, category, region,
+    def draw(self, field, hist, category=None, region=None, **kwargs):
+        return self.draw_array({field: hist},
+                               category=category,
+                               region=region,
+                               **kwargs)
+
+    def draw_array(self, field_hist,
+                   category=None, region=None,
                    cuts=None,
                    weighted=True,
                    field_scale=None,

@@ -9,9 +9,11 @@ from mva.cmd import get_parser
 from mva.analysis import get_analysis
 from mva.categories import Category_1J_Inclusive, Category_Cuts_Boosted, Category_Cuts_VBF
 from mva.variables import VARIABLES
-from mva import MMC_MASS,log
+from mva.defaults import TARGET_REGION
+from mva import MMC_MASS, log
 
 import ROOT
+
 
 def fwhm(h1):
     bin1 = h1.FindFirstBinAbove(h1.max() / 2)
@@ -50,7 +52,7 @@ def plot_mass(ztt, higgs, category):
     else:
         sqrts= None
 
-    ATLAS_label(0.42, 0.89,
+    ATLAS_label(plot.GetLeftMargin()+0.03, 0.89,
                 sep=0.14, pad=plot, sqrts=sqrts,
                 text="Internal", textsize=22)
     label = ROOT.TLatex(
@@ -107,7 +109,7 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     else:
         sqrts= None
 
-    ATLAS_label(0.42, 0.89,
+    ATLAS_label(plot.GetLeftMargin()+0.03, 0.89,
                 sep=0.14, pad=plot, sqrts=sqrts,
                 text="Internal", textsize=22)
     label = ROOT.TLatex( plot.GetLeftMargin() + 0.03, 0.83,
@@ -118,8 +120,9 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     label.Draw()
     for fmt in args.output_formats:
         plot.SaveAs('plots/mmc_col_masses_%s%s.%s' % (category.name, output_suffix, fmt))
-        
-def mmc_resolution_graph(category,x_shift=0):
+
+
+def mmc_resolution_graph(category, x_shift=0):
     """
     Return a Graph() of fitted mmc mass as a
     function of m_H. The error correspond to the gaussian fit
@@ -129,29 +132,29 @@ def mmc_resolution_graph(category,x_shift=0):
     x_shift: Shift to apply on the position of the graph points (to overlay several graphs)
     TODO: Implement a protection against silly values
     """
-    mass_list = range(100,155,5)
+    mass_list = range(100, 155, 5)
     gr_res = Graph(len(mass_list))
     gr_res.name = 'graph_res_'+category.name
     for im,mass in enumerate(mass_list):
         higgs_sample = analysis.get_signals(mass,mode='combined')
         template = Hist(40, 0, 200, linewidth=3, drawstyle='hist')
         higgs_mmc = template.Clone(name="mmc_%d"% mass)
-        higgs_sample[0].draw_into( higgs_mmc, MMC_MASS, category, 'OS')
-        
+        higgs_sample[0].draw(MMC_MASS, higgs_mmc, category, TARGET_REGION)
         higgs_fit = higgs_mmc.Fit('gaus', 'S')
         if mass==125:
-            plot_mmc_fit(higgs_mmc,higgs_fit,higgs_sample[0],category)
-        gr_res.SetPoint(im,mass+x_shift,higgs_fit.Parameter(1))
-        gr_res.SetPointError(im,2.5+x_shift,2.5-x_shift,higgs_fit.Parameter(2),higgs_fit.Parameter(2))
+            plot_mmc_fit(higgs_mmc, higgs_fit, higgs_sample[0], category)
+        gr_res.SetPoint(im, mass + x_shift, higgs_fit.Parameter(1))
+        gr_res.SetPointError(im, 2.5 + x_shift, 2.5 - x_shift, higgs_fit.Parameter(2), higgs_fit.Parameter(2))
     return gr_res
 
-def plot_mmc_fit( higgs_mmc, higgs_fit, sample=None, category=None ):
+
+def plot_mmc_fit(higgs_mmc, higgs_fit, sample=None, category=None ):
     _, _, _, ymax = get_limits([higgs_mmc], ypadding=(0.1, 0)) 
     plot = Canvas()
     higgs_mmc.xaxis.title = '%s [GeV]' % VARIABLES[MMC_MASS]["root"]
     higgs_mmc.yaxis.title = 'Fraction of Events / 5 GeV'
     higgs_mmc.yaxis.SetRangeUser(0, ymax)
-
+    higgs_mmc.xaxis.SetNdivisions(507, True)
     higgs_mmc.Draw('HIST')
     gaus_fit = ROOT.TF1( "fit", "gaus(0)",
                          higgs_fit.Parameter(1)-1.5*higgs_fit.Parameter(2),
@@ -196,11 +199,9 @@ def plot_mmc_fit( higgs_mmc, higgs_fit, sample=None, category=None ):
     label_1.SetTextSize(22)
     label_1.Draw()
 
-
     for fmt in args.output_formats:
         plot.SaveAs('./plots/mmc_fit_%s_%s%s.%s' % (sample_name,category_name,output_suffix,fmt) )
 
-    
 
 def plot_resolution():
 
@@ -226,20 +227,19 @@ def plot_resolution():
     graphs[0].yaxis.title='<%s> [GeV]' % VARIABLES[MMC_MASS]['root']
     graphs[1].Draw( 'SAMEP' )
     graphs[2].Draw( 'SAMEP' )
-    #     draw( graphs,
-    #           pad=plot,
-    #           xtitle='m_H [GeV]',
-    #           ytitle='<%s> [GeV]' % VARIABLES[MMC_MASS]['root'],
-    #           ypadding = (0.2,0.1) )
-
-    leg = Legend( len(categories),
-                  pad=plot,
-                  leftmargin=0.03,
-                  rightmargin=0.3,
-                  topmargin=0.09,
-                  entryheight=0.04,
-                  margin=0.2,
-                  textsize=22 )
+    #draw(graphs,
+    #     pad=plot,
+    #     xtitle='m_H [GeV]',
+    #     ytitle='<%s> [GeV]' % VARIABLES[MMC_MASS]['root'],
+    #     ypadding = (0.2,0.1) )
+    leg = Legend(len(categories),
+                 pad=plot,
+                 leftmargin=0.03,
+                 rightmargin=0.3,
+                 topmargin=0.09,
+                 entryheight=0.04,
+                 margin=0.2,
+                 textsize=22 )
     for category,graph in zip(categories,graphs):
         leg.AddEntry(graph,category.label,'PL')
 
@@ -251,11 +251,10 @@ def plot_resolution():
         sqrts = 8
     else:
         sqrts= None
-    ATLAS_label(0.42, 0.89,
+    ATLAS_label(plot.GetLeftMargin()+0.03, 0.89,
                 sep=0.14, pad=plot, sqrts=sqrts,
                 text="Internal", textsize=22)
 
-    
     for fmt in args.output_formats:
         plot.SaveAs('plots/resolution%s.%s' % (output_suffix, fmt))
 
@@ -265,10 +264,8 @@ def plot_resolution():
 
 args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args, systematics=False)
-region = 'OS'
 output_suffix = analysis.get_suffix()
 plot_resolution()
-
 
 template = Hist(40, 0, 200, linewidth=3, drawstyle='hist')
 with root_open('mmc_hadhad_histos.root', 'recreate') as out:
@@ -278,12 +275,12 @@ with root_open('mmc_hadhad_histos.root', 'recreate') as out:
         higgs_mmc = template.Clone(name="mmc_%s_htt" % category.name, title=analysis.higgs_125.label, linecolor='red' )
         higgs_col = template.Clone(name="col_%s_htt" % category.name, title=analysis.higgs_125.label, linecolor='red', linestyle='dashed')
 
-        analysis.ztautau.draw_into(ztt_mmc, MMC_MASS, category, region)
-        analysis.higgs_125.draw_into(higgs_mmc, MMC_MASS, category, region)
+        analysis.ztautau.draw(MMC_MASS, ztt_mmc, category, TARGET_REGION)
+        analysis.higgs_125.draw(MMC_MASS, higgs_mmc, category, TARGET_REGION)
 
-        COL_MASS = 'mass_collinear_tau1_tau2/1000.'
-        analysis.ztautau.draw_into(ztt_col, COL_MASS, category, region)
-        analysis.higgs_125.draw_into(higgs_col, COL_MASS, category, region)
+        COL_MASS = 'mass_collinear_tau1_tau2'
+        analysis.ztautau.draw(COL_MASS, ztt_col, category, TARGET_REGION, field_scale={COL_MASS: 0.001})
+        analysis.higgs_125.draw(COL_MASS, higgs_col, category, TARGET_REGION, field_scale={COL_MASS: 0.001})
 
         # normalize
         ztt_mmc /= ztt_mmc.integral()
@@ -297,4 +294,3 @@ with root_open('mmc_hadhad_histos.root', 'recreate') as out:
 
         ztt_mmc.Write()
         higgs_mmc.Write()
-
