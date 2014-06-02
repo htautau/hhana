@@ -1201,7 +1201,7 @@ def draw(name,
          output_dir=PLOTS_DIR,
          arrow_values=None,
          overflow=True,
-         show_pvalue=True,
+         show_pvalue=False,
          top_label=None):
 
     if model is None and data is None and signal is None:

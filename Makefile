@@ -261,14 +261,12 @@ model-plots:
 
 .PHONY: plots
 plots:
-	nohup ./ana plot --year 2012 --category-names vbf --output-formats eps png > var_plots_vbf_12.log &
-	nohup ./ana plot --year 2012 --category-names boosted --output-formats eps png > var_plots_boosted_12.log &
-	nohup ./ana plot --year 2012 --category-names rest --output-formats eps png > var_plots_rest_12.log &
-	nohup ./ana plot --year 2012 --categories presel --output-formats eps png > var_plots_presel_12.log &
-	nohup ./ana plot --year 2011 --category-names vbf --output-formats eps png > var_plots_vbf_11.log &
-	nohup ./ana plot --year 2011 --category-names boosted --output-formats eps png > var_plots_boosted_11.log &
-	nohup ./ana plot --year 2011 --category-names rest --output-formats eps png > var_plots_rest_11.log &
-	nohup ./ana plot --year 2011 --categories presel --output-formats eps png > var_plots_presel_11.log &
+	@for year in 2011 2012; do \
+		for category in vbf boosted rest; do \
+			PBS_MEM=12gb run-cluster ./ana plot --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
+		done; \
+		PBS_MEM=12gb run-cluster ./ana plot --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
+	done
 
 .PHONY: mva-plots
 mva-plots:
