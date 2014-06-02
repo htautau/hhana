@@ -64,9 +64,9 @@ class Pythia_Ztautau(MC_Ztautau):
 class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def __init__(self, *args, **kwargs):
-        super(Embedded_Ztautau, self).__init__(*args, **kwargs)
         self.tauspinner = kwargs.pop('tauspinner', True)
         self.posterior_trigger_correction = kwargs.pop('posterior_trigger_correction', True)
+        super(Embedded_Ztautau, self).__init__(*args, **kwargs)
         with root_open(os.path.join(DAT_DIR, 'embedding_corrections.root')) as file:
             self.trigger_correct = file['ebmc_weight_{0}'.format(self.year % 1000)]
             self.trigger_correct.SetDirectory(0)

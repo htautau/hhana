@@ -152,21 +152,27 @@ if not args.shapes or 'ztt' in args.shapes:
     ztt_eb_spin = Embedded_Ztautau(year=args.year, label='TauSpinner')
     ztt_eb_nospin = Embedded_Ztautau(year=args.year, label='No TauSpinner', tauspinner=False)
 
+    # compare with and without posterior trigger correction
+    ztt_eb_correct = Embedded_Ztautau(year=args.year, label='Corrected')
+    ztt_eb_nocorrect = Embedded_Ztautau(year=args.year, label='Uncorrected', posterior_trigger_correction=False)
+
     # compare 2011 with 2012 embedding
     ztt_eb_11 = Embedded_Ztautau(year=2011, label='7 TeV Embedding')
     ztt_eb_12 = Embedded_Ztautau(year=2012, label='8 TeV Embedding')
 
     # MC Ztt and MC embedded Ztt
-    ztt_pyth = Pythia_Ztautau(year=2012, label='MC')
-    ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded MC')
+    #ztt_pyth = Pythia_Ztautau(year=2012, label='MC')
+    #ztt_mceb = MC_Embedded_Ztautau(year=2012, label='Embedded MC')
     
     for category in categories:
         # compare Ztt shapes
         compare(ztt_eb, ztt_mc, category, 'ztt')
         # compare with and without tau spinner weight
         compare(ztt_eb_spin, ztt_eb_nospin, category, 'ztt_spin')
+        # compare with and without posterior trigger correction
+        compare(ztt_eb_correct, ztt_eb_nocorrect, category, 'ztt_posterior_correct')
         # compare MC Ztautau with embedded MC Zmumu
-        compare(ztt_pyth, ztt_mceb, category, 'ebztt')
+        #compare(ztt_pyth, ztt_mceb, category, 'ebztt')
         # compare 7 TeV with 8 TeV embedding
         compare(ztt_eb_12, ztt_eb_11, category, 'ztt_7_v_8')
 
