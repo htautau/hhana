@@ -14,6 +14,17 @@ from nuisance import get_nuisance_params
 from . import log; log = log[__name__]
 
 
+class MinosError(Process):
+    """
+    TODO: write description
+    """
+    def __init__(self, roo_min, argset):
+        super(MinosError, self).__init__()
+        self.roo_min = roo_min
+        self.argset = argset
+    def run(self):
+        self.roo_min.minos(self.argset)
+
 class NuisancePullScan(Process):
     """
     TODO: write description

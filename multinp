@@ -6,6 +6,8 @@ import os
 import sys
 # rootpy imports
 from rootpy.io import root_open
+from rootpy import asrootpy
+from rootpy.stats import ArgSet
 # higgstautau imports
 from pbs import qsub
 import cluster
@@ -13,7 +15,7 @@ import cluster
 from statstools import get_bestfit_nll_workspace
 from statstools.jobs import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
-from statstools.pulls import NuisancePullScan
+from statstools.pulls import NuisancePullScan, MinosError
 from mva import log; log = log['multinp']
 
 
@@ -106,8 +108,16 @@ if __name__ == '__main__':
         with root_open(args.file) as file:
             ws = file[args.name]
             roo_min = ws.fit()
+            fitres = roo_min.save()
+            float_params = asrootpy(fitres.floatParsFinal())
             # calculate minos errors
-            roo_min.minos()
+            workers_minos = []
+            for par in float_params:
+                workers_minos.append(MinosError(roo_min, ArgSet(par, par.name)))
+            # run the pool
+            run_pool(workers_minos, n_jobs=args.jobs)
+                
+            # roo_min.minos()
             fitres = roo_min.save()
             mc = ws.obj('ModelConfig')
             obsData = ws.data('obsData')
