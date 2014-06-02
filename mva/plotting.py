@@ -1082,6 +1082,88 @@ def draw_channel(channel, fit=None, no_data=False, **kwargs):
     return figs
 
 
+def format_plot(pad, template, xaxis, yaxis,
+                xaxes=None, xlimits=None,
+                ylabel='Events', xlabel=None,
+                units=None, data_info=None,
+                left_label=None, right_label=None,
+                atlas_label='Internal',
+                textsize=22,
+                integer=False):
+
+    # set the axis labels
+    binw = list(template.xwidth())
+    binwidths = list(set(['%.2g' % w for w in binw]))
+    if units is not None:
+        if xlabel is not None:
+            xlabel = '%s [%s]' % (xlabel, units)
+        if ylabel and len(binwidths) == 1 and binwidths[0] != '1':
+            # constant width bins
+            ylabel = '%s / %s %s' % (ylabel, binwidths[0], units)
+    elif ylabel and len(binwidths) == 1 and binwidths[0] != '1':
+        ylabel = '%s / %s' % (ylabel, binwidths[0])
+
+    if ylabel:
+        yaxis.SetTitle(ylabel)
+    if xlabel:
+        xaxis.SetTitle(xlabel)
+
+    divisions = min(template.nbins(), 7) if integer else 507
+    if xlimits is None:
+        xlimits = template.bounds()
+
+    if xaxes is None:
+        xaxes = [xaxis]
+
+    for axis in xaxes:
+        axis.SetLimits(*xlimits)
+        axis.SetRangeUser(*xlimits)
+        axis.SetNdivisions(divisions)
+
+    # draw the left label
+    if left_label:
+        label = ROOT.TLatex(
+            pad.GetLeftMargin() + 0.03, 0.89,
+            left_label)
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        with pad:
+            label.Draw()
+        keepalive(pad, label)
+
+    # draw the right label
+    if right_label is not None:
+        label = ROOT.TLatex(0.7, 0.82, right_label)
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        with pad:
+            label.Draw()
+        keepalive(pad, label)
+
+    # draw the luminosity label
+    if data_info is not None:
+        plabel = ROOT.TLatex(
+            pad.GetLeftMargin() + 0.03, 0.82,
+            str(data_info))
+        plabel.SetNDC()
+        plabel.SetTextFont(43)
+        plabel.SetTextSize(textsize)
+        with pad:
+            plabel.Draw()
+        keepalive(pad, plabel)
+
+    # draw the ATLAS label
+    if atlas_label:
+        ATLAS_label(0.67, 0.89,
+                    sep=0.132, pad=pad, sqrts=None,
+                    text=atlas_label, textsize=textsize)
+
+    pad.Update()
+    pad.Modified()
+
+
 def draw(name,
          category,
          data=None,
@@ -1504,32 +1586,6 @@ def draw(name,
     for legend in legends:
         legend.Draw()
 
-    # set the axis labels
-    if data is not None:
-        binw = list(data.xwidth())
-    elif model is not None:
-        binw = list(model[0].xwidth())
-    else:
-        if isinstance(signal, (list, tuple)):
-            binw = list(signal[0].xwidth())
-        else:
-            binw = list(signal.xwidth())
-    binwidths = list(set(['%.2g' % w for w in binw]))
-    if units is not None:
-        label = '%s [%s]' % (name, units)
-        if len(binwidths) == 1 and binwidths[0] != '1':
-            # constant width bins
-            ylabel = '%s / %s %s' % (ylabel, binwidths[0], units)
-    else:
-        label = name
-        if len(binwidths) == 1 and binwidths[0] != '1':
-            ylabel = '%s / %s' % (ylabel, binwidths[0])
-    yaxis.SetTitle(ylabel)
-
-    divisions = min(model[0].nbins(), 7) if integer else 507
-    if range is None:
-        range = model[0].bounds()
-
     if show_ratio:
         # hide x labels on top hist
         xaxis.SetLabelOffset(100)
@@ -1538,55 +1594,14 @@ def draw(name,
             base_hist.xaxis.GetTitleOffset() * 3)
         base_hist.xaxis.SetLabelOffset(
             base_hist.xaxis.GetLabelOffset() * 4)
-        #base_hist.yaxis.CenterTitle(True)
-        base_hist.xaxis.SetLimits(*range)
-        base_hist.xaxis.SetRangeUser(*range)
-        base_hist.xaxis.SetNdivisions(divisions)
-    else:
-        xaxis.SetTitle(label)
-        xaxis.SetLimits(*range)
-        xaxis.SetRangeUser(*range)
-        xaxis.SetNdivisions(divisions)
 
-    # draw the category label
-    hist_pad.cd()
-    label = ROOT.TLatex(
-        hist_pad.GetLeftMargin() + 0.03, 0.89,
-        category.label)
-    label.SetNDC()
-    label.SetTextFont(43)
-    label.SetTextSize(textsize)
-    label.Draw()
-    keepalive(hist_pad, label)
-
-    # draw the luminosity label
-    if data_info is not None:
-        plabel = ROOT.TLatex(
-            hist_pad.GetLeftMargin() + 0.03, 0.82,
-            data_info)
-        plabel.SetNDC()
-        plabel.SetTextFont(43)
-        plabel.SetTextSize(textsize)
-        plabel.Draw()
-        keepalive(hist_pad, plabel)
-
-    # draw the ATLAS label
-    ATLAS_label(0.67, 0.89,
-                sep=0.132, pad=hist_pad, sqrts=None,
-                text="Internal", textsize=textsize)
-
-    # draw the user-specified label
-    if plot_label is not None:
-        label = ROOT.TLatex(0.7, 0.82, plot_label)
-        label.SetNDC()
-        label.SetTextFont(43)
-        label.SetTextSize(textsize)
-        label.Draw()
-        keepalive(hist_pad, label)
-
-    hist_pad.Update()
-    hist_pad.Modified()
-    #hist_pad.RedrawAxis()
+    format_plot(hist_pad, template=data or model[0],
+                xaxis=ratio_hist_tmp.xaxis if show_ratio else xaxis,
+                yaxis=yaxis,
+                xaxes=(xaxis, ratio_hist_tmp.xaxis) if show_ratio else None,
+                xlabel=name, ylabel=ylabel, units=units, xlimits=range,
+                left_label=category.label, right_label=plot_label,
+                data_info=data_info, integer=integer)
 
     # draw arrows
     if arrow_values is not None:

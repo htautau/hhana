@@ -14,14 +14,19 @@ from root_numpy import fill_hist
 from ROOT import TLatex
 
 from mva.samples import Embedded_Ztautau, MC_Ztautau
+from mva.plotting import format_plot
+from mva import MMC_MASS
+from mva.variables import VARIABLES
 
 target_region = args.target_region
 
-eb_ztt = Embedded_Ztautau(year=args.year, systematics=False, title='Embedded Ztautau',
-    fillstyle='hollow', color='black')
+eb_ztt = Embedded_Ztautau(year=args.year, systematics=False,
+                          fillstyle='hollow', color='black')
+eb_ztt.label = 'Embedded {0}'.format(eb_ztt.label)
 # emulate embedding treatment on MC Ztautau
-mc_ztt = MC_Ztautau(year=args.year, systematics=False, trigger=False, title='Alpgen Ztautau',
-    fillstyle='hollow', color='red', linestyle='dashed')
+mc_ztt = MC_Ztautau(year=args.year, systematics=False, trigger=False,
+                    fillstyle='hollow', color='red', linestyle='dashed')
+mc_ztt.label = 'MC {0}'.format(mc_ztt.label)
 
 analysis.ztautau = eb_ztt
 
@@ -31,11 +36,12 @@ for category in analysis.iter_categories(
     if category.analysis_control:
         continue
 
-    clf = analysis.get_clf(category, mass=125, load=True)
+    clf = analysis.get_clf(category, mass=125, load=True, transform=True)
 
     eb_ztt_events = eb_ztt.events(category, target_region)[1].value
     mc_ztt_events = mc_ztt.events(category, target_region)[1].value
-
+    
+    # BDT score
     canvas = Canvas()
     hists = []
     for sample in (eb_ztt, mc_ztt):
@@ -44,34 +50,36 @@ for category in analysis.iter_categories(
             clf, category, target_region,
             systematics=False)['NOMINAL']
         hist = Hist(25, -1, 1, drawstyle='hist E0', markersize=0, linewidth=3,
-            legendstyle='L', **sample.hist_decor)
+            legendstyle='L', title=sample.label, **sample.hist_decor)
         fill_hist(hist, scores, weights)
         if sample is mc_ztt:
             hist *= eb_ztt_events / mc_ztt_events
         hists.append(hist)
-    draw(hists, pad=canvas, xtitle='BDT Score', ytitle='Events', ypadding=(0.25, 0))
-    leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.06)
+    axes, bounds = draw(hists, pad=canvas, ypadding=(0.25, 0))
+    xaxis, yaxis = axes
+    leg = Legend(hists, pad=canvas, leftmargin=0.4, margin=0.18, topmargin=0.15, textsize=22)
     leg.Draw()
-    label = TLatex(canvas.GetLeftMargin() + 0.02, 0.9, category.name + ' ' + str(analysis.data.info))
-    label.SetNDC(True)
-    label.SetTextSize(20)
-    label.Draw()
+    format_plot(canvas, template=hists[0], xaxis=xaxis, yaxis=yaxis, xlabel='BDT Score',
+                data_info=analysis.data.info,
+                left_label=category.label)
     canvas.SaveAs('emb_BDT_{0}_{1}.png'.format(category.name, analysis.year))
-
+    
+    # MMC mass
     canvas = Canvas()
     hists = []
     for sample in (eb_ztt, mc_ztt):
-        hist = Hist(40, 0, 200, drawstyle='hist E0', markersize=0, linewidth=3,
-            legendstyle='L', **sample.hist_decor)
-        sample.draw_array({'mmc1_mass': hist}, category, target_region)
+        hist = Hist(60, 20, 200, drawstyle='hist E0', markersize=0, linewidth=3,
+            legendstyle='L', title=sample.label, **sample.hist_decor)
+        sample.draw_array({MMC_MASS: hist}, category, target_region)
         if sample is mc_ztt:
             hist *= eb_ztt_events / mc_ztt_events
         hists.append(hist)
-    draw(hists, pad=canvas, xtitle='MMC [GeV]', ytitle='Events', ypadding=(0.25, 0))
-    leg = Legend(hists, pad=canvas, leftmargin=0.02, margin=0.1, topmargin=0.06)
+    axes, bounds = draw(hists, pad=canvas, ypadding=(0.25, 0))
+    xaxis, yaxis = axes
+    leg = Legend(hists, pad=canvas, leftmargin=0.4, margin=0.18, topmargin=0.15, textsize=22)
     leg.Draw()
-    label = TLatex(canvas.GetLeftMargin() + 0.02, 0.9, category.name + ' ' + str(analysis.data.info))
-    label.SetNDC(True)
-    label.SetTextSize(20)
-    label.Draw()
+    format_plot(canvas, template=hists[0], xaxis=xaxis, yaxis=yaxis,
+                xlabel=VARIABLES[MMC_MASS]['root'], units='GeV',
+                data_info=analysis.data.info,
+                left_label=category.label)
     canvas.SaveAs('emb_MMC_{0}_{1}.png'.format(category.name, analysis.year))
