@@ -56,29 +56,10 @@ class Data(Sample):
             year=year, scale=1.,
             name=name, label=label,
             **kwargs)
-        rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
-        self.data = getattr(rfile, dataname)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
-
-    def events(self, category=None, region=None, cuts=None, hist=None):
-        if hist is None:
-            hist = Hist(1, -100, 100)
-        selection = self.cuts(category, region) & cuts
-        log.debug("requesting number of events from %s using cuts: %s" %
-                  (self.data.GetName(), selection))
-        self.data.Draw('1', selection, hist=hist)
-        return hist
-
-    def draw_into(self, hist, expr, category, region,
-                  cuts=None, weighted=True, systematics=True):
-        self.data.draw(expr, self.cuts(category, region) & cuts, hist=hist)
-        if not hasattr(hist, 'datainfo'):
-            hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
-        else:
-            hist.datainfo += self.info
 
     def draw_array(self, field_hist, category, region,
                    cuts=None,
@@ -117,16 +98,6 @@ class Data(Sample):
                 category=category,
                 region=region,
                 cuts=cuts)
-
-    def trees(self,
-              category,
-              region,
-              cuts=None,
-              systematic='NOMINAL'):
-        TEMPFILE.cd()
-        tree = asrootpy(self.data.CopyTree(self.cuts(category, region) & cuts))
-        tree.userdata.weight_branches = []
-        return [tree]
 
     def records(self,
                 category=None,

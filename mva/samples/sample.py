@@ -16,7 +16,7 @@ from rootpy.stats import histfactory
 from rootpy import asrootpy
 
 # root_numpy imports
-from root_numpy import rec2array, stack
+from root_numpy import rec2array, stack, fill_hist
 
 # higgstautau imports
 from higgstautau import samples as samples_db
@@ -697,40 +697,6 @@ class Sample(object):
                     cuts &= variations['NOMINAL']
         return cuts
 
-    def draw(self, expr, category, region, bins, min, max,
-             cuts=None, weighted=True, systematics=False):
-
-        hist = Hist(bins, min, max,
-            title=self.label,
-            type='D',
-            **self.hist_decor)
-        self.draw_into(hist, expr, category, region,
-                       cuts=cuts, weighted=weighted,
-                       systematics=systematics)
-        return hist
-
-    def draw2d(self, expr, category, region,
-               xbins, xmin, xmax,
-               ybins, ymin, ymax,
-               cuts=None,
-               systematics=False,
-               ravel=False):
-
-        hist = Hist2D(xbins, xmin, xmax, ybins, ymin, ymax,
-            title=self.label,
-            type='D',
-            **self.hist_decor)
-        self.draw_into(hist, expr, category, region, cuts=cuts,
-                systematics=systematics)
-        if ravel:
-            rhist = hist.ravel()
-            if hasattr(hist, 'sytematics'):
-                rhist.systematics = {}
-                for term, syshist in hist.systematics.items():
-                    rhist.systematics[term] = syshist.ravel()
-            return rhist
-        return hist
-
     def draw_array_helper(self, field_hist, category, region,
                           cuts=None,
                           weighted=True,
@@ -894,6 +860,49 @@ class Sample(object):
                 else:
                     hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
 
+    def events(self, category=None, region=None,
+               cuts=None, systematic='NOMINAL', hist=None,
+               weighted=True, scale=1.):
+        """
+        This method returns the number of events selected.  The selection is
+        specified by the different arguments.  By default, the output is a
+        one-bin histogram with number of event as content.
+
+        Parameters
+        ----------
+        category :
+            A given analysis category. See categories/__init__.py for the list
+        region :
+            A given analyis regions based on the sign and isolation of the
+            taus. The signal region is 'OS'
+        cuts :
+            In addition to the category (where cuts are specified), extra
+            cuts can be added See categories/common.py for a list of possible
+            cuts
+        systematic :
+            By default look at the nominal tree but could also do it
+            on specified syst.
+        weighted :
+            if True, return the weighted number of events
+        hist :
+            if specified, fill this histogram. if not create a new one an
+            return it.
+        scale :
+            if specified, multiply the number of events by the given
+            scale.
+        """
+        if hist is None:
+            hist = Hist(1, -100, 100)
+        rec = self.merged_records(category=category, region=region,
+                                  cuts=cuts, systematic=systematic)
+        if weighted:
+            if scale != 1:
+                rec['weight'] *= scale
+            fill_hist(hist, np.ones(len(rec)), rec['weight'])
+        else:
+            fill_hist(hist, np.ones(len(rec)))
+        return hist
+
 
 class Signal(object):
     # mixin
@@ -1026,7 +1035,6 @@ class SystematicsSample(Sample):
             treename = name.replace('.', '_')
             treename = treename.replace('-', '_')
 
-            trees = {}
             tables = {}
             weighted_events = {}
 
@@ -1037,7 +1045,6 @@ class SystematicsSample(Sample):
                 events_bin = 2
             events_hist_suffix = '_cutflow'
 
-            trees['NOMINAL'] = rfile[treename]
             tables['NOMINAL'] =  CachedTable.hook(getattr(
                 h5file.root, treename))
             cutflow_hist = rfile[treename + events_hist_suffix]
@@ -1052,7 +1059,6 @@ class SystematicsSample(Sample):
                 if systematics_terms:
                     for sys_term in systematics_terms:
                         sys_name = treename + '_' + '_'.join(sys_term)
-                        trees[sys_term] = rfile[sys_name]
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sys_name))
                         cutflow_hist = rfile[sys_name + events_hist_suffix]
@@ -1066,7 +1072,6 @@ class SystematicsSample(Sample):
                         sys_ds = self.db[sample_name]
                         sample_name = sample_name.replace('.', '_')
                         sample_name = sample_name.replace('-', '_')
-                        trees[sys_term] = rfile[sample_name]
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sample_name))
                         cutflow_hist = rfile[sample_name + events_hist_suffix]
@@ -1084,115 +1089,7 @@ class SystematicsSample(Sample):
                 "events {4}".format(
                     ds.name, xs, kfact, effic, weighted_events['NOMINAL']))
             self.datasets.append(
-                (ds, trees, tables, weighted_events, xs, kfact, effic))
-
-    def draw_into(self, hist, expr, category, region,
-                  cuts=None,
-                  weighted=True,
-                  systematics=False,
-                  systematics_components=None,
-                  scale=1.):
-
-        from .ztautau import Ztautau
-
-        if isinstance(expr, (list, tuple)):
-            exprs = expr
-        else:
-            exprs = (expr,)
-
-        do_systematics = self.systematics and systematics
-
-        if do_systematics:
-            if hasattr(hist, 'systematics'):
-                sys_hists = hist.systematics
-            else:
-                sys_hists = {}
-
-        selection = self.cuts(category, region) & cuts
-
-        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
-            log.debug(ds.name)
-            nominal_tree = sys_trees['NOMINAL']
-            nominal_events = sys_events['NOMINAL']
-            nominal_weight = (
-                LUMI[self.year] *
-                scale * self.scale *
-                xs * kfact * effic / nominal_events)
-            nominal_weighted_selection = (
-                '%f * %s * (%s)' %
-                (nominal_weight,
-                 '*'.join(map(str,
-                     self.weights('NOMINAL'))),
-                 selection))
-            log.debug(nominal_weighted_selection)
-            current_hist = hist.Clone()
-            current_hist.Reset()
-            # fill nominal histogram
-            for expr in exprs:
-                nominal_tree.Draw(expr, nominal_weighted_selection,
-                                  hist=current_hist)
-            hist += current_hist
-            if not do_systematics:
-                continue
-            # iterate over systematic variations skipping the nominal
-            for sys_term in iter_systematics(False,
-                    year=self.year,
-                    components=systematics_components):
-                sys_hist = current_hist.Clone()
-                if sys_term in sys_trees:
-                    sys_tree = sys_trees[sys_term]
-                    sys_event = sys_events[sys_term]
-                    sys_hist.Reset()
-                    sys_weight = (
-                        LUMI[self.year] *
-                        scale * self.scale *
-                        xs * kfact * effic / sys_event)
-                    sys_weighted_selection = (
-                        '%f * %s * (%s)' %
-                        (sys_weight,
-                         ' * '.join(map(str,
-                             self.weights('NOMINAL'))),
-                         selection))
-                    log.debug(sys_weighted_selection)
-                    for expr in exprs:
-                        sys_tree.Draw(expr, sys_weighted_selection, hist=sys_hist)
-                else:
-                    log.debug(
-                        "tree for %s not present for %s "
-                        "using NOMINAL" % (sys_term, ds.name))
-                    # QCD + Ztautau fit error
-                    if isinstance(self, Ztautau):
-                        if sys_term == ('ZFIT_UP',):
-                            sys_hist *= (
-                                    (self.scale + self.scale_error) /
-                                    self.scale)
-                        elif sys_term == ('ZFIT_DOWN',):
-                            sys_hist *= (
-                                    (self.scale - self.scale_error) /
-                                    self.scale)
-                if sys_term not in sys_hists:
-                    sys_hists[sys_term] = sys_hist
-                else:
-                    sys_hists[sys_term] += sys_hist
-            # iterate over weight systematics on the nominal tree
-            for weight_branches, sys_term in self.iter_weight_branches():
-                sys_hist = current_hist.Clone()
-                sys_hist.Reset()
-                weighted_selection = (
-                    '%f * %s * (%s)' %
-                    (nominal_weight,
-                     ' * '.join(map(str, weight_branches)),
-                     selection))
-                log.debug(weighted_selection)
-                for expr in exprs:
-                    nominal_tree.Draw(expr, weighted_selection, hist=sys_hist)
-                if sys_term not in sys_hists:
-                    sys_hists[sys_term] = sys_hist
-                else:
-                    sys_hists[sys_term] += sys_hist
-        if do_systematics:
-            # set the systematics
-            hist.systematics = sys_hists
+                (ds, tables, weighted_events, xs, kfact, effic))
 
     def draw_array(self, field_hist, category, region,
                    cuts=None,
@@ -1295,53 +1192,6 @@ class SystematicsSample(Sample):
                     np.concatenate((prev_weights, weights)))
         return scores_dict
 
-    def trees(self, category, region,
-              cuts=None, systematic='NOMINAL',
-              scale=1.):
-
-        from .ztautau import Ztautau
-
-        TEMPFILE.cd()
-        selection = self.cuts(category, region) & cuts
-        weight_branches = self.weights(systematic)
-        if systematic in SYSTEMATICS_BY_WEIGHT:
-            systematic = 'NOMINAL'
-
-        trees = []
-        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
-
-            try:
-                tree = sys_trees[systematic]
-                events = sys_events[systematic]
-            except KeyError:
-                log.debug(
-                    "tree for %s not present for %s "
-                    "using NOMINAL" % (systematic, ds.name))
-                tree = sys_trees['NOMINAL']
-                events = sys_events['NOMINAL']
-
-            actual_scale = self.scale
-            if isinstance(self, Ztautau):
-                if systematic == ('ZFIT_UP',):
-                    actual_scale = self.scale + self.scale_error
-                elif systematic == ('ZFIT_DOWN',):
-                    actual_scale = self.scale - self.scale_error
-
-            weight = (
-                scale * actual_scale *
-                LUMI[self.year] *
-                xs * kfact * effic / events)
-
-            selected_tree = asrootpy(tree.CopyTree(selection))
-            log.debug("{0} {1}".format(selected_tree.GetEntries(), weight))
-            selected_tree.SetWeight(weight)
-            selected_tree.userdata.weight_branches = weight_branches
-            log.debug("{0} {1} {2}".format(
-                self.name, selected_tree.GetEntries(),
-                selected_tree.GetWeight()))
-            trees.append(selected_tree)
-        return trees
-
     def records(self,
                 category=None,
                 region=None,
@@ -1372,7 +1222,7 @@ class SystematicsSample(Sample):
         recs = []
         if return_idx:
             idxs = []
-        for ds, _, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+        for ds, sys_tables, sys_events, xs, kfact, effic in self.datasets:
             try:
                 table = sys_tables[systematic]
                 events = sys_events[systematic]
@@ -1444,56 +1294,6 @@ class SystematicsSample(Sample):
         if return_idx:
             return zip(recs, idxs)
         return recs
-
-    def events(self,
-               category=None,
-               region=None,
-               cuts=None,
-               systematic='NOMINAL',
-               weighted=True,
-               hist=None,
-               scale=1.):
-        """
-        This method returns the number of events selected.
-        The selection is specified by the different arguments.
-        By default, the output is a one-bin histogram with number of event as content.
-        -----------
-        Arguments:
-        - category: A given analysis category. See categories/__init__.py for the list
-        - region: A given analyis regions based on the sign and isolation of the taus. The signal
-                  region is 'OS'
-        - cuts: In addition to the category (where cuts are specified), extra cuts can be added
-                See categories/common.py for a list of possible cuts
-        - systematic: By default look at the nominal tree but could also do it on specified syst.
-        - weighted: if True, return the weighted number of events
-        - hist: if specified, fill this histogram. if not create a new one an return it.
-        - scale: if specified, multiply the number of events by the given scale.
-        """
-
-        if hist is None:
-            hist = Hist(1, -100, 100)
-        for ds, sys_trees, _, sys_events, xs, kfact, effic in self.datasets:
-            try:
-                tree = sys_trees[systematic]
-                events = sys_events[systematic]
-            except KeyError:
-                log.debug(
-                    "tree for %s not present for %s "
-                    "using NOMINAL" % (systematic, ds.name))
-                tree = sys_trees['NOMINAL']
-                events = sys_events['NOMINAL']
-            if weighted:
-                weight = LUMI[self.year] * self.scale * xs * kfact * effic / events
-                selection = Cut(' * '.join(map(str,
-                    self.weights(systematic))))
-                selection = Cut(str(weight * scale)) * selection * (
-                    self.cuts(category, region, systematic=systematic) & cuts)
-            else:
-                selection = self.cuts(category, region, systematic=systematic) & cuts
-            log.debug("requesing number of events from %s using cuts: %s"
-                % (tree.GetName(), selection))
-            tree.Draw('1', selection, hist=hist)
-        return hist
 
 
 class MC(SystematicsSample):
@@ -1619,7 +1419,7 @@ class CompositeSample(object):
         self.name = name
         self.label = label
 
-    def events(self, *args,**kwargs ):
+    def events(self, *args, **kwargs ):
         """
         Return a one-bin histogram with the total sum of events
         of all the samples
@@ -1628,7 +1428,8 @@ class CompositeSample(object):
         """
         return sum([s.events(*args, **kwargs) for s in self.samples_list])
 
-    def draw_array(self, field_hist_tot, category, region, systematics=False, **kwargs):
+    def draw_array(self, field_hist_tot, category, region,
+                   systematics=False, **kwargs):
         """
         Construct histograms of the sum of all the samples.
         Parameters:

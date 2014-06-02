@@ -95,85 +95,6 @@ class QCD(Sample, Background):
         self.shape_systematic = shape_systematic
         self.systematics = mc[0].systematics
 
-    def events(self,
-               category=None,
-               region=None,
-               cuts=None,
-               systematic='NOMINAL'):
-        """
-        This method returns the number of events selected. 
-        It overrides the Sample method (QCD inherits from Sample). In case of QCD, a subtraction
-        of Ztautau and other bkg (W+jets, diboson, top, ...) has to be performed, hence the
-        dedicated method.
-        The selection is specified by the different arguments.
-        By default, the output is a one-bin histogram with number of events as content. 
-        -----------
-        Arguments: 
-        - category: A given analysis category. See categories/__init__.py for the list
-        - region: A given analyis regions based on the sign and isolation of the taus. The signal
-                  region is 'OS'
-        - cuts: In addition to the category (where cuts are specified), extra cuts can be added
-                See categories/common.py for a list of possible cuts
-        - systematic: By default look at the nominal tree but could also do it on specified syst.
-        """
-        data = Hist(1, -100, 100)
-        mc_subtract = data.Clone()
-        self.data.events(category, self.shape_region, cuts=cuts, hist=data)
-        for mc_scale, mc in zip(self.mc_scales, self.mc):
-            mc.events(
-                category, self.shape_region,
-                cuts=cuts,
-                systematic=systematic,
-                hist=mc_subtract,
-                scale=mc_scale)
-        log.info("QCD: Data(%.3f) - MC(%.3f)" % (
-            (self.data_scale * data)[1].value, mc_subtract[1].value))
-        if (self.data_scale * data)[1].value == 0:
-            log.warning("MC subtraction: data is zero !")
-        else:
-            log.info("MC subtraction: %.1f%%" % (
-                100. * (mc_subtract[1].value) / ((self.data_scale * data)[1].value)))
-        return (data * self.data_scale - mc_subtract) * self.scale
-
-    def draw_into(self, hist, expr, category, region,
-                  cuts=None, weighted=True, systematics=True):
-        # TODO: handle QCD shape systematic
-        MC_bkg = hist.Clone()
-        MC_bkg.Reset()
-        for mc_scale, mc in zip(self.mc_scales, self.mc):
-            mc.draw_into(MC_bkg, expr, category, self.shape_region,
-                         cuts=cuts, weighted=weighted,
-                         systematics=systematics, scale=mc_scale)
-
-        data_hist = hist.Clone()
-        data_hist.Reset()
-        self.data.draw_into(data_hist, expr,
-                            category, self.shape_region,
-                            cuts=cuts, weighted=weighted)
-
-        log.info("QCD: Data(%.3f) - MC(%.3f)" % (
-            data_hist.Integral(),
-            MC_bkg.Integral()))
-
-        hist += (data_hist * self.data_scale - MC_bkg) * self.scale
-
-        if systematics and hasattr(MC_bkg, 'systematics'):
-            if not hasattr(hist, 'systematics'):
-                hist.systematics = {}
-            for sys_term, sys_hist in MC_bkg.systematics.items():
-                scale = self.scale
-                if sys_term == ('QCDFIT_UP',):
-                    scale = self.scale + self.scale_error
-                elif sys_term == ('QCDFIT_DOWN',):
-                    scale = self.scale - self.scale_error
-                qcd_hist = (data_hist * self.data_scale - sys_hist) * scale
-                if sys_term not in hist.systematics:
-                    hist.systematics[sys_term] = qcd_hist
-                else:
-                    hist.systematics[sys_term] += qcd_hist
-
-        hist.SetTitle(self.label)
-
     def draw_array(self, field_hist, category, region,
                    cuts=None,
                    weighted=True,
@@ -314,37 +235,6 @@ class QCD(Sample, Background):
             scores_dict[sys_term] = (sys_scores, sys_weights)
 
         return scores_dict
-
-    def trees(self, category, region, cuts=None,
-              systematic='NOMINAL'):
-        TEMPFILE.cd()
-        data_tree = asrootpy(
-                self.data.data.CopyTree(
-                    self.data.cuts(
-                        category,
-                        region=self.shape_region) & cuts))
-        data_tree.userdata.weight_branches = []
-        trees = [data_tree]
-        for mc_scale, mc in zip(self.mc_scales, self.mc):
-            _trees = mc.trees(
-                category,
-                region=self.shape_region,
-                cuts=cuts,
-                systematic=systematic,
-                scale=mc_scale)
-            for tree in _trees:
-                tree.Scale(-1)
-            trees += _trees
-
-        scale = self.scale
-        if systematic == ('QCDFIT_UP',):
-            scale += self.scale_error
-        elif systematic == ('QCDFIT_DOWN',):
-            scale -= self.scale_error
-
-        for tree in trees:
-            tree.Scale(scale)
-        return trees
 
     def records(self,
                 category=None,
