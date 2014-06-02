@@ -7,6 +7,24 @@ def get_label(name):
         label += ' [{0}]'.format(info['units'])
     return label
 
+
+def get_range(name, category):
+    range = VARIABLES[name]['range']
+    if isinstance(range, dict):
+        return range.get(category.name.upper(), range[None])
+    return range
+
+
+def get_scale(name):
+    info = VARIABLES[name]
+    return info.get('scale', 1)
+
+
+def get_units(name):
+    info = VARIABLES[name]
+    return info.get('units', None)
+
+
 WEIGHTS = {
     'pileup_weight': {
         'title': 'Pile-up Weight',

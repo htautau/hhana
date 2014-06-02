@@ -16,7 +16,7 @@ from ROOT import TLatex
 from mva.samples import Embedded_Ztautau, MC_Ztautau
 from mva.plotting import format_plot
 from mva import MMC_MASS
-from mva.variables import VARIABLES
+from mva.variables import VARIABLES, get_range, get_scale, get_units
 
 target_region = args.target_region
 
@@ -68,7 +68,7 @@ for category in analysis.iter_categories(
     canvas = Canvas()
     hists = []
     for sample in (eb_ztt, mc_ztt):
-        hist = Hist(60, 20, 200, drawstyle='hist E0', markersize=0, linewidth=3,
+        hist = Hist(30, 20, 200, drawstyle='hist E0', markersize=0, linewidth=3,
             legendstyle='L', title=sample.label, **sample.hist_decor)
         sample.draw_array({MMC_MASS: hist}, category, target_region)
         if sample is mc_ztt:
@@ -83,3 +83,27 @@ for category in analysis.iter_categories(
                 data_info=analysis.data.info,
                 left_label=category.label)
     canvas.SaveAs('emb_MMC_{0}_{1}.png'.format(category.name, analysis.year))
+
+    # tau pt
+    for field in ('tau1_pt', 'tau2_pt', 'dR_tau1_tau2'):
+        info = VARIABLES[field]
+        canvas = Canvas()
+        hists = []
+        for sample in (eb_ztt, mc_ztt):
+            hist = Hist(info['bins'], *get_range(field, category), drawstyle='hist E0', markersize=0, linewidth=3,
+                legendstyle='L', title=sample.label, **sample.hist_decor)
+            sample.draw_array({field: hist}, category, target_region,
+                              field_scale={field: get_scale(field)})
+            if sample is mc_ztt:
+                hist *= eb_ztt_events / mc_ztt_events
+            hists.append(hist)
+        axes, bounds = draw(hists, pad=canvas, ypadding=(0.25, 0))
+        xaxis, yaxis = axes
+        leg = Legend(hists, pad=canvas, leftmargin=0.4, margin=0.18, topmargin=0.15, textsize=22)
+        leg.Draw()
+        format_plot(canvas, template=hists[0], xaxis=xaxis, yaxis=yaxis,
+                    xlabel=info['root'], units=get_units(field),
+                    data_info=analysis.data.info,
+                    left_label=category.label)
+        canvas.SaveAs('emb_{0}_{1}_{2}.png'.format(field, category.name, analysis.year))
+
