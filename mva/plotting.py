@@ -690,10 +690,10 @@ def uncertainty_band(model, systematics, systematics_components):
         var_high.append(total_max)
         var_low.append(total_min)
 
-        log.warning("{0}, {1}".format(str(term), str(variations)))
-        log.warning("{0} {1}".format(total_max.integral(), total_min.integral()))
+        log.debug("{0}, {1}".format(str(term), str(variations)))
+        log.debug("{0} {1}".format(total_max.integral(), total_min.integral()))
 
-    log.info(str(systematics_components))
+    log.debug(str(systematics_components))
     if systematics_components is None:
         # include stat error variation
         total_model_stat_high = total_model.Clone()

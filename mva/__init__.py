@@ -33,6 +33,8 @@ if not os.environ.get("DEBUG", False):
 if hasattr(logging, 'captureWarnings'):
     logging.captureWarnings(True)
 
+log['/ROOT.TH1D.Chi2TestX'].setLevel(log.WARNING)
+
 from rootpy.utils.path import mkdir_p
 
 def plots_dir(script):
