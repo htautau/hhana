@@ -14,8 +14,8 @@ from root_numpy import rec2array
 
 # local imports
 from . import samples, log; log = log[__name__]
+from . import norm_cache
 from .samples import Higgs, Data
-from .norm import cache as norm_cache
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
 from .defaults import (

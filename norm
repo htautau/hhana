@@ -14,7 +14,7 @@ from rootpy.stats import histfactory
 from mva.plotting import draw_channel
 from mva.categories import Category_Rest, Category_Preselection
 from mva.lumi import get_lumi_uncert
-from mva.norm import cache
+from mva import norm_cache as cache
 from mva.variables import VARIABLES
 from mva import CONST_PARAMS
 import numpy as np

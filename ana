@@ -32,7 +32,7 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 
 # local imports
-from mva import hypotests, CACHE_DIR
+from mva import log, variables, samples, MMC_MASS
 from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
                            draw_channel_array, draw_channel,
                            correlations, hist_scores )
@@ -44,8 +44,6 @@ from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, WEIGHTS, YEAR_VARIABLES
 from mva.analysis import get_analysis, Analysis
-from mva import log, variables, samples, MMC_MASS
-from mva.norm import cache
 
 
 SYSTEMATICS = get_systematics(year)

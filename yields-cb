@@ -14,7 +14,7 @@ from mva.cmd import get_parser
 args = get_parser(actions=False).parse_args()
 
 from mva import log
-from mva.norm import cache as norm_cache
+from mva import norm_cache
 from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
 from mva.categories.mva  import Category_Preselection

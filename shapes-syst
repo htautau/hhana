@@ -13,7 +13,7 @@ from ROOT import TLatex
 
 # local imports
 from mva.cmd import get_parser
-from mva.norm import cache as norm_cache 
+from mva import norm_cache 
 from mva.defaults import TARGET_REGION
 from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
