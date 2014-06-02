@@ -1,12 +1,14 @@
+# python imports
+from itertools import cycle
 # ROOT/rootpy imports
-
 import ROOT
 from rootpy.plotting import Canvas, Legend, Hist, Graph
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import draw
 from rootpy.memory import keepalive
 from rootpy.context import preserve_current_canvas
-from itertools import cycle
+# local imports
+from . import log; log = log[__name__]
 
 gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 
@@ -15,7 +17,8 @@ def pvalue_plot(poi, pvalues, pad=None,
                 xtitle='X', ytitle='P_{0}',
                 linestyle=None,
                 linecolor=None,
-                yrange=None):
+                yrange=None,
+                verbose=False):
     """
     Draw a pvalue plot
 
@@ -92,6 +95,12 @@ def pvalue_plot(poi, pvalues, pad=None,
             curr_min_pvalue = min(pv)
             if curr_min_pvalue < min_pvalue:
                 min_pvalue = curr_min_pvalue
+
+        if verbose:
+            for graph in graphs:
+                log.info(['{0:1.1f}'.format(xval) for xval in list(graph.x())])
+                log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
+
 
         # automatically handles axis limits
         axes, bounds = draw(graphs, pad=pad, same=True, logy=True,
