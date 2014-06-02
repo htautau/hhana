@@ -1,10 +1,17 @@
+import os
+
 # rootpy imports
 from rootpy.tree import Cut
+from rootpy.io import root_open
+
+# root_numpy imports
+from root_numpy import rec2array, evaluate
 
 # local imports
 from . import log
 from .sample import SystematicsSample, Background, MC
 from ..regions import REGIONS
+from .. import DAT_DIR
 
 
 class Ztautau(Background):
@@ -55,6 +62,22 @@ class Pythia_Ztautau(MC_Ztautau):
 
 
 class Embedded_Ztautau(Ztautau, SystematicsSample):
+
+    def __init__(self, *args, **kwargs):
+        super(Embedded_Ztautau, self).__init__(*args, **kwargs)
+        self.tauspinner = kwargs.pop('tauspinner', True)
+        self.posterior_trigger_correction = kwargs.pop('posterior_trigger_correction', True)
+        with root_open(os.path.join(DAT_DIR, 'embedding_corrections.root')) as file:
+            self.trigger_correct = file['ebmc_weight_{0}'.format(self.year % 1000)]
+            self.trigger_correct.SetDirectory(0)
+
+    def corrections(self, rec):
+        # posterior trigger correction
+        if not self.posterior_trigger_correction:
+            return
+        arr = rec2array(rec[['tau1_pt', 'tau2_pt']])
+        weights = evaluate(self.trigger_correct, arr)
+        return [weights]
 
     def systematics_components(self):
         # No FAKERATE for embedding since fakes are data
@@ -149,11 +172,6 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def xsec_kfact_effic(self, isample):
         return 1., 1., 1.
-
-    def __init__(self, *args, **kwargs):
-        self.tauspinner = kwargs.pop('tauspinner', True)
-        self.posterior_trigger_correction = kwargs.pop('posterior_trigger_correction', True)
-        super(Embedded_Ztautau, self).__init__(*args, **kwargs)
 
 
 class MC_Embedded_Ztautau(Embedded_Ztautau):

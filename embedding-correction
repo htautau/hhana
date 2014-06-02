@@ -9,7 +9,7 @@ from rootpy.io import root_open
 from rootpy.plotting import Hist2D, Canvas
 from root_numpy import fill_hist
 
-output = root_open('embedding_corrections.root', 'RECREATE')
+output = root_open('dat/embedding_corrections.root', 'RECREATE')
 
 for year in (2011, 2012):
     # normal trigger correcions
@@ -23,8 +23,8 @@ for year in (2011, 2012):
     log.info(', '.join(ztt_ebcor.weights()))
 
     # maps of pt tau1 vs pt tau2
-    mccor_hist = Hist2D([35, 45, 60, 1E100],
-                        [25, 35, 45, 60, 1E100],
+    mccor_hist = Hist2D([35e3, 45e3, 60e3, 1e100],
+                        [25e3, 35e3, 45e3, 60e3, 1e100],
                         name='mc_map_{0}'.format(year % 1000))
     ebcor_hist = mccor_hist.Clone(name='eb_map_{0}'.format(year % 1000))
 
@@ -34,8 +34,8 @@ for year in (2011, 2012):
     ebcor_arr = ztt_ebcor.array(Category_Preselection, TARGET_REGION, fields)
 
     # fill the histograms from the arrays
-    fill_hist(mccor_hist, mccor_arr[:,0:-1] / 1000, mccor_arr[:,-1])
-    fill_hist(ebcor_hist, ebcor_arr[:,0:-1] / 1000, ebcor_arr[:,-1])
+    fill_hist(mccor_hist, mccor_arr[:,0:-1], mccor_arr[:,-1])
+    fill_hist(ebcor_hist, ebcor_arr[:,0:-1], ebcor_arr[:,-1])
 
     # normalize
     mccor_hist /= mccor_hist.integral()

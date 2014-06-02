@@ -11,7 +11,7 @@ if not os.path.exists(CACHE_DIR):
     os.mkdir(CACHE_DIR)
 
 ETC_DIR = os.path.join(BASE_DIR, 'etc')
-
+DAT_DIR = os.path.join(BASE_DIR, 'dat')
 NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v29')
 
 import ROOT

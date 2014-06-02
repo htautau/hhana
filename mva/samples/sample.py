@@ -86,6 +86,9 @@ class Sample(object):
     def weight_fields(self):
         return []
 
+    def corrections(self, rec):
+        return []
+
     def __init__(self, year, scale=1., cuts=None,
                  student=DEFAULT_STUDENT,
                  trigger=True,
@@ -1279,6 +1282,9 @@ class SystematicsSample(Sample):
                 # merge the weight fields
                 weights *= reduce(np.multiply,
                     [rec[br] for br in weight_branches])
+                correction_weights = self.corrections(rec)
+                if correction_weights:
+                    weights *= reduce(np.multiply, correction_weights)
                 # drop other weight fields
                 #rec = recfunctions.rec_drop_fields(rec, weight_branches)
                 # add the combined weight
