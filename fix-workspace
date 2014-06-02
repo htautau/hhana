@@ -10,6 +10,7 @@ parser.add_argument('--prune-shapes', action='store_true', default=False)
 parser.add_argument('--chi2-threshold', type=float, default=0.99)
 parser.add_argument('--symmetrize', action='store_true', default=False)
 parser.add_argument('--symmetrize-partial', action='store_true', default=False)
+parser.add_argument('--merge', action='store_true', default=False)
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
@@ -21,4 +22,5 @@ fix(args.paths, n_jobs=args.jobs, suffix=args.suffix, verbose=not args.quiet,
     prune_shapes=args.prune_shapes,
     chi2_threshold=args.chi2_threshold,
     symmetrize=args.symmetrize,
-    symmetrize_partial=args.symmetrize_partial)
+    symmetrize_partial=args.symmetrize_partial,
+    merge=args.merge)

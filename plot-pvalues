@@ -11,9 +11,12 @@ import ROOT
 set_style('ATLAS', shape='rect')
 gaus_cdf = ROOT.Math.gaussian_cdf_c
 
-bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
+# bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
 single_bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
-cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
+# cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
+bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym/'
+cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym/'
+
 masses = range(100, 155, 5)
 colors = ['black', 'red', 'blue', 'purple', 'darkgreen']
 lines = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash', 'verylongdash']
