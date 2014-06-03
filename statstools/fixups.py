@@ -75,7 +75,8 @@ def fix_measurement(meas,
                     prune_shapes=False,
                     chi2_threshold=0.99,
                     symmetrize=False,
-                    symmetrize_partial=False):
+                    symmetrize_partial=False,
+                    merge=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
@@ -121,6 +122,15 @@ def fix_measurement(meas,
             prune_histosys_method='max',
             prune_histosys_threshold=0.1, # 10%
             prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
+    if merge:
+        # merge bins in some channels
+        process_measurement(meas,
+                            merge_bins=[(1, 2), (8, 9)],
+                            merge_bins_channels=['*cuts_vbf_highdr_tight*'])
+        process_measurement(meas,
+                            merge_bins=[(1, 2)],
+                            merge_bins_channels=['*cuts_vbf_highdr'])
+
 
     # fill empty bins with the average sample weight
     # the so-called "Kyle-fix"

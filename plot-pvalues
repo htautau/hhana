@@ -2,6 +2,7 @@
 
 from mva import save_canvas
 from statstools.pvalue_plot import pvalue_plot
+from statstools import log; log=log[__name__]
 from rootpy.plotting import Canvas, Legend, set_style
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
@@ -11,9 +12,12 @@ import ROOT
 set_style('ATLAS', shape='rect')
 gaus_cdf = ROOT.Math.gaussian_cdf_c
 
-bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
-single_bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
-cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
+# bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
+single_bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
+# cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
+bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym/'
+cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged/'
+
 masses = range(100, 155, 5)
 colors = ['black', 'red', 'blue', 'purple', 'darkgreen']
 lines = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash', 'verylongdash']
@@ -36,6 +40,7 @@ def get_sigs(path, category, year=None, meas=True):
 
 def plot(name, curves, labels):
     c = Canvas()
+    log.info(labels)
     _, graphs = pvalue_plot(
         masses, curves, pad=c, xtitle='m_{H} [GeV]',
         linestyle=lines, linecolor=colors,
@@ -43,6 +48,11 @@ def plot(name, curves, labels):
     for label, graph in zip(labels, graphs):
         graph.title = label
         graph.legendstyle = 'L'
+        log.info( '-------- {0} -------'.format(graph.title))
+        log.info(['{0:1.1f}'.format(xval) for xval in list(graph.x())])
+        log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
+
+
     leg = Legend(graphs, leftmargin=0.4,
                  topmargin=0.1, margin=0.15,
                  textsize=20)

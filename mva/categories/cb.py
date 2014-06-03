@@ -53,8 +53,8 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
         & Cut('dR_tau1_tau2 < 1.5')
         & Cut('resonance_pt > 140000'))
     limitbins = {}
-    limitbins[2011] = [0,64,80,92,104,116,132,INF]
-    limitbins[2012] = [0,64,80,92,104,116,132,176,INF]
+    limitbins[2011] = [0, 64, 80, 92, 104, 116, 132, INF]
+    limitbins[2012] = [0, 64, 80, 92, 104, 116, 132, 176, INF]
     norm_category = Category_Preselection
 
 
@@ -66,7 +66,8 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
-    limitbins = [0,64,80,92,104,116,132,152,176,INF]
+    # limitbins = [0,64,80,92,104,116,132,152,176,INF]
+    limitbins = [0, 80, 92, 104, 116, 132, 152, INF]
     norm_category = Category_Preselection
 
 
@@ -78,7 +79,7 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)'))
-    limitbins = [0,64,80,92,104,116,132,152,176,INF]
+    limitbins = [0, 64, 80, 92, 104, 116, 132, 152, 176, INF]
     norm_category = Category_Preselection
 
 
@@ -87,7 +88,7 @@ class Category_Cuts_VBF_HighDR(Category_Preselection):
     label = '#tau_{had}#tau_{had} CB VBF Low-p_{T}^{H}'
     latex = '\\textbf{VBF Low-$p_T^{H}$}'
     cuts = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts
-    limitbins = [0,64,80,92,104,116,132,152,INF]
+    limitbins = [0, 64, 80, 92, 104, 116, 132, 152, INF]
     norm_category = Category_Preselection
 
 
