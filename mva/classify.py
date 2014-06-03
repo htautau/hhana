@@ -33,15 +33,13 @@ from root_numpy import rec2array
 # local imports
 from .samples import *
 from . import log; log = log[__name__]
-from . import CACHE_DIR
 from . import MMC_MASS, MMC_PT
 from .plotting import (
     draw, plot_clf, plot_grid_scores,
     hist_scores, draw_samples_array,
     draw_channel_array, draw_channel,
     efficiency_cut)
-from . import variables
-from . import PLOTS_DIR
+from . import variables, CACHE_DIR, PLOTS_DIR, plot_dir
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
 
@@ -695,10 +693,10 @@ class Classifier(object):
                  signal_region,
                  control_region,
                  systematics=None,
-                 signal_scale=50,
                  unblind=False,
                  fit=None,
                  bins=20,
+                 signal_scale=20.,
                  output_formats=None):
         # TODO: move to Analysis
         category = self.category
@@ -720,7 +718,7 @@ class Classifier(object):
             unblind=True,
             no_signal_fixes=True)
 
-        uniform_channel(channel)
+        #uniform_channel(channel)
 
         # prefit
         draw_channel(channel,
@@ -735,7 +733,8 @@ class Classifier(object):
             #range=(-1, 1),
             signal_scale=signal_scale,
             signal_on_top=False,
-            show_ratio=True)
+            show_ratio=True,
+            output_dir=plot_dir('bdt'))
 
         ###################################################################
         # show the background model and 125 GeV signal in the signal region
@@ -750,7 +749,7 @@ class Classifier(object):
             unblind=unblind or 0.3,
             no_signal_fixes=True)
 
-        uniform_channel(channel)
+        #uniform_channel(channel)
 
         bkg_scores = scores.bkg_scores
         sig_scores = scores.all_sig_scores[125]
@@ -768,11 +767,13 @@ class Classifier(object):
             data_info=str(analysis.data.info),
             output_name='event_bdt_score_signal_region' + self.output_suffix,
             name='BDT score',
+            ypadding=(0.4, 0.),
             #range=(-1, 1),
             systematics=systematics,
             output_formats=output_formats,
             show_ratio=True,
-            fit=fit) #POSTFIT
+            fit=fit, # POSTFIT
+            output_dir=plot_dir('bdt'))
 
         """
         ###############################################################

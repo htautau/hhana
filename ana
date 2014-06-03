@@ -32,7 +32,7 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 
 # local imports
-from mva import log, variables, samples, MMC_MASS
+from mva import log, variables, samples, MMC_MASS, plot_dir
 from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
                            draw_channel_array, draw_channel,
                            correlations, hist_scores )
@@ -421,5 +421,4 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             unblind=args.unblind,
             systematics=SYSTEMATICS if args.systematics else None,
             output_formats=args.output_formats,
-            bins=binning,
-            signal_scale=50,)
+            bins=binning)

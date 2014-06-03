@@ -101,6 +101,11 @@ REPO = Repo(BASE_DIR)
 REPO_BRANCH = REPO.active_branch
 PLOTS_DIR = os.path.join(BASE_DIR, 'plots', 'variables')
 
+
+def plot_dir(name):
+    return os.path.join(BASE_DIR, 'plots', name)
+
+
 def save_canvas(canvas, directory, name, formats=None):
     # save images in directories corresponding to current git branch
     filepath = os.path.join(directory, REPO_BRANCH, name)

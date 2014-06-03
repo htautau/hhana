@@ -58,6 +58,101 @@ class Higgs(MC, Signal):
     #    os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
     NORM_BY_THEORY = True
 
+    def __init__(self, year,
+                 mode=None, modes=None,
+                 mass=None, masses=None,
+                 sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
+                 ggf_weight=True,
+                 suffix=None,
+                 label=None,
+                 **kwargs):
+        if masses is None:
+            if mass is not None:
+                assert mass in Higgs.MASSES
+                masses = [mass]
+            else:
+                masses = Higgs.MASSES
+        else:
+            assert len(masses) > 0
+            for mass in masses:
+                assert mass in Higgs.MASSES
+            assert len(set(masses)) == len(masses)
+
+        if modes is None:
+            if mode is not None:
+                assert mode in Higgs.MODES
+                modes = [mode]
+            else:
+                modes = Higgs.MODES
+        else:
+            assert len(modes) > 0
+            for mode in modes:
+                assert mode in Higgs.MODES
+            assert len(set(modes)) == len(modes)
+
+        name = 'Signal'
+
+        str_mode = ''
+        if len(modes) == 1:
+            str_mode = modes[0]
+            name += '_%s' % str_mode
+        elif len(modes) == 2 and set(modes) == set(['W', 'Z']):
+            str_mode = 'V'
+            name += '_%s' % str_mode
+
+        str_mass = ''
+        if len(masses) == 1:
+            str_mass = '%d' % masses[0]
+            name += '_%s' % str_mass
+
+        if label is None:
+            label = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (
+                str_mode, str_mass)
+
+        if year == 2011:
+            if suffix is None:
+                suffix = '.mc11c'
+            generator_index = 1
+        elif year == 2012:
+            if suffix is None:
+                suffix = '.mc12a'
+            generator_index = 2
+        else:
+            raise ValueError('No Higgs defined for year %d' % year)
+
+        self.samples = []
+        self.masses = []
+        self.modes = []
+
+        if sample_pattern is not None:
+            assert len(modes) == 1
+            for mass in masses:
+                self.masses.append(mass)
+                self.modes.append(modes[0])
+                self.samples.append(sample_pattern.format(mass) + '.' + suffix)
+        else:
+            for mode in modes:
+                generator = Higgs.MODES_DICT[mode][generator_index]
+                for mass in masses:
+                    self.samples.append('%s%sH%d_tautauhh%s' % (
+                        generator, mode, mass, suffix))
+                    self.masses.append(mass)
+                    self.modes.append(mode)
+
+        if len(self.modes) == 1:
+            self.mode = self.modes[0]
+        else:
+            self.mode = None
+        if len(self.masses) == 1:
+            self.mass = self.masses[0]
+        else:
+            self.mass = None
+
+        self.ggf_weight = ggf_weight
+        self.ggf_weight_field = 'ggf_weight'
+        super(Higgs, self).__init__(
+            year=year, label=label, name=name, **kwargs)
+
     #def weight_systematics(self):
     #    systematics = super(Higgs, self).weight_systematics()
     #    if self.ggf_weight:
@@ -162,101 +257,6 @@ class Higgs(MC, Signal):
         #        high=up_hist)
         #    norm, shape = histfactory.split_norm_shape(shape, nom)
         #    sample.AddHistoSys(shape)
-
-    def __init__(self, year,
-                 mode=None, modes=None,
-                 mass=None, masses=None,
-                 sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
-                 ggf_weight=True,
-                 suffix=None,
-                 label=None,
-                 **kwargs):
-        if masses is None:
-            if mass is not None:
-                assert mass in Higgs.MASSES
-                masses = [mass]
-            else:
-                masses = Higgs.MASSES
-        else:
-            assert len(masses) > 0
-            for mass in masses:
-                assert mass in Higgs.MASSES
-            assert len(set(masses)) == len(masses)
-
-        if modes is None:
-            if mode is not None:
-                assert mode in Higgs.MODES
-                modes = [mode]
-            else:
-                modes = Higgs.MODES
-        else:
-            assert len(modes) > 0
-            for mode in modes:
-                assert mode in Higgs.MODES
-            assert len(set(modes)) == len(modes)
-
-        name = 'Signal'
-
-        str_mode = ''
-        if len(modes) == 1:
-            str_mode = modes[0]
-            name += '_%s' % str_mode
-        elif len(modes) == 2 and set(modes) == set(['W', 'Z']):
-            str_mode = 'V'
-            name += '_%s' % str_mode
-
-        str_mass = ''
-        if len(masses) == 1:
-            str_mass = '%d' % masses[0]
-            name += '_%s' % str_mass
-
-        if label is None:
-            label = '%s#font[52]{H}(%s)#rightarrow#tau#tau' % (
-                str_mode, str_mass)
-
-        if year == 2011:
-            if suffix is None:
-                suffix = '.mc11c'
-            generator_index = 1
-        elif year == 2012:
-            if suffix is None:
-                suffix = '.mc12a'
-            generator_index = 2
-        else:
-            raise ValueError('No Higgs defined for year %d' % year)
-
-        self.samples = []
-        self.masses = []
-        self.modes = []
-
-        if sample_pattern is not None:
-            assert len(modes) == 1
-            for mass in masses:
-                self.masses.append(mass)
-                self.modes.append(modes[0])
-                self.samples.append(sample_pattern.format(mass) + '.' + suffix)
-        else:
-            for mode in modes:
-                generator = Higgs.MODES_DICT[mode][generator_index]
-                for mass in masses:
-                    self.samples.append('%s%sH%d_tautauhh%s' % (
-                        generator, mode, mass, suffix))
-                    self.masses.append(mass)
-                    self.modes.append(mode)
-
-        if len(self.modes) == 1:
-            self.mode = self.modes[0]
-        else:
-            self.mode = None
-        if len(self.masses) == 1:
-            self.mass = self.masses[0]
-        else:
-            self.mass = None
-
-        self.ggf_weight = ggf_weight
-        self.ggf_weight_field = 'ggf_weight'
-        super(Higgs, self).__init__(
-            year=year, label=label, name=name, **kwargs)
 
     def xsec_kfact_effic(self, isample):
         # use yellowhiggs for cross sections
