@@ -176,8 +176,8 @@ def getFrame(cat, obsData, simPdf, mc, fit_res, error_band_strategy=1, compute_y
         Integral_comp = comp.createIntegral(RooArgSet(obs))
         Yield_comp = Integral_comp.getVal() * binWidth.getVal()
         log.info('Integral = {0}'.format(Yield_comp))
-        if Yield_comp==0:
-            raise RuntimeError('Yield integral is wrong !!')
+        #         if Yield_comp==0:
+        #             raise RuntimeError('Yield integral is wrong !!')
 
 
         # --> Add the components to the frame but in an invisible way

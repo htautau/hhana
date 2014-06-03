@@ -128,7 +128,7 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
         workspace.loadSnapshot('StartingPoint')
 
     
-    fit_res.covarianceMatrix().Print()
+    # fit_res.covarianceMatrix().Print()
     StatListIndices = []
     SystListIndices = []
     for index, arg in  enumerate(asrootpy(fit_res.floatParsFinal())):
@@ -142,8 +142,8 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
             
     log.info('Indices of stat params: {0}'.format(StatListIndices))
     log.info('Indices of syst params: {0}'.format(SystListIndices))
-    stat_fitres = Partial_RooFitResult(fit_res, len(StatListIndices), array('i', StatListIndices))
-    syst_fitres = Partial_RooFitResult(fit_res, len(SystListIndices), array('i', SystListIndices))
+    # stat_fitres = Partial_RooFitResult(fit_res, len(StatListIndices), array('i', StatListIndices))
+    # syst_fitres = Partial_RooFitResult(fit_res, len(SystListIndices), array('i', SystListIndices))
     #     fit_res.covarianceMatrix().Print()
     #     stat_fitres.covarianceMatrix().Print()
     #     syst_fitres.covarianceMatrix().Print()
@@ -286,7 +286,7 @@ if __name__ == '__main__':
         output += '_prefit'
     else:
         output += '_postfit'
-
+    log.info(output)
     with root_open(args.file) as file:
         if args.force_fit:
             Fit_WS(file[args.name], output,
