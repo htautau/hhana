@@ -1016,6 +1016,7 @@ def draw_channel_array(
         if cuts:
             output_name += '_' + cuts.safe()
         ypadding = kwargs.pop('ypadding', var_info.get('ypadding', None))
+        log_ypadding = kwargs.pop('log_ypadding', var_info.get('log_ypadding', None))
         legend_position = kwargs.pop('legend_position', var_info.get('legend', 'right'))
         fig = draw_channel(field_channel[field],
                            data_info=str(analysis.data.info),
@@ -1026,13 +1027,15 @@ def draw_channel_array(
                            blind=blind,
                            integer=var_info.get('integer', False),
                            ypadding=ypadding,
+                           log_ypadding=log_ypadding,
                            legend_position=legend_position,
                            **kwargs)
         figs[field] = fig
     return field_channel, figs
 
 
-def draw_channel(channel, fit=None, no_data=False, **kwargs):
+def draw_channel(channel, fit=None, no_data=False,
+                 ypadding=None, log_ypadding=None, **kwargs):
     """
     Draw a HistFactory::Channel only include OverallSys systematics
     in resulting band as an illustration of the level of uncertainty
@@ -1078,6 +1081,7 @@ def draw_channel(channel, fit=None, no_data=False, **kwargs):
             signal=signal_hists or None,
             systematics=systematics_terms,
             logy=logy,
+            ypadding=(log_ypadding or ypadding) if logy else ypadding,
             **kwargs))
     return figs
 
@@ -1185,13 +1189,14 @@ def draw(name,
          show_ratio=False,
          ratio_range=None,
          ratio_height=0.15,
-         ratio_margin=0.05,
+         ratio_margin=0.06,
          output_formats=None,
          systematics=None,
          systematics_components=None,
          integer=False,
          textsize=22,
          logy=False,
+         logy_min=None,
          separate_legends=False,
          legend_leftmargin=0.39,
          ypadding=None,
@@ -1602,6 +1607,10 @@ def draw(name,
                 xlabel=name, ylabel=ylabel, units=units, xlimits=range,
                 left_label=category.label, right_label=plot_label,
                 data_info=data_info, integer=integer)
+
+    if logy and logy_min is not None:
+        yaxis.min = logy_min
+        ymin = logy_min
 
     # draw arrows
     if arrow_values is not None:
