@@ -243,19 +243,19 @@ test:
 
 .PHONY: norms
 norms:
-	for year in 2011 2012; do \
+	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			nohup ./norm --fakes-region $${model} --year $${year} > norm_ebz_$${model}_$${year}.log & \
-			nohup ./norm --no-embedding --fakes-region $${model} --year $${year} > norm_mcz_$${model}_$${year}.log & \
+			run-cluster ./norm --fakes-region $${model} --year $${year} > norm_ebz_$${model}_$${year}.log & \
+			run-cluster ./norm --no-embedding --fakes-region $${model} --year $${year} > norm_mcz_$${model}_$${year}.log & \
 		done; \
 	done
 
 .PHONY: model-plots
 model-plots:
-	for year in 2011 2012; do \
+	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			nohup ./ana plot --fakes-region $${model} --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
-			nohup ./ana plot --fakes-region $${model} --year $${year} --categories presel --output-formats eps png > var_plots_presel_$${year}_$${model}.log & \
+			run-cluster ./plot-features --fakes-region $${model} --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
+			run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel --output-formats eps png > var_plots_presel_$${year}_$${model}.log & \
 		done; \
 	done
 
@@ -263,9 +263,9 @@ model-plots:
 plots:
 	@for year in 2011 2012; do \
 		for category in vbf boosted rest; do \
-			PBS_MEM=12gb run-cluster ./ana plot --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
+			PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
 		done; \
-		PBS_MEM=12gb run-cluster ./ana plot --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
+		PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
 	done
 
 .PHONY: mva-plots
