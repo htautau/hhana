@@ -303,10 +303,10 @@ train: train-vbf-each-mass train-boosted-each-mass
 
 .PHONY: binning
 binning:
-	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --categories boosted --min-bkg-weighted 40 --year 2012 --procs $(PBS_PPN_MAX)
-	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --categories vbf --year 2012 --procs $(PBS_PPN_MAX)
-	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories boosted --procs $(PBS_PPN_MAX)
-	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories vbf --procs $(PBS_PPN_MAX)
+	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories boosted --min-bkg-weighted 40 --procs $(PBS_PPN_MAX)
+	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories boosted --min-bkg-weighted 10 --procs $(PBS_PPN_MAX)
+	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories vbf --procs $(PBS_PPN_MAX)
+	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories vbf --procs $(PBS_PPN_MAX)
 
 .PHONY: binning-each-mass
 binning-each-mass:
