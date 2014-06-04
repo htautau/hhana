@@ -23,7 +23,7 @@ if args.masses == ['all',]:
 else:
     args.masses = map(int, args.masses)
     args.masses.sort()
-    masses_label = '_'.join(map(str, args.mass)) 
+    masses_label = '_'.join(map(str, args.masses)) 
 
 analysis = Analysis(
     year=2012,

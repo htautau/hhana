@@ -287,13 +287,13 @@ train:
 	done
 
 .PHONY: train-boosted-each-mass
-train-boosted:
+train-boosted-each-mass:
 	@for mass in $$(seq 100 5 150); do \
 		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-vbf-each-mass
-train-vbf:
+train-vbf-each-mass:
 	@for mass in $$(seq 100 5 150); do \
 		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
 	done
