@@ -280,23 +280,36 @@ mva-control-plots:
 	nohup ./ana evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
 	nohup ./ana evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
-.PHONY: train-boosted
+.PHONY: train
+train:
+	@for category in vbf boosted; do \
+		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses 125 --categories $${category} --procs $(PBS_PPN_MAX); \
+	done
+
+.PHONY: train-boosted-each-mass
 train-boosted:
 	@for mass in $$(seq 100 5 150); do \
 		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
 	done
 
-.PHONY: train-vbf
+.PHONY: train-vbf-each-mass
 train-vbf:
 	@for mass in $$(seq 100 5 150); do \
 		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
 	done
 
-.PHONY: train
-train: train-vbf train-boosted
+.PHONY: train-each-mass
+train: train-vbf-each-mass train-boosted-each-mass
 
 .PHONY: binning
 binning:
+	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --categories boosted --min-bkg-weighted 40 --year 2012 --procs $(PBS_PPN_MAX)
+	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --categories vbf --year 2012 --procs $(PBS_PPN_MAX)
+	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories boosted --procs $(PBS_PPN_MAX)
+	PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories vbf --procs $(PBS_PPN_MAX)
+
+.PHONY: binning-each-mass
+binning-each-mass:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
 			PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year $${year} --mass $${mass} --procs $(PBS_PPN_MAX); \

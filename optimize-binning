@@ -91,9 +91,11 @@ def get_sig(scores, binning, edge=None, pos=1,
     return 0 if sig != sig else sig
 
 
-def get_valid_range(bkg_scores, left, right, steps,
+def get_valid_range(bkg_scores, sig_scores,
+                    left, right, steps,
                     min_bkg_unweighted,
-                    min_bkg_weighted):
+                    min_bkg_weighted,
+                    sig_shrinkage):
     # Only consider edges that give non-negative yields for all backgrounds
     # (negative weights on the background events can be present) and edges that
     # will hold at least min_bkg_unweighted events in the new bin.
@@ -197,12 +199,30 @@ def get_valid_range(bkg_scores, left, right, steps,
     first_bin_min_bkg += all_positive_left[first_bin_min_bkg:].argmax()
 
     # require more background on left of cut than right
-    # (avoids complex noisy binnings and promotes a nice background shape)
+    # (avoids complex noisy binnings and promotes a "good" background shape)
     first_bin_min_bkg = max(first_bin_min_bkg,
-        (sum_weighted_left >= np.concatenate([[sum_weighted_right[0]], sum_weighted_right])[:-1]).argmax() - 1)
+        (sum_weighted_left >= np.concatenate(
+            [[sum_weighted_right[0]], sum_weighted_right])[:-1]).argmax() - 1)
 
     # sanity check
     assert(first_bin_min_bkg < len(bkg_weighted[0]))
+    
+    """ TODO
+    # require that signal does not drop by more than X amount to the right
+    # of a bin edge (prevents potentially unsafe cutting on the tails)
+    signal_weighted = Hist(steps, left, right)
+    for sig, scores_dict in sig_scores:
+        s, w = scores_dict['NOMINAL']
+        fill_hist(signal_weighted, s, w)
+    # reverse cumsum
+    sig_sums_right = np.cumsum(np.array(list(signal_weighted.y()))[::-1])[::-1]
+    # cumsum
+    sig_sums_left = np.cumsum(np.array(list(signal_weighted.y())))
+    last_bin_min_bkg = min(last_bin_min_bkg,
+        (sig_sums_left > np.concatenate(
+            [[sig_sums_right[0]], sig_sums_right])[:-1] / sig_shrinkage
+            ).argmax() - 1)
+    """
 
     return int(first_bin_min_bkg), int(last_bin_min_bkg), bkg_weighted[0]
 
@@ -211,18 +231,20 @@ def get_best_edge(scores, edges, pos=0,
                   steps=50,
                   min_bkg_unweighted=10,
                   min_bkg_weighted=0,
+                  sig_shrinkage=0.1,
                   mass=125,
                   systematics=False,
                   n_jobs=-1):
     if pos + 2 == 0:
         left, right = edges[pos:]
     else:
-        left, right = edges[pos:pos+2]
+        left, right = edges[pos:pos + 2]
     
     # get the valid range that respects the background requirements
     left_idx, right_idx, template = get_valid_range(
-        scores.bkg_scores, left, right, steps,
-        min_bkg_unweighted, min_bkg_weighted)
+        scores.bkg_scores, scores.all_sig_scores[mass],
+        left, right, steps,
+        min_bkg_unweighted, min_bkg_weighted, sig_shrinkage)
     
     if left_idx is None or right_idx is None:
         # not possible to add an edge 
@@ -280,8 +302,10 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
+    parser.add_argument('--categories', nargs='*')
     parser.add_argument('--min-bkg-unweighted', type=int, default=5)
     parser.add_argument('--min-bkg-weighted', type=float, default=1.)
+    parser.add_argument('--sig-shrinkage', type=float, default=0.1)
     parser.add_argument('--steps', type=int, default=100)
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
@@ -297,6 +321,8 @@ if __name__ == '__main__':
                         qcd_shape_systematic=False)
 
     for category in (Category_Boosted, Category_VBF):
+        if args.categories and category.name not in args.categories:
+            continue
         analysis.normalize(category)
         clf = analysis.get_clf(category, load=True, mass=mass, transform=True)
         scores = analysis.get_scores(
@@ -367,6 +393,7 @@ if __name__ == '__main__':
             steps=args.steps,
             min_bkg_unweighted=args.min_bkg_unweighted,
             min_bkg_weighted=args.min_bkg_weighted,
+            sig_shrinkage=args.sig_shrinkage,
             mass=mass,
             systematics=args.systematics,
             n_jobs=args.procs)
@@ -391,6 +418,7 @@ if __name__ == '__main__':
                 steps=args.steps,
                 min_bkg_unweighted=args.min_bkg_unweighted,
                 min_bkg_weighted=args.min_bkg_weighted,
+                sig_shrinkage=args.sig_shrinkage,
                 mass=mass,
                 systematics=args.systematics,
                 n_jobs=args.procs)
@@ -412,6 +440,7 @@ if __name__ == '__main__':
                 min_bkg_unweighted=args.min_bkg_unweighted,
                 #min_bkg_weighted=args.min_bkg_weighted,
                 min_bkg_weighted=nbkg,
+                sig_shrinkage=args.sig_shrinkage,
                 mass=mass,
                 systematics=args.systematics,
                 n_jobs=args.procs)
