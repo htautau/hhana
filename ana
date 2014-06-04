@@ -120,42 +120,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         leg.Draw()
         fig.SaveAs('data_consistency_{0}.png'.format(category.name))
 
-    if 'plot' in args.actions:
-        cuts = Cut(args.plot_cut)
-
-        if args.plot_expr is not None:
-            VARS = {
-                tuple(args.plot_expr.split(',')): {
-                    'title': args.plot_name,
-                    'range': (args.plot_min, args.plot_max),
-                    'bins': args.plot_bins,
-                    'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
-        else:
-            VARS = VARIABLES
-            VARS.update(YEAR_VARIABLES[args.year])
-
-        figs = draw_channel_array(
-            analysis,
-            vars=VARS,
-            mass=125,
-            mode='combined',
-            signal_scale=50 if is_control or 'preselection' in category.name else 20,
-            plot_label='Signal Region' if not is_control and not ('preselection' in category.name) else None,
-            category=category,
-            region=target_region,
-            #systematics=SYSTEMATICS if args.systematics else None,
-            systematics_components=args.systematics_components,
-            output_formats=args.output_formats,
-            weighted=not args.no_weight,
-            plots=args.plots,
-            output_suffix=output_suffix,
-            unblind=args.unblind, #or is_control,
-            cuts=cuts,
-            show_ratio=args.show_ratio,
-            no_data=args.no_data,
-            #top_label="Fakes Model: {0}".format(analysis.fakes_region),
-            )
-
     if 'plotevolving' in args.actions:
         from copy import deepcopy    
 
