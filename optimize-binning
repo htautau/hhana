@@ -63,15 +63,17 @@ def get_workspace(scores, binning,
         signal.append(sample.get_histfactory_sample(
             hist_template, None, category, TARGET_REGION, scores=scores_dict,
             systematics=systematics))
-    data_hist = sum([b.hist for b in background])
+    # TODO: why is the clone needed?
+    data_hist = sum([b.hist.Clone(shallow=True) for b in background])
     data_hist.name = 'Data'
     data = Data('Data', data_hist)
     channel = Channel(category.name, signal + background, data)
-    measurement = make_measurement('MVA', channel,
+    measurement = make_measurement(
+        'MVA', channel,
         POI='SigXsecOverSM',
         const_params=CONST_PARAMS)
     fix_measurement(measurement)
-    return make_workspace(measurement, silence=False)
+    return make_workspace(measurement, silence=True)
 
 
 def get_sig(scores, binning, edge=None, pos=1,
