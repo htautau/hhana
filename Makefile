@@ -245,8 +245,8 @@ test:
 norms:
 	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			run-cluster ./norm --fakes-region $${model} --year $${year} > norm_ebz_$${model}_$${year}.log & \
-			run-cluster ./norm --no-embedding --fakes-region $${model} --year $${year} > norm_mcz_$${model}_$${year}.log & \
+			run-cluster ./norm --fakes-region $${model} --year $${year}; \
+			run-cluster ./norm --no-embedding --fakes-region $${model} --year $${year}; \
 		done; \
 	done
 
@@ -254,8 +254,8 @@ norms:
 model-plots:
 	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			run-cluster ./plot-features --fakes-region $${model} --year $${year} --output-formats eps png > var_plots_$${year}_$${model}.log & \
-			run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel --output-formats eps png > var_plots_presel_$${year}_$${model}.log & \
+			run-cluster ./plot-features --fakes-region $${model} --year $${year} --output-formats eps png; \
+			run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel --output-formats eps png; \
 		done; \
 	done
 
