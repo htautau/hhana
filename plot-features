@@ -1,0 +1,91 @@
+#!/usr/bin/env python
+"""
+Create variable plots
+"""
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+year = args.year
+
+# rootpy imports
+from rootpy.tree import Cut
+
+# local imports
+from mva.plotting import draw_channel_array
+from mva.systematics import get_systematics, parse_systematics
+from mva.categories import CATEGORIES
+from mva.massregions import MassRegions
+from mva.variables import VARIABLES, YEAR_VARIABLES
+from mva.analysis import get_analysis
+
+
+SYSTEMATICS = get_systematics(year)
+args.systematics_components = parse_systematics(args.systematics_components)
+
+mass_regions = MassRegions(
+    low=args.low_mass_cut,
+    high=args.high_mass_cut,
+    high_sideband_in_control=args.high_sideband_in_control,
+    mass_window_signal_region=False,
+    #args.no_mmc,
+    # not enough events to only train in signal region
+    train_signal_region=False)
+
+control_region = mass_regions.control_region
+signal_region = mass_regions.signal_region
+#signal_region = control_region # for creating control workspaces
+train_region = mass_regions.train_region
+
+categories = CATEGORIES[args.categories]
+category_names = args.category_names
+target_region = args.target_region
+
+analysis = get_analysis(args)
+
+output_suffix = analysis.get_suffix()
+
+cat_defs = [args.categories]
+if args.categories != 'presel':
+    cat_defs.append(args.controls)
+
+for category in analysis.iter_categories(*cat_defs, names=args.category_names):
+
+    is_control = category.analysis_control
+
+    cuts = Cut(args.plot_cut)
+
+    if args.plot_expr is not None:
+        VARS = {
+            tuple(args.plot_expr.split(',')): {
+                'title': args.plot_name,
+                'range': (args.plot_min, args.plot_max),
+                'bins': args.plot_bins,
+                'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
+    else:
+        VARS = VARIABLES
+        VARS.update(YEAR_VARIABLES[args.year])
+
+    figs = draw_channel_array(
+        analysis,
+        vars=VARS,
+        mass=125,
+        mode='combined',
+        signal_scale=(
+            50 if is_control or 'preselection' in category.name else 20),
+        plot_label=(
+            'Signal Region' if not is_control and
+            not ('preselection' in category.name) else None),
+        category=category,
+        region=target_region,
+        #systematics=SYSTEMATICS if args.systematics else None,
+        systematics_components=args.systematics_components,
+        output_formats=args.output_formats,
+        weighted=not args.no_weight,
+        plots=args.plots,
+        output_suffix=output_suffix,
+        unblind=args.unblind,  # or is_control,
+        cuts=cuts,
+        show_ratio=args.show_ratio,
+        no_data=args.no_data,
+        #top_label="Fakes Model: {0}".format(analysis.fakes_region),
+        )

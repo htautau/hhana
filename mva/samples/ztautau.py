@@ -53,8 +53,10 @@ class Ztautau(Background):
 class MC_Ztautau(Ztautau, MC):
     pass
 
+
 class MC_Ztautau_DY(MC_Ztautau):
     pass
+
 
 class Pythia_Ztautau(MC_Ztautau):
     def xsec_kfact_effic(self, isample):
