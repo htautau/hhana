@@ -556,7 +556,7 @@ class Analysis(object):
             if unblind is False:
                 # blind full histogram
                 data_sample.hist[:] = (0, 0)
-            elif isinstance(unblind, int):
+            elif (unblind is not True) and isinstance(unblind, int):
                 # blind highest N bins
                 data_sample.hist[-(unblind + 1):] = (0, 0)
             elif isinstance(unblind, float):

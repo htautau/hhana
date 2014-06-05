@@ -112,7 +112,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         mode='combined',
         systematics=systematics,
         bins=bins,
-        unblind=args.unblind or 2,
+        unblind=args.unblind or 3 if category.name == 'vbf' else 1,
         no_signal_fixes=True)
 
     #uniform_channel(channel)
@@ -127,8 +127,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         category=category,
         plot_label=category.plot_label,
         #plot_label='Mass Signal Region' if signal_region else None,
-        signal_scale=signal_scale if not args.unblind else 1.,
-        signal_on_top=True if args.unblind else False,
+        signal_scale=1.,
+        signal_on_top=True,
         #fill_signal=True if args.unblind else False,
         data_info=str(analysis.data.info),
         output_name='event_bdt_score_signal_region' + clf.output_suffix,
