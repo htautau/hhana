@@ -38,6 +38,7 @@ from .variables import VARIABLES
 from . import PLOTS_DIR, MMC_MASS, save_canvas
 from .systematics import iter_systematics, systematic_name
 from .templates import RatioPlot
+from .utils import fold_overflow
 from . import log; log = log[__name__]
 
 from statstools.utils import efficiency_cut, significance
@@ -501,7 +502,6 @@ def get_2d_field_hist(var):
     return hist
 
 
-
 def draw_2d_hist(classifier,
                  category,
                  region,
@@ -640,9 +640,9 @@ def uncertainty_band(model, systematics, systematics_components):
             high = variations[0]
             low = 'NOMINAL'
         else:
-            print variations
             raise ValueError(
-                "only one or two variations per term are allowed")
+                "only one or two variations "
+                "per term are allowed: {0}".format(variations))
 
         if systematics_components is not None:
             if high not in systematics_components:
@@ -690,7 +690,7 @@ def uncertainty_band(model, systematics, systematics_components):
         var_high.append(total_max)
         var_low.append(total_min)
 
-        log.debug("{0}, {1}".format(str(term), str(variations)))
+        log.debug("{0} {1}".format(str(term), str(variations)))
         log.debug("{0} {1}".format(total_max.integral(), total_min.integral()))
 
     log.debug(str(systematics_components))
@@ -1220,18 +1220,15 @@ def draw(name,
             model = [model]
         if overflow:
             for hist in model:
-                hist[1] += hist[0]
-                hist[-2] += hist[-1]
+                fold_overflow(hist)
     if signal is not None:
         if not isinstance(signal, (list, tuple)):
             signal = [signal]
         if overflow:
             for hist in signal:
-                hist[1] += hist[0]
-                hist[-2] += hist[-1]
+                fold_overflow(hist)
     if data is not None and overflow:
-        data[1] += data[0]
-        data[-2] += data[-1]
+        fold_overflow(data)
 
     # objects will be populated with all histograms in the main pad
     objects = []

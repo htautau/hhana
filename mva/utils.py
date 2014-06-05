@@ -113,6 +113,15 @@ def uniform_hist(hist):
     return rhist
 
 
+def fold_overflow(hist):
+    hist[1] += hist[0]
+    hist[-2] += hist[-1]
+    if hasattr(hist, 'systematics'):
+        for term, syshist in hist.systematics.items():
+            syshist[1] += syshist[0]
+            syshist[-2] += syshist[-1]
+
+
 def search_flat_bins(bkg_scores, min_score, max_score, bins):
     scores = []
     weights = []
