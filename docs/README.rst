@@ -165,3 +165,49 @@ Apply all of the HSG4 workspace fixes with::
     cd workspaces
     fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
     fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
+
+Scan of the nuisance parameters
+-------------------------------
+
+Construct the profile of every nuisance parameter  (NP)::
+
+    # submit a batch job for each NP. If --submit is omitted simply print the command.
+    multinp scans_fit --file path_to_measurement_file.root --submit
+    # merge all the output in a single file and compute the nominal NLL for normalisation
+    multinp merge --file path_to_measurement_file.root --jobs -1
+    # Clean the directory from the individual pickle files (keep only the master)
+    multinp clean --file path_to_measurement_file.root
+
+Update the paths in plot-nuis and plot the profiles with::
+    
+    plot-nuis
+
+
+Pulls of the nuisance parameters
+--------------------------------
+
+Compute the pull of each nuisance parameter with::
+
+    multinp pulls --file path_to_measurement_file.root --jobs -1
+
+Update the path in plot-ranking and plot the ranking with::
+
+   plot-ranking
+
+Significance
+------------
+
+Compute the expected significance (bkg. only hypothesis) with::
+
+    # Walk trough the directory and subdirectory and look for workspaces
+    multisig path_to_directory_containing_workspaces
+
+Postfit plot
+------------
+
+Compute the postfit histograms and errors with::
+
+    # --fit_var bdt_score/mmc_mass 	
+    plot-postfit path_to_measurement_file.root --fit-var bdt_score --force-fit --jobs -1
+    # If the fit has already been performed
+    plot-postfit path_to_measurement_file.root --fit-var bdt_score
