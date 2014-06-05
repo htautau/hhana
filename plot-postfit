@@ -193,7 +193,7 @@ if __name__ == '__main__':
                     continue
                 log.info('Channel: {0}'.format(name))
                 hbkg = file.Get('h_sum_bkg_{0}'.format(file[name].GetName()))
-                log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.x())))
+                log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.xedges())))
                 log.info('{0}: y: {1}'.format(hbkg.name, list(hbkg.y())))
 
 

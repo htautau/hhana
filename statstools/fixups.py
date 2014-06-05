@@ -94,6 +94,17 @@ def fix_measurement(meas,
             symmetrize_types=["histosys"],
             symmetrize_partial=symmetrize_partial)
 
+    if merge:
+        # merge bins in some channels
+        process_measurement(meas,
+                            merge_bins=[(1, 2), (8, 9)],
+                            merge_bins_channels=['*cuts_vbf_highdr_tight*'])
+        process_measurement(meas,
+                            merge_bins=[(1, 2)],
+                            merge_bins_channels=['*cuts_vbf_highdr_11*'])
+        process_measurement(meas,
+                            merge_bins=[(2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13), (14, 16), (18, 19)],
+                            merge_bins_channels=['*cuts_boosted_loose_11*'])
     process_measurement(meas,
         split_norm_shape=True,
         drop_np_names=["*"],
@@ -122,17 +133,6 @@ def fix_measurement(meas,
             prune_histosys_method='max',
             prune_histosys_threshold=0.1, # 10%
             prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
-    if merge:
-        # merge bins in some channels
-        process_measurement(meas,
-                            merge_bins=[(1, 2), (8, 9)],
-                            merge_bins_channels=['*cuts_vbf_highdr_tight*'])
-        process_measurement(meas,
-                            merge_bins=[(1, 2)],
-                            merge_bins_channels=['*cuts_vbf_highdr_11*'])
-        process_measurement(meas,
-                            merge_bins=[(2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13), (14, 16), (18, 19)],
-                            merge_bins_channels=['*cuts_boosted_loose_11*'])
 
 
     # fill empty bins with the average sample weight
