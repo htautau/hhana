@@ -56,6 +56,15 @@ cat_defs = [args.categories]
 if args.categories != 'presel':
     cat_defs.append(args.controls)
 
+UNBLIND = {
+    2012: {
+        'vbf': 3,
+        'boosted': 1},
+    2011: {
+        'vbf': 2,
+        'boosted': 2}
+}
+
 for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     if category.analysis_control:
@@ -112,7 +121,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         mode='combined',
         systematics=systematics,
         bins=bins,
-        unblind=args.unblind or 3 if category.name == 'vbf' else 1,
+        unblind=args.unblind or UNBLIND[year][category.name],
         no_signal_fixes=True)
 
     #uniform_channel(channel)
