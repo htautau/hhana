@@ -304,10 +304,11 @@ train: train-vbf-each-mass train-boosted-each-mass
 
 .PHONY: binning
 binning:
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories boosted --min-bkg-weighted 40 --procs $(PBS_PPN_MAX)
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories boosted --min-bkg-weighted 10 --procs $(PBS_PPN_MAX)
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories vbf --procs $(PBS_PPN_MAX)
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories vbf --procs $(PBS_PPN_MAX)
+	@for year in 2011 2012; do \
+		for category in boosted vbf; do \
+			PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year $${year} --categories $${category} --procs $(PBS_PPN_MAX); \
+		done; \
+	done
 
 .PHONY: binning-each-mass
 binning-each-mass:
