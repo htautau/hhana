@@ -318,28 +318,28 @@ binning-each-mass:
 		done; \
 	done
 
-.PHONY: mva-workspaces
-mva-workspaces:
-	@for year in 2011 2012; do \
-		for mass in $$(seq 100 5 150); do \
-			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass}; \
-		done; \
-	done
-
 .PHONY: cuts-workspaces
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
-	done;
-	@for mass in $$(seq 100 5 150); do \
 		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
 	done;
+	@for mass in $$(seq 100 5 150); do \
+		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
+	done;
 
-.PHONY: mva-workspaces-single-bdt
-mva-workspaces-single-bdt:
-	@for year in 2011 2012; do \
+.PHONY: mva-workspaces
+mva-workspaces:
+	@for year in 2012 2011; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --output-suffix single_bdt_125 --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
+		done; \
+	done
+
+.PHONY: mva-workspaces-multibdt
+mva-workspaces-multibdt:
+	@for year in 2012 2011; do \
+		for mass in $$(seq 100 5 150); do \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --output-suffix multibdt --systematics --unblind --years $${year} --masses $${mass}; \
 		done; \
 	done
 
