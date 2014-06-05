@@ -1799,7 +1799,6 @@ def plot_grid_scores(grid_scores, best_point, params, name,
 
 
 def hist_scores(hist, scores, systematic='NOMINAL'):
-
     for sample, scores_dict in scores:
         scores, weight = scores_dict[systematic]
         hist.fill_array(scores, weight)
