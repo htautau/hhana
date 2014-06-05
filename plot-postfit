@@ -192,11 +192,9 @@ if __name__ == '__main__':
                 if 'rest' in name:
                     continue
                 log.info('Channel: {0}'.format(name))
-                hbkg = file.Get('h_sum_bkg_{0}'.format(file[name].GetName()))
-                log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.xedges())))
-                log.info('{0}: y: {1}'.format(hbkg.name, list(hbkg.y())))
-
-
-                # binning = get_binning(name, categories, fit_var=args.fit_var)
-                # canvas = plot_from_frame(file, file[name], args.fit_var, binning)
-                # canvas.SaveAs('plots/postfit_{0}.png'.format(name))
+                # hbkg = file.Get('h_sum_bkg_{0}'.format(file[name].GetName()))
+                # log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.xedges())))
+                # log.info('{0}: y: {1}'.format(hbkg.name, list(hbkg.y())))
+                binning = get_binning(name, categories, fit_var=args.fit_var)
+                canvas = plot_from_frame(file, file[name], args.fit_var, binning)
+                canvas.SaveAs('plots/postfit_{0}.png'.format(name))
