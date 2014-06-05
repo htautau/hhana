@@ -14,7 +14,12 @@ ERROR_BAND_STRATEGY = 1
 
 class Component(object):
     """
-    TODO: Add description
+    Class to decorate a component pdf of a fit model
+    (add a name, integral, integral_err and an histo)
+
+    Parameter
+    ---------
+    pdf: RooAbsPdf object
     """
     def __init__(self, pdf):
         self.name = pdf.GetName()
@@ -25,7 +30,14 @@ class Component(object):
 
 class FitModel(object):
     """
-    TODO: Add descrition
+    Class to retrieve and compute relevant
+    information from a category in a workspace
+
+    Parameters
+    ----------
+    mc: ModelConfig object
+    obsData: RooAbsData object from a RooWorkspace
+    category: Category (rootpy stats module)
     """
     def __init__(self, mc, obsData, category):
         self.index_cat = mc.GetPdf().index_category
@@ -53,7 +65,7 @@ class FitModel(object):
     def data_hist(self):
         hist_data = asrootpy(self.data.createHistogram("h_data_"+self.cat.name, self.obs))
         hist_data.name = "h_data_{0}".format(self.cat.name)
-        hist_data.title = ""
+        hist_data.title = ''
         return hist_data
     @property
     def obs(self):
@@ -95,13 +107,14 @@ class FitModel(object):
 
 def process_fitmodel(model, fit_res):
     """
-    TODO: Add description
+    Compute histograms and frame of the FitModel
+    according to a given RooFitResult
     """
     model.data.plotOn(model.frame,
                       ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),
                       ROOT.RooFit.Name("Data"), ROOT.RooFit.MarkerSize(1))
     components = [comp for comp in model.components]+[model.signal, model.background]
-    log.info(components)
+    log.info([comp.name for comp in components])
     for comp in components:
         log.info('Scan component {0}'.format(comp.name))
         name = comp.name.replace('L_x_', '').split('_')[0]
@@ -111,15 +124,12 @@ def process_fitmodel(model, fit_res):
         if 'sum' in comp.name:
             name = comp.name
 
-        log.info(name)
-        log.info(model.cat.name)
         comp.hist = asrootpy(comp.pdf.createHistogram('h_{0}'.format(name), model.obs,
                                                       ROOT.RooFit.Extended(False)))
         comp.hist.name = 'h_{0}'.format(name)
         comp.hist.title = ''
         Integral_comp = comp.pdf.createIntegral(RooArgSet(model.obs))
         comp.integral = Integral_comp.getVal() * model.binwidth.getVal()
-        log.info('{0}: Integral = {1}'.format(comp.hist.name, comp.integral))
         if fit_res:
             comp.integral_err = Integral_comp.getPropagatedError(fit_res)*model.binwidth.getVal()
             # --> Add the components uncertainty band 
@@ -127,10 +137,19 @@ def process_fitmodel(model, fit_res):
                             ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
                             ROOT.RooFit.VisualizeError(fit_res, 1, ERROR_BAND_STRATEGY),
                             ROOT.RooFit.Name('FitError_AfterFit_{0}'.format(name)))
+        log.info('{0}: Integral = {1}+/-{2}'.format(comp.hist.name, comp.integral, comp.integral_err))
 
 class ModelCalculator(Process):
     """
-    TODO: Add description
+    Class to compute several FitModel in parallel.
+    This is relevant when running over a ws with several categories
+
+    Parameters
+    ----------
+    model: FitModel
+    fit_res: RooFitResult to be applied
+    root_name: Name of the rootfile where histograms and frames are stored
+    pickle_name: Name of the pickle file where yields are stored
     """
     def __init__(self, model, fit_res, root_name, pickle_name):
         super(ModelCalculator, self).__init__()
