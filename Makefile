@@ -245,8 +245,8 @@ test:
 norms:
 	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			run-cluster ./norm --fakes-region $${model} --year $${year}; \
-			run-cluster ./norm --no-embedding --fakes-region $${model} --year $${year}; \
+			PBS_LOG=log PBS_QUEUE=short run-cluster ./norm --fakes-region $${model} --year $${year}; \
+			PBS_LOG=log PBS_QUEUE=short run-cluster ./norm --no-embedding --fakes-region $${model} --year $${year}; \
 		done; \
 	done
 
@@ -254,8 +254,8 @@ norms:
 model-plots:
 	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			run-cluster ./plot-features --fakes-region $${model} --year $${year} --output-formats eps png; \
-			run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel --output-formats eps png; \
+			PBS_LOG=log run-cluster ./plot-features --fakes-region $${model} --year $${year} --output-formats eps png; \
+			PBS_LOG=log run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel --output-formats eps png; \
 		done; \
 	done
 
@@ -263,9 +263,9 @@ model-plots:
 plots:
 	@for year in 2011 2012; do \
 		for category in vbf boosted rest; do \
-			PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
+			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
 		done; \
-		PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
+		PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
 	done
 
 .PHONY: mva-plots
@@ -283,19 +283,19 @@ mva-control-plots:
 .PHONY: train
 train:
 	@for category in vbf boosted; do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses 125 --categories $${category} --procs $(PBS_PPN_MAX); \
+		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses 125 --categories $${category} --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-boosted-each-mass
 train-boosted-each-mass:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
+		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-vbf-each-mass
 train-vbf-each-mass:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
+		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-each-mass
@@ -303,16 +303,16 @@ train: train-vbf-each-mass train-boosted-each-mass
 
 .PHONY: binning
 binning:
-	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories boosted --min-bkg-weighted 40 --procs $(PBS_PPN_MAX)
-	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories boosted --min-bkg-weighted 10 --procs $(PBS_PPN_MAX)
-	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories vbf --procs $(PBS_PPN_MAX)
-	@PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories vbf --procs $(PBS_PPN_MAX)
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories boosted --min-bkg-weighted 40 --procs $(PBS_PPN_MAX)
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories boosted --min-bkg-weighted 10 --procs $(PBS_PPN_MAX)
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2012 --categories vbf --procs $(PBS_PPN_MAX)
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year 2011 --categories vbf --procs $(PBS_PPN_MAX)
 
 .PHONY: binning-each-mass
 binning-each-mass:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year $${year} --mass $${mass} --procs $(PBS_PPN_MAX); \
+			PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./optimize-binning --year $${year} --mass $${mass} --procs $(PBS_PPN_MAX); \
 		done; \
 	done
 
@@ -320,24 +320,24 @@ binning-each-mass:
 mva-workspaces:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass}; \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass}; \
 		done; \
 	done
 
 .PHONY: cuts-workspaces
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
+		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
 	done;
 	@for mass in $$(seq 100 5 150); do \
-		PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
+		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
 	done;
 
 .PHONY: mva-workspaces-single-bdt
 mva-workspaces-single-bdt:
 	@for year in 2011 2012; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_MEM=18gb run-cluster ./workspace mva --output-suffix single_bdt_125 --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --output-suffix single_bdt_125 --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
 		done; \
 	done
 
@@ -367,5 +367,5 @@ pruning:
 fix-workspaces:
 	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
 	@for ana in mva cuts; do \
-		PBS_PPN=$(PBS_PPN_MAX) run-cluster cd workspaces && fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_$${ana}; \
+		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster cd workspaces && fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_$${ana}; \
 	done
