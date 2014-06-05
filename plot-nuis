@@ -17,7 +17,7 @@ set_style(style)
 #cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
 
 MVA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym'
-CBA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged'
+CBA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_2'
 
 def get_pickle_path(WS_PATH, ws_name):
     return '{0}/{1}/measurement_{1}_nuispars_scan.pickle'.format(WS_PATH, ws_name)

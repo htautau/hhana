@@ -129,7 +129,10 @@ def fix_measurement(meas,
                             merge_bins_channels=['*cuts_vbf_highdr_tight*'])
         process_measurement(meas,
                             merge_bins=[(1, 2)],
-                            merge_bins_channels=['*cuts_vbf_highdr'])
+                            merge_bins_channels=['*cuts_vbf_highdr_11*'])
+        process_measurement(meas,
+                            merge_bins=[(2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13), (14, 16), (18, 19)],
+                            merge_bins_channels=['*cuts_boosted_loose_11*'])
 
 
     # fill empty bins with the average sample weight

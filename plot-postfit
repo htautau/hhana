@@ -2,97 +2,25 @@
 # python imports
 import os
 import pickle
-from array import array
 # ROOT/rootpy imports
-from rootpy import ROOT
-from ROOT import TLatex
-from ROOT import RooFitResult, RooArgList, RooArgSet
+from ROOT import TLatex, TGraphAsymmErrors 
 from rootpy import asrootpy
 from rootpy.io import root_open
-from rootpy.plotting import Canvas, Graph, HistStack, Hist, Legend, set_style
+from rootpy.plotting import Canvas, HistStack, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 # local imports
-from mva import log; log =log[__name__]
-from mva import CACHE_DIR
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
-from mva.samples import Higgs
-from statstools.postfit_plot import getPostFitPlottingObjects
-from statstools.postfit_plot import UncertGraph
-from statstools.nuisance import get_nuisance_params
-from statstools import Prefit_RooFitResult, Partial_RooFitResult
-
+from statstools import log; log = log[__name__]
+from statstools.postfit import FitModel, ModelCalculator
+from statstools.jobs import run_pool
+from statstools.postfit_plot_2 import (UncertGraph, get_binning,
+                                       get_rebinned_graph, get_rebinned_hist)
 set_style('ATLAS', shape='rect')
 
-#----------------------
-def get_rebinned_hist(hist_origin, binning):
-    hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned') 
-    hist_rebin[:] = hist_origin[:]
-    return hist_rebin
-    
-#----------------------
-def get_rebinned_graph(graph_origin, binning):
-    log.info(list(graph_origin.x()))
-    log.info(binning)
-    graph_rebin = Graph(len(binning)-1)
-    if len(graph_origin) != len(graph_rebin):
-        log.info('{0} != {1}'.format(len(graph_origin), len(graph_rebin)))
-        raise RuntimeError('wrong binning')
-    else:
-        for ip, (y, yerr) in enumerate(zip(graph_origin.y(), graph_origin.yerr())):
-            x_rebin_err = 0.5*(binning[ip+1]-binning[ip])
-            x_rebin = binning[ip] + x_rebin_err
-            graph_rebin.SetPoint(ip, x_rebin, y)
-            graph_rebin.SetPointError(ip, x_rebin_err, x_rebin_err, yerr[0], yerr[1])
-    return graph_rebin                     
-
-#-----------------------
-def get_category(ws_cat_name, categories):
-    for cat in categories:
-        if cat.name in name:
-            return cat
-#-----------------------
-def get_year(ws_name):
-    if '_12' and not '_11' in ws_name:
-        return 2012
-    else:
-        return 2011
-
-#-----------------------
-def get_mass(ws_name):
-    masses = Higgs.MASSES
-    for mass in masses:
-        if '_{0}_'.format(mass) in ws_name:
-            return mass
-
-#----------------------------
-def get_binning(name, categories, fit_var='mmc_mass'):
-    binning = []
-    cat = get_category(name, categories)
-    year = get_year(name)
-    mass = get_mass(name)
-    log.info(year)
-    log.info(mass)
-    log.info(cat)
-    if fit_var=='mmc_mass':
-        binning = cat.limitbins
-        if isinstance(binning, (tuple, list)):
-            binning[-1] = 250
-            return binning
-        else:
-            binning[year][-1] = 250
-            return binning[year]
-    else:
-        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
-            cat.name, mass, year % 1000))) as f:
-            binning = pickle.load(f)
-            binning[0] += 1E5
-            binning[-1] -= 1E5
-            return binning
-
 # ------------------------------
-def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=False):
+def Fit_WS(workspace, output_basename='frames', n_jobs=1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -105,59 +33,30 @@ def Fit_WS(workspace, output_basename='frames', prefit=False, prefit_decorelate=
     mc = workspace.obj("ModelConfig")
     if not mc:
         raise RuntimeError('Could not retrieve the ModelConfig object')
-    mc.GetParametersOfInterest().first().setVal(1)
     # --> Get the data distribution
     obsData = workspace.data('obsData')
+    if not obsData:
+        raise RuntimeError('Could not retrieve the data distribution')
     workspace.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
-
-    # --> Set the prefit error on the nuisance parameters
-    for arg in asrootpy(mc.GetNuisanceParameters()):
-        if 'norm' not in arg.GetName():
-            arg.setError(max(abs(arg.getErrorLo()), abs(arg.getErrorHi())))
-
     roo_min = workspace.fit()
     fit_res = roo_min.save()
-    fit_res.Print()
-    for arg in asrootpy(fit_res.floatParsInit()):
-        # protection agains nan in the propagation of the error
-        arg.setError(max(arg.getError(), 1e-10))
-        log.info('{0}= {1} +/- {2}'.format(arg.GetName(), arg.getVal(), arg.getError()))
 
-    if prefit:
-        fit_res = Prefit_RooFitResult(fit_res, prefit_decorelate)
-        workspace.loadSnapshot('StartingPoint')
+    # --> parameter of interest (mu=sigma/sigma_sm)
+    poi =  mc.GetParametersOfInterest().first()
+    poi_fitted_val = poi.getVal()
+    log.info('POI: {0} = {1} +/- {2}'.format(poi.GetName(), poi.getVal(), poi.getError()))
 
-    
-    # fit_res.covarianceMatrix().Print()
-    StatListIndices = []
-    SystListIndices = []
-    for index, arg in  enumerate(asrootpy(fit_res.floatParsFinal())):
-        if 'gamma' in arg.GetName():
-            StatListIndices.append(index)
-        elif 'alpha' in arg.GetName():
-            SystListIndices.append(index)
-        else:
-            StatListIndices.append(index)
-            SystListIndices.append(index)
-            
-    log.info('Indices of stat params: {0}'.format(StatListIndices))
-    log.info('Indices of syst params: {0}'.format(SystListIndices))
-    # stat_fitres = Partial_RooFitResult(fit_res, len(StatListIndices), array('i', StatListIndices))
-    # syst_fitres = Partial_RooFitResult(fit_res, len(SystListIndices), array('i', SystListIndices))
-    #     fit_res.covarianceMatrix().Print()
-    #     stat_fitres.covarianceMatrix().Print()
-    #     syst_fitres.covarianceMatrix().Print()
-
-    plotting_objects, yields = getPostFitPlottingObjects(mc, obsData, mc.GetPdf(), fit_res)
-    log.info(yields)
     output_root = output_basename + '.root'
     output_pickle = output_basename + '.pickle'
-    with root_open(output_root, 'recreate') as output_file:
-        for obj in plotting_objects:
-            obj.Write()
-    with open(output_pickle, 'w') as pickle_file:
-        pickle.dump(yields, pickle_file)
+    root_open(output_root, 'recreate')
 
+    workers = []
+    for cat in mc.GetPdf():
+        log.info('retrieve plotting objects of {0} ...'.format(cat.name))
+        model = FitModel(mc, obsData, cat)
+        workers.append(ModelCalculator(model, fit_res, output_root, output_pickle))
+    run_pool(workers, n_jobs=n_jobs)
+        
 
 # ---------------------------------
 def plot_from_frame(file, frame, fit_var, binning):
@@ -166,8 +65,8 @@ def plot_from_frame(file, frame, fit_var, binning):
     Ana = Analysis(2012)
 
     # ---------------------------------
-    hbkg = file.Get('hbkg_{0}'.format(frame.GetName()))
-    curve_uncert_bkg = frame.getCurve('FitError_AfterFit_Mu0')
+    hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
+    curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
     graph_bkg_ws = UncertGraph(hbkg, curve_uncert_bkg)
     graph_bkg = get_rebinned_graph(graph_bkg_ws, binning) 
     graph_bkg.fillstyle='//'
@@ -178,9 +77,9 @@ def plot_from_frame(file, frame, fit_var, binning):
     # --------------------------------
     data_ws = frame.getHist('Data')
     # HACK HACK HACK
-    data_ws.__class__=ROOT.TGraphAsymmErrors
+    data_ws.__class__=TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning)
-    data.SetTitle('Hybrid Data')
+    data.SetTitle('Data')
     # --------------------------------
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
@@ -206,7 +105,7 @@ def plot_from_frame(file, frame, fit_var, binning):
     hist_ztautau.legendstyle = 'F'
     
     # --------------------------------
-    hist_signal_ws = file.Get('h_TotalSignal_{0}'.format(frame.GetName()))
+    hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
     hist_signal = get_rebinned_hist(hist_signal_ws, binning)
     hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
     hist_signal.linestyle = 'solid'
@@ -263,6 +162,7 @@ def plot_from_frame(file, frame, fit_var, binning):
         c.SetLogy()
     return c
 
+
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
 
@@ -271,9 +171,9 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='combined')
     parser.add_argument('--fit-var', default='bdt_score', choices=['bdt_score', 'mmc_mass'])
     parser.add_argument('--force-fit', action='store_true', default=False)
-    parser.add_argument('--prefit', action='store_true', default=False)
-    parser.add_argument('--prefit-decorelate', action='store_true', default=False)
+    parser.add_argument('--jobs', default=1)
     args = parser.parse_args()
+
 
     if args.fit_var=='bdt_score':
         categories = CATEGORIES['mva']
@@ -282,15 +182,11 @@ if __name__ == '__main__':
 
     log.info(categories)
     output = os.path.splitext(args.file)[0]
-    if args.prefit:
-        output += '_prefit'
-    else:
-        output += '_postfit'
+    output += '_postfit'
     log.info(output)
-    with root_open(args.file) as file:
-        if args.force_fit:
-            Fit_WS(file[args.name], output,
-                   prefit=args.prefit, prefit_decorelate=args.prefit_decorelate)
+    if args.force_fit:
+        with root_open(args.file) as file:
+            Fit_WS(file[args.name], output, n_jobs=args.jobs)
 
     with root_open(output+'.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
@@ -301,7 +197,4 @@ if __name__ == '__main__':
                 binning = get_binning(name, categories, fit_var=args.fit_var)
                 log.info(binning)
                 canvas = plot_from_frame(file, file.Get(name), args.fit_var, binning)
-                if args.prefit:
-                    canvas.SaveAs('plots/prefit_{0}.png'.format(name))
-                else:
-                    canvas.SaveAs('plots/postfit_{0}.png'.format(name))
+                canvas.SaveAs('plots/postfit_{0}.png'.format(name))
