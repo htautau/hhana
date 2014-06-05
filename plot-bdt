@@ -150,8 +150,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         show_ratio=True,
         output_dir=plot_dir('bdt'))
 
-    continue
-
     ###############################################################
     log.info("plotting mmc")
 
@@ -244,7 +242,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         mode='combined',
         signal_linestyles=['dashed', 'dotted'],
         signal_scale=1,
-        stacked_signal=False,
+        #stacked_signal=False,
         #signal_colour_map=cm.spring,
         ylabel='ln(1+S/B) Weighted Events',
         category=category,
