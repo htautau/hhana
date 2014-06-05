@@ -70,23 +70,6 @@ analysis = get_analysis(args)
 
 output_suffix = analysis.get_suffix()
 
-#COMBINATION_MAPPING = {
-#    'ATLAS_norm_HH12_QCD': 'ATLAS_norm_HH_2012_QCD',
-#    'ATLAS_norm_HH12_Ztt': 'ATLAS_norm_HH_2012_Ztt',
-#    'ATLAS_ANA_HH12_QCD': 'ATLAS_ANA_HH_2012_QCD',
-#    'ATLAS_TRIGGER_HH_2012_Emb': 'ATLAS_TRIGGER_EMB_HH_2012',
-#}
-#
-#fit = root_open('fit.root')
-#ws = fit.combined
-#ws.loadSnapshot('unconditional')
-#mc = ws.obj('ModelConfig')
-#nps = mc.nuisance_parameters
-## hack names
-#for np in nps:
-#    if np.name in COMBINATION_MAPPING:
-#        np.name = COMBINATION_MAPPING[np.name]
-
 cat_defs = [args.categories]
 if args.categories != 'presel':
     cat_defs.append(args.controls)
@@ -373,16 +356,3 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             signal_scale=300.,
             classifier=clf if 'train' in args.actions else None,
             unblind=args.unblind)
-
-    if 'evaluate' in args.actions and not is_control:
-        # create BDT validation plots
-        clf = analysis.get_clf(category, load=True, mass=125, transform=True)
-        binning = clf.binning(analysis.year)
-        clf.evaluate(
-            analysis,
-            signal_region=signal_region,
-            control_region=control_region,
-            unblind=args.unblind,
-            systematics=SYSTEMATICS if args.systematics else None,
-            output_formats=args.output_formats,
-            bins=binning)
