@@ -17,10 +17,10 @@ def get_rebinned_hist(hist_origin, binning):
 #----------------------
 def get_rebinned_graph(graph_origin, binning):
     log.info(list(graph_origin.x()))
-    log.info(binning)
+    log.info('Binning: {0}'.format(binning))
     graph_rebin = Graph(len(binning)-1)
     if len(graph_origin) != len(graph_rebin):
-        log.info('{0} != {1}'.format(len(graph_origin), len(graph_rebin)))
+        log.info('uniform: {0} bins != rebinned: {1} bins'.format(len(graph_origin), len(graph_rebin)))
         raise RuntimeError('wrong binning')
     else:
         for ip, (y, yerr) in enumerate(zip(graph_origin.y(), graph_origin.yerr())):
@@ -55,9 +55,7 @@ def get_binning(name, categories, fit_var='mmc_mass'):
     cat = get_category(name, categories)
     year = get_year(name)
     mass = get_mass(name)
-    log.info(year)
-    log.info(mass)
-    log.info(cat)
+    log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
     if fit_var=='mmc_mass':
         binning = cat.limitbins
         if isinstance(binning, (tuple, list)):
@@ -99,7 +97,7 @@ def UncertGraph(hnom, curve_uncert):
             if int(x)==int(hnom.GetBinLowEdge(ibin)):
                 uncerts.append(y)
         uncerts.sort()
-        log.info('{0}: {1}'.format(hnom.name, uncerts))
+        log.info('{0}, bin {1}: {2}'.format(hnom.name, ibin, uncerts))
         if len(uncerts) !=2:
             for val in uncerts:
                 if val in uncerts:

@@ -66,8 +66,8 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
-    # limitbins = [0,64,80,92,104,116,132,152,176,INF] # old binning
-    limitbins = [0, 80, 92, 104, 116, 132, 152, INF]
+    limitbins = [0,64,80,92,104,116,132,152,176,INF] # old binning
+    # limitbins = [0, 80, 92, 104, 116, 132, 152, INF]
     norm_category = Category_Preselection
 
 

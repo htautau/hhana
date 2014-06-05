@@ -15,9 +15,8 @@ from mva.analysis import Analysis
 from statstools import log; log = log[__name__]
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
-from statstools.postfit_plot_2 import (UncertGraph, get_binning,
-                                       get_rebinned_graph, get_rebinned_hist)
-set_style('ATLAS', shape='rect')
+from statstools.postfit_plot import (UncertGraph, get_binning,
+                                     get_rebinned_graph, get_rebinned_hist)
 
 # ------------------------------
 def Fit_WS(workspace, output_basename='frames', n_jobs=1):
@@ -48,6 +47,7 @@ def Fit_WS(workspace, output_basename='frames', n_jobs=1):
 
     output_root = output_basename + '.root'
     output_pickle = output_basename + '.pickle'
+    log.info('Output: {0}'.format(output_root))
     root_open(output_root, 'recreate')
 
     workers = []
@@ -165,7 +165,6 @@ def plot_from_frame(file, frame, fit_var, binning):
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
-
     parser = ArgumentParser()
     parser.add_argument('file')
     parser.add_argument('--name', default='combined')
@@ -180,21 +179,24 @@ if __name__ == '__main__':
     else:
         categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
 
-    log.info(categories)
     output = os.path.splitext(args.file)[0]
     output += '_postfit'
-    log.info(output)
     if args.force_fit:
         with root_open(args.file) as file:
             Fit_WS(file[args.name], output, n_jobs=args.jobs)
 
+    set_style('ATLAS', shape='rect')
     with root_open(output+'.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
             for name in names:
                 if 'rest' in name:
                     continue
-                log.info(name)
-                binning = get_binning(name, categories, fit_var=args.fit_var)
-                log.info(binning)
-                canvas = plot_from_frame(file, file.Get(name), args.fit_var, binning)
-                canvas.SaveAs('plots/postfit_{0}.png'.format(name))
+                log.info('Channel: {0}'.format(name))
+                hbkg = file.Get('h_sum_bkg_{0}'.format(file[name].GetName()))
+                log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.x())))
+                log.info('{0}: y: {1}'.format(hbkg.name, list(hbkg.y())))
+
+
+                # binning = get_binning(name, categories, fit_var=args.fit_var)
+                # canvas = plot_from_frame(file, file[name], args.fit_var, binning)
+                # canvas.SaveAs('plots/postfit_{0}.png'.format(name))

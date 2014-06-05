@@ -18,8 +18,8 @@ from mva import CACHE_DIR
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
 from mva.samples import Higgs
-from statstools.postfit_plot import getPostFitPlottingObjects
-from statstools.postfit_plot import UncertGraph
+from statstools.postfit_plot_deprecated import getPostFitPlottingObjects
+from statstools.postfit_plot_deprecated import UncertGraph
 from statstools.nuisance import get_nuisance_params
 from statstools import Prefit_RooFitResult, Partial_RooFitResult
 
