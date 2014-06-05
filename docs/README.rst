@@ -165,3 +165,15 @@ Apply all of the HSG4 workspace fixes with::
     cd workspaces
     fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
     fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
+
+Scan of the nuisance parameters
+-------------------------------
+
+Construct the profile of every nuisance parameter  (NP) and then plot them with::
+
+    # submit a batch job for each NP. If --submit is omitted simply print the command.
+    multinp scans_fit --file path_to_measurement_file.root --submit
+    # merge all the output in a single file and compute the nominal NLL for normalisation
+    multinp merge --file path_to_measurement_file.root --jobs -1
+    # Clean the directory from the individual pickle files (keep only the master)
+    multinp clean --file path_to_measurement_file.root
