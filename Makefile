@@ -270,10 +270,11 @@ plots:
 
 .PHONY: mva-plots
 mva-plots:
-	nohup ./ana evaluate --year 2012 --output-formats eps png --category-names vbf > mva_plots_vbf_12.log &
-	nohup ./ana evaluate --year 2012 --output-formats eps png --category-names boosted > mva_plots_boosted_12.log &
-	nohup ./ana evaluate --year 2011 --output-formats eps png --category-names vbf > mva_plots_vbf_11.log &
-	nohup ./ana evaluate --year 2011 --output-formats eps png --category-names boosted > mva_plots_boosted_11.log &
+	@for year in 2011 2012; do \
+		for category in vbf boosted; do \
+			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-bdt --systematics --year $${year} --category-names $${category} --output-formats eps png; \
+		done; \
+	done
 
 .PHONY: mva-control-plots
 mva-control-plots:
