@@ -95,7 +95,7 @@ for cattype in ('mva_all', 'cuts'):
         print category.name, diff 
         print
 
-        UNCERT[category.name] = diff
+        UNCERT[category.name] = abs(diff)
         
         bch = higgs_bch.events(category, TARGET_REGION)[1].value
         bch_fail = higgs_bch.events(category,
@@ -118,3 +118,7 @@ for cattype in ('mva_all', 'cuts'):
 
 with open(os.path.join(CACHE_DIR, 'bch_cleaning.cache'), 'w') as file:
     pickle.dump(UNCERT, file)
+
+for name in sorted(UNCERT.keys()):
+    value = UNCERT[name]
+    print "{0}: {1:.2f}%".format(name, abs(value * 100))
