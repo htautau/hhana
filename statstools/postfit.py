@@ -1,5 +1,6 @@
 # python imports
 from multiprocessing import Process
+
 # root/rootpy imports
 import ROOT
 from ROOT import RooArgSet, RooAddition
@@ -7,10 +8,12 @@ from rootpy import asrootpy
 from rootpy.io import root_open
 from rootpy.stats.collection import ArgList
 from rootpy.utils.lock import lock
+
 # local imports
 from . import log; log=log[__name__]
 
 ERROR_BAND_STRATEGY = 1
+
 
 class Component(object):
     """
@@ -27,6 +30,7 @@ class Component(object):
         self.integral = 0
         self.integral_err = 0
         self.hist = None
+
 
 class FitModel(object):
     """
@@ -55,55 +59,67 @@ class FitModel(object):
         self._background = Component(RooAddition('sum_bkg_{0}'.format(self.cat.name),
                                                  'sum_bkg_{0}'.format(self.cat.name),
                                                  self.background_pdf_components()))
+
     @property
     def pdfmodel(self):
         return self.pdf.getComponents().find(self.cat.name+'_model')
+
     @property
     def data(self):
         return self.obsData.reduce("{0}=={0}::{1}".format(self.index_cat.name, self.cat.name))
+
     @property
     def data_hist(self):
         hist_data = asrootpy(self.data.createHistogram("h_data_"+self.cat.name, self.obs))
         hist_data.name = "h_data_{0}".format(self.cat.name)
         hist_data.title = ''
         return hist_data
+
     @property
     def obs(self):
         return self._obs
+
     @property
     def binwidth(self):
         return self.pdf.getVariables().find('binWidth_obs_x_{0}_0'.format(self.cat.name))
+
     @property
     def frame(self):
         return self._frame
+
     def iter_pdf_components(self):
         iterator = self.pdfmodel.funcList().iterator()
         component = iterator.Next()
         while component:
             yield component
             component = iterator.Next()
+
     def signal_pdf_components(self):
         comps = ArgList('signal_{0}'.format(self.cat.name))
         for comp in self.components:
             if 'Signal' in comp.name:
                 comps.add(comp.pdf)
         return comps
+
     def background_pdf_components(self):
         comps = ArgList('background_{0}'.format(self.cat.name))
         for comp in self.components:
             if not 'Signal' in comp.name:
                 comps.add(comp.pdf)
         return comps
+
     @property
     def components(self):
         return self._components
+
     @property
     def signal(self):
         return self._signal
+
     @property
     def background(self):
         return self._background
-    
+
 
 def process_fitmodel(model, fit_res):
     """
@@ -132,12 +148,13 @@ def process_fitmodel(model, fit_res):
         comp.integral = Integral_comp.getVal() * model.binwidth.getVal()
         if fit_res:
             comp.integral_err = Integral_comp.getPropagatedError(fit_res)*model.binwidth.getVal()
-            # --> Add the components uncertainty band 
+            # --> Add the components uncertainty band
             comp.pdf.plotOn(model.frame,
                             ROOT.RooFit.Normalization(1, ROOT.RooAbsReal.RelativeExpected),
                             ROOT.RooFit.VisualizeError(fit_res, 1, ERROR_BAND_STRATEGY),
                             ROOT.RooFit.Name('FitError_AfterFit_{0}'.format(name)))
         log.info('{0}: Integral = {1}+/-{2}'.format(comp.hist.name, comp.integral, comp.integral_err))
+
 
 class ModelCalculator(Process):
     """
@@ -157,9 +174,12 @@ class ModelCalculator(Process):
         self.fit_res = fit_res
         self.root_name = root_name
         self.pickle_name = pickle_name
+
     def run(self):
         process_fitmodel(self.model, self.fit_res)
-        components = [comp for comp in self.model.components]+[self.model.signal, self.model.background]
+        components = [
+            comp for comp in self.model.components] + [
+                    self.model.signal, self.model.background]
         with lock(self.root_name):
             with root_open(self.root_name, 'update') as f:
                 self.model.frame.Write()
