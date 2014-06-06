@@ -81,6 +81,25 @@ def fix_measurement(meas,
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
     """
+
+    if merge:
+        # merge bins in some channels
+        process_measurement(meas,
+                            merge_bins=[(1, 2), (8, 9)],
+                            merge_bins_channels=['*cuts_vbf_highdr_tight*'])
+        process_measurement(meas,
+                            merge_bins=[(1, 2)],
+                            merge_bins_channels=['*cuts_vbf_highdr_11*'])
+        process_measurement(meas,
+                            merge_bins=[(2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13), (14, 16), (18, 19)],
+                            merge_bins_channels=['*cuts_boosted_loose_11*'])
+
+    # fill empty bins with the average sample weight
+    # the so-called "Kyle-fix"
+    process_measurement(meas,
+        fill_empties=True,
+        fill_empties_samples=['Fakes', 'Ztautau'])
+
     if symmetrize:
         # symmetrize NPs with double minima or kinks
         # do this before splitting into shape+norm
@@ -94,17 +113,6 @@ def fix_measurement(meas,
             symmetrize_types=["histosys"],
             symmetrize_partial=symmetrize_partial)
 
-    if merge:
-        # merge bins in some channels
-        process_measurement(meas,
-                            merge_bins=[(1, 2), (8, 9)],
-                            merge_bins_channels=['*cuts_vbf_highdr_tight*'])
-        process_measurement(meas,
-                            merge_bins=[(1, 2)],
-                            merge_bins_channels=['*cuts_vbf_highdr_11*'])
-        process_measurement(meas,
-                            merge_bins=[(2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13), (14, 16), (18, 19)],
-                            merge_bins_channels=['*cuts_boosted_loose_11*'])
     process_measurement(meas,
         split_norm_shape=True,
         drop_np_names=["*"],
@@ -135,8 +143,3 @@ def fix_measurement(meas,
             prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
 
 
-    # fill empty bins with the average sample weight
-    # the so-called "Kyle-fix"
-    process_measurement(meas,
-        fill_empties=True,
-        fill_empties_samples=['Fakes', 'Ztautau'])

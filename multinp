@@ -111,13 +111,13 @@ if __name__ == '__main__':
             fitres = roo_min.save()
             float_params = asrootpy(fitres.floatParsFinal())
             # calculate minos errors
-            workers_minos = []
-            for par in float_params:
-                workers_minos.append(MinosError(roo_min, ArgSet(par, par.name)))
+            # workers_minos = []
+            # for par in float_params:
+            #     workers_minos.append(MinosError(roo_min, ArgSet(par, par.name)))
             # run the pool
-            run_pool(workers_minos, n_jobs=args.jobs)
+            # run_pool(workers_minos, n_jobs=args.jobs)
                 
-            # roo_min.minos()
+            roo_min.minos()
             fitres = roo_min.save()
             mc = ws.obj('ModelConfig')
             obsData = ws.data('obsData')
