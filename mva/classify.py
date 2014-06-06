@@ -346,7 +346,7 @@ class Classifier(object):
                  output_suffix="",
                  clf_output_suffix="",
                  partition_key='EventNumber',
-                 transform=False,
+                 transform=True,
                  mmc=True):
 
         fields = fields[:]

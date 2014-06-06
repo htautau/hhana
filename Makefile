@@ -348,7 +348,7 @@ workspaces: mva-workspaces cuts-workspaces
 
 .PHONY: pruning
 pruning:
-	@for ana in cuts; do \
+	@for ana in mva; do \
 		cd workspaces; \
 		mkdir pruning_$${ana}; \
 		cd pruning_$${ana}; \
@@ -365,9 +365,7 @@ pruning:
 		cd ..; \
 	done
 
-.PHONY: fix-workspaces
-fix-workspaces:
+.PHONY: fix-mva
+fix-mva:
 	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
-	@for ana in mva cuts; do \
-		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster cd workspaces && fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_$${ana}; \
-	done
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 workspaces/hh_nos_nonisol_ebz_mva

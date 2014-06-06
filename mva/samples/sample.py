@@ -414,6 +414,14 @@ class Sample(object):
                     high=1. + lumi_uncert,
                     low=1. - lumi_uncert)
                 sample.AddOverallSys(lumi_sys)
+                """
+                if self.year == 2012:
+                    bch_sys = histfactory.OverallSys(
+                        'ATLAS_BCH_Cleaning',
+                        high=1. + bch_uncert,
+                        low=1. - bch_uncert)
+                    sample.AddOverallSys(bch_sys)
+                """
         if hasattr(self, 'histfactory') and not (
                 isinstance(self, Signal) and no_signal_fixes):
             # perform sample-specific items
@@ -1311,6 +1319,10 @@ class SystematicsSample(Sample):
 
 class MC(SystematicsSample):
 
+    def __init__(self, *args, **kwargs):
+        self.pileup_weight = kwargs.pop('pileup_weight', True)
+        super(MC, self).__init__(*args, **kwargs)
+
     def systematics_components(self):
         components = super(MC, self).systematics_components()
         components = components + [
@@ -1352,11 +1364,14 @@ class MC(SystematicsSample):
                 'NOMINAL': [
                     'tau1_fakerate_sf',
                     'tau2_fakerate_sf']},
+            })
+        if self.pileup_weight:
+            systematics.update({
             'PU_RESCALE': {
                 'UP': ['pileup_weight_high'],
                 'DOWN': ['pileup_weight_low'],
-                'NOMINAL': ['pileup_weight'],
-            }})
+                'NOMINAL': ['pileup_weight']},
+            })
         if self.year == 2011:
             systematics.update({
                 'TRIGGER': {

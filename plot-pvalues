@@ -2,21 +2,23 @@
 
 from mva import save_canvas
 from statstools.pvalue_plot import pvalue_plot
-from statstools import log; log=log[__name__]
 from rootpy.plotting import Canvas, Legend, set_style
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
 import os
 import ROOT
+import logging
+
+log = logging.getLogger(os.path.basename(__file__))
 
 set_style('ATLAS', shape='rect')
 gaus_cdf = ROOT.Math.gaussian_cdf_c
 
-# bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
-single_bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
-# cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
-bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym/'
-cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_4/'
+bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
+#single_bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
+cut_path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed'
+#bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym/'
+#cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_4/'
 
 masses = range(100, 155, 5)
 colors = ['black', 'red', 'blue', 'purple', 'darkgreen']
@@ -61,9 +63,9 @@ def plot(name, curves, labels):
     save_canvas(c, 'plots/pvalues', name, formats=('.eps', '.png'))
 
 # compare single BDT vs multiple trainings
-bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
-single_bdt_combined = map(gaus_cdf, get_sigs(single_bdt_path, 'combination', meas=False))
-plot('compare_single_multi', [bdt_combined, single_bdt_combined], ['Multi-BDT', '125 GeV BDT'])
+#bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
+#single_bdt_combined = map(gaus_cdf, get_sigs(single_bdt_path, 'combination', meas=False))
+#plot('compare_single_multi', [bdt_combined, single_bdt_combined], ['Multi-BDT', '125 GeV BDT'])
 
 # overall combination
 bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
