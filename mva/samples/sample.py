@@ -1,6 +1,7 @@
 # std lib imports
 import os
 import sys
+import pickle
 from operator import add, itemgetter
 
 # numpy imports
@@ -24,7 +25,7 @@ from higgstautau import samples as samples_db
 # local imports
 from . import log; log = log[__name__]
 from .. import variables
-from .. import DEFAULT_STUDENT, ETC_DIR
+from .. import DEFAULT_STUDENT, ETC_DIR, CACHE_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
@@ -34,6 +35,9 @@ from ..systematics import (
 from ..lumi import LUMI, get_lumi_uncert
 from .db import DB, TEMPFILE, get_file
 from ..cachedtable import CachedTable
+
+
+BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
 
 
 def get_workspace_np_name(sample, syst, year):
@@ -414,14 +418,13 @@ class Sample(object):
                     high=1. + lumi_uncert,
                     low=1. - lumi_uncert)
                 sample.AddOverallSys(lumi_sys)
-                """
                 if self.year == 2012:
+                    bch_uncert = BCH_UNCERT[category.name]
                     bch_sys = histfactory.OverallSys(
                         'ATLAS_BCH_Cleaning',
                         high=1. + bch_uncert,
                         low=1. - bch_uncert)
                     sample.AddOverallSys(bch_sys)
-                """
         if hasattr(self, 'histfactory') and not (
                 isinstance(self, Signal) and no_signal_fixes):
             # perform sample-specific items
@@ -558,6 +561,13 @@ class Sample(object):
                         high=1. + lumi_uncert,
                         low=1. - lumi_uncert)
                     sample.AddOverallSys(lumi_sys)
+                    if self.year == 2012:
+                        bch_uncert = BCH_UNCERT[category.name]
+                        bch_sys = histfactory.OverallSys(
+                            'ATLAS_BCH_Cleaning',
+                            high=1. + bch_uncert,
+                            low=1. - bch_uncert)
+                        sample.AddOverallSys(bch_sys)
             # HACK: disable calling this on signal for now since while plotting
             # we only want to show the combined signal but in the histfactory
             # method we require only a single mode
