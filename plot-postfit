@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+
 # python imports
 import os
 import pickle
+import logging
+
 # ROOT/rootpy imports
 from ROOT import TLatex, TGraphAsymmErrors 
 from rootpy import asrootpy
@@ -9,16 +12,19 @@ from rootpy.io import root_open
 from rootpy.plotting import Canvas, HistStack, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
+from rootpy.utils.path import mkdir_p
+
 # local imports
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
-from statstools import log; log = log[__name__]
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
 from statstools.postfit_plot import (UncertGraph, get_binning,
                                      get_rebinned_graph, get_rebinned_hist)
 
-# ------------------------------
+log = logging.getLogger(os.path.basename(__file__))
+
+
 def Fit_WS(workspace, output_basename='frames', n_jobs=1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
@@ -118,14 +124,17 @@ def plot_from_frame(file, frame, fit_var, binning):
                       name='Model_{0}'.format(frame.GetName()))
 
     plotables = [Model]
-    if fit_var=='bdt_score':
+
+    # TODO: make plot identical to standard variable plots
+    if fit_var == 'bdt':
         xtitle = 'BDT Score'
         categories = CATEGORIES['mva']
         logy = True
     else:
-        xtitle='MMC MASS [GeV]'
+        xtitle = 'MMC MASS [GeV]'
         categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
         logy = False
+
     c = Canvas()
     draw(plotables, pad=c, ypadding=(0.3, 0.3),
          xtitle=xtitle, ytitle= 'Events', logy=logy)
@@ -158,7 +167,7 @@ def plot_from_frame(file, frame, fit_var, binning):
     latex.SetTextSize(20)
     latex.Draw()
     c.RedrawAxis()
-    if fit_var == 'bdt_score':
+    if fit_var == 'bdt':
         c.SetLogy()
     return c
 
@@ -168,25 +177,29 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('file')
     parser.add_argument('--name', default='combined')
-    parser.add_argument('--fit-var', default='bdt_score', choices=['bdt_score', 'mmc_mass'])
+    parser.add_argument('--fit-var', default='bdt', choices=['bdt', 'mmc'])
     parser.add_argument('--force-fit', action='store_true', default=False)
     parser.add_argument('--jobs', default=1)
     args = parser.parse_args()
 
-
-    if args.fit_var=='bdt_score':
+    if args.fit_var=='bdt':
         categories = CATEGORIES['mva']
     else:
-        categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
+        categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
 
-    output = os.path.splitext(args.file)[0]
-    output += '_postfit'
+    input = os.path.splitext(args.file)[0]
+    output = input + '_postfit'
+    plots = input + '_plots'
+
     if args.force_fit:
         with root_open(args.file) as file:
             Fit_WS(file[args.name], output, n_jobs=args.jobs)
+    
+    if not os.path.exists(plots):
+        mkdir_p(plots)
 
     set_style('ATLAS', shape='rect')
-    with root_open(output+'.root') as file:
+    with root_open(output + '.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
             for name in names:
                 if 'rest' in name:
@@ -197,4 +210,4 @@ if __name__ == '__main__':
                 # log.info('{0}: y: {1}'.format(hbkg.name, list(hbkg.y())))
                 binning = get_binning(name, categories, fit_var=args.fit_var)
                 canvas = plot_from_frame(file, file[name], args.fit_var, binning)
-                canvas.SaveAs('plots/postfit_{0}.png'.format(name))
+                canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))

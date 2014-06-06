@@ -52,13 +52,13 @@ def get_mass(ws_name):
             return mass
 
 
-def get_binning(name, categories, fit_var='mmc_mass'):
+def get_binning(name, categories, fit_var='mmc'):
     binning = []
     cat = get_category(name, categories)
     year = get_year(name)
     mass = get_mass(name)
     log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
-    if fit_var == 'mmc_mass':
+    if fit_var == 'mmc':
         binning = cat.limitbins
         if isinstance(binning, (tuple, list)):
             binning[-1] = 250
