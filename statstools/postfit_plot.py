@@ -1,5 +1,6 @@
 # python imports
 import os
+import pickle
 # root/rootpy imports
 from rootpy import ROOT
 from rootpy.plotting import Hist, Graph
@@ -8,13 +9,13 @@ from mva import CACHE_DIR
 from mva.samples import Higgs
 from . import log; log = log[__name__]
 
-#----------------------
+
 def get_rebinned_hist(hist_origin, binning):
-    hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned') 
+    hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned')
     hist_rebin[:] = hist_origin[:]
     return hist_rebin
-    
-#----------------------
+
+
 def get_rebinned_graph(graph_origin, binning):
     log.info(list(graph_origin.x()))
     log.info('Binning: {0}'.format(binning))
@@ -28,35 +29,36 @@ def get_rebinned_graph(graph_origin, binning):
             x_rebin = binning[ip] + x_rebin_err
             graph_rebin.SetPoint(ip, x_rebin, y)
             graph_rebin.SetPointError(ip, x_rebin_err, x_rebin_err, yerr[0], yerr[1])
-    return graph_rebin                     
+    return graph_rebin
 
-#-----------------------
+
 def get_category(ws_cat_name, categories):
     for cat in categories:
         if cat.name in ws_cat_name:
             return cat
-#-----------------------
+
+
 def get_year(ws_name):
     if '_12' and not '_11' in ws_name:
         return 2012
     else:
         return 2011
 
-#-----------------------
+
 def get_mass(ws_name):
     masses = Higgs.MASSES
     for mass in masses:
         if '_{0}_'.format(mass) in ws_name:
             return mass
 
-#----------------------------
+
 def get_binning(name, categories, fit_var='mmc_mass'):
     binning = []
     cat = get_category(name, categories)
     year = get_year(name)
     mass = get_mass(name)
     log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
-    if fit_var=='mmc_mass':
+    if fit_var == 'mmc_mass':
         binning = cat.limitbins
         if isinstance(binning, (tuple, list)):
             binning[-1] = 250
@@ -66,12 +68,11 @@ def get_binning(name, categories, fit_var='mmc_mass'):
             return binning[year]
     else:
         with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
-            cat.name, mass, year % 1000))) as f:
+            cat.name, 125, year % 1000))) as f:
             binning = pickle.load(f)
-            binning[0] += 1E5
-            binning[-1] -= 1E5
             return binning
-# -------------------------------------
+
+
 def UncertGraph(hnom, curve_uncert):
     """
     Convert an histogram and a RooCurve
@@ -86,9 +87,7 @@ def UncertGraph(hnom, curve_uncert):
     curve_uncert: RooCurve
     TODO: Improve the handling of the underflow and overflow bins
     """
-
     graph = Graph(hnom.GetNbinsX())
-    # ---------------------------------------------
     for ibin in xrange(1, hnom.GetNbinsX()+1):
         uncerts = []
         for ip in xrange(3, curve_uncert.GetN()-3):
@@ -101,7 +100,7 @@ def UncertGraph(hnom, curve_uncert):
         if len(uncerts) !=2:
             for val in uncerts:
                 if val in uncerts:
-                    uncerts.remove(val) 
+                    uncerts.remove(val)
         if len(uncerts)!=2:
             raise RuntimeError('Need exactly two error values and got {0}'.format(uncerts))
 
@@ -110,8 +109,7 @@ def UncertGraph(hnom, curve_uncert):
         e_x_high = hnom.GetBinLowEdge(ibin+1) - bin_center
         bin_content = hnom.GetBinContent(ibin)
         e_y_low = hnom.GetBinContent(ibin)-uncerts[0]
-        e_y_high = uncerts[1]-hnom.GetBinContent(ibin) 
+        e_y_high = uncerts[1]-hnom.GetBinContent(ibin)
         graph.SetPoint( ibin-1, bin_center, bin_content)
         graph.SetPointError(ibin-1, e_x_low, e_x_high, e_y_low, e_y_high)
-    # ---------------------------------------------
     return graph
