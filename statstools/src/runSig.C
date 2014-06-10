@@ -49,7 +49,8 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
 TH1D* runSig(RooWorkspace* ws,
              bool isBlind = true, // Dont look at observed data
-	         bool verbose = false,
+	     double mu_profile_value = 1, // mu value to profile the obs data at wbefore generating the expected
+	     bool verbose = false,
              const char* modelConfigName = "ModelConfig",
              const char* dataName = "obsData",
              const char* asimov1DataName = "asimovData_1",
@@ -58,7 +59,6 @@ TH1D* runSig(RooWorkspace* ws,
 {
     string defaultMinimizer    = "Minuit2";     // or "Minuit"
     int defaultStrategy        = 1;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
-    double mu_profile_value = 1; // mu value to profile the obs data at wbefore generating the expected
     bool doUncap            = 1; // uncap p0
     bool doInj              = 0; // setup the poi for injection study (zero is faster if you're not)
     bool doMedian           = 1; // compute median significance
@@ -383,7 +383,7 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     if (mu_val_profile == -999) mu_val_profile = mu_val;
 
 
-    //cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
+    cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
 
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
     //int strat = ROOT::Math::MinimizerOptions::SetDefaultStrategy(0);
@@ -434,9 +434,9 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     {
         RooAbsPdf* pdf = (RooAbsPdf*)arg;
         if (!pdf) continue;
-        //     cout << "Printing pdf" << endl;
-        //     pdf->Print();
-        //     cout << "Done" << endl;
+//             cout << "Printing pdf" << endl;
+//             pdf->Print();
+//             cout << "Done" << endl;
 
         /// Catch the nuisance parameter constrained here
         TIterator* nIter = mc_nuis.createIterator();
@@ -458,9 +458,9 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
         //need this incase the observable isn't fundamental. 
         //in this case, see which variable is dependent on the nuisance parameter and use that.
         RooArgSet* components = pdf->getComponents();
-        //     cout << "\nPrinting components" << endl;
-        //     components->Print();
-        //     cout << "Done" << endl;
+//             cout << "\nPrinting components" << endl;
+//             components->Print();
+//             cout << "Done" << endl;
         components->remove(*pdf);
         if (components->getSize())
         {
