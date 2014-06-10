@@ -54,7 +54,10 @@ def Fit_WS(workspace, output_basename='frames', n_jobs=1):
     output_root = output_basename + '.root'
     output_pickle = output_basename + '.pickle'
     log.info('Output: {0}'.format(output_root))
+    log.info('Output: {0}'.format(output_pickle))
     root_open(output_root, 'recreate')
+    with open(output_pickle, 'w') as pickle_file:
+        pickle.dump({}, pickle_file)
 
     workers = []
     for cat in mc.GetPdf():
