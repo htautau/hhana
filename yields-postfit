@@ -56,11 +56,11 @@ if __name__ == '__main__':
             latex_lines['Signal_W']  += get_sample_yield(yields_postfit, cat, 'Signal_W') + '&'
             latex_lines['Signal_gg'] += get_sample_yield(yields_postfit, cat, 'Signal_gg') + '&'
             latex_lines['Signal_VBF']+= get_sample_yield(yields_postfit, cat, 'Signal_VBF') + '&'
-            latex_lines['Higgs']     += get_sample_yield(yields_postfit, cat, 'TotalSignal') + '&'
+            latex_lines['Higgs']     += get_sample_yield(yields_postfit, cat, 'sum_sig') + '&'
             latex_lines['Ztautau']   += get_sample_yield(yields_postfit, cat, 'Ztautau') + '&'
             latex_lines['QCD']       += get_sample_yield(yields_postfit, cat, 'Fakes') + '&'
             latex_lines['Others']    += get_sample_yield(yields_postfit, cat, 'Others') + '&'
-            latex_lines['TotalBkg']  += get_sample_yield(yields_postfit, cat, 'bkg') + '&'
+            latex_lines['TotalBkg']  += get_sample_yield(yields_postfit, cat, 'sum_bkg') + '&'
             latex_lines['Data']      += str(int(yields_postfit[cat]['Data'][0])) + '&'
 
         for _, line in latex_lines.items():

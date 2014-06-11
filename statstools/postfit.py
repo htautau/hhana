@@ -1,4 +1,6 @@
 # python imports
+import os
+import pickle
 from multiprocessing import Process
 
 # root/rootpy imports
@@ -30,7 +32,6 @@ class Component(object):
         self.integral = 0
         self.integral_err = 0
         self.hist = None
-
 
 class FitModel(object):
     """
@@ -120,17 +121,17 @@ class FitModel(object):
     def background(self):
         return self._background
 
-
 def process_fitmodel(model, fit_res):
     """
     Compute histograms and frame of the FitModel
     according to a given RooFitResult
     """
+    log.info('Category: {0}'.format(model.cat.name))
+    log.info('Frame: {0}'.format(model.frame))
     model.data.plotOn(model.frame,
                       ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),
                       ROOT.RooFit.Name("Data"), ROOT.RooFit.MarkerSize(1))
     components = [comp for comp in model.components]+[model.signal, model.background]
-    log.info([comp.name for comp in components])
     for comp in components:
         log.info('Scan component {0}'.format(comp.name))
         name = comp.name.replace('L_x_', '').split('_')[0]
@@ -154,7 +155,6 @@ def process_fitmodel(model, fit_res):
                             ROOT.RooFit.VisualizeError(fit_res, 1, ERROR_BAND_STRATEGY),
                             ROOT.RooFit.Name('FitError_AfterFit_{0}'.format(name)))
         log.info('{0}: Integral = {1}+/-{2}'.format(comp.hist.name, comp.integral, comp.integral_err))
-
 
 class ModelCalculator(Process):
     """
@@ -185,3 +185,13 @@ class ModelCalculator(Process):
                 self.model.frame.Write()
                 for comp in components:
                     comp.hist.Write()
+        with lock(self.pickle_name):
+            with open(self.pickle_name) as pickle_file:
+                yields = pickle.load(pickle_file)
+                yields_cat = {}
+                for comp in components:
+                    yields_cat[comp.name] = (comp.integral, comp.integral_err)
+                yields_cat['Data'] = (self.model.data_hist.Integral(),)
+                yields[self.model.cat.name] = yields_cat
+            with open(self.pickle_name, 'w') as pickle_file:
+                pickle.dump(yields, pickle_file)

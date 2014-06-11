@@ -9,24 +9,35 @@ import os
 
 
 class SigProcess(Process):
-    def __init__(self, file, name, blind=True, overwrite=False):
+    def __init__(self, file, name, blind=True, profile='1', overwrite=False):
         super(SigProcess, self).__init__()
         self.file = file
         self.name = name
         self.blind = blind
+        self.profile = profile
         self.overwrite = overwrite
     
     def run(self):
-        pickle_name = os.path.splitext(self.file)[0] + '.pickle'
+        if self.blind:
+            pickle_name = os.path.splitext(self.file)[0] + '.pickle'
+        else:
+            pickle_name = os.path.splitext(self.file)[0] + '_profiled_mu{0}_unblind.pickle'.format(self.profile)
         if os.path.exists(pickle_name) and not self.overwrite:
             # abort
             return
         # get the significance of the workspace
         with root_open(self.file) as file:
             ws = file[self.name]
+            if self.profile=='hat':
+                ws.fit()
+                poi = ws.obj('ModelConfig').GetParametersOfInterest().first()
+                mu_profile_value = poi.getVal()
+            else:
+                mu_profile_value = float(self.profile)
             hist = get_significance_workspace(ws, 
                                               verbose=True,
-                                              blind=self.blind)
+                                              blind=self.blind,
+                                              mu_profile_value=mu_profile_value)
             sig = hist[2].value
         # write the value into a pickle
         with open(pickle_name, 'w') as pickle_file:
@@ -40,6 +51,8 @@ if __name__ == '__main__':
     parser.add_argument('--jobs', type=int, default=-1)
     parser.add_argument('--name', default='combined')
     parser.add_argument('--overwrite', action='store_true', default=False)
+    parser.add_argument('--unblind', action='store_false', dest='blind', default=True)
+    parser.add_argument('--profile', choices=['0', '1', 'hat'], default='1')
     parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
@@ -56,7 +69,7 @@ if __name__ == '__main__':
             root_files.append(file)
 
     # define the workers
-    workers = [SigProcess(file, args.name, overwrite=args.overwrite)
+    workers = [SigProcess(file, args.name, blind=args.blind, profile=args.profile, overwrite=args.overwrite)
                for file in root_files]
 
     # run the pool

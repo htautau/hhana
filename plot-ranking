@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-from rootpy.extern.argparse import ArgumentParser
-
-parser = ArgumentParser()
-parser.add_argument('--name', default='ranking')
-parser.add_argument('file')
-args = parser.parse_args()
 
 from mva import save_canvas
 from statstools.pvalue_plot import pvalue_plot
@@ -154,4 +148,11 @@ def plot_ranking(name, file):
     save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
 
 
-plot_ranking(args.name, args.file)
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('--name', default='ranking')
+    parser.add_argument('file')
+    args = parser.parse_args()
+    plot_ranking(args.name, args.file)
