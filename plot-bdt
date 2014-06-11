@@ -176,7 +176,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     ###############################################################
     log.info("plotting mmc weighted by background BDT distribution")
 
-    bkg_score_hist = Hist(bins)
+    bkg_score_hist = Hist(40, -1, 1)
     hist_scores(bkg_score_hist, bkg_scores)
     _bkg = bkg_score_hist.Clone()
     bkg_score_hist /= bkg_score_hist.integral()
@@ -201,7 +201,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     ###############################################################
     log.info("plotting mmc weighted by signal BDT distribution")
 
-    sig_score_hist = Hist(bins)
+    sig_score_hist = Hist(40, -1, 1)
     hist_scores(sig_score_hist, sig_scores)
     _sig = sig_score_hist.Clone()
     sig_score_hist /= sig_score_hist.integral()
