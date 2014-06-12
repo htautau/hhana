@@ -11,16 +11,12 @@ from mva.categories import *
 args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args)
 
-
-def cuts_union(cat1, cat2):
-    return cat1.cuts | cat2.cuts
-
 CB = CATEGORIES['cuts']
 CB_cuts = Category_Cuts_VBF_LowDR.cuts | Category_Cuts_VBF_HighDR_Tight.cuts | Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts
 
 
 MVA = CATEGORIES['mva_all']
-
+MVA_cuts = Category_VBF.cuts | Category_Boosted.cuts | Category_Rest.cuts
 
 fields = ['EventNumber', 'mmc1_mass', 'dEta_tau1_tau2']
 names = ('EvtNum', 'MMC', 'DETA')
@@ -45,24 +41,27 @@ def get_record_overlap(mva_cat, cba_cat):
 def get_record_disjonction(cat, exclusion_cut, cat_type='MVA', excl_type='CBA'):
     rec = data.merged_records(cat, target_region,
                               fields=fields, include_weight=False, cuts=exclusion_cut)
+    rec.dtype.names = names
     jks = [cat.jk_number for i in range(0, len(rec))]
-    print 'Length: {0}'.format(len(rec))
-    recfunctions.rec_append_fields(rec, data=jks, names='cat{0}'.format(cat_type), dtypes='i8')
-    recfunctions.rec_append_fields(rec, data=[-999 for i in range(0, len(rec))],
-                                   names='cat{0}'.format(excl_type), dtypes='i8')
-    recfunctions.rec_append_fields(rec, data=[1 for i in range(0, len(rec))],
-                                   names='Is{0}'.format(cat_type), dtypes='i8')
-    recfunctions.rec_append_fields(rec, data=[0 for i in range(0, len(rec))],
-                                   names='Is{0}'.format(excl_type), dtypes='i8')
+    rec = recfunctions.rec_append_fields(rec, data=jks, names='cat{0}'.format(cat_type), dtypes='i8')
+    rec = recfunctions.rec_append_fields(rec, data=[-999 for i in range(0, len(rec))],
+                                         names='cat{0}'.format(excl_type), dtypes='i8')
+    rec = recfunctions.rec_append_fields(rec, data=[1 for i in range(0, len(rec))],
+                                         names='Is{0}'.format(cat_type), dtypes='i8')
+    rec = recfunctions.rec_append_fields(rec, data=[0 for i in range(0, len(rec))],
+                                         names='Is{0}'.format(excl_type), dtypes='i8')
     return rec
 
 recs = []
-for category in analysis.iter_categories(args.categories, args.controls, names=args.category_names):
+for category in analysis.iter_categories('mva_all'):
     for cb_cat in CB:
         rec = get_record_overlap(category, cb_cat)
         recs.append(rec)
-for category in analysis.iter_categories(args.categories, args.controls, names=args.category_names):
     rec = get_record_disjonction(category, -CB_cuts)
+    recs.append(rec)
+
+for category in analysis.iter_categories('cuts'):
+    rec = get_record_disjonction(category, -MVA_cuts, cat_type='CBA', excl_type='MVA')
     if len(rec)>0:
         recs.append(rec)
 
