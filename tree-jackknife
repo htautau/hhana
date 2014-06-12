@@ -1,26 +1,31 @@
 #!/usr/bin/env python
 # 
 from rootpy.io import root_open
+from rootpy.tree import Cut
 import numpy as np
 from numpy.lib import recfunctions
 from root_numpy import array2tree
 # local imports
 from mva.cmd import get_parser
 from mva.analysis import get_analysis
-from mva.categories import *
+from mva.categories import CATEGORIES
+from mva import log
 args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args)
 
 CB = CATEGORIES['cuts']
-CB_cuts = Category_Cuts_VBF_LowDR.cuts | Category_Cuts_VBF_HighDR_Tight.cuts | Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts
-
-
 MVA = CATEGORIES['mva_all']
-MVA_cuts = Category_VBF.cuts | Category_Boosted.cuts | Category_Rest.cuts
+
+CB_cuts = Cut()
+for cat in CB:
+    CB_cuts |= cat.cuts
+
+MVA_cuts = Cut()
+for cat in MVA:
+    MVA_cuts |= cat.cuts
 
 fields = ['EventNumber', 'mmc1_mass', 'dEta_tau1_tau2']
 names = ('EvtNum', 'MMC', 'DETA')
-
 target_region = args.target_region
 data = analysis.data
 
