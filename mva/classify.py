@@ -39,7 +39,7 @@ from .plotting import (
     hist_scores, draw_samples_array,
     draw_channel_array, draw_channel,
     efficiency_cut)
-from . import variables, CACHE_DIR, PLOTS_DIR, plot_dir
+from . import variables, CACHE_DIR, BDT_DIR, PLOTS_DIR, plot_dir
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
 
@@ -407,7 +407,7 @@ class Classifier(object):
         for partition_idx in range(2):
 
             category_name = self.category.get_parent().name
-            clf_filename = os.path.join(CACHE_DIR, 'classify',
+            clf_filename = os.path.join(BDT_DIR,
                 'clf_{0}_{1}{2}_{3}.pickle'.format(
                 category_name, self.mass,
                 self.clf_output_suffix, partition_idx))
@@ -472,7 +472,7 @@ class Classifier(object):
 
         for partition_idx in range(2):
 
-            clf_filename = os.path.join(CACHE_DIR, 'classify',
+            clf_filename = os.path.join(BDT_DIR,
                 'clf_{0}_{1}{2}_{3}'.format(
                 self.category.name, self.mass,
                 self.clf_output_suffix, partition_idx))
