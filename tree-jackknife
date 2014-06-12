@@ -37,14 +37,14 @@ def get_record_overlap(mva_cat, cba_cat, clf=None):
         scores, _ = data.scores(clf, mva_cat, target_region,
                                 systematics=False, cuts=cb_cat.cuts)
     else:
-        scores = [-999 for i in range(0, len(rec))]
+        scores = -999*np.ones(len(rec))
     rec = recfunctions.rec_append_fields(rec, data=scores, names='BDT', dtypes='f4')
     jks_mva = [mva_cat.jk_number for i in range(0, len(rec))]
     jks_cba = [cba_cat.jk_number for i in range(0, len(rec))]
     rec = recfunctions.rec_append_fields(rec, data=jks_mva, names='catMVA', dtypes='i8')
     rec = recfunctions.rec_append_fields(rec, data=jks_cba, names='catCBA', dtypes='i8')
-    ismva = [1 for i in range(0, len(rec))]
-    iscba = [1 for i in range(0, len(rec))]
+    ismva = np.ones(len(rec))
+    iscba = np.ones(len(rec))
     rec = recfunctions.rec_append_fields(rec, data=ismva, names='IsMVA', dtypes='i8')
     rec = recfunctions.rec_append_fields(rec, data=iscba, names='IsCBA', dtypes='i8')
     return rec
@@ -58,15 +58,15 @@ def get_record_disjonction(cat, exclusion_cut, clf=None, cat_type='MVA', excl_ty
         scores, _ = data.scores(clf, cat, target_region,
                                 systematics=False, cuts=exclusion_cut)
     else:
-        scores = [-999 for i in range(0, len(rec))]
+        scores = -999*np.ones(len(rec))
     rec = recfunctions.rec_append_fields(rec, data=scores, names='BDT', dtypes='f4')
     jks = [cat.jk_number for i in range(0, len(rec))]
     rec = recfunctions.rec_append_fields(rec, data=jks, names='cat{0}'.format(cat_type), dtypes='i8')
-    rec = recfunctions.rec_append_fields(rec, data=[-999 for i in range(0, len(rec))],
+    rec = recfunctions.rec_append_fields(rec, data=-999*np.ones(len(rec)),
                                          names='cat{0}'.format(excl_type), dtypes='i8')
-    rec = recfunctions.rec_append_fields(rec, data=[1 for i in range(0, len(rec))],
+    rec = recfunctions.rec_append_fields(rec, data=np.ones(len(rec)),
                                          names='Is{0}'.format(cat_type), dtypes='i8')
-    rec = recfunctions.rec_append_fields(rec, data=[0 for i in range(0, len(rec))],
+    rec = recfunctions.rec_append_fields(rec, data=np.zeros(len(rec)),
                                          names='Is{0}'.format(excl_type), dtypes='i8')
     return rec
 
