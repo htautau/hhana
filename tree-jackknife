@@ -75,7 +75,6 @@ recs = []
 for category in analysis.iter_categories('mva_all'):
     if not category.analysis_control:
         clf = analysis.get_clf(category, load=True, mass=125, transform=True)
-        log.info('Classifier: {0}, {1}'.format(clf.__class__, clf))
     else:
         clf = None
         
