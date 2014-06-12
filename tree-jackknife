@@ -12,22 +12,13 @@ args = get_parser(actions=False).parse_args()
 analysis = get_analysis(args)
 
 
-def get_record_overlap(data, mva_cat, target_region, fields, cba_cat):
-    rec = data.merged_records(mva_cat, target_region,
-                              fields=fields, include_weight=False, cuts=cb_cat.cuts)
-    rec.dtype.names = names
-    jks_mva = [mva_cat.jk_number for i in range(0, len(rec))]
-    jks_cba = [cba_cat.jk_number for i in range(0, len(rec))]
-    rec = recfunctions.rec_append_fields(rec, data=jks_mva, names='catMVA', dtypes='i8')
-    rec = recfunctions.rec_append_fields(rec, data=jks_cba, names='catCBA', dtypes='i8')
-    ismva = [1 for i in range(0, len(rec))]
-    iscba = [0 for i in range(0, len(rec))]
-    rec = recfunctions.rec_append_fields(rec, data=ismva, names='IsMVA', dtypes='i8')
-    rec = recfunctions.rec_append_fields(rec, data=iscba, names='IsCBA', dtypes='i8')
-    return rec
-
+def cuts_union(cat1, cat2):
+    return cat1.cuts | cat2.cuts
 
 CB = CATEGORIES['cuts']
+CB_cuts = Category_Cuts_VBF_LowDR.cuts | Category_Cuts_VBF_HighDR_Tight.cuts | Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_Boosted_Tight.cuts | Category_Cuts_Boosted_Loose.cuts
+
+
 MVA = CATEGORIES['mva_all']
 
 
@@ -36,15 +27,44 @@ names = ('EvtNum', 'MMC', 'DETA')
 
 target_region = args.target_region
 data = analysis.data
-#category = Category_Preselection
+
+def get_record_overlap(mva_cat, cba_cat):
+    rec = data.merged_records(mva_cat, target_region,
+                              fields=fields, include_weight=False, cuts=cb_cat.cuts)
+    rec.dtype.names = names
+    jks_mva = [mva_cat.jk_number for i in range(0, len(rec))]
+    jks_cba = [cba_cat.jk_number for i in range(0, len(rec))]
+    rec = recfunctions.rec_append_fields(rec, data=jks_mva, names='catMVA', dtypes='i8')
+    rec = recfunctions.rec_append_fields(rec, data=jks_cba, names='catCBA', dtypes='i8')
+    ismva = [1 for i in range(0, len(rec))]
+    iscba = [1 for i in range(0, len(rec))]
+    rec = recfunctions.rec_append_fields(rec, data=ismva, names='IsMVA', dtypes='i8')
+    rec = recfunctions.rec_append_fields(rec, data=iscba, names='IsCBA', dtypes='i8')
+    return rec
+
+def get_record_disjonction(cat, exclusion_cut, cat_type='MVA', excl_type='CBA'):
+    rec = data.merged_records(cat, target_region,
+                              fields=fields, include_weight=False, cuts=exclusion_cut)
+    jks = [cat.jk_number for i in range(0, len(rec))]
+    print 'Length: {0}'.format(len(rec))
+    recfunctions.rec_append_fields(rec, data=jks, names='cat{0}'.format(cat_type), dtypes='i8')
+    recfunctions.rec_append_fields(rec, data=[-999 for i in range(0, len(rec))],
+                                   names='cat{0}'.format(excl_type), dtypes='i8')
+    recfunctions.rec_append_fields(rec, data=[1 for i in range(0, len(rec))],
+                                   names='Is{0}'.format(cat_type), dtypes='i8')
+    recfunctions.rec_append_fields(rec, data=[0 for i in range(0, len(rec))],
+                                   names='Is{0}'.format(excl_type), dtypes='i8')
+    return rec
 
 recs = []
-for category in analysis.iter_categories(
-    args.categories, args.controls, names=args.category_names):
+for category in analysis.iter_categories(args.categories, args.controls, names=args.category_names):
     for cb_cat in CB:
-        rec = get_record_overlap(data, category, target_region, fields, cb_cat)
+        rec = get_record_overlap(category, cb_cat)
         recs.append(rec)
-
+for category in analysis.iter_categories(args.categories, args.controls, names=args.category_names):
+    rec = get_record_disjonction(category, -CB_cuts)
+    if len(rec)>0:
+        recs.append(rec)
 
 big_rec = np.concatenate(recs)
 out = root_open('hh_jackknife.root', 'recreate')

@@ -103,7 +103,8 @@ def fix_measurement(meas,
     if symmetrize:
         # symmetrize NPs with double minima or kinks
         # do this before splitting into shape+norm
-        process_measurement(meas,
+        process_measurement(
+            meas,
             #symmetrize_names=[
             #    "*TES_TRUE_FINAL_2011*"
             #    "*TES_TRUE_MODELING*",
@@ -111,7 +112,8 @@ def fix_measurement(meas,
             #    "*ANA_EMB_MFS_2011*"],
             symmetrize_names=['*'],
             symmetrize_types=["histosys"],
-            symmetrize_partial=symmetrize_partial)
+            symmetrize_partial=symmetrize_partial,
+            asymmetry_threshold=0.5)
 
     process_measurement(meas,
         split_norm_shape=True,
@@ -121,6 +123,15 @@ def fix_measurement(meas,
         prune_overallsys=True,
         prune_overallsys_threshold=0.5, # percent
         uniform_binning=True)
+
+#     process_measurement(meas,
+#         split_norm_shape=True,
+#         drop_np_names=["*"],
+#         drop_np_types=['histosys'],
+#         drop_np_samples=['Signal*'],
+#         prune_overallsys=True,
+#         prune_overallsys_threshold=0.5, # percent
+#         uniform_binning=True)
 
     # ignore OverallSys on Ztt that is redundant with Ztt norm
     #process_measurement(meas,
