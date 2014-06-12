@@ -124,15 +124,6 @@ def fix_measurement(meas,
         prune_overallsys_threshold=0.5, # percent
         uniform_binning=True)
 
-#     process_measurement(meas,
-#         split_norm_shape=True,
-#         drop_np_names=["*"],
-#         drop_np_types=['histosys'],
-#         drop_np_samples=['Signal*'],
-#         prune_overallsys=True,
-#         prune_overallsys_threshold=0.5, # percent
-#         uniform_binning=True)
-
     # ignore OverallSys on Ztt that is redundant with Ztt norm
     #process_measurement(meas,
     #    drop_np_names=["*TAU_ID*"],
