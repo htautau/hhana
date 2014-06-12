@@ -6,6 +6,7 @@ import numpy as np
 from numpy.lib import recfunctions
 from root_numpy import array2tree
 # local imports
+from mva.classify import Classifier
 from mva.cmd import get_parser
 from mva.analysis import get_analysis
 from mva.categories import CATEGORIES
@@ -29,10 +30,16 @@ names = ('EvtNum', 'MMC', 'DETA')
 target_region = args.target_region
 data = analysis.data
 
-def get_record_overlap(mva_cat, cba_cat):
+def get_record_overlap(mva_cat, cba_cat, clf=None):
     rec = data.merged_records(mva_cat, target_region,
                               fields=fields, include_weight=False, cuts=cb_cat.cuts)
     rec.dtype.names = names
+    if isinstance(clf, Classifier):
+        scores, _ = data.scores(clf, mva_cat, target_region,
+                                systematics=False, cuts=cb_cat.cuts)
+    else:
+        scores = [-999 for i in range(0, len(rec))]
+    rec = recfunctions.rec_append_fields(rec, data=scores, names='BDT', dtypes='f4')
     jks_mva = [mva_cat.jk_number for i in range(0, len(rec))]
     jks_cba = [cba_cat.jk_number for i in range(0, len(rec))]
     rec = recfunctions.rec_append_fields(rec, data=jks_mva, names='catMVA', dtypes='i8')
@@ -43,10 +50,17 @@ def get_record_overlap(mva_cat, cba_cat):
     rec = recfunctions.rec_append_fields(rec, data=iscba, names='IsCBA', dtypes='i8')
     return rec
 
-def get_record_disjonction(cat, exclusion_cut, cat_type='MVA', excl_type='CBA'):
+def get_record_disjonction(cat, exclusion_cut, clf=None, cat_type='MVA', excl_type='CBA'):
     rec = data.merged_records(cat, target_region,
                               fields=fields, include_weight=False, cuts=exclusion_cut)
+
     rec.dtype.names = names
+    if isinstance(clf, Classifier):
+        scores, _ = data.scores(clf, mva_cat, target_region,
+                                systematics=False, cuts=exclusion_cut)
+    else:
+        scores = [-999 for i in range(0, len(rec))]
+    rec = recfunctions.rec_append_fields(rec, data=scores, names='BDT', dtypes='f4')
     jks = [cat.jk_number for i in range(0, len(rec))]
     rec = recfunctions.rec_append_fields(rec, data=jks, names='cat{0}'.format(cat_type), dtypes='i8')
     rec = recfunctions.rec_append_fields(rec, data=[-999 for i in range(0, len(rec))],
@@ -58,14 +72,23 @@ def get_record_disjonction(cat, exclusion_cut, cat_type='MVA', excl_type='CBA'):
     return rec
 
 recs = []
+# Iterate over MVA categories
 for category in analysis.iter_categories('mva_all'):
+    if not category.analysis_control:
+        clf = analysis.get_clf(category, load=True, mass=125, transform=True)
+        log.info('Classifier: {0}, {1}'.format(clf.__class__, clf))
+    else:
+        clf = None
+        
     for cb_cat in CB:
-        rec = get_record_overlap(category, cb_cat)
+        rec = get_record_overlap(category, cb_cat, clf=clf)
         recs.append(rec)
-    rec = get_record_disjonction(category, -CB_cuts)
+    rec = get_record_disjonction(category, -CB_cuts, clf=clf)
     recs.append(rec)
 
+# Iterate over CBA categories
 for category in analysis.iter_categories('cuts'):
+    clf = None
     rec = get_record_disjonction(category, -MVA_cuts, cat_type='CBA', excl_type='MVA')
     if len(rec)>0:
         recs.append(rec)
