@@ -18,13 +18,13 @@ import ROOT
 log = logging.getLogger('higgs-pt')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-data = os.path.join(HERE, 'dat/Higgs_pT_Njets_reweighing_April2014-3_7TeV.root')
+data = os.path.join(HERE, 'dat/HRes_HpT_weights.root')
 uncert_data = os.path.join(HERE, 'dat/HRes_HpT_uncert.root')
 
 WEIGHT = {}
 with root_open(data) as dat:
     WEIGHT[7] = (dat.Reweigh_PowPy6_To_HRes2Dynamic_01jets,
-                 dat.Reweigh_PowPy6_To_HRes2Dynamic_geq2jets)
+                 dat.Reweigh_PowPy6_To_HRes2Dynamic_2jets)
     WEIGHT[8] = (dat.Reweigh_Powheg_To_HRes2Dynamic_01jets,
                  dat.Reweigh_Powheg_To_HRes2Dynamic_geq2jets)
     for hist in WEIGHT[7] + WEIGHT[8]:
@@ -33,11 +33,6 @@ with root_open(data) as dat:
 with root_open(uncert_data) as dat:
     UNCERT = dat.HRes_upper_envelope
     UNCERT.SetDirectory(0)
-
-# temporary extra correction for 7 TeV
-# https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HiggsPTReWeighting
-TEMP_CORRECTION = ROOT.TF1("p", "pol4", 0, 300)
-TEMP_CORRECTION.SetParameters(0.929366,-0.00172232,9.57166e-05,-5.89646e-07,1.07189e-09)
 
 
 class Job(Process):
@@ -91,10 +86,6 @@ def add_weights(tree, energy):
             weight = weights_01.Interpolate(pt)
         else:
             weight = weights_2.Interpolate(pt)
-        # temporary extra correction for 7 TeV
-        # https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HiggsPTReWeighting
-        if energy == 7:
-            weight *= 0.8973091 / TEMP_CORRECTION.Eval(pt)
         uncert = UNCERT.Interpolate(pt)
         tree.ggf_weight = weight
         tree.ggf_weight_high = weight * uncert
