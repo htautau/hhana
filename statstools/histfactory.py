@@ -47,6 +47,7 @@ def process_measurement(m,
                         symmetrize_samples=None,
                         symmetrize_channels=None,
                         symmetrize_partial=False,
+                        asymmetry_threshold = 1,
 
                         smooth_histosys=False,
                         smooth_histosys_iterations=1,
@@ -274,7 +275,7 @@ def process_measurement(m,
                 if matched('histosys', symmetrize_types, ignore_case=True):
                     for np in s.histo_sys:
                         if matched(np.name, symmetrize_names, ignore_case=True):
-                            if symmetrize_histosys(np, s.hist, partial=symmetrize_partial):
+                            if symmetrize_histosys(np, s.hist, partial=symmetrize_partial, asymmetry_threshold=asymmetry_threshold):
                                 log.info("symmetrized HistoSys `{0}` in sample `{1}`".format(
                                     np.name, s.name))
 
@@ -357,7 +358,7 @@ def apply_split_norm_shape(s):
         s.AddOverallSys(norm)
 
 
-def symmetrize_histosys(np, nominal, partial=False):
+def symmetrize_histosys(np, nominal, partial=False, asymmetry_threshold=1):
     """
     Full Symmetrization (default)
     -----------------------------
@@ -369,6 +370,11 @@ def symmetrize_histosys(np, nominal, partial=False):
     ----------------------
     Same as above but set the side with the lower absolute deviation
     to the nominal value.
+
+    Asymmetry threshold
+    -------------------
+    threshold = 1 means no correction needed: min(up/do, do/u) is always smaller than 1
+    threshold of 0.5 means correction needed if abs(do) < 0.5abs(up) or abs(up)<0.5abs(do)
     """
     high = np.high.Clone(name=np.high.name + '_symmetrized', shallow=True)
     low = np.low.Clone(name=np.low.name + '_symmetrized', shallow=True)
@@ -393,6 +399,13 @@ def symmetrize_histosys(np, nominal, partial=False):
                     high_bin.value = nom_value
                 else:
                     high_bin.value = nom_value - dn
+        elif up!=0 and dn!=0 and min(abs(up/dn), abs(dn/up))<asymmetry_threshold:
+            symmetrized = True
+            if abs(up) > abs(dn):
+                low_bin.value = nom_value - up
+            else:
+                high_bin.value = nom_value - dn
+
     if symmetrized:
         np.high = high
         np.low = low

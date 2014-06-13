@@ -25,7 +25,7 @@ from statstools.postfit_plot import (UncertGraph, get_binning,
 log = logging.getLogger(os.path.basename(__file__))
 
 
-def Fit_WS(workspace, output_basename='frames', n_jobs=1):
+def Fit_WS(file_name, ws_name, output_basename='frames', n_jobs=1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -34,36 +34,27 @@ def Fit_WS(workspace, output_basename='frames', n_jobs=1):
     workspace : RooWorkspace
         HSG4 like workspace
     """
-    # --> Get the Model Config object
-    mc = workspace.obj("ModelConfig")
-    if not mc:
-        raise RuntimeError('Could not retrieve the ModelConfig object')
-    # --> Get the data distribution
-    obsData = workspace.data('obsData')
-    if not obsData:
-        raise RuntimeError('Could not retrieve the data distribution')
-    workspace.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
+    file = root_open(file_name)
+    workspace = file[ws_name]
     roo_min = workspace.fit()
     fit_res = roo_min.save()
-
-    # --> parameter of interest (mu=sigma/sigma_sm)
-    poi =  mc.GetParametersOfInterest().first()
-    poi_fitted_val = poi.getVal()
-    log.info('POI: {0} = {1} +/- {2}'.format(poi.GetName(), poi.getVal(), poi.getError()))
-
+    mc = workspace.obj("ModelConfig")
+    cats =  [cat for cat in mc.GetPdf()]
+    file.Close()
+    
     output_root = output_basename + '.root'
     output_pickle = output_basename + '.pickle'
     log.info('Output: {0}'.format(output_root))
     log.info('Output: {0}'.format(output_pickle))
-    root_open(output_root, 'recreate')
+    root_open(output_root, 'recreate').Close()
     with open(output_pickle, 'w') as pickle_file:
         pickle.dump({}, pickle_file)
-
+        
     workers = []
-    for cat in mc.GetPdf():
+    for cat in cats:
         log.info('retrieve plotting objects of {0} ...'.format(cat.name))
-        model = FitModel(mc, obsData, cat)
-        workers.append(ModelCalculator(model, fit_res, output_root, output_pickle))
+        workers.append(ModelCalculator(file_name, ws_name, cat, fit_res,
+                                       output_root, output_pickle))
     run_pool(workers, n_jobs=n_jobs)
         
 
@@ -195,8 +186,7 @@ if __name__ == '__main__':
     plots = input + '_plots'
 
     if args.force_fit:
-        with root_open(args.file) as file:
-            Fit_WS(file[args.name], output, n_jobs=args.jobs)
+        Fit_WS(args.file, args.name, output, n_jobs=args.jobs)
     
     if not os.path.exists(plots):
         mkdir_p(plots)

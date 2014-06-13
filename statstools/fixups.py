@@ -103,7 +103,8 @@ def fix_measurement(meas,
     if symmetrize:
         # symmetrize NPs with double minima or kinks
         # do this before splitting into shape+norm
-        process_measurement(meas,
+        process_measurement(
+            meas,
             #symmetrize_names=[
             #    "*TES_TRUE_FINAL_2011*"
             #    "*TES_TRUE_MODELING*",
@@ -111,7 +112,8 @@ def fix_measurement(meas,
             #    "*ANA_EMB_MFS_2011*"],
             symmetrize_names=['*'],
             symmetrize_types=["histosys"],
-            symmetrize_partial=symmetrize_partial)
+            symmetrize_partial=symmetrize_partial,
+            asymmetry_threshold=0.5)
 
     process_measurement(meas,
         split_norm_shape=True,
