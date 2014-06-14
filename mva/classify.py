@@ -45,28 +45,27 @@ from .grid_search import BoostGridSearchCV
 
 
 def print_feature_ranking(clf, fields):
-    if hasattr(clf, 'feature_importances_'):
-        importances = clf.feature_importances_
-        indices = np.argsort(importances)[::-1]
-        log.info("Feature ranking:")
-        out = StringIO()
-        print >> out
-        print >> out
-        print >> out, r"\begin{tabular}{c|c|c}"
-        table = PrettyTable(["Rank", "Variable", "Importance"])
-        print >> out, r"\hline\hline"
-        print >> out, r"Rank & Variable & Importance\\"
-        for f, idx in enumerate(indices):
-            table.add_row([f + 1,
-                fields[idx],
-                '%.3f' % importances[idx]])
-            print >> out, r"%d & %s & %.3f\\" % (f + 1,
-                variables.VARIABLES[fields[idx]]['title'],
-                importances[idx])
-        print >> out, r"\end{tabular}"
-        print >> out
-        print >> out, table.get_string(hrules=1)
-        log.info(out.getvalue())
+    importances = clf.feature_importances_
+    indices = np.argsort(importances)[::-1]
+    log.info("Feature ranking:")
+    out = StringIO()
+    print >> out
+    print >> out
+    print >> out, r"\begin{tabular}{c|c|c}"
+    table = PrettyTable(["Rank", "Variable", "Importance"])
+    print >> out, r"\hline\hline"
+    print >> out, r"Rank & Variable & Importance\\"
+    for f, idx in enumerate(indices):
+        table.add_row([f + 1,
+            fields[idx],
+            '%.3f' % importances[idx]])
+        print >> out, r"%d & %s & %.3f\\" % (f + 1,
+            variables.VARIABLES[fields[idx]]['title'],
+            importances[idx])
+    print >> out, r"\end{tabular}"
+    print >> out
+    print >> out, table.get_string(hrules=1)
+    log.info(out.getvalue())
 
 
 def histogram_scores(hist_template, scores,
@@ -548,8 +547,8 @@ class Classifier(object):
                 log.info("performing a grid search over these parameter values:")
                 for param, values in grid_params.items():
                     log.info('{0} {1}'.format(param.split('__')[-1], values))
-                log.info("Minimum number of classifiers: %d" % min_n_estimators)
-                log.info("Maximum number of classifiers: %d" % max_n_estimators)
+                log.info("Minimum number of trees: %d" % min_trees)
+                log.info("Maximum number of trees: %d" % max_trees)
                 log.info("")
                 log.info("training new classifiers ...")
 
@@ -616,17 +615,17 @@ class Classifier(object):
                 clf.fit(sample_train, labels_train,
                         sample_weight=sample_weight_train)
 
-            if isinstance(clf, AdaBoostClassifier):
-                # export to graphviz dot format
-                if os.path.isdir(clf_filename):
-                    shutil.rmtree(clf_filename)
-                os.mkdir(clf_filename)
-                for itree, tree in enumerate(clf):
-                    export_graphviz(tree,
-                        out_file=os.path.join(
-                            clf_filename,
-                            'tree_{0:04d}.dot'.format(itree)),
-                        feature_names=self.all_fields)
+            # export to graphviz dot format
+            if os.path.isdir(clf_filename):
+                shutil.rmtree(clf_filename)
+            os.mkdir(clf_filename)
+            for itree, tree in enumerate(clf):
+                export_graphviz(
+                    tree,
+                    out_file=os.path.join(
+                        clf_filename,
+                        'tree_{0:04d}.dot'.format(itree)),
+                    feature_names=self.all_fields)
 
             with open('{0}.pickle'.format(clf_filename), 'w') as f:
                 pickle.dump(clf, f)
