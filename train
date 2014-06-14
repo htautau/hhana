@@ -56,14 +56,8 @@ for category in (Category_VBF, Category_Boosted):
     signals_train = [
         Higgs(year=2012,
               masses=args.masses,
-              modes=category.train_signal_modes,
-              trigger=True),
+              modes=category.train_signal_modes),
         ]
-    # NOTE: used trigger=False, but this adds too many events with
-    # small weights and when the signal is cropped to the size of the
-    # background sample you are possibly left with many low-weight
-    # events vs a few high-weight events, therefore spiky
-    # distributions...
 
     clf = analysis.get_clf(category, load=False, mass=masses_label)
     clf.train(signals=signals_train,

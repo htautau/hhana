@@ -300,7 +300,7 @@ train-vbf-each-mass:
 	done
 
 .PHONY: train-each-mass
-train: train-vbf-each-mass train-boosted-each-mass
+train-each-mass: train-vbf-each-mass train-boosted-each-mass
 
 .PHONY: binning
 binning:

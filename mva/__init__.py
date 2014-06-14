@@ -99,7 +99,10 @@ POI = 'SigXsecOverSM'
 # pip install --user GitPython
 from git import Repo
 REPO = Repo(BASE_DIR)
-REPO_BRANCH = REPO.active_branch
+try:
+    REPO_BRANCH = REPO.active_branch
+except:
+    REPO_BRANCH = 'master'
 PLOTS_DIR = os.path.join(BASE_DIR, 'plots', 'variables')
 
 

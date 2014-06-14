@@ -3,9 +3,7 @@ from rootpy.tree import Cut
 from .common import (
     Category_Preselection,
     Category_Preselection_DEta_Control,
-    Category_Preselection_NO_MET_CENTRALITY,
-    CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY,
-    DETA_TAUS)
+    CUTS_VBF, CUTS_BOOSTED, DETA_TAUS)
 from .features import features_vbf, features_boosted
 
 
@@ -49,7 +47,7 @@ class Category_Boosted(Category_Preselection):
     cuts = (
         (- Category_VBF.cuts)
         & CUTS_BOOSTED
-        & Cut(MET_CENTRALITY.format(pi / 6))
+        #& Cut(MET_CENTRALITY.format(pi / 6))
         )
     features = features_boosted
     # train with all modes (inherited from Category in base.py)

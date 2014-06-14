@@ -2,7 +2,7 @@ import math
 from rootpy.tree import Cut
 from .common import (
     Category_Preselection,
-    CUTS_2J, CUTS_VBF, CUTS_BOOSTED, MET_CENTRALITY)
+    CUTS_2J, CUTS_VBF, CUTS_BOOSTED)
 
 # Documentation:
 # https://cds.cern.ch/record/1629891/files/ATL-COM-PHYS-2013-1558.pdf

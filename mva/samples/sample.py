@@ -418,7 +418,7 @@ class Sample(object):
                     high=1. + lumi_uncert,
                     low=1. - lumi_uncert)
                 sample.AddOverallSys(lumi_sys)
-                if self.year == 2012:
+                if self.year == 2012 and do_systematics:
                     bch_uncert = BCH_UNCERT[category.name]
                     bch_sys = histfactory.OverallSys(
                         'ATLAS_BCH_Cleaning',
@@ -561,7 +561,7 @@ class Sample(object):
                         high=1. + lumi_uncert,
                         low=1. - lumi_uncert)
                     sample.AddOverallSys(lumi_sys)
-                    if self.year == 2012:
+                    if self.year == 2012 and do_systematics:
                         bch_uncert = BCH_UNCERT[category.name]
                         bch_sys = histfactory.OverallSys(
                             'ATLAS_BCH_Cleaning',
@@ -1377,11 +1377,11 @@ class MC(SystematicsSample):
             })
         if self.pileup_weight:
             systematics.update({
-            'PU_RESCALE': {
-                'UP': ['pileup_weight_high'],
-                'DOWN': ['pileup_weight_low'],
-                'NOMINAL': ['pileup_weight']},
-            })
+                'PU_RESCALE': {
+                    'UP': ['pileup_weight_high'],
+                    'DOWN': ['pileup_weight_low'],
+                    'NOMINAL': ['pileup_weight']},
+                })
         if self.year == 2011:
             systematics.update({
                 'TRIGGER': {
