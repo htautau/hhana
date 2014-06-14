@@ -281,22 +281,27 @@ mva-control-plots:
 	nohup ./ana evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
 	nohup ./ana evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
+.PHONY: train-vbf
+train-vbf:
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train vbf --masses 125 --procs $(PBS_PPN_MAX) --max-trees 300
+
+.PHONY: train-boosted
+train-boosted:
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train boosted --masses 125 --procs $(PBS_PPN_MAX) --learning-rate 0.05 --max-fraction 0.05
+
 .PHONY: train
-train:
-	@for category in vbf boosted; do \
-		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses 125 --categories $${category} --procs $(PBS_PPN_MAX); \
+train: train-vbf train-boosted
+
+.PHONY: train-vbf-each-mass
+train-vbf-each-mass:
+	@for mass in $$(seq 100 5 150); do \
+		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train vbf --masses $${mass} --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-boosted-each-mass
 train-boosted-each-mass:
 	@for mass in $$(seq 100 5 150); do \
-		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories boosted --procs $(PBS_PPN_MAX); \
-	done
-
-.PHONY: train-vbf-each-mass
-train-vbf-each-mass:
-	@for mass in $$(seq 100 5 150); do \
-		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train --masses $${mass} --categories vbf --procs $(PBS_PPN_MAX); \
+		PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./train boosted --masses $${mass} --procs $(PBS_PPN_MAX); \
 	done
 
 .PHONY: train-each-mass

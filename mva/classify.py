@@ -451,8 +451,14 @@ class Classifier(object):
               max_sig=None,
               max_bkg=None,
               norm_sig_to_bkg=True,
-              same_size_sig_bkg=True,
+              same_size_sig_bkg=False,
               remove_negative_weights=False,
+              max_trees=200,
+              min_trees=1,
+              learning_rate=0.1,
+              max_fraction=0.3,
+              min_fraction=0.001,
+              min_fraction_steps=200,
               cv_nfold=10,
               n_jobs=-1):
         """
@@ -506,11 +512,8 @@ class Classifier(object):
                 #    min_leaf_low, min_leaf_high, min_leaf_step)
 
                 # min_fraction_leaf
-                min_fraction_leaf = np.linspace(0.001, 0.3, 200)
-
-                # n_estimators
-                max_n_estimators = 200
-                min_n_estimators = 1
+                min_fraction_leaf = np.linspace(
+                    min_fraction, max_fraction, min_fraction_steps)
 
                 grid_params = {
                     #'base_estimator__min_samples_leaf': min_samples_leaf,
@@ -520,15 +523,15 @@ class Classifier(object):
                 # create a BDT
                 clf = AdaBoostClassifier(
                     DecisionTreeClassifier(),
-                    learning_rate=.1,
+                    learning_rate=learning_rate,
                     algorithm='SAMME.R',
                     random_state=0)
 
                 # more efficient grid-search for boosting
                 grid_clf = BoostGridSearchCV(
                     clf, grid_params,
-                    max_n_estimators=max_n_estimators,
-                    min_n_estimators=min_n_estimators,
+                    max_n_estimators=max_trees,
+                    min_n_estimators=min_trees,
                     #score_func=accuracy_score,
                     score_func=roc_auc_score, # area under the ROC curve
                     cv=StratifiedKFold(labels_train, cv_nfold),
