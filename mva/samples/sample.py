@@ -1230,8 +1230,6 @@ class SystematicsSample(Sample):
                 scale=1.,
                 return_idx=False,
                 **kwargs):
-
-        from .ztautau import Ztautau
         if include_weight and fields is not None:
             if 'weight' not in fields:
                 fields = list(fields) + ['weight']
@@ -1266,16 +1264,8 @@ class SystematicsSample(Sample):
                 "filtering efficiency: {3} "
                 "events {4}".format(
                     ds.name, xs, kfact, effic, events))
-            actual_scale = self.scale
-            if isinstance(self, Ztautau):
-                if systematic == ('ZFIT_UP',):
-                    log.debug("scaling up for ZFIT_UP")
-                    actual_scale += self.scale_error
-                elif systematic == ('ZFIT_DOWN',):
-                    log.debug("scaling down for ZFIT_DOWN")
-                    actual_scale -= self.scale_error
             weight = (
-                scale * actual_scale *
+                scale * self.scale *
                 LUMI[self.year] *
                 xs * kfact * effic / events)
             # read the table with a selection
