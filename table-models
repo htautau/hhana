@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+from mva.analysis import Analysis
+from mva.categories import Category_Preselection, Category_Boosted, Category_VBF
+from mva.samples import Higgs
+
+models = [
+    'SS', 'SS_ISOL', 'SS_NONISOL',
+    'nOS', 'nOS_ISOL', 'nOS_NONISOL',
+    'NONISOL', 'OS_NONISOL']
+
+for year in 2011, 2012:
+    higgs = Higgs(year)
+    for model in models:
+        analysis = Analysis(year, fakes_region=model)
+        analysis.normalize(Category_Preselection)
+        qcd = analysis.qcd
+        for category in (Category_Boosted, Category_VBF):
+            qcd_events = qcd.events(category, weighted=False)[1].value
+            qcd_events_weighted = qcd.events(category)[1].value
+            higgs_events = higgs.events(category, model)[1].value
+            sob = higgs_events / qcd_events_weighted 
+            print year, category, model, qcd_events, sob
