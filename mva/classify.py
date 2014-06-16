@@ -677,15 +677,13 @@ class Classifier(object):
 
         if self.transform:
             log.info("classifier scores are transformed")
-            # logistic tranformation used by TMVA (MethodBDT.cxx)
             if isinstance(self.transform, types.FunctionType):
                 # user-defined transformation
                 scores = self.transform(scores)
             else:
-                # default logistic transformation
-                #scores = -1 + 2.0 / (1.0 +
-                #    np.exp(-math.log(self.clfs[0].n_estimators) * scores))
+                # logistic tranformation used by TMVA (MethodBDT.cxx)
                 scores = -1 + 2.0 / (1.0 +
-                    np.exp(-self.clfs[0].n_estimators * scores / 15))
+                    np.exp(-self.clfs[0].n_estimators *
+                            self.clfs[0].learning_rate * scores / 1.5))
 
         return scores, weight
