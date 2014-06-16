@@ -38,3 +38,8 @@ REGIONS = {
 
     'NONISOL': TRACK_NONISOLATION,
 }
+
+REGION_SYSTEMATICS = {
+    'nOS_NONISOL': 'nOS_ISOL',
+    'nOS': 'SS',
+}

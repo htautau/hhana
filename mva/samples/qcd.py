@@ -9,6 +9,7 @@ import numpy as np
 from .sample import Sample, Background
 from . import log; log = log[__name__]
 from ..systematics import systematic_name
+from ..regions import REGION_SYSTEMATICS
 
 
 class QCD(Sample, Background):
@@ -305,9 +306,7 @@ class QCD(Sample, Background):
         # get number of events at preselection for nominal model
         from ..categories import Category_Preselection
 
-        models = {
-            'nOS_NONISOL': 'nOS_ISOL',
-        }
+        models = REGION_SYSTEMATICS
 
         curr_model = self.shape_region
         if curr_model not in models:
@@ -365,9 +364,7 @@ class QCD(Sample, Background):
 
         log.info("creating QCD shape systematic")
 
-        models = {
-            'nOS_NONISOL': 'nOS_ISOL',
-        }
+        models = REGION_SYSTEMATICS
 
         curr_model = self.shape_region
         if curr_model not in models:

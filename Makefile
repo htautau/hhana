@@ -323,18 +323,22 @@ binning-each-mass:
 
 .PHONY: cuts-workspaces
 cuts-workspaces:
-	@for mass in $$(seq 100 5 150); do \
-		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
-	done;
-	@for mass in $$(seq 100 5 150); do \
-		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
-	done;
+	@for model in nOS nOS_NONISOL; do \
+		for mass in $$(seq 100 5 150); do \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass} --fakes-region $${model}; \
+		done; \
+		for mass in $$(seq 100 5 150); do \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass} --fakes-region $${model}; \
+		done; \
+	done
 
 .PHONY: mva-workspaces
 mva-workspaces:
-	@for year in 2012 2011; do \
-		for mass in $$(seq 100 5 150); do \
-			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
+	@for model in nOS nOS_NONISOL; do \
+		for year in 2012 2011; do \
+			for mass in $$(seq 100 5 150); do \
+				PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125 --fakes-region $${model}; \
+			done; \
 		done; \
 	done
 
