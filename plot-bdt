@@ -65,14 +65,20 @@ UNBLIND = {
         'boosted': 2}
 }
 
-for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
-    if category.analysis_control:
-        continue
-
+def plot_bdt(category, workspace_binning=True):
     # create BDT validation plots
     clf = analysis.get_clf(category, load=True, mass=125, transform=True)
-    bins = clf.binning(analysis.year)
+    suffix = clf.output_suffix
+    
+    if workspace_binning:
+        bins = clf.binning(analysis.year)
+        suffix += '_workspace_binning'
+        unblind_bins = UNBLIND[year][category.name]
+    else:
+        bins = 10
+        unblind_bins = 0.5
+
     systematics=SYSTEMATICS if args.systematics else None
 
     signal_scale=20.
@@ -99,7 +105,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         category=category,
         plot_label='Sideband CR',
         data_info=str(analysis.data.info),
-        output_name='event_bdt_score_control' + clf.output_suffix,
+        output_name='event_bdt_score_control' + suffix,
         name='BDT score',
         systematics=systematics,
         output_formats=args.output_formats,
@@ -121,7 +127,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         mode='combined',
         systematics=systematics,
         bins=bins,
-        unblind=args.unblind or UNBLIND[year][category.name],
+        unblind=args.unblind or unblind_bins,
         no_signal_fixes=True)
 
     #uniform_channel(channel)
@@ -140,7 +146,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         signal_on_top=True,
         #fill_signal=True if args.unblind else False,
         data_info=str(analysis.data.info),
-        output_name='event_bdt_score_signal_region' + clf.output_suffix,
+        output_name='event_bdt_score_signal_region' + suffix,
         name='BDT score',
         ypadding=(0.4, 0.),
         log_ypadding=(0.5, 0.1),
@@ -149,6 +155,16 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         output_formats=args.output_formats,
         show_ratio=True,
         output_dir=plot_dir('bdt'))
+
+
+for category in analysis.iter_categories(*cat_defs, names=args.category_names):
+
+    if category.analysis_control:
+        continue
+
+    for workspace_binning in (True, False):
+        plot_bdt(category, workspace_binning=workspace_binning)
+    continue
 
     ###############################################################
     log.info("plotting mmc")

@@ -253,9 +253,12 @@ norms:
 .PHONY: model-plots
 model-plots:
 	@for year in 2011 2012; do \
-		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			PBS_LOG=log run-cluster ./plot-features --fakes-region $${model} --year $${year} --output-formats eps png; \
-			PBS_LOG=log run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel --output-formats eps png; \
+		for model in nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL OS_NONISOL NONISOL; do \
+			PBS_LOG=log run-cluster ./plot-features --fakes-region $${model} --year $${year} --categories presel; \
+			for category in vbf boosted; do \
+				PBS_LOG=log run-cluster ./plot-bdt --year $${year} --category-names $${category} --fakes-region $${model}; \
+				PBS_LOG=log run-cluster ./plot-features --year $${year} --category-names $${category} --fakes-region $${model}; \
+			done; \
 		done; \
 	done
 
@@ -275,11 +278,6 @@ mva-plots:
 			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-bdt --systematics --year $${year} --category-names $${category} --output-formats eps png; \
 		done; \
 	done
-
-.PHONY: mva-control-plots
-mva-control-plots:
-	nohup ./ana evaluate --unblind --output-formats eps png --category-names vbf_deta_control --categories mva_deta_controls > vbf_deta_control_plots.log & 
-	nohup ./ana evaluate --unblind --output-formats eps png --category-names boosted_deta_control --categories mva_deta_controls > boosted_deta_control_plots.log & 
 
 .PHONY: train-vbf
 train-vbf:
