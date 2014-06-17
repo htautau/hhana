@@ -26,7 +26,7 @@ def get_sigs(path, category, mass, year=None, meas=True):
     dirname = dir_pattern.format(mass)
     sigs = []
     for mu in profiled_mu:
-        filename = '{1}{0}_profiled_mu{2}_unblind.pickle'.format(dirname, 'measurement_' if meas else '', profile)
+        filename = '{1}{0}_profiled_mu{2}_unblind.pickle'.format(dirname, 'measurement_' if meas else '', profiled_mu)
         with open(os.path.join(path, dirname, filename), 'r') as pickle_file:
             sig_dict = pickle.load(pickle_file)
             sigs.append(sig_dict['combined'])
