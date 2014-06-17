@@ -91,7 +91,7 @@ TH1D* runSig(RooWorkspace* ws,
     //RooNLLVar::SetIgnoreZeroEntries(1);
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer(defaultMinimizer.c_str());
     ROOT::Math::MinimizerOptions::SetDefaultStrategy(defaultStrategy);
-    ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(-1);
+    ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(3);
     //  cout << "Setting max function calls" << endl;
     //ROOT::Math::MinimizerOptions::SetDefaultMaxFunctionCalls(20000);
     //RooMinimizer::SetMaxFunctionCalls(10000);
