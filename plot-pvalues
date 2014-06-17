@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from mva import save_canvas
-from statstools.pvalue_plot import pvalue_plot
+from statstools.plotting import pvalue_plot
 from rootpy.plotting import Canvas, Legend, set_style
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
@@ -16,7 +16,7 @@ gaus_cdf = ROOT.Math.gaussian_cdf_c
 
 # bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
 single_bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
-cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_asym0.5/'
+cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_6/'
 bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym/'
 #cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_6'
 
@@ -120,16 +120,16 @@ def plot(name, curves, labels):
 # plot('7_8_final_cba', [cut_combined_11, cut_combined_12, cut_combined], ['CBA 7 TeV', 'CBA 8 TeV', 'CBA 7+8 TeV'])
 
 # 8 TeV mu=0, mu=1, mu=muhat
-cut_combined_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='0'))
+cut_combined_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='0.2'))
 #
-cut_vbf_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=12, blind=False, profile='0'))
-cut_vbf_lowdr_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_lowdr', year=12, blind=False, profile='0'))
-cut_vbf_highdr_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_tight', year=12, blind=False, profile='0'))
-cut_vbf_highdr_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_loose', year=12, blind=False, profile='0'))
+cut_vbf_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=12, blind=False, profile='0.2'))
+cut_vbf_lowdr_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_lowdr', year=12, blind=False, profile='0.2'))
+cut_vbf_highdr_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_tight', year=12, blind=False, profile='0.2'))
+cut_vbf_highdr_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_loose', year=12, blind=False, profile='0.2'))
 #
-cut_boosted_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=12, blind=False, profile='0'))
-cut_boosted_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_tight', year=12, blind=False, profile='0'))
-cut_boosted_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_loose', year=12, blind=False, profile='0'))
+cut_boosted_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=12, blind=False, profile='0.2'))
+cut_boosted_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_tight', year=12, blind=False, profile='0.2'))
+cut_boosted_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_loose', year=12, blind=False, profile='0.2'))
 #
 #plot('12_profile', [cut_combined_12, cut_combined_12_mu0], ['CBA expected (No Profiling)', 'CBA Profiled at #mu=0'])
 plot('12_profile_mu0', [cut_combined_12_mu0, cut_vbf_12_mu0, cut_boosted_12_mu0], ['Combined', 'vbf', 'boosted'])

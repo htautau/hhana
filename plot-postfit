@@ -19,8 +19,8 @@ from mva.categories import CATEGORIES
 from mva.analysis import Analysis
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
-from statstools.postfit_plot import (UncertGraph, get_binning,
-                                     get_rebinned_graph, get_rebinned_hist)
+from statstools.plotting import (UncertGraph, get_binning,
+                                 get_rebinned_graph, get_rebinned_hist)
 
 log = logging.getLogger(os.path.basename(__file__))
 

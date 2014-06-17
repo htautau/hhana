@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+
+from mva import save_canvas
+from statstools.plotting import pvalue_plot
+from rootpy.plotting import Canvas, Legend, set_style
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+import pickle
+import os
+import ROOT
+import logging
+
+log = logging.getLogger(os.path.basename(__file__))
+
+set_style('ATLAS', shape='rect')
+gaus_cdf = ROOT.Math.gaussian_cdf_c
+
+cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_6/'
+profiled_mu = range(0, 1, 100)
+
+
+def get_sigs(path, category, mass, year=None, meas=True):
+    if year is None:
+        dir_pattern = 'hh_{0}_{{0}}'.format(category)
+    else:
+        dir_pattern = 'hh_{0}_{1}_{{0}}'.format(year % 1000, category)
+    dirname = dir_pattern.format(mass)
+    sigs = []
+    for mu in profiled_mu:
+        filename = '{1}{0}_profiled_mu{2}_unblind.pickle'.format(dirname, 'measurement_' if meas else '', mu)
+        with open(os.path.join(path, dirname, filename), 'r') as pickle_file:
+            sig_dict = pickle.load(pickle_file)
+            sigs.append(sig_dict['combined'])
+    return sigs
+
+
+def plot(name, curves, labels):
+    c = Canvas()
+    log.info(labels)
+    _, graphs = pvalue_plot(
+        profiled_mu, curves, pad=c, xtitle='Profiled #mu=#sigma/#sigma_{SM}',
+        linestyle='solid', linecolor='black',
+        yrange=(gaus_cdf(6.5), 50))
+    for label, graph in zip(labels, graphs):
+        graph.title = label
+        graph.legendstyle = 'L'
+        log.info( '-------- {0} -------'.format(graph.title))
+        log.info(['{0:1.1f}'.format(xval) for xval in list(graph.x())])
+        log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
+
+
+    leg = Legend(graphs, leftmargin=0.4,
+                 topmargin=0.1, margin=0.15,
+                 textsize=20)
+    leg.Draw()
+    ATLAS_label(0.75, 0.88, text="Internal", sqrts=None, pad=c, sep=0.09)
+    save_canvas(c, 'plots/pvalues_profiled', name, formats=('.eps', '.png'))
+
+curve = map(gaus_cdf, get_sigs(cut_path, 'combination', mass=130, year=12, meas=True))
+plot('test', [curve], ['m_{H}=130 [GeV]'])
+
+# # overall combination
+# bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
+# cut_combined = map(gaus_cdf, get_sigs(cut_path, 'combination'))
+# plot('comination', [bdt_combined, cut_combined], ['MVA 7+8 TeV', 'CBA 7+8 TeV'])
