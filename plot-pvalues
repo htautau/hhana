@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from mva import save_canvas
-from statstools.pvalue_plot import pvalue_plot
+from statstools.plotting import pvalue_plot
 from rootpy.plotting import Canvas, Legend, set_style
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 import pickle
