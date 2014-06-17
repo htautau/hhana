@@ -182,7 +182,12 @@ class QCD(Sample, Background):
             for sys_term, sys_hist in mc_h.systematics.items():
                 if sys_term in (('QCDSHAPE_UP',), ('QCDSHAPE_DOWN',)):
                     continue
-                qcd_hist = (d_h * self.data_scale - sys_hist) * self.scale
+                scale = self.scale
+                if sys_term == ('QCDFIT_UP',):
+                    scale = self.scale + self.scale_error
+                elif sys_term == ('QCDFIT_DOWN',):
+                    scale = self.scale - self.scale_error
+                qcd_hist = (d_h * self.data_scale - sys_hist) * scale
                 qcd_hist.name = h.name + '_' + systematic_name(sys_term)
                 if sys_term not in h.systematics:
                     h.systematics[sys_term] = qcd_hist
@@ -218,12 +223,16 @@ class QCD(Sample, Background):
 
         for sys_term in scores_dict.keys()[:]:
             sys_scores, sys_weights = scores_dict[sys_term]
-            # subtract MC
-            sys_weights *= -1 * self.scale
-            sys_scores = np.concatenate(
-                (sys_scores, np.copy(data_scores)))
-            sys_weights = np.concatenate(
-                (sys_weights, data_weights * self.data_scale * self.scale))
+            scale = self.scale
+            if sys_term == ('QCDFIT_UP',):
+                scale += self.scale_error
+            elif sys_term == ('QCDFIT_DOWN',):
+                scale -= self.scale_error
+            # subtract SS MC
+            sys_weights *= -1 * scale
+            # add SS data
+            sys_scores = np.concatenate((sys_scores, np.copy(data_scores)))
+            sys_weights = np.concatenate((sys_weights, data_weights * scale))
             scores_dict[sys_term] = (sys_scores, sys_weights)
 
         return scores_dict
@@ -278,13 +287,19 @@ class QCD(Sample, Background):
                     _arrays.append(partition)
             arrays.extend(_arrays)
 
+        scale = self.scale
+        if systematic == ('QCDFIT_UP',):
+            scale += self.scale_error
+        elif systematic == ('QCDFIT_DOWN',):
+            scale -= self.scale_error
+
         # FIX: weight may not be present if include_weight=False
         if return_idx:
             for partition, idx in arrays:
-                partition['weight'] *= self.scale
+                partition['weight'] *= scale
         else:
             for partition in arrays:
-                partition['weight'] *= self.scale
+                partition['weight'] *= scale
 
         return arrays
 
