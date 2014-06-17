@@ -1,23 +1,66 @@
 #!/usr/bin/env python
 
 from mva.analysis import Analysis
-from mva.categories import Category_Preselection, Category_Boosted, Category_VBF
+from mva.categories import Category_Preselection, Category_Boosted, Category_VBF, Category_Rest
 from mva.samples import Higgs
+
+# pip install --user tabulate
+from tabulate import tabulate
 
 models = [
     'SS', 'SS_ISOL', 'SS_NONISOL',
     'nOS', 'nOS_ISOL', 'nOS_NONISOL',
     'NONISOL', 'OS_NONISOL']
+model_names = [
+    'SS', 'Isolated SS', 'Non-isolated SS',
+    'nOS', 'Isolated nOS', 'Non-isolated nOS',
+    'Non-isolated', 'Non-isolated OS']
+
+categories = (
+    Category_Preselection, Category_Rest, Category_Boosted, Category_VBF)
+headers = ['Model', 'Preselection', 'Rest', 'Boosted', 'VBF']
+
+
+def print_table(table, headers, caption=None):
+    print
+    print r"\begin{table}"
+    print r"\centering"
+    print tabulate(table, headers, tablefmt="latex")
+    if caption is not None:
+        print r"\caption{%s}" % caption
+    print r"\end{table}"
+    print
+
 
 for year in 2011, 2012:
     higgs = Higgs(year)
-    for model in models:
+    table_events = []
+    table_weighted_events = []
+    table_sob = []
+    for model_name, model in zip(model_names, models):
         analysis = Analysis(year, fakes_region=model)
         analysis.normalize(Category_Preselection)
         qcd = analysis.qcd
-        for category in (Category_Boosted, Category_VBF):
-            qcd_events = qcd.events(category, weighted=False)[1].value
-            qcd_events_weighted = qcd.events(category)[1].value
-            higgs_events = higgs.events(category, model)[1].value
-            sob = higgs_events / qcd_events_weighted 
-            print year, category, model, qcd_events, sob
+        row_events = [model_name]
+        row_events_weighted = [model_name]
+        row_sob = [model_name]
+        for category in categories:
+            qcd_events = qcd.events(category, model, weighted=False)[1].value
+            qcd_events_weighted = qcd.events(category, model)
+            higgs_events = higgs.events(category, model)
+            sob = 100. * higgs_events / qcd_events_weighted
+            row_events.append("%d" % qcd_events)
+            row_events_weighted.append("$%.1f \pm %.1f$" % (qcd_events_weighted[1].value, qcd_events_weighted[1].error))
+            row_sob.append("$%.1f \pm %.1f$" % (sob[1].value, sob[1].error))
+        table_events.append(row_events)
+        table_weighted_events.append(row_events_weighted)
+        table_sob.append(row_sob)
+    
+    print
+    print year
+    print_table(table_events, headers,
+        caption="Unweighted number of events")
+    print_table(table_weighted_events, headers,
+        caption="Weighted number of events")
+    print_table(table_sob, headers,
+        caption="Signal contamination [\%]")
