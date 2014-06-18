@@ -16,17 +16,30 @@ from . import log; log = log[__name__]
 
 gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 
+UNBLIND = {
+    2012: {
+        'vbf': 3,
+        'boosted': 1},
+    2011: {
+        'vbf': 2,
+        'boosted': 2}
+}
+
 
 def get_rebinned_hist(hist_origin, binning):
     hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned')
     hist_rebin[:] = hist_origin[:]
     return hist_rebin
 
-
 def get_rebinned_graph(graph_origin, binning, unblind=True):
     log.info(list(graph_origin.x()))
     log.info('Binning: {0}'.format(binning))
     graph_rebin = Graph(len(binning)-1)
+
+    length_filled = len(graph_rebin)
+    if (unblind is not True) and isinstance(unblind, int):
+        length_filled -= unblind
+    log.info('Length: {0} - {1}'.format(len(graph_rebin), length_filled))        
     if len(graph_origin) != len(graph_rebin):
         log.info('uniform: {0} bins != rebinned: {1} bins'.format(len(graph_origin), len(graph_rebin)))
         raise RuntimeError('wrong binning')
@@ -36,6 +49,9 @@ def get_rebinned_graph(graph_origin, binning, unblind=True):
             x_rebin = binning[ip] + x_rebin_err
             graph_rebin.SetPoint(ip, x_rebin, y)
             graph_rebin.SetPointError(ip, x_rebin_err, x_rebin_err, yerr[0], yerr[1])
+            if ip>=length_filled:
+                graph_rebin.SetPoint(ip, x_rebin, 0)
+                graph_rebin.SetPointError(ip, 0, 0, 0, 0)
     return graph_rebin
 
 
@@ -51,13 +67,20 @@ def get_year(ws_name):
     else:
         return 2011
 
+def get_blinding(name):
+    year = get_year(name)
+    if 'vbf' in name:
+        return UNBLIND[year]['vbf']
+    elif 'boost' in name:
+        return UNBLIND[year]['boosted']
+    else:
+        return True
 
 def get_mass(ws_name):
     masses = Higgs.MASSES
     for mass in masses:
         if '_{0}_'.format(mass) in ws_name:
             return mass
-
 
 def get_binning(name, categories, fit_var='mmc'):
     binning = []

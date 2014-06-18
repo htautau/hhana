@@ -56,14 +56,6 @@ cat_defs = [args.categories]
 if args.categories != 'presel':
     cat_defs.append(args.controls)
 
-UNBLIND = {
-    2012: {
-        'vbf': 3,
-        'boosted': 1},
-    2011: {
-        'vbf': 2,
-        'boosted': 2}
-}
 
 
 def plot_bdt(category, workspace_binning=True):
