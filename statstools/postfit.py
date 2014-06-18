@@ -196,7 +196,7 @@ class ModelCalculator(Process):
                     log.info('{0}'.format(model.frame))
                     model.frame.Write()
                     for comp in components:
-                        log.info('{0}'.format(comp.hist))
+                        log.info('{0}: {1}'.format(comp.hist, comp.hist.Integral()))
                         comp.hist.Write()
             with lock(self.pickle_name):
                 with open(self.pickle_name) as pickle_file:
