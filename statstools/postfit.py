@@ -168,13 +168,7 @@ class ModelCalculator(Process):
     root_name: Name of the rootfile where histograms and frames are stored
     pickle_name: Name of the pickle file where yields are stored
     """
-    def __init__(self, 
-                 file, 
-                 workspace, 
-                 cat, 
-                 fit_res, 
-                 root_name, 
-                 pickle_name): 
+    def __init__(self, file, workspace, cat, fit_res, root_name, pickle_name): 
         super(ModelCalculator, self).__init__()
         self.file = file
         self.ws = workspace

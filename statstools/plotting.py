@@ -23,7 +23,7 @@ def get_rebinned_hist(hist_origin, binning):
     return hist_rebin
 
 
-def get_rebinned_graph(graph_origin, binning):
+def get_rebinned_graph(graph_origin, binning, unblind=True):
     log.info(list(graph_origin.x()))
     log.info('Binning: {0}'.format(binning))
     graph_rebin = Graph(len(binning)-1)

@@ -80,6 +80,10 @@ def plot_from_frame(file, frame, fit_var, binning):
     data_ws.__class__=TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning)
     data.SetTitle('Data')
+
+    data_hist = file.Get('h_data_{0}'.format(frame.GetName()))
+    data_hist.color = 'red'
+    data_hist.SetBinErrorOption(TH1.EBinErrorOpt.kPoisson)
     # --------------------------------
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
@@ -142,7 +146,7 @@ def plot_from_frame(file, frame, fit_var, binning):
     ATLAS_label(0.2, 0.89, pad=c, sep=0.132, text=text, sqrts=sqrts)
     graph_bkg.Draw('sameE2')
     data.Draw('samePE')
-
+    data_hist.Draw('samePEHIST][')
     leg = Legend([data]+Model.GetHists()+[graph_bkg],
                  rightmargin=0.2,
                  margin=0.35,
