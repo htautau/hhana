@@ -15,7 +15,7 @@ class MassRegions(object):
     def __init__(self,
             low=DEFAULT_LOW_MASS,
             high=DEFAULT_HIGH_MASS,
-            high_sideband_in_control=False,
+            high_sideband_in_control=True,
             mass_window_signal_region=False,
             train_signal_region=False,
             low_cutoff=None):

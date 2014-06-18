@@ -118,6 +118,8 @@ def save_canvas(canvas, directory, name, formats=None):
         mkdir_p(path)
     if formats is not None:
         for fmt in formats:
+            if fmt[0] != '.':
+                fmt = '.' + fmt
             canvas.SaveAs(filepath + fmt)
     else:
         canvas.SaveAs(filepath)

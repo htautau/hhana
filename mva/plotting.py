@@ -1093,6 +1093,7 @@ def format_plot(pad, template, xaxis, yaxis,
                 left_label=None, right_label=None,
                 atlas_label='Internal',
                 textsize=22,
+                divisions=507,
                 integer=False):
 
     # set the axis labels
@@ -1112,7 +1113,7 @@ def format_plot(pad, template, xaxis, yaxis,
     if xlabel:
         xaxis.SetTitle(xlabel)
 
-    divisions = min(template.nbins(), 7) if integer else 507
+    divisions = min(template.nbins(), 7) if integer else divisions
     if xlimits is None:
         xlimits = template.bounds()
 
@@ -1120,9 +1121,10 @@ def format_plot(pad, template, xaxis, yaxis,
         xaxes = [xaxis]
 
     for axis in xaxes:
+        if divisions is not None:
+            axis.SetNdivisions(divisions)
         axis.SetLimits(*xlimits)
         axis.SetRangeUser(*xlimits)
-        axis.SetNdivisions(divisions)
 
     # draw the left label
     if left_label:

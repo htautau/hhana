@@ -1,9 +1,10 @@
 import math
 
-def get_label(name):
+
+def get_label(name, units=True):
     info = VARIABLES[name]
     label = info['root']
-    if 'units' in info:
+    if units and 'units' in info:
         label += ' [{0}]'.format(info['units'])
     return label
 
@@ -15,6 +16,14 @@ def get_range(name, category):
     return range
 
 
+def get_binning(name, category, year):
+    range = get_range(name, category)
+    bins = VARIABLES[name]['bins']
+    if isinstance(bins, dict):
+        bins = bins[year]
+    return bins, range[0], range[1]
+
+
 def get_scale(name):
     info = VARIABLES[name]
     return info.get('scale', 1)
@@ -23,6 +32,17 @@ def get_scale(name):
 def get_units(name):
     info = VARIABLES[name]
     return info.get('units', None)
+
+
+def blind_hist(name, hist):
+    blind = VARIABLES[name].get('blind', None)
+    if blind is None:
+        return
+    left, right = blind
+    left_bin = hist.FindBin(left)
+    right_bin = hist.FindBin(right)
+    for ibin in xrange(left_bin, right_bin + 1):
+        hist[ibin] = (0, 0)
 
 
 WEIGHTS = {
@@ -264,7 +284,7 @@ VARIABLES = {
         'title': r'$\tau_{1} p_{T}$',
         'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
         'filename': 'tau1_pt',
-        'bins': 20,
+        'bins': {2011: 10, 2012: 20},
         'range': {
             'PRESELECTION': (35, 90),
             'REST': (35, 90),
@@ -276,7 +296,7 @@ VARIABLES = {
         'title': r'$\tau_{2} p_{T}$',
         'root': '#font[152]{#tau}_{2} #font[52]{p}_{T}',
         'filename': 'tau2_pt',
-        'bins': 20,
+        'bins': {2011: 10, 2012: 20},
         'range': {
             'PRESELECTION': (25, 60),
             'REST': (25, 60),
@@ -589,50 +609,51 @@ VARIABLES = {
     },
 }
 
-for mmc in range(2):
+from . import MMC_VERSION
+mmc = MMC_VERSION
 
-    VARIABLES['mmc%d_mass' % mmc] = {
-        'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
-        'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'mmc%d_mass' % mmc,
-        'bins': 25,
-        'range': (0, 250),
-        'units': 'GeV',
-        'blind': (100, 150),
-    }
+VARIABLES['mmc%d_mass' % mmc] = {
+    'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
+    'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
+    'filename': 'mmc%d_mass' % mmc,
+    'bins': {2011: 15, 2012: 25},
+    'range': (0, 250),
+    'units': 'GeV',
+    'blind': (100, 150),
+}
 
-    VARIABLES['mmc%d_MET_et' % mmc] = {
-        'title': r'$E^{miss}_{T}$ MMC',
-        'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T}',
-        'filename': 'mmc%d_MET' % mmc,
-        'bins': 20,
-        'range': (0, 100),
-        'units': 'GeV',
-    }
+VARIABLES['mmc%d_MET_et' % mmc] = {
+    'title': r'$E^{miss}_{T}$ MMC',
+    'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T}',
+    'filename': 'mmc%d_MET' % mmc,
+    'bins': 20,
+    'range': (0, 100),
+    'units': 'GeV',
+}
 
-    VARIABLES['mmc%d_MET_etx' % mmc] = {
-        'title': r'MMC $E^{miss}_{T_{x}}$',
-        'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{x}}',
-        'filename': 'mmc%d_MET_x' % mmc,
-        'bins': 20,
-        'range': (-75, 75),
-        'units': 'GeV',
-    }
+VARIABLES['mmc%d_MET_etx' % mmc] = {
+    'title': r'MMC $E^{miss}_{T_{x}}$',
+    'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{x}}',
+    'filename': 'mmc%d_MET_x' % mmc,
+    'bins': 20,
+    'range': (-75, 75),
+    'units': 'GeV',
+}
 
-    VARIABLES['mmc%d_MET_ety' % mmc] = {
-        'title': r'MMC $E^{miss}_{T_{y}}$',
-        'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{y}}',
-        'filename': 'mmc%d_MET_y' % mmc,
-        'bins': 20,
-        'range': (-75, 75),
-        'units': 'GeV',
-    }
+VARIABLES['mmc%d_MET_ety' % mmc] = {
+    'title': r'MMC $E^{miss}_{T_{y}}$',
+    'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{y}}',
+    'filename': 'mmc%d_MET_y' % mmc,
+    'bins': 20,
+    'range': (-75, 75),
+    'units': 'GeV',
+}
 
-    VARIABLES['mmc%d_resonance_pt' % mmc] = {
-        'title': r'MMC $p_T^H$',
-        'root': 'MMC #font[52]{p}_{T}^{H}',
-        'filename': 'mmc%d_resonance_pt' % mmc,
-        'bins': 20,
-        'range': {'BOOSTED': (50, 200), None: (0, 200)},
-        'units': 'GeV',
-    }
+VARIABLES['mmc%d_resonance_pt' % mmc] = {
+    'title': r'MMC $p_T^H$',
+    'root': 'MMC #font[52]{p}_{T}^{H}',
+    'filename': 'mmc%d_resonance_pt' % mmc,
+    'bins': 20,
+    'range': {'BOOSTED': (50, 200), None: (0, 200)},
+    'units': 'GeV',
+}

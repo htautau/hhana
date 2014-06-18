@@ -729,6 +729,7 @@ class Sample(object):
                           min_score=None,
                           max_score=None,
                           systematic='NOMINAL',
+                          scale=1.,
                           bootstrap_data=False):
 
         from .data import Data, DataInfo
@@ -846,6 +847,9 @@ class Sample(object):
                         "field {0} but that field is not present in the "
                         "requested array")
                 weights *= get_weight(rec[field], hist)
+
+        if scale != 1.:
+            weights *= scale
 
         for fields, hist in field_hist.items():
             if isinstance(fields, Classifier):
@@ -1151,7 +1155,8 @@ class SystematicsSample(Sample):
             scores=scores['NOMINAL'] if scores else None,
             min_score=min_score,
             max_score=max_score,
-            systematic='NOMINAL')
+            systematic='NOMINAL',
+            scale=scale)
 
         if not do_systematics:
             return
@@ -1187,8 +1192,8 @@ class SystematicsSample(Sample):
                 scores=scores[systematic] if scores else None,
                 min_score=min_score,
                 max_score=max_score,
-                systematic=systematic)
-
+                systematic=systematic,
+                scale=scale)
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
