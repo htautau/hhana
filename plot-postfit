@@ -34,28 +34,32 @@ def Fit_WS(file_name, ws_name, output_basename='frames', unblind=True, n_jobs=1)
     workspace : RooWorkspace
         HSG4 like workspace
     """
-    file = root_open(file_name)
-    workspace = file[ws_name]
-    roo_min = workspace.fit()
-    fit_res = roo_min.save()
-    mc = workspace.obj("ModelConfig")
-    cats =  [cat for cat in mc.GetPdf()]
-    file.Close()
+    with root_open(file_name) as file0:
+        workspace = file0[ws_name]
+        roo_min = workspace.fit()
+        fit_res = roo_min.save()
+        obsData =  workspace.data('obsData')
+        mc = workspace.obj("ModelConfig")
+        #workspace.saveSnapshot('InitialFit', mc.GetPdf().getParameters(obsData))
+        cats =  [cat for cat in mc.GetPdf()]
+    # file.Close()
     
-    output_root = output_basename + '.root'
-    output_pickle = output_basename + '.pickle'
-    log.info('Output: {0}'.format(output_root))
-    log.info('Output: {0}'.format(output_pickle))
-    root_open(output_root, 'recreate').Close()
-    with open(output_pickle, 'w') as pickle_file:
-        pickle.dump({}, pickle_file)
+        output_root = output_basename + '.root'
+        output_pickle = output_basename + '.pickle'
+        log.info('Output: {0}'.format(output_root))
+        log.info('Output: {0}'.format(output_pickle))
+        root_open(output_root, 'recreate').Close()
+        with open(output_pickle, 'w') as pickle_file:
+            pickle.dump({}, pickle_file)
         
-    workers = []
-    for cat in cats:
-        log.info('retrieve plotting objects of {0} ...'.format(cat.name))
-        workers.append(ModelCalculator(file_name, ws_name, cat, fit_res,
-                                       output_root, output_pickle, unblind=unblind))
-    run_pool(workers, n_jobs=n_jobs)
+        workers = []
+        for cat in cats:
+            log.info('retrieve plotting objects of {0} ...'.format(cat.name))
+            workers.append(ModelCalculator(file0, workspace, cat, fit_res,
+                                           output_root, output_pickle, 
+                                           snapshot='InitialFit',
+                                           unblind=unblind))
+        run_pool(workers, n_jobs=n_jobs)
         
 
 # ---------------------------------

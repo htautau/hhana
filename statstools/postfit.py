@@ -41,11 +41,10 @@ class FitModel(object):
 
     Parameters
     ----------
-    #mc: ModelConfig object
-    #obsData: RooAbsData object from a RooWorkspace
-    category: Category (rootpy stats module)
+    - workspace: rootpy Workspace)
+    - category: rootpy Category
     """
-    def __init__(self, workspace, category, unblind=True):
+    def __init__(self, workspace, category, snapshot='InitialFit', unblind=True):
         self.ws = workspace
         self.cat = category
         self.unblind = unblind
@@ -174,37 +173,48 @@ class ModelCalculator(Process):
     root_name: Name of the rootfile where histograms and frames are stored
     pickle_name: Name of the pickle file where yields are stored
     """
-    def __init__(self, file_name, ws_name, cat, fit_res, root_name, pickle_name, unblind=True):
+    def __init__(self, 
+                 file, 
+                 workspace, 
+                 cat, 
+                 fit_res, 
+                 root_name, 
+                 pickle_name, 
+                 snapshot='InitialFit',
+                 unblind=True):
         super(ModelCalculator, self).__init__()
-        self.file_name = file_name
-        self.ws_name = ws_name
+        self.file = file
+        self.ws = workspace
         self.cat = cat
         self.fit_res = fit_res
         self.root_name = root_name
         self.pickle_name = pickle_name
+        self.snapshot = snapshot
         self.unblind = unblind
 
     def run(self):
-        with root_open(self.file_name) as file:
-            model = FitModel(file[self.ws_name], self.cat, unblind=self.unblind)
-            process_fitmodel(model, self.fit_res)
-            components = [
-                comp for comp in model.components] + [
-                model.signal, model.background]
-            with lock(self.root_name):
-                with root_open(self.root_name, 'update') as fout:
-                    log.info('{0}'.format(model.frame))
-                    model.frame.Write()
-                    for comp in components:
-                        log.info('{0}: {1}'.format(comp.hist, comp.hist.Integral()))
-                        comp.hist.Write()
-            with lock(self.pickle_name):
-                with open(self.pickle_name) as pickle_file:
-                    yields = pickle.load(pickle_file)
-                    yields_cat = {}
-                    for comp in components:
-                        yields_cat[comp.name] = (comp.integral, comp.integral_err)
-                    yields_cat['Data'] = (model.data_hist.Integral(),)
-                    yields[model.cat.name] = yields_cat
-                with open(self.pickle_name, 'w') as pickle_file:
-                    pickle.dump(yields, pickle_file)
+        #with root_open(self.file) as file:
+        #self.ws.loadSnapshot(self.snapshot)
+        model = FitModel(self.ws, self.cat, 
+                         snapshot=self.snapshot, unblind=self.unblind)
+        process_fitmodel(model, self.fit_res)
+        components = [
+            comp for comp in model.components] + [
+            model.signal, model.background]
+        with lock(self.root_name):
+            with root_open(self.root_name, 'update') as fout:
+                log.info('{0}'.format(model.frame))
+                model.frame.Write()
+                for comp in components:
+                    log.info('{0}: {1}'.format(comp.hist, comp.hist.Integral()))
+                    comp.hist.Write()
+        with lock(self.pickle_name):
+            with open(self.pickle_name) as pickle_file:
+                yields = pickle.load(pickle_file)
+                yields_cat = {}
+                for comp in components:
+                    yields_cat[comp.name] = (comp.integral, comp.integral_err)
+                yields_cat['Data'] = (model.data_hist.Integral(),)
+                yields[model.cat.name] = yields_cat
+            with open(self.pickle_name, 'w') as pickle_file:
+                pickle.dump(yields, pickle_file)
