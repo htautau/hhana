@@ -44,7 +44,7 @@ class FitModel(object):
     - workspace: rootpy Workspace)
     - category: rootpy Category
     """
-    def __init__(self, workspace, category, unblind=True):
+    def __init__(self, workspace, category):
         self.ws = workspace
         self.cat = category
         self.mc = self.ws.obj('ModelConfig')
@@ -75,10 +75,6 @@ class FitModel(object):
     def data_hist(self):
         hist_data = asrootpy(self.data.createHistogram("h_data_"+self.cat.name, self.obs))
         hist_data.name = "h_data_{0}".format(self.cat.name)
-        if (self.unblind is not True) and isinstance(self.unblind, int):
-            if self.unblind>hist_data.nbins:
-                raise RuntimeError('Number of blinded bins is to big')
-            hist_data[-(self.unblind+1):] = (0, 0)
         hist_data.title = ''
         return hist_data
 
@@ -178,8 +174,7 @@ class ModelCalculator(Process):
                  cat, 
                  fit_res, 
                  root_name, 
-                 pickle_name, 
-                 unblind=True):
+                 pickle_name): 
         super(ModelCalculator, self).__init__()
         self.file = file
         self.ws = workspace
@@ -187,10 +182,9 @@ class ModelCalculator(Process):
         self.fit_res = fit_res
         self.root_name = root_name
         self.pickle_name = pickle_name
-        self.unblind = unblind
 
     def run(self):
-        model = FitModel(self.ws, self.cat, unblind=self.unblind)
+        model = FitModel(self.ws, self.cat)
         process_fitmodel(model, self.fit_res)
         components = [
             comp for comp in model.components] + [

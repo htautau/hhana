@@ -25,7 +25,7 @@ from statstools.plotting import (UncertGraph, get_binning,
 log = logging.getLogger(os.path.basename(__file__))
 
 
-def Fit_WS(file_name, ws_name, output_basename='frames', unblind=True, n_jobs=1):
+def Fit_WS(file_name, ws_name, output_basename='frames', n_jobs=1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -54,8 +54,7 @@ def Fit_WS(file_name, ws_name, output_basename='frames', unblind=True, n_jobs=1)
         for cat in cats:
             log.info('retrieve plotting objects of {0} ...'.format(cat.name))
             workers.append(ModelCalculator(file0, workspace, cat, fit_res,
-                                           output_root, output_pickle, 
-                                           unblind=unblind))
+                                           output_root, output_pickle))
         run_pool(workers, n_jobs=n_jobs)
         
 
@@ -187,7 +186,7 @@ if __name__ == '__main__':
     plots = input + '_plots'
 
     if args.force_fit:
-        Fit_WS(args.file, args.name, output, unblind=True, n_jobs=args.jobs)
+        Fit_WS(args.file, args.name, output, n_jobs=args.jobs)
     
     if not os.path.exists(plots):
         mkdir_p(plots)
