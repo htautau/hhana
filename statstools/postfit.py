@@ -45,9 +45,10 @@ class FitModel(object):
     #obsData: RooAbsData object from a RooWorkspace
     category: Category (rootpy stats module)
     """
-    def __init__(self, workspace, category):
+    def __init__(self, workspace, category, unblind=True):
         self.ws = workspace
         self.cat = category
+        self.unblind = unblind
         self.mc = self.ws.obj('ModelConfig')
         self.index_cat = self.mc.GetPdf().index_category
         self.obsData = self.ws.data('obsData')
@@ -76,6 +77,10 @@ class FitModel(object):
     def data_hist(self):
         hist_data = asrootpy(self.data.createHistogram("h_data_"+self.cat.name, self.obs))
         hist_data.name = "h_data_{0}".format(self.cat.name)
+        if (self.unblind is not True) and isinstance(self.unblind, int):
+            if self.unblind>hist_data.nbins:
+                raise RuntimeError('Number of blinded bins is to big')
+            hist_data[-(self.unblind+1):] = (0, 0)
         hist_data.title = ''
         return hist_data
 
@@ -169,7 +174,7 @@ class ModelCalculator(Process):
     root_name: Name of the rootfile where histograms and frames are stored
     pickle_name: Name of the pickle file where yields are stored
     """
-    def __init__(self, file_name, ws_name, cat, fit_res, root_name, pickle_name):
+    def __init__(self, file_name, ws_name, cat, fit_res, root_name, pickle_name, unblind=True):
         super(ModelCalculator, self).__init__()
         self.file_name = file_name
         self.ws_name = ws_name
@@ -177,10 +182,11 @@ class ModelCalculator(Process):
         self.fit_res = fit_res
         self.root_name = root_name
         self.pickle_name = pickle_name
+        self.unblind = unblind
 
     def run(self):
         with root_open(self.file_name) as file:
-            model = FitModel(file[self.ws_name], self.cat)
+            model = FitModel(file[self.ws_name], self.cat, unblind=self.unblind)
             process_fitmodel(model, self.fit_res)
             components = [
                 comp for comp in model.components] + [
