@@ -44,10 +44,9 @@ class FitModel(object):
     - workspace: rootpy Workspace)
     - category: rootpy Category
     """
-    def __init__(self, workspace, category, snapshot='InitialFit', unblind=True):
+    def __init__(self, workspace, category, unblind=True):
         self.ws = workspace
         self.cat = category
-        self.unblind = unblind
         self.mc = self.ws.obj('ModelConfig')
         self.index_cat = self.mc.GetPdf().index_category
         self.obsData = self.ws.data('obsData')
@@ -180,7 +179,6 @@ class ModelCalculator(Process):
                  fit_res, 
                  root_name, 
                  pickle_name, 
-                 snapshot='InitialFit',
                  unblind=True):
         super(ModelCalculator, self).__init__()
         self.file = file
@@ -189,14 +187,10 @@ class ModelCalculator(Process):
         self.fit_res = fit_res
         self.root_name = root_name
         self.pickle_name = pickle_name
-        self.snapshot = snapshot
         self.unblind = unblind
 
     def run(self):
-        #with root_open(self.file) as file:
-        #self.ws.loadSnapshot(self.snapshot)
-        model = FitModel(self.ws, self.cat, 
-                         snapshot=self.snapshot, unblind=self.unblind)
+        model = FitModel(self.ws, self.cat, unblind=self.unblind)
         process_fitmodel(model, self.fit_res)
         components = [
             comp for comp in model.components] + [

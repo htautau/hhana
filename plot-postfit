@@ -40,9 +40,7 @@ def Fit_WS(file_name, ws_name, output_basename='frames', unblind=True, n_jobs=1)
         fit_res = roo_min.save()
         obsData =  workspace.data('obsData')
         mc = workspace.obj("ModelConfig")
-        #workspace.saveSnapshot('InitialFit', mc.GetPdf().getParameters(obsData))
         cats =  [cat for cat in mc.GetPdf()]
-    # file.Close()
     
         output_root = output_basename + '.root'
         output_pickle = output_basename + '.pickle'
@@ -57,7 +55,6 @@ def Fit_WS(file_name, ws_name, output_basename='frames', unblind=True, n_jobs=1)
             log.info('retrieve plotting objects of {0} ...'.format(cat.name))
             workers.append(ModelCalculator(file0, workspace, cat, fit_res,
                                            output_root, output_pickle, 
-                                           snapshot='InitialFit',
                                            unblind=unblind))
         run_pool(workers, n_jobs=n_jobs)
         
