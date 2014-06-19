@@ -15,8 +15,6 @@ from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
 
 # local imports
-from mva.categories import CATEGORIES
-from mva.analysis import Analysis
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
 from statstools.plotting import (UncertGraph, get_binning, get_blinding,
@@ -186,12 +184,14 @@ if __name__ == '__main__':
     output = input + '_postfit'
     plots = input + '_plots'
 
-    if args.force_fit:
+    if not os.path.exists(output+'.root') or args.force_fit:
         Fit_WS(args.file, args.name, output, n_jobs=args.jobs)
     
     if not os.path.exists(plots):
         mkdir_p(plots)
 
+    from mva.categories import CATEGORIES
+    from mva.analysis import Analysis
     set_style('ATLAS', shape='rect')
     with root_open(output + '.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
