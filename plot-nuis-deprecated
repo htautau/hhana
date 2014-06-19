@@ -1,0 +1,197 @@
+#!/usr/bin/env python
+
+from mva import save_canvas, log; log = log[__name__]
+from statstools.pvalue_plot import pvalue_plot
+from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
+from rootpy.plotting.utils import draw
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+import pickle
+import os
+from ROOT import TLine
+
+style = get_style('ATLAS', shape='square')
+style.SetPadLeftMargin(0.16)
+style.SetTitleYOffset(1.4)
+set_style(style)
+#mva_path = 'workspaces/pulls/mva/ws_measurement_hh_combination_125_nuispars_scan_nofit.pickle'
+#cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
+
+MVA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym'
+CBA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_asym0.5'
+
+def get_pickle_path(WS_PATH, ws_name):
+    return '{0}/{1}/measurement_{1}_nuispars_scan.pickle'.format(WS_PATH, ws_name)
+
+
+mva_path = get_pickle_path(MVA_PATH_BASE, 'hh_combination_125')
+mva_path_12_vbf = get_pickle_path(MVA_PATH_BASE, 'hh_12_vbf_125')
+mva_path_11_vbf = get_pickle_path(MVA_PATH_BASE, 'hh_11_vbf_125')
+mva_path_12_boosted = get_pickle_path(MVA_PATH_BASE, 'hh_12_boosted_125')
+mva_path_11_boosted = get_pickle_path(MVA_PATH_BASE, 'hh_11_boosted_125')
+
+cba_path = get_pickle_path(CBA_PATH_BASE, 'hh_combination_125')
+cba_path_12_boosted_loose = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_boosted_loose_125')
+cba_path_11_boosted_loose = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_boosted_loose_125')
+cba_path_12_boosted_tight = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_boosted_tight_125')
+cba_path_11_boosted_tight = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_boosted_tight_125')
+cba_path_12_vbf_lowdr = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_vbf_lowdr_125')
+cba_path_11_vbf_lowdr = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_vbf_lowdr_125')
+cba_path_12_vbf_highdr_tight = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_vbf_highdr_tight_125')
+cba_path_12_vbf_highdr_loose = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_vbf_highdr_loose_125')
+cba_path_11_vbf_highdr = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_vbf_highdr_125')
+
+
+line = TLine()
+line.SetLineStyle(7)
+line.SetLineWidth(2)
+
+
+def plot(name, graphs):
+    c = Canvas()
+    xaxis, yaxis = c.axes(xlimits=(-3, 3), ylimits=(-1, 10))
+    # draw guide lines
+    line.DrawLine(-3, 0, 3, 0)
+    line.DrawLine(-3, 1, 3, 1)
+    draw(graphs, pad=c, snap=False, ypadding=0, same=True,
+         xaxis=xaxis, yaxis=yaxis,
+         xtitle=name, ytitle='2#Delta[-log(L)]',
+         xlimits=(-3, 3), ylimits=(-1, 10))
+    for graph in graphs:
+        graph.legendstyle = 'L'
+    leg = Legend(graphs, leftmargin=0.3,
+                 topmargin=0.1, margin=0.15,
+                 textsize=20)
+    leg.Draw()
+    ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.12)
+    save_canvas(c, 'plots/nuis', name, formats=('.eps', '.png'))
+
+
+def get_data(pickle_file):
+    with open(pickle_file) as f:
+        data = pickle.load(f)
+    return data
+
+
+def make_graph(values, nominal, max_value=8, **kwargs):
+    graph = Graph(len(values), **kwargs)    
+    i = 0
+    for x, y in values:
+        value = 2 * (y - nominal)
+        # nan?
+        if value != value:
+            continue
+        if value > max_value:
+            continue
+        graph[i] = (x, value)
+        i += 1
+    graph.num_points = i
+    return graph
+
+
+mva_data = get_data(mva_path)
+mva_data_vbf_12 = get_data(mva_path_12_vbf)
+mva_data_vbf_11 = get_data(mva_path_11_vbf)
+mva_data_boosted_12 = get_data(mva_path_12_boosted)
+mva_data_boosted_11 = get_data(mva_path_11_boosted)
+
+mva_nominal_nll = mva_data['NOMINAL']
+mva_nominal_nll_vbf_12 = mva_data_vbf_12['NOMINAL']
+mva_nominal_nll_vbf_11 = mva_data_vbf_11['NOMINAL']
+mva_nominal_nll_boosted_12 = mva_data_boosted_12['NOMINAL']
+mva_nominal_nll_boosted_11 = mva_data_boosted_11['NOMINAL']
+
+# plot profiles of each NP
+for nuis, mva_values in mva_data.items():
+    log.info(nuis)
+    if nuis == 'NOMINAL':
+        continue
+    mva_graph = make_graph(mva_values, mva_nominal_nll, drawstyle='L',
+                           linewidth=2, title='MVA Combined')
+    graphs = [mva_graph]
+    if nuis in mva_data_vbf_12.keys():
+        mva_graph_vbf_12 = make_graph(mva_data_vbf_12[nuis], mva_nominal_nll_vbf_12,
+                                      drawstyle='L', color='green', linestyle='dotted', title='MVA VBF 2012')
+        graphs.append(mva_graph_vbf_12)
+    if nuis in mva_data_vbf_11.keys():
+        mva_graph_vbf_11 = make_graph(mva_data_vbf_11[nuis], mva_nominal_nll_vbf_11,
+                                      drawstyle='L', color='blue', linestyle='longdash', title='MVA VBF 2011')
+        graphs.append(mva_graph_vbf_11)
+    if nuis in mva_data_boosted_12.keys():
+        mva_graph_boosted_12 = make_graph(mva_data_boosted_12[nuis], mva_nominal_nll_boosted_12,
+                                      drawstyle='L', color='red', linestyle='dotted', title='MVA BOOSTED 2012')
+        graphs.append(mva_graph_boosted_12)
+    if nuis in mva_data_boosted_11.keys():
+        mva_graph_boosted_11 = make_graph(mva_data_boosted_11[nuis], mva_nominal_nll_boosted_11,
+                                      drawstyle='L', color='purple', linestyle='longdash', title='MVA BOOSTED 2011')
+        graphs.append(mva_graph_boosted_11)
+    plot(nuis, graphs)
+
+cba_data = get_data(cba_path)
+cba_data_12_boosted_loose = get_data(cba_path_12_boosted_loose)
+cba_data_11_boosted_loose = get_data(cba_path_11_boosted_loose)
+cba_data_12_boosted_tight = get_data(cba_path_12_boosted_tight)
+cba_data_11_boosted_tight = get_data(cba_path_11_boosted_tight)
+cba_data_12_vbf_lowdr = get_data(cba_path_12_vbf_lowdr)
+cba_data_11_vbf_lowdr = get_data(cba_path_11_vbf_lowdr)
+cba_data_12_vbf_highdr_tight = get_data(cba_path_12_vbf_highdr_tight)
+cba_data_12_vbf_highdr_loose = get_data(cba_path_12_vbf_highdr_loose)
+cba_data_11_vbf_highdr = get_data(cba_path_11_vbf_highdr)
+
+cba_nominal_nll = cba_data['NOMINAL']
+cba_nominal_nll_12_boosted_loose    = cba_data_12_boosted_loose['NOMINAL']
+cba_nominal_nll_11_boosted_loose    = cba_data_11_boosted_loose['NOMINAL']
+cba_nominal_nll_12_boosted_tight    = cba_data_12_boosted_tight['NOMINAL']
+cba_nominal_nll_11_boosted_tight    = cba_data_11_boosted_tight['NOMINAL']
+cba_nominal_nll_12_vbf_lowdr        = cba_data_12_vbf_lowdr['NOMINAL']
+cba_nominal_nll_11_vbf_lowdr        = cba_data_11_vbf_lowdr['NOMINAL']
+cba_nominal_nll_12_vbf_highdr_tight = cba_data_12_vbf_highdr_tight['NOMINAL']
+cba_nominal_nll_12_vbf_highdr_loose = cba_data_12_vbf_highdr_loose['NOMINAL']
+cba_nominal_nll_11_vbf_highdr       = cba_data_11_vbf_highdr['NOMINAL']
+
+
+
+for nuis, cba_values in cba_data.items():
+    log.info(nuis)
+    if nuis == 'NOMINAL':
+        continue
+    cba_graph = make_graph(cba_values, cba_nominal_nll, drawstyle='L',
+                           linewidth=2, title='CBA Combined')
+    graphs = [cba_graph]
+    if nuis in cba_data_12_boosted_loose.keys():
+        cba_graph_12_boosted_loose = make_graph(cba_data_12_boosted_loose[nuis], cba_nominal_nll_12_boosted_loose, linewidth=2,
+                                                drawstyle='L', color='red', linestyle='dotted', title='CBA BOOSTED LOOSE 2012')
+        graphs.append(cba_graph_12_boosted_loose)
+    if nuis in cba_data_11_boosted_loose.keys():
+        cba_graph_11_boosted_loose = make_graph(cba_data_11_boosted_loose[nuis], cba_nominal_nll_11_boosted_loose, linewidth=2,
+                                                drawstyle='L', color='red', linestyle='longdash', title='CBA BOOSTED LOOSE 2011')
+        graphs.append(cba_graph_11_boosted_loose)
+    if nuis in cba_data_12_boosted_tight.keys():
+        cba_graph_12_boosted_tight = make_graph(cba_data_12_boosted_tight[nuis], cba_nominal_nll_12_boosted_tight, linewidth=2,
+                                                drawstyle='L', color='pink', linestyle='dotted', title='CBA BOOSTED TIGHT 2012')
+        graphs.append(cba_graph_12_boosted_tight)
+    if nuis in cba_data_11_boosted_tight.keys():
+        cba_graph_11_boosted_tight = make_graph(cba_data_11_boosted_tight[nuis], cba_nominal_nll_11_boosted_tight, linewidth=2,
+                                                drawstyle='L', color='pink', linestyle='longdash', title='CBA BOOSTED TIGHT 2011')
+        graphs.append(cba_graph_11_boosted_tight)
+    if nuis in cba_data_12_vbf_lowdr.keys():
+        cba_graph_12_vbf_lowdr = make_graph(cba_data_12_vbf_lowdr[nuis], cba_nominal_nll_12_vbf_lowdr, linewidth=2,
+                                            drawstyle='L', color='blue', linestyle='dotted', title='CBA VBF LOWDR 2012')
+        graphs.append(cba_graph_12_vbf_lowdr)
+    if nuis in cba_data_11_vbf_lowdr.keys():
+        cba_graph_11_vbf_lowdr = make_graph(cba_data_11_vbf_lowdr[nuis], cba_nominal_nll_11_vbf_lowdr, linewidth=2,
+                                            drawstyle='L', color='blue', linestyle='longdash', title='CBA VBF LOWDR 2011')
+        graphs.append(cba_graph_11_vbf_lowdr)
+
+    if nuis in cba_data_12_vbf_highdr_tight.keys():
+        cba_graph_12_vbf_highdr_tight = make_graph(cba_data_12_vbf_highdr_tight[nuis], cba_nominal_nll_12_vbf_highdr_tight, linewidth=2,
+                                                   drawstyle='L', color='purple', linestyle='dotted', title='CBA VBF HIGHDR TIGHT 2012')
+        graphs.append(cba_graph_12_vbf_highdr_tight)
+    if nuis in cba_data_12_vbf_highdr_loose.keys():
+        cba_graph_12_vbf_highdr_loose = make_graph(cba_data_12_vbf_highdr_loose[nuis], cba_nominal_nll_12_vbf_highdr_loose, linewidth=2,
+                                                   drawstyle='L', color='green', linestyle='dotted', title='CBA VBF HIGHDR LOOSE 2012')
+        graphs.append(cba_graph_12_vbf_highdr_loose)
+    if nuis in cba_data_11_vbf_highdr.keys():
+        cba_graph_11_vbf_highdr = make_graph(cba_data_11_vbf_highdr[nuis], cba_nominal_nll_11_vbf_highdr, linewidth=2,
+                                             drawstyle='L', color='purple', linestyle='longdash', title='CBA VBF HIGHDR 2011')
+        graphs.append(cba_graph_11_vbf_highdr)
+    plot(nuis+'_cba', graphs)

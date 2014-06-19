@@ -1,76 +1,59 @@
 #!/usr/bin/env python
 
-from mva import save_canvas, log; log = log[__name__]
-from statstools.pvalue_plot import pvalue_plot
-from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
-from rootpy.plotting.utils import draw
-from rootpy.plotting.style.atlas.labels import ATLAS_label
+# python imports
 import pickle
 import os
+import logging
+
+# ROOT/rootpy imports
+from rootpy.plotting import Canvas, Legend, Graph, Hist, get_style, set_style
+from rootpy.utils.path import mkdir_p
+from rootpy.plotting.utils import draw
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+from rootpy import ROOT
 from ROOT import TLine
 
+#local imports
+from statstools.plotting import get_year, get_category, get_data, print_np
+
+log = logging.getLogger(os.path.basename(__file__))
+
+# set the style
 style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.16)
 style.SetTitleYOffset(1.4)
+style.SetTitleSize(15)
 set_style(style)
-#mva_path = 'workspaces/pulls/mva/ws_measurement_hh_combination_125_nuispars_scan_nofit.pickle'
-#cba_path = 'workspaces/pulls/cba/ws_measurement_hh_full_combination_125_nuispars_scan_nofit.pickle'
 
-MVA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_fixed_full_sym'
-CBA_PATH_BASE = './workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_asym0.5'
+if not os.getenv('MVA_NO_BATCH', False):
+    ROOT.gROOT.SetBatch(True)
 
 def get_pickle_path(WS_PATH, ws_name):
     return '{0}/{1}/measurement_{1}_nuispars_scan.pickle'.format(WS_PATH, ws_name)
 
 
-mva_path = get_pickle_path(MVA_PATH_BASE, 'hh_combination_125')
-mva_path_12_vbf = get_pickle_path(MVA_PATH_BASE, 'hh_12_vbf_125')
-mva_path_11_vbf = get_pickle_path(MVA_PATH_BASE, 'hh_11_vbf_125')
-mva_path_12_boosted = get_pickle_path(MVA_PATH_BASE, 'hh_12_boosted_125')
-mva_path_11_boosted = get_pickle_path(MVA_PATH_BASE, 'hh_11_boosted_125')
 
-cba_path = get_pickle_path(CBA_PATH_BASE, 'hh_combination_125')
-cba_path_12_boosted_loose = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_boosted_loose_125')
-cba_path_11_boosted_loose = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_boosted_loose_125')
-cba_path_12_boosted_tight = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_boosted_tight_125')
-cba_path_11_boosted_tight = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_boosted_tight_125')
-cba_path_12_vbf_lowdr = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_vbf_lowdr_125')
-cba_path_11_vbf_lowdr = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_vbf_lowdr_125')
-cba_path_12_vbf_highdr_tight = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_vbf_highdr_tight_125')
-cba_path_12_vbf_highdr_loose = get_pickle_path(CBA_PATH_BASE, 'hh_12_cuts_vbf_highdr_loose_125')
-cba_path_11_vbf_highdr = get_pickle_path(CBA_PATH_BASE, 'hh_11_cuts_vbf_highdr_125')
-
-
-line = TLine()
-line.SetLineStyle(7)
-line.SetLineWidth(2)
-
-
-def plot(name, graphs):
+def plot_nuis(name, graphs, outdir):
     c = Canvas()
     xaxis, yaxis = c.axes(xlimits=(-3, 3), ylimits=(-1, 10))
     # draw guide lines
+    line = TLine()
+    line.SetLineStyle(7)
+    line.SetLineWidth(2)
     line.DrawLine(-3, 0, 3, 0)
     line.DrawLine(-3, 1, 3, 1)
     draw(graphs, pad=c, snap=False, ypadding=0, same=True,
          xaxis=xaxis, yaxis=yaxis,
-         xtitle=name, ytitle='2#Delta[-log(L)]',
+         xtitle=print_np(name), ytitle='2#Delta[-log(L)]',
          xlimits=(-3, 3), ylimits=(-1, 10))
     for graph in graphs:
         graph.legendstyle = 'L'
-    leg = Legend(graphs, leftmargin=0.3,
-                 topmargin=0.1, margin=0.15,
-                 textsize=20)
+    leg = Legend(graphs, leftmargin=0.1, margin=0.15,
+                 topmargin=0.1, textsize=15)
     leg.Draw()
     ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.12)
-    save_canvas(c, 'plots/nuis', name, formats=('.eps', '.png'))
-
-
-def get_data(pickle_file):
-    with open(pickle_file) as f:
-        data = pickle.load(f)
-    return data
-
+    c.SaveAs(os.path.join(outdir, '{0}.png'.format(name)))
+    c.SaveAs(os.path.join(outdir, '{0}.eps'.format(name)))
 
 def make_graph(values, nominal, max_value=8, **kwargs):
     graph = Graph(len(values), **kwargs)    
@@ -87,111 +70,70 @@ def make_graph(values, nominal, max_value=8, **kwargs):
     graph.num_points = i
     return graph
 
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+    from mva.categories import CATEGORIES
+    parser = ArgumentParser()
+    parser.add_argument('path')
+    parser.add_argument('--mass', default='125')
+    parser.add_argument('--ana', default='mva', choices=['mva', 'cba'])
+    args = parser.parse_args()
+    
+    if args.ana=='mva':
+        categories = CATEGORIES['mva']
+    else:
+        categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
 
-mva_data = get_data(mva_path)
-mva_data_vbf_12 = get_data(mva_path_12_vbf)
-mva_data_vbf_11 = get_data(mva_path_11_vbf)
-mva_data_boosted_12 = get_data(mva_path_12_boosted)
-mva_data_boosted_11 = get_data(mva_path_11_boosted)
+    # Step1: Retrieve NP scans of the combined WS
+    graphs = {}
+    combined_np_path = get_pickle_path(args.path, 'hh_combination_{0}'.format(args.mass))
+    if not os.path.exists(combined_np_path):
+        raise RuntimeError('Need the combineds WS scans to run !')
+    data_comb = get_data(combined_np_path)
+    nominal_comb = data_comb['NOMINAL']
+    for nuis, values in data_comb.items():
+        if nuis=='NOMINAL':
+            continue
+        graphs[nuis] = []
+        graphs[nuis].append(make_graph(values, nominal_comb, drawstyle='L', linewidth=3, 
+                                       name='hh_combination_{0}'.format(nuis),
+                                       title='Combined'))
 
-mva_nominal_nll = mva_data['NOMINAL']
-mva_nominal_nll_vbf_12 = mva_data_vbf_12['NOMINAL']
-mva_nominal_nll_vbf_11 = mva_data_vbf_11['NOMINAL']
-mva_nominal_nll_boosted_12 = mva_data_boosted_12['NOMINAL']
-mva_nominal_nll_boosted_11 = mva_data_boosted_11['NOMINAL']
+    # Step 2: Retrieve all available subchannel NP scans
+    for dir in os.listdir(args.path):
+        if os.path.isdir(os.path.join(args.path, dir)):
+            if 'combination' in dir:
+                continue
+            if args.mass in dir:
+                np_path = get_pickle_path(args.path, dir)
+                year = get_year(dir)
+                if year is None:
+                    continue
+                cat = get_category(dir, categories)
+                if cat is None:
+                    continue
+                log.info(dir)
+                if os.path.exists(np_path):
+                    data = get_data(np_path)
+                    nominal = data['NOMINAL']
+                    for nuis, values in data.items():
+                        if nuis=='NOMINAL':
+                            continue
+                        graph = make_graph(values, nominal, 
+                                           drawstyle='L', 
+                                           linewidth=3,
+                                           linecolor=cat.color,
+                                           linestyle=cat.linestyle,
+                                           name='{0}_{1}'.format(dir, nuis),
+                                           title='{0}: {1}'.format(year, cat.label))
+                        graphs[nuis].append(graph)
+                        
+    # Step 3: Draw the NPS scans
+    plots = os.path.join(args.path,
+                         'hh_combination_{0}'.format(args.mass),
+                         'nuisances_scans')
+    if not os.path.exists(plots):
+        mkdir_p(plots)
 
-# plot profiles of each NP
-for nuis, mva_values in mva_data.items():
-    log.info(nuis)
-    if nuis == 'NOMINAL':
-        continue
-    mva_graph = make_graph(mva_values, mva_nominal_nll, drawstyle='L',
-                           linewidth=2, title='MVA Combined')
-    graphs = [mva_graph]
-    if nuis in mva_data_vbf_12.keys():
-        mva_graph_vbf_12 = make_graph(mva_data_vbf_12[nuis], mva_nominal_nll_vbf_12,
-                                      drawstyle='L', color='green', linestyle='dotted', title='MVA VBF 2012')
-        graphs.append(mva_graph_vbf_12)
-    if nuis in mva_data_vbf_11.keys():
-        mva_graph_vbf_11 = make_graph(mva_data_vbf_11[nuis], mva_nominal_nll_vbf_11,
-                                      drawstyle='L', color='blue', linestyle='longdash', title='MVA VBF 2011')
-        graphs.append(mva_graph_vbf_11)
-    if nuis in mva_data_boosted_12.keys():
-        mva_graph_boosted_12 = make_graph(mva_data_boosted_12[nuis], mva_nominal_nll_boosted_12,
-                                      drawstyle='L', color='red', linestyle='dotted', title='MVA BOOSTED 2012')
-        graphs.append(mva_graph_boosted_12)
-    if nuis in mva_data_boosted_11.keys():
-        mva_graph_boosted_11 = make_graph(mva_data_boosted_11[nuis], mva_nominal_nll_boosted_11,
-                                      drawstyle='L', color='purple', linestyle='longdash', title='MVA BOOSTED 2011')
-        graphs.append(mva_graph_boosted_11)
-    plot(nuis, graphs)
-
-cba_data = get_data(cba_path)
-cba_data_12_boosted_loose = get_data(cba_path_12_boosted_loose)
-cba_data_11_boosted_loose = get_data(cba_path_11_boosted_loose)
-cba_data_12_boosted_tight = get_data(cba_path_12_boosted_tight)
-cba_data_11_boosted_tight = get_data(cba_path_11_boosted_tight)
-cba_data_12_vbf_lowdr = get_data(cba_path_12_vbf_lowdr)
-cba_data_11_vbf_lowdr = get_data(cba_path_11_vbf_lowdr)
-cba_data_12_vbf_highdr_tight = get_data(cba_path_12_vbf_highdr_tight)
-cba_data_12_vbf_highdr_loose = get_data(cba_path_12_vbf_highdr_loose)
-cba_data_11_vbf_highdr = get_data(cba_path_11_vbf_highdr)
-
-cba_nominal_nll = cba_data['NOMINAL']
-cba_nominal_nll_12_boosted_loose    = cba_data_12_boosted_loose['NOMINAL']
-cba_nominal_nll_11_boosted_loose    = cba_data_11_boosted_loose['NOMINAL']
-cba_nominal_nll_12_boosted_tight    = cba_data_12_boosted_tight['NOMINAL']
-cba_nominal_nll_11_boosted_tight    = cba_data_11_boosted_tight['NOMINAL']
-cba_nominal_nll_12_vbf_lowdr        = cba_data_12_vbf_lowdr['NOMINAL']
-cba_nominal_nll_11_vbf_lowdr        = cba_data_11_vbf_lowdr['NOMINAL']
-cba_nominal_nll_12_vbf_highdr_tight = cba_data_12_vbf_highdr_tight['NOMINAL']
-cba_nominal_nll_12_vbf_highdr_loose = cba_data_12_vbf_highdr_loose['NOMINAL']
-cba_nominal_nll_11_vbf_highdr       = cba_data_11_vbf_highdr['NOMINAL']
-
-
-
-for nuis, cba_values in cba_data.items():
-    log.info(nuis)
-    if nuis == 'NOMINAL':
-        continue
-    cba_graph = make_graph(cba_values, cba_nominal_nll, drawstyle='L',
-                           linewidth=2, title='CBA Combined')
-    graphs = [cba_graph]
-    if nuis in cba_data_12_boosted_loose.keys():
-        cba_graph_12_boosted_loose = make_graph(cba_data_12_boosted_loose[nuis], cba_nominal_nll_12_boosted_loose, linewidth=2,
-                                                drawstyle='L', color='red', linestyle='dotted', title='CBA BOOSTED LOOSE 2012')
-        graphs.append(cba_graph_12_boosted_loose)
-    if nuis in cba_data_11_boosted_loose.keys():
-        cba_graph_11_boosted_loose = make_graph(cba_data_11_boosted_loose[nuis], cba_nominal_nll_11_boosted_loose, linewidth=2,
-                                                drawstyle='L', color='red', linestyle='longdash', title='CBA BOOSTED LOOSE 2011')
-        graphs.append(cba_graph_11_boosted_loose)
-    if nuis in cba_data_12_boosted_tight.keys():
-        cba_graph_12_boosted_tight = make_graph(cba_data_12_boosted_tight[nuis], cba_nominal_nll_12_boosted_tight, linewidth=2,
-                                                drawstyle='L', color='pink', linestyle='dotted', title='CBA BOOSTED TIGHT 2012')
-        graphs.append(cba_graph_12_boosted_tight)
-    if nuis in cba_data_11_boosted_tight.keys():
-        cba_graph_11_boosted_tight = make_graph(cba_data_11_boosted_tight[nuis], cba_nominal_nll_11_boosted_tight, linewidth=2,
-                                                drawstyle='L', color='pink', linestyle='longdash', title='CBA BOOSTED TIGHT 2011')
-        graphs.append(cba_graph_11_boosted_tight)
-    if nuis in cba_data_12_vbf_lowdr.keys():
-        cba_graph_12_vbf_lowdr = make_graph(cba_data_12_vbf_lowdr[nuis], cba_nominal_nll_12_vbf_lowdr, linewidth=2,
-                                            drawstyle='L', color='blue', linestyle='dotted', title='CBA VBF LOWDR 2012')
-        graphs.append(cba_graph_12_vbf_lowdr)
-    if nuis in cba_data_11_vbf_lowdr.keys():
-        cba_graph_11_vbf_lowdr = make_graph(cba_data_11_vbf_lowdr[nuis], cba_nominal_nll_11_vbf_lowdr, linewidth=2,
-                                            drawstyle='L', color='blue', linestyle='longdash', title='CBA VBF LOWDR 2011')
-        graphs.append(cba_graph_11_vbf_lowdr)
-
-    if nuis in cba_data_12_vbf_highdr_tight.keys():
-        cba_graph_12_vbf_highdr_tight = make_graph(cba_data_12_vbf_highdr_tight[nuis], cba_nominal_nll_12_vbf_highdr_tight, linewidth=2,
-                                                   drawstyle='L', color='purple', linestyle='dotted', title='CBA VBF HIGHDR TIGHT 2012')
-        graphs.append(cba_graph_12_vbf_highdr_tight)
-    if nuis in cba_data_12_vbf_highdr_loose.keys():
-        cba_graph_12_vbf_highdr_loose = make_graph(cba_data_12_vbf_highdr_loose[nuis], cba_nominal_nll_12_vbf_highdr_loose, linewidth=2,
-                                                   drawstyle='L', color='green', linestyle='dotted', title='CBA VBF HIGHDR LOOSE 2012')
-        graphs.append(cba_graph_12_vbf_highdr_loose)
-    if nuis in cba_data_11_vbf_highdr.keys():
-        cba_graph_11_vbf_highdr = make_graph(cba_data_11_vbf_highdr[nuis], cba_nominal_nll_11_vbf_highdr, linewidth=2,
-                                             drawstyle='L', color='purple', linestyle='longdash', title='CBA VBF HIGHDR 2011')
-        graphs.append(cba_graph_11_vbf_highdr)
-    plot(nuis+'_cba', graphs)
+    for nuis, graphs_nuis in graphs.items():
+        plot_nuis(nuis, graphs_nuis, plots)
