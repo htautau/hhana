@@ -42,7 +42,7 @@ def print_np(np):
     return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
 
 
-def plot_ranking(name, file):
+def plot_ranking(name, file, outdir):
     # make the ranking plot
     data = get_data(file)
     n_points = len(data)
@@ -145,7 +145,7 @@ def plot_ranking(name, file):
                           margin=0.1)
     mu_legend.Draw()
     theta_legend.Draw()
-    save_canvas(c, 'plots/nuis_ranking', name, formats=('.eps', '.png'))
+    save_canvas(c, outdir, name, formats=('.eps', '.png'))
 
 
 if __name__ == '__main__':
@@ -155,4 +155,12 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='ranking')
     parser.add_argument('file')
     args = parser.parse_args()
-    plot_ranking(args.name, args.file)
+
+    input = os.path.splitext(args.file)[0]
+    pulls = input + '_pulls.pickle'
+    plots = input + '_plots'
+
+    if not os.path.exists(plots):
+        mkdir_p(plots)
+
+    plot_ranking(args.name, args.file, plots)
