@@ -2,15 +2,16 @@
 # python imports
 import pickle
 import os
+import logging
+
 # ROOT/rootpy imports
 from rootpy.plotting import Canvas, Pad, Legend, Graph, Hist, get_style, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.utils.path import mkdir_p
 from ROOT import TLine, TGaxis, TLatex
-# local imports
-from mva import save_canvas
-from statstools.pvalue_plot import pvalue_plot
+
+log = logging.getLogger(os.path.basename(__file__))
 
 # set the style
 style = get_style('ATLAS', shape='square')
@@ -99,6 +100,7 @@ def plot_ranking(name, file, outdir):
         err_dn = mid - low
         pulls.SetPoint(i, mid, i)
         pulls.SetPointError(i, err_dn, err_up, 0, 0)
+        log.info('{0} pull: {1} < {2} < {3}'.format(err_dn, mid, err_up))
         prefit_graph.SetPoint(i, 0, i)
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
@@ -149,7 +151,6 @@ def plot_ranking(name, file, outdir):
     theta_legend.Draw()
     c.SaveAs(os.path.join(outdir, '{0}.png'.format(name)))
     c.SaveAs(os.path.join(outdir, '{0}.eps'.format(name)))
-    #save_canvas(c, outdir, name, formats=('.eps', '.png'))
 
 
 if __name__ == '__main__':
