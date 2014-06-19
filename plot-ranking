@@ -32,6 +32,8 @@ line.SetLineWidth(2)
 solid_line = TLine()
 solid_line.SetLineWidth(1)
 
+if not os.getenv('MVA_NO_BATCH', False):
+    ROOT.gROOT.SetBatch(True)
 
 def get_data(pickle_file):
     # read NP pull data from a pickle
@@ -100,7 +102,7 @@ def plot_ranking(name, file, outdir):
         err_dn = mid - low
         pulls.SetPoint(i, mid, i)
         pulls.SetPointError(i, err_dn, err_up, 0, 0)
-        log.info('{0} pull: {1} < {2} < {3}'.format(err_dn, mid, err_up))
+        log.info('{0} pull: {1} < {2} < {3}'.format(np, err_dn, mid, err_up))
         prefit_graph.SetPoint(i, 0, i)
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
