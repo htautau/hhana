@@ -124,7 +124,7 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     if fit_var == 'bdt':
         xtitle = 'BDT Score'
         categories = CATEGORIES['mva']
-        logy = True
+        logy = False
     else:
         xtitle = 'MMC MASS [GeV]'
         categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
@@ -161,8 +161,8 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     latex.SetTextSize(20)
     latex.Draw()
     c.RedrawAxis()
-    if fit_var == 'bdt':
-        c.SetLogy()
+#     if fit_var == 'bdt':
+#         c.SetLogy()
     return c
 
 
