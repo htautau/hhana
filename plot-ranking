@@ -147,8 +147,8 @@ def plot_ranking(name, file, outdir):
                           margin=0.1)
     mu_legend.Draw()
     theta_legend.Draw()
-    c.SaveAs(os.path.join(outdir, '{0}.png'.format(name))
-    c.SaveAs(os.path.join(outdir, '{0}.eps'.format(name))
+    c.SaveAs(os.path.join(outdir, '{0}.png'.format(name)))
+    c.SaveAs(os.path.join(outdir, '{0}.eps'.format(name)))
     #save_canvas(c, outdir, name, formats=('.eps', '.png'))
 
 
