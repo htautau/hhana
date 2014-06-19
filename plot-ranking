@@ -9,6 +9,7 @@ from rootpy.plotting import Canvas, Pad, Legend, Graph, Hist, get_style, set_sty
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.utils.path import mkdir_p
+from rootpy import ROOT
 from ROOT import TLine, TGaxis, TLatex
 
 log = logging.getLogger(os.path.basename(__file__))
