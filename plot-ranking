@@ -1,14 +1,16 @@
 #!/usr/bin/env python
-
-
-from mva import save_canvas
-from statstools.pvalue_plot import pvalue_plot
+# python imports
+import pickle
+import os
+# ROOT/rootpy imports
 from rootpy.plotting import Canvas, Pad, Legend, Graph, Hist, get_style, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas.labels import ATLAS_label
-import pickle
-import os
+from rootpy.utils.path import mkdir_p
 from ROOT import TLine, TGaxis, TLatex
+# local imports
+from mva import save_canvas
+from statstools.pvalue_plot import pvalue_plot
 
 # set the style
 style = get_style('ATLAS', shape='square')
