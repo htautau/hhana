@@ -25,6 +25,15 @@ UNBLIND = {
         'boosted': 2}
 }
 
+def get_data(pickle_file):
+    # read NP pull data from a pickle
+    with open(pickle_file) as f:
+        data = pickle.load(f)
+    return data
+
+def print_np(np):
+    # strip unneeded text from NP names
+    return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
 
 def get_rebinned_hist(hist_origin, binning):
     hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned')
@@ -54,18 +63,34 @@ def get_rebinned_graph(graph_origin, binning, unblind=True):
                 graph_rebin.SetPointError(ip, 0, 0, 0, 0)
     return graph_rebin
 
-
-def get_category(ws_cat_name, categories):
-    for cat in categories:
-        if cat.name in ws_cat_name:
-            return cat
-
-
-def get_year(ws_name):
-    if '_12' and not '_11' in ws_name:
-        return 2012
+def get_cat_name(ws_name):
+    mass = get_mass(ws_name)
+    year = get_year(ws_name)
+    if 'channel_' in ws_name:
+        cat_name = ws_name.replace('channel_', '')
+        words = cat_name.split('_')
+        cat_name = '_'.join(words[1:words.index(str(year%1000))])
+    elif 'hh_{0}'.format(year%1000) in ws_name:
+        cat_name = ws_name.replace('hh_{0}'.format(year%1000), '')
+        words = cat_name.split('_')
+        cat_name = '_'.join(words[1:words.index(str(mass))])
     else:
+        cat_name = ws_name
+    return cat_name
+
+def get_category(ws_name, categories):
+    cat_name = get_cat_name(ws_name)
+    for cat in categories:
+        if cat.name==cat_name:
+            return cat
+        
+def get_year(ws_name):
+    if '12' in ws_name.split('_'):
+        return 2012
+    elif '11' in ws_name.split('_'):
         return 2011
+    else:
+        return None
 
 def get_blinding(name):
     year = get_year(name)
@@ -78,14 +103,15 @@ def get_blinding(name):
 
 def get_mass(ws_name):
     masses = Higgs.MASSES
+    words = ws_name.split('_')
     for mass in masses:
-        if '_{0}_'.format(mass) in ws_name:
+        if str(mass) in words:
             return mass
 
 def get_binning(name, categories, fit_var='mmc'):
     binning = []
-    cat = get_category(name, categories)
     year = get_year(name)
+    cat = get_category(name, categories)
     mass = get_mass(name)
     log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
     if fit_var == 'mmc':

@@ -48,7 +48,9 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
     name = 'cuts_vbf_lowdr'
     label = '#tau_{had}#tau_{had} CB VBF High-p_{T}^{H}'
     latex = '\\textbf{VBF High-$p_T^{H}$}'
+    color = 'red'
     jk_number = 11
+    linestyle = 'dotted'
     cuts = (
         CUTS_VBF_CUTBASED
         & Cut('dR_tau1_tau2 < 1.5')
@@ -64,6 +66,8 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
     label = '#tau_{had}#tau_{had} CB VBF Low-p_{T}^{H} Tight'
     latex = '\\textbf{VBF Low-$p_T^{H}$ Tight}'
     jk_number = 13
+    color = 'red'
+    linestyle = 'verylongdash'
     cuts = (
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
@@ -77,6 +81,8 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
     name = 'cuts_vbf_highdr_loose'
     label = '#tau_{had}#tau_{had} CB VBF Low-p_{T}^{H} Loose'
     latex = '\\textbf{VBF Low-$p_T^{H}$ Loose}'
+    color = 'red'
+    linestyle = 'dashed'
     jk_number = 12
     cuts = (
         CUTS_VBF_CUTBASED
@@ -90,6 +96,8 @@ class Category_Cuts_VBF_HighDR(Category_Preselection):
     name = 'cuts_vbf_highdr'
     label = '#tau_{had}#tau_{had} CB VBF Low-p_{T}^{H}'
     latex = '\\textbf{VBF Low-$p_T^{H}$}'
+    color = 'red'
+    linestyle = 'longdash'
     cuts = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts
     # limitbins = [0, 64, 80, 92, 104, 116, 132, 152, INF] # old binning
     limitbins = [0, 80, 92, 104, 116, 132, 152, INF]
@@ -100,6 +108,8 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     name = 'cuts_boosted_tight'
     label = '#tau_{had}#tau_{had} CB Boosted High-p_{T}^{H}'
     latex = '\\textbf{Boosted High-$p_T^{H}$}'
+    color = 'blue'
+    linestyle = 'verylongdashdot'
     jk_number = 10
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
@@ -114,6 +124,8 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     name = 'cuts_boosted_loose'
     label = '#tau_{had}#tau_{had} CB Boosted Low-p_{T}^{H}'
     latex = '\\textbf{Boosted Low-$p_T^{H}$}'
+    color = 'blue'
+    linestyle = 'dotted'
     jk_number = 9
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))

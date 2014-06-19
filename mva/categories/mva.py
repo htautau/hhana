@@ -18,6 +18,8 @@ class Category_VBF(Category_Preselection):
     name = 'vbf'
     label = '#tau_{had}#tau_{had} VBF'
     latex = '\\textbf{VBF}'
+    color = 'red'
+    linestyle = 'dotted'
     jk_number = 10
     common_cuts = Category_Preselection.common_cuts
     cuts = (
@@ -42,6 +44,8 @@ class Category_Boosted(Category_Preselection):
     name = 'boosted'
     label = '#tau_{had}#tau_{had} Boosted'
     latex = '\\textbf{Boosted}'
+    color = 'blue'
+    linestyle = 'dashed'
     jk_number = 9
     common_cuts = Category_Preselection.common_cuts
     cuts = (
