@@ -111,7 +111,7 @@ def get_cat_name(ws_name):
     if 'channel_' in ws_name:
         cat_name = ws_name.replace('channel_', '')
         words = cat_name.split('_')
-        cat_name = '_'.join(words[1:words.index(str(year%1000))])
+        cat_name = '_'.join(words[0:words.index(str(year%1000))])
         log.info(cat_name)
     elif 'hh_{0}'.format(year%1000) in ws_name:
         cat_name = ws_name.replace('hh_{0}'.format(year%1000), '')
