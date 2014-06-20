@@ -112,7 +112,6 @@ def get_cat_name(ws_name):
         cat_name = ws_name.replace('channel_', '')
         words = cat_name.split('_')
         cat_name = '_'.join(words[0:words.index(str(year%1000))])
-        log.info(cat_name)
     elif 'hh_{0}'.format(year%1000) in ws_name:
         cat_name = ws_name.replace('hh_{0}'.format(year%1000), '')
         words = cat_name.split('_')
@@ -123,7 +122,9 @@ def get_cat_name(ws_name):
 
 def get_category(ws_name, categories):
     cat_name = get_cat_name(ws_name)
+    log.info(cat_name)
     for cat in categories:
+        log.info(cat.name)
         if cat.name==cat_name:
             return cat
         
