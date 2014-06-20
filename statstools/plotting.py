@@ -155,6 +155,7 @@ def get_binning(name, categories, fit_var='mmc'):
     binning = []
     year = get_year(name)
     cat = get_category(name, categories)
+    log.info(cat)
     mass = get_mass(name)
     log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
     if fit_var == 'mmc':
