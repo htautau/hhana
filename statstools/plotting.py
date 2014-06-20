@@ -122,9 +122,7 @@ def get_cat_name(ws_name):
 
 def get_category(ws_name, categories):
     cat_name = get_cat_name(ws_name)
-    log.info(cat_name)
     for cat in categories:
-        log.info(cat.name)
         if cat.name==cat_name:
             return cat
         
@@ -156,7 +154,6 @@ def get_binning(name, categories, fit_var='mmc'):
     binning = []
     year = get_year(name)
     cat = get_category(name, categories)
-    log.info(cat)
     mass = get_mass(name)
     log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
     if fit_var == 'mmc':
