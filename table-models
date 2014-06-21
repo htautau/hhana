@@ -230,5 +230,5 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
         
 if __name__ == '__main__':
     for year in (2011, 2012):
-        #tabulate_models(year)
+        tabulate_models(year)
         draw_model_shapes(year)

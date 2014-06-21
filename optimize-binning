@@ -297,7 +297,9 @@ def get_best_edge(scores, edges, pos=0,
 
 
 if __name__ == '__main__':
-    
+ 
+    # pip install --user tabulate
+    from tabulate import tabulate
     from rootpy.extern.argparse import ArgumentParser
 
     parser = ArgumentParser()
@@ -335,6 +337,7 @@ if __name__ == '__main__':
         bw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.bkg_scores])
         s = np.concatenate([scores_dict['NOMINAL'][0] for _, scores_dict in scores.all_sig_scores[mass]])
         sw = np.concatenate([scores_dict['NOMINAL'][1] for _, scores_dict in scores.all_sig_scores[mass]])
+
         min_score = min(np.min(s), np.min(b)) - 1E-8
         max_score = max(np.max(s), np.max(b)) + 1E-8
         s = (s, sw)
@@ -454,6 +457,11 @@ if __name__ == '__main__':
             binning.insert(1, float(best_edge))
             prev_best_sig = best_sig
         
+        # save the binning
+        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
+                               category.name, mass, year % 1000)), 'w') as f:
+            pickle.dump(binning, f)
+
         # draw the rebinned scores
         b_hist = Hist(binning, color='blue',
                       linewidth=3, linestyle='dashed')
@@ -470,8 +478,81 @@ if __name__ == '__main__':
         plt.tight_layout()
         fig.savefig('plots/binning/binning_{0}_{1}_{2}.png'.format(
                     category.name, mass, year % 1000))
+
+        print category.name
+        print
+
+        # tabulate weighted and unweighted events per sample per bin
+        table = []
+        table_latex = []
+        headers = [str(i) for i in xrange(1, len(binning) + 1)]
+        headers.insert(0, 'Bin')
+        totals = []
         
-        # save the binning
-        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
-                               category.name, mass, year % 1000)), 'w') as f:
-            pickle.dump(binning, f)
+        sample_types = ['Total Signal', 'Total Background']
+        totals = []
+        for sample_type, samples in zip(sample_types,
+                                        (scores.all_sig_scores[mass],
+                                         scores.bkg_scores[::-1])):
+            total_weighted = Hist(binning)
+            total_unweighted = total_weighted.Clone()
+            for sample, scores_dict in samples:
+                s, w = scores_dict['NOMINAL']
+                hist_weighted = Hist(binning)
+                hist_unweighted = hist_weighted.Clone()
+                fill_hist(hist_weighted, s, w)
+                fill_hist(hist_unweighted, s)
+
+                weighted = [u'{0:.1f} +/- {1:.1f}'.format(bin.value, bin.error)
+                            for bin in hist_weighted.bins()]
+                weighted.insert(0, 'weighted')
+                unweighted = [u'{0:.1f} +/- {1:.1f}'.format(bin.value, bin.error)
+                            for bin in hist_unweighted.bins()]
+                unweighted.insert(0, 'unweighted')
+                table.extend([[sample.name] + ['',] * len(binning), weighted, unweighted])
+                
+                weighted_latex = [u'${0:.1f} \pm {1:.1f}$'.format(bin.value, bin.error)
+                                  for bin in hist_weighted.bins()]
+                weighted_latex.insert(0, 'weighted')
+                unweighted_latex = [u'${0:.1f} \pm {1:.1f}$'.format(bin.value, bin.error)
+                                    for bin in hist_unweighted.bins()]
+                unweighted_latex.insert(0, 'unweighted')
+                table_latex.extend([[sample.name.replace('_', ' ')] +
+                                    ['',] * len(binning), weighted_latex, unweighted_latex])
+
+                total_weighted += hist_weighted
+                total_unweighted += hist_unweighted
+            
+            weighted = [u'{0:.1f} +/- {1:.1f}'.format(bin.value, bin.error)
+                        for bin in total_weighted.bins()]
+            weighted.insert(0, 'weighted')
+            unweighted = [u'{0:.1f} +/- {1:.1f}'.format(bin.value, bin.error)
+                          for bin in total_unweighted.bins()]
+            unweighted.insert(0, 'unweighted')
+            table.extend([[sample_type,] + ['',] * len(binning), weighted, unweighted])
+
+            weighted_latex = [u'${0:.1f} \pm {1:.1f}$'.format(bin.value, bin.error)
+                              for bin in total_weighted.bins()]
+            weighted_latex.insert(0, 'weighted')
+            unweighted_latex = [u'${0:.1f} \pm {1:.1f}$'.format(bin.value, bin.error)
+                                for bin in total_unweighted.bins()]
+            unweighted_latex.insert(0, 'unweighted')
+            table_latex.extend([[sample_type,] + ['',] * len(binning), weighted_latex, unweighted_latex])
+
+            totals.append(total_weighted)
+
+        # signal / background
+        sob = totals[0] / totals[1]
+        row = [u'{0:.1f} +/- {1:.1f}'.format(bin.value, bin.error)
+               for bin in sob.bins()]
+        row.insert(0, 'S / B')
+        table.append(row) 
+        row_latex = [u'${0:.1f} \pm {1:.1f}$'.format(bin.value, bin.error)
+                     for bin in sob.bins()]
+        row_latex.insert(0, '$S / B$')
+        table_latex.append(row_latex) 
+
+        print tabulate(table, headers)
+        print
+        print tabulate(table_latex, headers, tablefmt='latex')
+        print
