@@ -5,11 +5,13 @@ from mva import cmd
 from mva.samples import Higgs
 from mva.workspace import write_workspaces, cuts_workspace, mva_workspace
 from mva.analysis import get_analysis
+from mva.massregions import MassRegions
 
 parser = cmd.analysis_parser(cmd.general_parser(
     multi_years=True, multi_categories=True))
 parser.add_argument('type', choices=('mva', 'cuts'), default='mva')
 parser.add_argument('--clf-mass', type=int, default=None)
+parser.add_argument('--sideband', default=False, action='store_true')
 args = parser.parse_args()
 
 if args.masses == 'all':
@@ -31,6 +33,13 @@ if len(categories) == 1 and len(years) > 1:
 elif len(categories) != len(years):
     sys.exit("specify the same number of category definitions as years")
 
+cuts = None
+if args.sideband:
+    massregions = MassRegions()
+    cuts = massregions.control_region
+    # always unblind in the mass sideband
+    args.unblind = True
+
 signal_regions = {}
 control_regions = {}
 for year, year_categories in zip(years, categories):
@@ -38,12 +47,15 @@ for year, year_categories in zip(years, categories):
     sr, cr = workspace_func(analysis, year_categories, args.masses,
                             unblind=args.unblind,
                             systematics=args.systematics,
+                            cuts=cuts,
                             **params)
     signal_regions[year] = sr
     control_regions[year] = cr
 
 suffix = analysis.get_suffix(year=False)
 suffix += '_' + args.type
+if args.sideband:
+    suffix += '_sideband'
 if args.output_suffix:
     suffix += '_' + args.output_suffix
 path = 'workspaces/hh{0}'.format(suffix.lower())

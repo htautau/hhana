@@ -143,7 +143,8 @@ def write_workspaces(path, prefix, year_mass_category_channel,
 def mva_workspace(analysis, categories, masses,
                   clf_mass=None,
                   unblind=False,
-                  systematics=False):
+                  systematics=False,
+                  cuts=None):
     hist_template = Hist(5, 0, 1.5, type='D')
     controls = analysis.make_var_channels(
         hist_template, 'dEta_tau1_tau2',
@@ -168,6 +169,7 @@ def mva_workspace(analysis, categories, masses,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics,
+                cuts=cuts,
                 unblind=unblind or 2,
                 hybrid_data=not unblind,
                 uniform=True)
@@ -179,7 +181,8 @@ def mva_workspace(analysis, categories, masses,
 
 def cuts_workspace(analysis, categories, masses,
                    unblind=False,
-                   systematics=False):
+                   systematics=False,
+                   cuts=None):
     channels = {}
     for category in analysis.iter_categories(categories):
         if isinstance(category.limitbins, dict):
@@ -192,7 +195,7 @@ def cuts_workspace(analysis, categories, masses,
                 {MMC_MASS: hist_template},
                 category=category,
                 region=analysis.target_region,
-                cuts=None,
+                cuts=cuts,
                 include_signal=True,
                 mass=mass,
                 mode='workspace',
