@@ -75,12 +75,10 @@ def get_workspace_np_name(sample, syst, year):
         npname = npname.replace('TRIGGER', 'TRIGGER_EMB_HH')
     else:
         npname = npname.replace('TRIGGER', 'TRIGGER_HH')
-    # Embedding NPs:
+    # Decorrelate embedding NPs
     # * Decorrelate the NP between 2011 and 2012 for MFS because the cell
     #   subtraction yield was changed from 30% in 2011 to 20% in 2012.
-    # * Correlate them for ISO, because the treatment between the two is
-    #   consistent.
-    npname = npname.replace('ISOL_{0}'.format(year), 'ANA_EMB_ISOL')
+    npname = npname.replace('ISOL', 'ANA_EMB_ISOL')
     npname = npname.replace('MFS', 'ANA_EMB_MFS')
     return npname
 
