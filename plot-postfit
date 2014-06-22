@@ -25,7 +25,7 @@ from statstools.plotting import (UncertGraph, get_binning, get_blinding,
 log = logging.getLogger(os.path.basename(__file__))
 
 
-def Fit_WS(file_name, ws_name, output_basename='frames', n_jobs=1):
+def Fit_WS(file_name, ws_name, output_basename='frames', n_jobs=-1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -174,11 +174,11 @@ if __name__ == '__main__':
     parser.add_argument('--fit-var', default='bdt', choices=['bdt', 'mmc'])
     parser.add_argument('--force-fit', action='store_true', default=False)
     parser.add_argument('--blind', action='store_true', default=False)
-    parser.add_argument('--jobs', default=1)
+    parser.add_argument('--jobs', default=-1)
     args = parser.parse_args()
 
     if args.fit_var=='bdt':
-        categories = CATEGORIES['mva']
+        categories = CATEGORIES['mva_all']
     else:
         categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
 
@@ -196,8 +196,6 @@ if __name__ == '__main__':
     with root_open(output + '.root') as file:
         for _, _, names in file.walk(class_pattern='*RooPlot*'):
             for name in names:
-                if 'rest' in name:
-                    continue
                 log.info('Channel: {0}'.format(name))
                 # hbkg = file.Get('h_sum_bkg_{0}'.format(file[name].GetName()))
                 # log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.xedges())))

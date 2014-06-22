@@ -48,7 +48,7 @@ def get_rebinned_graph(graph_origin, binning, unblind=True):
     length_filled = len(graph_rebin)
     if (unblind is not True) and isinstance(unblind, int):
         length_filled -= unblind
-    log.info('Length: {0} - {1}'.format(len(graph_rebin), length_filled))        
+    log.info('Length: {0} - {1}'.format(len(graph_rebin), length_filled))
     if len(graph_origin) != len(graph_rebin):
         log.info('uniform: {0} bins != rebinned: {1} bins'.format(len(graph_origin), len(graph_rebin)))
         raise RuntimeError('wrong binning')
@@ -81,9 +81,10 @@ def get_cat_name(ws_name):
 def get_category(ws_name, categories):
     cat_name = get_cat_name(ws_name)
     for cat in categories:
-        if cat.name==cat_name:
+        print cat.name, cat_name
+        if cat.name == cat_name:
             return cat
-        
+
 def get_year(ws_name):
     if '12' in ws_name.split('_'):
         return 2012
