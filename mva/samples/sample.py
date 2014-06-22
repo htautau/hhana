@@ -68,8 +68,10 @@ def get_workspace_np_name(sample, syst, year):
     npname = npname.replace('JES_PURho_TAU_QQ_{0}'.format(year),
                             'JES_{0}_PileRho_TAU_QQ'.format(year))
     npname = npname.replace('FAKERATE', 'TAU_JFAKE')
-    npname = npname.replace('MET_RESOSOFTTERMS', 'MET_RESOSOFT')
-    npname = npname.replace('MET_SCALESOFTTERMS', 'MET_SCALESOFT')
+    npname = npname.replace('MET_RESOSOFTTERMS_{0}'.format(year),
+                            'MET_RESOSOFT')
+    npname = npname.replace('MET_SCALESOFTTERMS_{0}'.format(year),
+                            'MET_SCALESOFT')
     from .ztautau import Embedded_Ztautau
     if isinstance(sample, Embedded_Ztautau):
         npname = npname.replace('TRIGGER', 'TRIGGER_EMB_HH')
@@ -80,6 +82,9 @@ def get_workspace_np_name(sample, syst, year):
     #   subtraction yield was changed from 30% in 2011 to 20% in 2012.
     npname = npname.replace('ISOL', 'ANA_EMB_ISOL')
     npname = npname.replace('MFS', 'ANA_EMB_MFS')
+    # correlate across years:
+    npname = npname.replace('JER_{0}'.format(year), 'JER')
+    npname = npname.replace('PU_RESCALE_{0}'.format(year), 'PU_RESCALE')
     return npname
 
 
