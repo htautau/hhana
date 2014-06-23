@@ -8,18 +8,13 @@ from mva.analysis import get_analysis
 
 analysis = get_analysis(args)
 
-from rootpy.io import root_open
 from rootpy.plotting import Hist
 from rootpy.stats import histfactory
 from mva.plotting import draw_channel
 from mva.categories import Category_Rest, Category_Preselection
-from mva.lumi import get_lumi_uncert
 from mva import norm_cache as cache
 from mva.variables import VARIABLES
 from mva import CONST_PARAMS
-import numpy as np
-
-lumi_rel_error = get_lumi_uncert(args.year)
 
 # reference category for initial normalization
 #category = Category_Rest
@@ -79,8 +74,6 @@ while (ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01) and it < max_iter:
     measurement = histfactory.make_measurement(
         'normalization_{0}'.format(field), channels,
         POI=None,
-        lumi=1.0,
-        lumi_rel_error=lumi_rel_error,
         const_params=CONST_PARAMS)
     workspace = histfactory.make_workspace(measurement, silence=True)
 
@@ -128,9 +121,8 @@ draw_channel(channels[0], name=VARIABLES[field]['root'],
     category=category,
     output_name='{0}_postfit{1}'.format(field, analysis.get_suffix()),
     output_dir='plots/normalization',
-    top_label="Fakes Model: {0}".format(analysis.fakes_region))
-
-# determine resonance pt reweighting after normalization
-#with root_open('weights.root', 'recreate') as weights_file:
-#    resonance_pt_edges = list(np.linspace(0, 250000, 26)) + [1E100]
-#    resonance_pt_weight_hist = Hist(resonance_pt_edges, name='resonance_pt_weight')
+    show_pvalue=True,
+    top_label="Fakes Model: {0}".format(analysis.fakes_region),
+    plot_label='After {0} fit'.format(VARIABLES[field]['root']),
+    data_info=analysis.data.info,
+    output_formats=('eps', 'png'))
