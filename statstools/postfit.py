@@ -34,6 +34,7 @@ class Component(object):
         self.integral_err = 0
         self.hist = None
 
+
 class FitModel(object):
     """
     Class to retrieve and compute relevant
@@ -123,6 +124,7 @@ class FitModel(object):
     def background(self):
         return self._background
 
+
 def process_fitmodel(model, fit_res):
     """
     Compute histograms and frame of the FitModel
@@ -140,11 +142,11 @@ def process_fitmodel(model, fit_res):
         name += '_'+model.cat.name
         if 'sum' in comp.name:
             name = comp.name
-
         comp.hist = asrootpy(comp.pdf.createHistogram('h_{0}'.format(name), model.obs,
                                                       ROOT.RooFit.Extended(False)))
         comp.hist.name = 'h_{0}'.format(name)
         comp.hist.title = ''
+        comp.hist *= model.binwidth.getVal()
         Integral_comp = comp.pdf.createIntegral(RooArgSet(model.obs))
         comp.integral = Integral_comp.getVal() * model.binwidth.getVal()
         if fit_res:
@@ -155,6 +157,7 @@ def process_fitmodel(model, fit_res):
                             ROOT.RooFit.VisualizeError(fit_res, 1, ERROR_BAND_STRATEGY),
                             ROOT.RooFit.Name('FitError_AfterFit_{0}'.format(name)))
         log.info('{0}: Integral = {1}+/-{2}'.format(comp.hist.name, comp.integral, comp.integral_err))
+
 
 class ModelCalculator(Process):
     """
@@ -168,7 +171,7 @@ class ModelCalculator(Process):
     root_name: Name of the rootfile where histograms and frames are stored
     pickle_name: Name of the pickle file where yields are stored
     """
-    def __init__(self, file, workspace, cat, fit_res, root_name, pickle_name): 
+    def __init__(self, file, workspace, cat, fit_res, root_name, pickle_name):
         super(ModelCalculator, self).__init__()
         self.file = file
         self.ws = workspace
