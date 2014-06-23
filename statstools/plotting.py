@@ -2,6 +2,8 @@
 from itertools import cycle
 import os
 import pickle
+import re
+
 # root/rootpy imports
 from rootpy import ROOT
 from rootpy.plotting import Canvas, Legend, Hist, Graph
@@ -9,6 +11,7 @@ from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import draw
 from rootpy.memory import keepalive
 from rootpy.context import preserve_current_canvas
+
 # local imports
 from mva import CACHE_DIR
 from mva.samples import Higgs
@@ -25,26 +28,55 @@ UNBLIND = {
         'boosted': 2}
 }
 
+
+PATTERNS = [
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z]+)_(?P<mass>\d+)$'),
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z]+)_(?P<mass>\d+)_(?P<year>\d+)$')
+]
+
+
+def parse_name(name):
+    """
+    determine year, category and mass from ws/channel name
+    """
+    for p in PATTERNS:
+        match = re.match(p, name)
+        if match:
+            break
+    if not match:
+        raise ValueError(
+            "not a valid workspace/channel name: {0}".format(name))
+    return (int(match.group('year')) % 1000 + 2000,
+            match.group('category'),
+            int(match.group('mass')))
+
+
 def get_data(pickle_file):
     # read NP pull data from a pickle
     with open(pickle_file) as f:
         data = pickle.load(f)
     return data
 
+
 def print_np(np):
     # strip unneeded text from NP names
     return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
 
-def get_rebinned_hist(hist_origin, binning):
+
+def get_rebinned_hist(hist_origin, binning=None):
+    if binning is None:
+        return hist_origin
     hist_rebin = Hist(binning, name=hist_origin.name+'_rebinned')
     hist_rebin[:] = hist_origin[:]
     return hist_rebin
 
-def get_rebinned_graph(graph_origin, binning, unblind=True):
+
+def get_rebinned_graph(graph_origin, binning=None, unblind=True):
+    if binning is None:
+        return graph_origin
     log.info(list(graph_origin.x()))
     log.info('Binning: {0}'.format(binning))
     graph_rebin = Graph(len(binning)-1)
-
     length_filled = len(graph_rebin)
     if (unblind is not True) and isinstance(unblind, int):
         length_filled -= unblind
@@ -63,113 +95,74 @@ def get_rebinned_graph(graph_origin, binning, unblind=True):
                 graph_rebin.SetPointError(ip, 0, 0, 0, 0)
     return graph_rebin
 
-def get_cat_name(ws_name):
-    mass = get_mass(ws_name)
-    year = get_year(ws_name)
-    if 'channel_' in ws_name:
-        cat_name = ws_name.replace('channel_', '')
-        words = cat_name.split('_')
-        cat_name = '_'.join(words[1:words.index(str(year%1000))])
-    elif 'hh_{0}'.format(year%1000) in ws_name:
-        cat_name = ws_name.replace('hh_{0}'.format(year%1000), '')
-        words = cat_name.split('_')
-        cat_name = '_'.join(words[1:words.index(str(mass))])
-    else:
-        cat_name = ws_name
-    return cat_name
 
-def get_category(ws_name, categories):
-    cat_name = get_cat_name(ws_name)
-    for cat in categories:
-        print cat.name, cat_name
-        if cat.name == cat_name:
-            return cat
+def get_category(category_name, categories):
+    for category in categories:
+        if category.name == category_name:
+            return category
 
-def get_year(ws_name):
-    if '12' in ws_name.split('_'):
-        return 2012
-    elif '11' in ws_name.split('_'):
-        return 2011
-    else:
-        return None
 
-def get_blinding(name):
-    year = get_year(name)
-    if 'vbf' in name:
-        return UNBLIND[year]['vbf']
-    elif 'boost' in name:
-        return UNBLIND[year]['boosted']
-    else:
-        return True
-
-def get_mass(ws_name):
-    masses = Higgs.MASSES
-    words = ws_name.split('_')
-    for mass in masses:
-        if str(mass) in words:
-            return mass
-
-def get_binning(name, categories, fit_var='mmc'):
-    binning = []
-    year = get_year(name)
-    cat = get_category(name, categories)
-    mass = get_mass(name)
-    log.info('Year: {0}; Mass: {1}; Category: {2}'.format(year, mass, cat.name))
+def get_binning(category, year, fit_var='mmc'):
     if fit_var == 'mmc':
-        binning = cat.limitbins
+        binning = category.limitbins
         if isinstance(binning, (tuple, list)):
             binning[-1] = 250
             return binning
-        else:
-            binning[year][-1] = 250
-            return binning[year]
-    else:
-        with open(os.path.join(CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
-            cat.name, 125, year % 1000))) as f:
-            binning = pickle.load(f)
+        binning[year][-1] = 250
+        return binning[year]
+    if fit_var == 'bdt':
+        binning_cache = os.path.join(
+            CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
+                category.name, 125, year % 1000))
+        if os.path.exists(binning_cache):
+            with open(binning_cache) as f:
+                binning = pickle.load(f)
             return binning
+    # use original binning in WS
+    return None
 
 
-def UncertGraph(hnom, curve_uncert):
+def get_blinding(category, year, fit_var='mmc'):
+    if fit_var == 'mmc':
+        return (100, 150)
+    return UNBLIND[category.name][year]
+
+
+def get_uncertainty_graph(hnom, curve_uncert):
     """
     Convert an histogram and a RooCurve
     into a TGraphAsymmError
 
     Parameters
     ----------
-    hnom: TH1F, TH1D,...
+    hnom: TH1F, TH1D, ...
         The histogram of nominal values
     curve_uncert: RooCurve
         The uncertainty band around the nominal value
-    curve_uncert: RooCurve
+
     TODO: Improve the handling of the underflow and overflow bins
     """
     graph = Graph(hnom.GetNbinsX())
-    for ibin in xrange(1, hnom.GetNbinsX()+1):
+    for ibin in xrange(1, hnom.GetNbinsX() + 1):
         uncerts = []
-        for ip in xrange(3, curve_uncert.GetN()-3):
+        for ip in xrange(3, curve_uncert.GetN() - 3):
             x, y = ROOT.Double(0.), ROOT.Double(0.)
             curve_uncert.GetPoint(ip, x, y)
-            if int(x)==int(hnom.GetBinLowEdge(ibin)):
+            if hnom.GetBinLowEdge(ibin) <= x < hnom.GetBinLowEdge(ibin + 1):
                 uncerts.append(y)
-        uncerts.sort()
         log.info('{0}, bin {1}: {2}'.format(hnom.name, ibin, uncerts))
-        if len(uncerts) !=2:
-            for val in uncerts:
-                if val in uncerts:
-                    uncerts.remove(val)
-        if len(uncerts)!=2:
-            raise RuntimeError('Need exactly two error values and got {0}'.format(uncerts))
-
-        bin_center = 0.5*(hnom.GetBinLowEdge(ibin+1)+hnom.GetBinLowEdge(ibin))
-        e_x_low = bin_center-hnom.GetBinLowEdge(ibin)
-        e_x_high = hnom.GetBinLowEdge(ibin+1) - bin_center
+        low, high = min(uncerts), max(uncerts)
+        bin_center = 0.5 * (hnom.GetBinLowEdge(ibin + 1) +
+                            hnom.GetBinLowEdge(ibin))
+        e_x_low = bin_center - hnom.GetBinLowEdge(ibin)
+        e_x_high = hnom.GetBinLowEdge(ibin + 1) - bin_center
         bin_content = hnom.GetBinContent(ibin)
-        e_y_low = hnom.GetBinContent(ibin)-uncerts[0]
-        e_y_high = uncerts[1]-hnom.GetBinContent(ibin)
-        graph.SetPoint( ibin-1, bin_center, bin_content)
-        graph.SetPointError(ibin-1, e_x_low, e_x_high, e_y_low, e_y_high)
+        e_y_low = hnom.GetBinContent(ibin) - low
+        e_y_high = high - hnom.GetBinContent(ibin)
+        graph.SetPoint(ibin - 1, bin_center, bin_content)
+        graph.SetPointError(ibin - 1, e_x_low, e_x_high, e_y_low, e_y_high)
     return graph
+
 
 def pvalue_plot(poi, pvalues, pad=None,
                 xtitle='X', ytitle='P_{0}',
@@ -258,7 +251,6 @@ def pvalue_plot(poi, pvalues, pad=None,
             for graph in graphs:
                 log.info(['{0:1.1f}'.format(xval) for xval in list(graph.x())])
                 log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
-
 
         # automatically handles axis limits
         axes, bounds = draw(graphs, pad=pad, same=True, logy=True,

@@ -15,24 +15,28 @@ from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
 
 # local imports
+from mva import set_hsg4_style
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
-from statstools.plotting import (UncertGraph, get_binning, get_blinding,
+from statstools.plotting import (get_uncertainty_graph, parse_name,
+                                 get_category, get_binning, get_blinding,
                                  get_rebinned_graph, get_rebinned_hist)
 
 log = logging.getLogger(os.path.basename(__file__))
 
 
-def Fit_WS(file_name, ws_name, output_basename='frames', n_jobs=-1):
+def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
+
     Parameters
     ----------
     workspace : RooWorkspace
         HSG4 like workspace
+
     """
     with root_open(file_name) as file0:
         workspace = file0[ws_name]
@@ -58,30 +62,26 @@ def Fit_WS(file_name, ws_name, output_basename='frames', n_jobs=-1):
         run_pool(workers, n_jobs=n_jobs)
         
 
-# ---------------------------------
-def plot_from_frame(file, frame, fit_var, binning, unblind=True):
+def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     """
     """
     Ana = Analysis(2012)
 
-    # ---------------------------------
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
     curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
-    graph_bkg_ws = UncertGraph(hbkg, curve_uncert_bkg)
+    graph_bkg_ws = get_uncertainty_graph(hbkg, curve_uncert_bkg)
     graph_bkg = get_rebinned_graph(graph_bkg_ws, binning, unblind=True) 
     graph_bkg.fillstyle='//'
     graph_bkg.color='black'
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
 
-    # --------------------------------
     data_ws = frame.getHist('Data')
     # HACK HACK HACK
-    data_ws.__class__=TGraphAsymmErrors
+    data_ws.__class__ = TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
     data.SetTitle('Data')
 
-    # --------------------------------
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
     hist_fake.color = Ana.qcd.hist_decor['color']
@@ -89,7 +89,6 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     hist_fake.title = Ana.qcd.label
     hist_fake.legendstyle = 'F'
     
-    # --------------------------------
     hist_others_ws = file.Get('h_Others_{0}'.format(frame.GetName()))
     hist_others = get_rebinned_hist(hist_others_ws, binning)
     hist_others.color = Ana.others.hist_decor['color']
@@ -97,7 +96,6 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     hist_others.title = Ana.others.label
     hist_others.legendstyle = 'F'
 
-    # --------------------------------
     hist_ztautau_ws = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
     hist_ztautau = get_rebinned_hist(hist_ztautau_ws, binning)
     hist_ztautau.color = Ana.ztautau.hist_decor['color']
@@ -105,7 +103,6 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     hist_ztautau.title = Ana.ztautau.label
     hist_ztautau.legendstyle = 'F'
     
-    # --------------------------------
     hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
     hist_signal = get_rebinned_hist(hist_signal_ws, binning)
     hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
@@ -123,7 +120,7 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
         xtitle = 'BDT Score'
-        categories = CATEGORIES['mva']
+        categories = CATEGORIES['mva_all']
         logy = True
     else:
         xtitle = 'MMC MASS [GeV]'
@@ -155,11 +152,11 @@ def plot_from_frame(file, frame, fit_var, binning, unblind=True):
     for cat in categories:
         if cat.name in frame.GetName():
             label_name = cat.label
-        
-    latex = TLatex(0.2, 0.85, label_name)
-    latex.SetNDC()
-    latex.SetTextSize(20)
-    latex.Draw()
+    if label_name is not None: 
+        latex = TLatex(0.2, 0.85, label_name)
+        latex.SetNDC()
+        latex.SetTextSize(20)
+        latex.Draw()
     c.RedrawAxis()
     if fit_var == 'bdt':
         c.SetLogy()
@@ -187,24 +184,30 @@ if __name__ == '__main__':
     plots = input + '_plots'
 
     if not os.path.exists(output+'.root') or args.force_fit:
-        Fit_WS(args.file, args.name, output, n_jobs=args.jobs)
+        fit_workspace(args.file, args.name, output, n_jobs=args.jobs)
     
     if not os.path.exists(plots):
         mkdir_p(plots)
 
-    set_style('ATLAS', shape='rect')
-    with root_open(output + '.root') as file:
-        for _, _, names in file.walk(class_pattern='*RooPlot*'):
-            for name in names:
-                log.info('Channel: {0}'.format(name))
-                # hbkg = file.Get('h_sum_bkg_{0}'.format(file[name].GetName()))
-                # log.info('{0}: x: {1}'.format(hbkg.name, list(hbkg.xedges())))
-                # log.info('{0}: y: {1}'.format(hbkg.name, list(hbkg.y())))
-                binning = get_binning(name, categories, fit_var=args.fit_var)
-                if args.blind:
-                    unblind = get_blinding(name)
-                    log.info(unblind)
-                else:
-                    unblind=True
-                canvas = plot_from_frame(file, file[name], args.fit_var, binning, unblind=unblind)
-                canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
+    set_hsg4_style()
+    file = root_open(output + '.root')
+    for _, _, names in file.walk(class_pattern='*RooPlot*'):
+        for name in names:
+            log.info('Channel: {0}'.format(name))
+            year, category_name, mass = parse_name(name)
+            log.info('Year: {0}; Mass: {1}; Category: {2}'.format(
+                year, mass, category_name))
+            category = get_category(category_name, categories)
+            if category is None:
+                # not found
+                log.warning("skipping category: {0}".format(category_name))
+                continue
+            binning = get_binning(category, year, fit_var=args.fit_var)
+            if args.blind:
+                unblind = get_blinding(category, year, fit_var=args.fit_var)
+                log.info(unblind)
+            else:
+                unblind=True
+            canvas = plot_from_frame(file, file[name], args.fit_var, binning, unblind=unblind)
+            canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
+    file.Close()

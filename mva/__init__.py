@@ -56,21 +56,26 @@ MMC_PT = 'mmc%d_resonance_pt' % MMC_VERSION
 
 from rootpy.plotting.style import get_style, set_style
 
-style = get_style('ATLAS', shape='square')
-#style.SetFrameLineWidth(2)
-#style.SetLineWidth(2)
-#style.SetTitleYOffset(1.8)
-#style.SetTickLength(0.04, 'X')
-#style.SetTickLength(0.02, 'Y')
 
-# custom HSG4 modifications
-# style.SetPadTopMargin(0.06)
-style.SetPadLeftMargin(0.16)
-style.SetTitleYOffset(1.6)
-style.SetHistTopMargin(0.)
-style.SetHatchesLineWidth(1)
-style.SetHatchesSpacing(1)
-set_style(style)
+def set_hsg4_style():
+    style = get_style('ATLAS', shape='square')
+    #style.SetFrameLineWidth(2)
+    #style.SetLineWidth(2)
+    #style.SetTitleYOffset(1.8)
+    #style.SetTickLength(0.04, 'X')
+    #style.SetTickLength(0.02, 'Y')
+
+    # custom HSG4 modifications
+    # style.SetPadTopMargin(0.06)
+    style.SetPadLeftMargin(0.16)
+    style.SetTitleYOffset(1.6)
+    style.SetHistTopMargin(0.)
+    style.SetHatchesLineWidth(1)
+    style.SetHatchesSpacing(1)
+    set_style(style)
+
+
+set_hsg4_style()
 
 ROOT.TGaxis.SetMaxDigits(4)
 
