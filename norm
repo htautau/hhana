@@ -78,7 +78,7 @@ while (ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01) and it < max_iter:
     workspace = histfactory.make_workspace(measurement, silence=True)
 
     # fit workspace
-    minim = workspace.fit(minimizer_type='Minuit', strategy=1)
+    minim = workspace.fit()
     fit_result = minim.save()
 
     # get fitted norms and errors

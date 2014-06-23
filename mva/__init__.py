@@ -78,6 +78,11 @@ from rootpy.utils.silence import silence_sout_serr
 with silence_sout_serr():
     from rootpy.stats import mute_roostats; mute_roostats()
 
+# default minimizer options
+import ROOT
+ROOT.Math.MinimizerOptions.SetDefaultStrategy(1)
+ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
+
 import yellowhiggs
 log.info("using yellowhiggs {0}".format(yellowhiggs.__version__))
 
