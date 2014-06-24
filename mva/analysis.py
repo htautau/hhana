@@ -703,7 +703,7 @@ class Analysis(object):
         return channels
 
     def fit_norms(self, field, template, category, region,
-                  max_iter=10, thresh=1e-5):
+                  max_iter=10, thresh=1e-7):
         """
         Derive the normalizations of Ztt and QCD from a fit of some variable
         """
