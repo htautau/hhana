@@ -11,7 +11,6 @@ from mva.variables import get_binning, get_label, get_scale, get_units, blind_hi
 from mva.defaults import TARGET_REGION
 from mva.plotting import set_colors, format_plot
 from mva import save_canvas
-from mva.massregions import MassRegions
 
 # pip install --user tabulate
 from tabulate import tabulate
@@ -30,8 +29,6 @@ model_names = [
     'Non-isolated', 'Non-isolated OS']
 categories = (
     Category_Preselection, Category_Rest, Category_Boosted, Category_VBF)
-
-massregions = MassRegions()
 
 
 def print_table(table, headers, caption=None):
@@ -141,8 +138,7 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
         canvas = Canvas()
         data_hist = Hist(clf_binning)
         data_scores, _ = analysis.data.scores(
-            clf, category, TARGET_REGION,
-            cuts=massregions.control_region)
+            clf, category, TARGET_REGION)
         fill_hist(data_hist, data_scores)
         hists = []
         for model, model_name in zip(models, model_names):
@@ -150,8 +146,7 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
             bkg = Hist(clf_binning)
             for sample in analysis.backgrounds:
                 scores, weights = sample.scores(
-                    clf, category, TARGET_REGION,
-                    cuts=massregions.control_region)['NOMINAL']
+                    clf, category, TARGET_REGION)['NOMINAL']
                 fill_hist(bkg, scores, weights)
             # ratio
             hist = data_hist.Clone(
@@ -163,6 +158,7 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
             # ignore errors
             for bin in hist.bins():
                 bin.error = 0
+            blind_hist('bdt', hist, year, category)
             hists.append(hist)
         set_colors(hists)
         axes, bounds = draw(hists, pad=canvas, ypadding=(0.2, 0.05), snap=False)
@@ -170,7 +166,7 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
         format_plot(canvas, data_hist, xaxis=xaxis, yaxis=yaxis,
                     xlabel='BDT Score',
                     divisions=None, data_info=analysis.data.info,
-                    left_label=category.label, right_label='Sideband CR',
+                    left_label=category.label,
                     ylabel='(Data - Model) / Data')
         save_canvas(canvas, 'plots/fake_shapes',
                     'fake_shapes_bdt_{0}_{1}'.format(category.name,

@@ -14,7 +14,7 @@ from root_numpy import rec2array
 
 # local imports
 from . import samples, log; log = log[__name__]
-from . import norm_cache
+from . import norm_cache, CONST_PARAMS
 from .samples import Higgs, Data
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
@@ -662,13 +662,14 @@ class Analysis(object):
 
     def make_var_channels(self, hist_template, expr, categories, region,
                           include_signal=False, masses=None,
-                          systematics=False):
+                          systematics=False, normalize=True):
         if not include_signal:
             channels = []
             for category in categories:
                 parent_category = category.get_parent()
-                # apply normalization
-                self.normalize(parent_category)
+                if normalize:
+                    # apply normalization
+                    self.normalize(parent_category)
                 # clf = analysis.get_clf(parent_category, load=True)
                 contr = self.get_channel(hist_template, expr,
                     category=category,
@@ -682,8 +683,9 @@ class Analysis(object):
             channels = {}
             for category in categories:
                 parent_category = category.get_parent()
-                # apply normalization
-                self.normalize(parent_category)
+                if normalize:
+                    # apply normalization
+                    self.normalize(parent_category)
                 # clf = analysis.get_clf(parent_category, load=True)
                 for mass in masses:
                     contr = self.get_channel(hist_template, expr,
@@ -699,3 +701,70 @@ class Analysis(object):
                         channels[mass] = {}
                     channels[mass][category.name] = contr
         return channels
+
+    def fit_norms(self, field, template, category, region,
+                  max_iter=10, thresh=1e-5):
+        """
+        Derive the normalizations of Ztt and QCD from a fit of some variable
+        """
+        # initialize QCD and Ztautau normalizations to 50/50 of data yield
+        data_yield = self.data.events(category, region)[1].value
+        ztt_yield = self.ztautau.events(category, region)[1].value
+        qcd_yield = self.qcd.events(category, region)[1].value
+
+        qcd_scale = data_yield / (2 * qcd_yield)
+        ztt_scale = data_yield / (2 * ztt_yield)
+        qcd_scale_error = 0.
+        ztt_scale_error = 0.
+
+        qcd_scale_diff = 100.
+        ztt_scale_diff = 100.
+        it = 0
+
+        while (ztt_scale_diff > thresh or qcd_scale_diff > thresh) and it < max_iter:
+            it += 1
+            # keep fitting until normalizations converge
+
+            self.qcd.scale = qcd_scale
+            self.ztautau.scale = ztt_scale
+
+            channels = self.make_var_channels(
+                template, field, [category],
+                region, include_signal=False,
+                normalize=False)
+
+            # create a workspace
+            measurement = histfactory.make_measurement(
+                'normalization_{0}'.format(field), channels,
+                POI=None,
+                const_params=CONST_PARAMS)
+            workspace = histfactory.make_workspace(measurement, silence=True)
+
+            # fit workspace
+            minim = workspace.fit()
+            fit_result = minim.save()
+
+            # get fitted norms and errors
+            qcd = fit_result.floatParsFinal().find(
+                'ATLAS_norm_HH_{0:d}_QCD'.format(self.year))
+            ztt = fit_result.floatParsFinal().find(
+                'ATLAS_norm_HH_{0:d}_Ztt'.format(self.year))
+            qcd_scale_new = qcd.getVal()
+            qcd_scale_error = qcd.getError()
+            ztt_scale_new = ztt.getVal()
+            ztt_scale_error = ztt.getError()
+
+            qcd_scale_diff = abs(qcd_scale_new - 1.)
+            ztt_scale_diff = abs(ztt_scale_new - 1.)
+
+            qcd_scale_error *= qcd_scale / qcd_scale_new
+            qcd_scale *= qcd_scale_new
+            ztt_scale_error *= ztt_scale / ztt_scale_new
+            ztt_scale *= ztt_scale_new
+
+        self.qcd.scale = qcd_scale
+        self.ztautau.scale = ztt_scale
+        self.qcd.scale_error = qcd_scale_error
+        self.ztautau.scale_error = ztt_scale_error
+
+        return qcd_scale, qcd_scale_error, ztt_scale, ztt_scale_error

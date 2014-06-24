@@ -22,23 +22,16 @@ category = Category_Preselection
 
 # distribution to fit
 field = 'dEta_tau1_tau2'
-field_min = 0.
-
 if args.year == 2011:
-    field_max = 2.
-    field_bins = 4
+    template = Hist(4, 0, 2)
 else:
-    field_max = 2.
-    field_bins = 5
+    template = Hist(5, 0, 2)
 
-# initialize QCD and Ztautau normalizations to 50/50 of data yield
-data_yield = analysis.data.events(category, args.target_region)[1].value
-ztt_yield = analysis.ztautau.events(category, args.target_region)[1].value
-qcd_yield = analysis.qcd.events(category, args.target_region)[1].value
+qcd_scale, qcd_scale_error, \
+ztt_scale, ztt_scale_error = analysis.fit_norms(
+    field, template, category, args.target_region)
 
-qcd_scale = data_yield / (2 * qcd_yield)
-ztt_scale = data_yield / (2 * ztt_yield)
-
+# update the cache
 cache.set_scales(
     args.year,
     category.name,
@@ -46,74 +39,18 @@ cache.set_scales(
     field,
     args.fakes_region,
     qcd_scale=qcd_scale,
-    qcd_scale_error=0.,
+    qcd_scale_error=qcd_scale_error,
     qcd_data_scale=1.,
     qcd_z_scale=1.,
     qcd_others_scale=1.,
     z_scale=ztt_scale,
-    z_scale_error=0.)
-
-qcd_scale_diff = 100.
-ztt_scale_diff = 100.
-it = 0
-max_iter = 10
-
-while (ztt_scale_diff > 0.01 or qcd_scale_diff > 0.01) and it < max_iter:
-    it += 1
-    # keep fitting until normalizations converge
-    
-    analysis.normalize(category)
-
-    hist_template = Hist(field_bins, field_min, field_max, type='D')
-    channels = analysis.make_var_channels(
-        hist_template, field, [category],
-        args.target_region,
-        include_signal=False)
-
-    # create a workspace
-    measurement = histfactory.make_measurement(
-        'normalization_{0}'.format(field), channels,
-        POI=None,
-        const_params=CONST_PARAMS)
-    workspace = histfactory.make_workspace(measurement, silence=True)
-
-    # fit workspace
-    minim = workspace.fit()
-    fit_result = minim.save()
-
-    # get fitted norms and errors
-    qcd = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_QCD'.format(args.year))
-    ztt = fit_result.floatParsFinal().find('ATLAS_norm_HH_{0:d}_Ztt'.format(args.year))
-    qcd_scale_new = qcd.getVal()
-    qcd_scale_error = qcd.getError()
-    ztt_scale_new = ztt.getVal()
-    ztt_scale_error = ztt.getError()
-
-    qcd_scale_diff = abs(qcd_scale_new - qcd_scale) / qcd_scale
-    ztt_scale_diff = abs(ztt_scale_new - ztt_scale) / ztt_scale
-    qcd_scale = qcd_scale_new
-    ztt_scale = ztt_scale_new
-
-    # update the cache
-    cache.set_scales(
-        args.year,
-        category.name,
-        args.embedding,
-        field,
-        args.fakes_region,
-        qcd_scale=analysis.qcd.scale * qcd_scale,
-        qcd_scale_error=analysis.qcd.scale * qcd_scale_error / qcd_scale,
-        qcd_data_scale=1.,
-        qcd_z_scale=1.,
-        qcd_others_scale=1.,
-        z_scale=analysis.ztautau.scale * ztt_scale,
-        z_scale_error=analysis.ztautau.scale * ztt_scale_error / ztt_scale)
+    z_scale_error=ztt_scale_error)
 
 # draw post-fit plots
 analysis.normalize(category)
 
 channels = analysis.make_var_channels(
-    hist_template, field, [category],
+    template, field, [category],
     args.target_region,
     include_signal=False)
 

@@ -1,5 +1,14 @@
 import math
 
+BDT_BLIND = {
+    2012: {
+        'vbf': 3,
+        'boosted': 1},
+    2011: {
+        'vbf': 2,
+        'boosted': 2}
+}
+
 
 def get_label(name, units=True):
     info = VARIABLES[name]
@@ -29,7 +38,11 @@ def get_units(name):
     return info.get('units', None)
 
 
-def blind_hist(name, hist):
+def blind_hist(name, hist, year=None, category=None):
+    if name.upper() == 'BDT':
+        unblind = BDT_BLIND[year][category.name]
+        hist[-(unblind + 1):] = (0, 0)
+        return
     blind = VARIABLES[name].get('blind', None)
     if blind is None:
         return
