@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+
+from math import sqrt
+import matplotlib.pyplot as plt
+from rootpy.plotting import Hist
+from mva.analysis import Analysis
+from mva.categories import (
+    Category_Preselection, Category_Rest,
+    Category_Boosted, Category_VBF)
+
+categories = [
+    Category_Preselection, Category_Rest,
+    Category_Boosted, Category_VBF]
+category_names = ['Presel.', 'Rest', 'Boosted', 'VBF']
+
+analysis = Analysis(2012)
+
+# compare dEta fit at preselection with each category
+field = 'dEta_tau1_tau2'
+template = Hist(5, 0, 1.5)
+
+qcds = []
+qcd_es = []
+ztts = []
+ztt_es = []
+for category in categories:
+    analysis.qcd.scale = 1.
+    analysis.ztautau.scale = 1.
+    qcd, qcd_e, ztt, ztt_e = analysis.fit_norms(field, template, category, thresh=1e-5)
+    qcds.append(qcd)
+    qcd_es.append(qcd_e)
+    ztts.append(ztt)
+    ztt_es.append(ztt_e)
+
+# normalize wrt to preselection as reference
+ref_qcd = qcds[0]
+ref_ztt = ztts[0]
+qcds = [q / ref_qcd for q in qcds]
+qcd_es = [q / ref_qcd for q in qcd_es]
+ztts = [q / ref_ztt for q in ztts]
+ztt_es = [q / ref_ztt for q in ztt_es]
+
+# plot
+f, axarr = plt.subplots(2, sharex=True, figsize=(10, 7), dpi=100)
+# Fine-tune figure; make subplots close to each other and hide x ticks for
+# all but bottom plot.
+plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
+for i, (name, vals, errs) in enumerate([['Fakes', qcds, qcd_es], [r'$Z\rightarrow\tau\tau$', ztts, ztt_es]]):
+    axarr[i].set_ylabel(name)
+    axarr[i].errorbar(range(len(vals)), vals, yerr=errs, fmt='o')
+    up = max([v + e for v, e in zip(vals, errs)])
+    dn = min([v - e for v, e in zip(vals, errs)])
+    width = up - dn
+    axarr[i].set_ylim(dn - width / 4, up + width / 4)
+    yloc = plt.MaxNLocator(4, prune='both')
+    axarr[i].yaxis.set_major_locator(yloc)
+    # draw average line
+    avg = sum([x / s**2 for x, s in zip(vals, errs)]) / sum([1 / s**2 for s in errs])
+    axarr[i].plot([-0.5, len(vals) - 0.5], [avg, avg], 'r--')
+axarr[-1].set_xticks(range(len(categories)))
+axarr[-1].set_xticklabels(category_names, rotation=45)
+plt.tight_layout()
+plt.subplots_adjust(hspace=0.1)
+for fmt in ('eps', 'png'):
+    plt.savefig('compare_norms_categories.{0}'.format(fmt))
+
+raw_input("DONE")
+
+# compare dEta fit with fit of dR, tau BDT score
+fields = {
+    'dR_tau1_tau2': Hist(8, 0.8, 2.4),
+    'resonance_pt': Hist(10, 0, 250000),
+    }
+qcds = [qcds[0]]
+qcd_es = [qcd_es[0]]
+ztts = [ztts[0]]
+ztt_es = [ztt_es[0]]
+for field, template in fields.items():
+    analysis.qcd.scale = 1.
+    analysis.ztautau.scale = 1.
+    qcd, qcd_e, ztt, ztt_e = analysis.fit_norms(field, template, Category_Preselection, thresh=1e-5)
+    qcds.append(qcd)
+    qcd_es.append(qcd_e)
+    ztts.append(ztt)
+    ztt_es.append(ztt_e)
+
+# normalize wrt dEta fit as reference
+ref_qcd = qcds[0]
+ref_ztt = ztts[0]
+qcds = [q / ref_qcd for q in qcds]
+qcd_es = [q / ref_qcd for q in qcd_es]
+ztts = [q / ref_ztt for q in ztts]
+ztt_es = [q / ref_ztt for q in ztt_es]
+
+# plot

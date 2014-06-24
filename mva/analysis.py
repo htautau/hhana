@@ -702,11 +702,13 @@ class Analysis(object):
                     channels[mass][category.name] = contr
         return channels
 
-    def fit_norms(self, field, template, category, region,
+    def fit_norms(self, field, template, category, region=None,
                   max_iter=10, thresh=1e-7):
         """
         Derive the normalizations of Ztt and QCD from a fit of some variable
         """
+        if region is None:
+            region = self.target_region
         # initialize QCD and Ztautau normalizations to 50/50 of data yield
         data_yield = self.data.events(category, region)[1].value
         ztt_yield = self.ztautau.events(category, region)[1].value
