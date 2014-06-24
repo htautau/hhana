@@ -145,6 +145,7 @@ class Sample(object):
         field_hist = {}
         field_scale = {}
         for field, var_info in vars.items():
+            log.info(var_info)
             if templates is not None and field in templates:
                 field_hist[field] = templates[field].Clone(
                     title=self.label, **self.hist_decor)
@@ -153,7 +154,7 @@ class Sample(object):
                 field_hist[field] = var_info.Clone(
                     title=self.label, **self.hist_decor)
                 continue
-            bins = var_info['bins']
+            bins = var_info['binning']
             if isinstance(bins, (list, tuple)):
                 hist = Hist(bins,
                     title=self.label,
