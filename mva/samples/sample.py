@@ -35,7 +35,7 @@ from ..systematics import (
 from ..lumi import LUMI, get_lumi_uncert
 from .db import DB, TEMPFILE, get_file
 from ..cachedtable import CachedTable
-
+from ..variables import get_binning
 
 BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
 
@@ -145,7 +145,6 @@ class Sample(object):
         field_hist = {}
         field_scale = {}
         for field, var_info in vars.items():
-            log.info(var_info)
             if templates is not None and field in templates:
                 field_hist[field] = templates[field].Clone(
                     title=self.label, **self.hist_decor)
@@ -154,20 +153,21 @@ class Sample(object):
                 field_hist[field] = var_info.Clone(
                     title=self.label, **self.hist_decor)
                 continue
-            bins = var_info['binning']
-            if isinstance(bins, (list, tuple)):
+            bins = get_binning(field, category, self.year)
+            #bins = var_info['binning']
+            if isinstance(bins, list):
                 hist = Hist(bins,
                     title=self.label,
                     type='D',
                     **self.hist_decor)
-            else:
-                _range = var_info['range']
-                if isinstance(_range, dict):
-                    _range = _range.get(category.name.upper(), _range[None])
-                if len(_range) == 3:
-                    bins, min, max = _range
+            elif isinstance(bins, tuple):
+                #_range = var_info['range']
+                # if isinstance(_range, dict):
+                #    _range = _range.get(category.name.upper(), _range[None])
+                if len(bins) == 3:
+                    bins, min, max = bins
                 else:
-                    min, max = _range
+                    min, max = bins
                 hist = Hist(bins, min, max,
                     title=self.label,
                     type='D',
