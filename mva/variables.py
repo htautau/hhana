@@ -10,9 +10,12 @@ BDT_BLIND = {
 }
 
 
-def get_label(name, units=True):
+def get_label(name, units=True, latex=False):
     info = VARIABLES[name]
-    label = info['root']
+    if latex:
+        label = info['title']
+    else:
+        label = info['root']
     if units and 'units' in info:
         label += ' [{0}]'.format(info['units'])
     return label
@@ -187,8 +190,8 @@ VARIABLES = {
         'binning': (20, 0, math.pi),
     },
     'MET_bisecting': {
-        'title': r'MET bisects the taus',
-        'root': '#font[52]{E}^{miss}_{T} bisects the taus',
+        'title': r'$E^{miss}_{T}$ bisects',
+        'root': '#font[52]{E}^{miss}_{T} bisects',
         'filename': 'MET_bisecting',
         'binning': (2, -0.5, 1.5),
         'legend': 'left',
@@ -218,7 +221,7 @@ VARIABLES = {
         'legend': 'left',
     },
     'mass_vis_tau1_tau2': {
-        'title': r'$M^{vis}(\tau_{1},\/\tau_{2})$',
+        'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_vis',
         'binning': {
@@ -230,7 +233,7 @@ VARIABLES = {
         'blind': (70, 110),
     },
     'mass_collinear_tau1_tau2': {
-        'title': r'$M^{col}(\tau_{1},\/\tau_{2})$',
+        'title': r'$m^{col}_{\tau\tau}$',
         'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_collinear',
         'binning': (20, 0, 250),
@@ -239,8 +242,8 @@ VARIABLES = {
         'blind': (100, 150),
     },
     'mass_tau1_tau2_jet1': {
-        'title': r'$M^{col}(\tau_{1},\/\tau_{2})$',
-        'root': '#font[52]{m}_{#font[152]{#tau}#font[152]{#tau},#font[52]{j}1}',
+        'title': r'$m^{vis}_{j\tau\tau}$',
+        'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_taus_leading_jet',
         'binning': (20, 0, 800),
         'units': 'GeV',
@@ -410,33 +413,33 @@ VARIABLES = {
     #    'cats': ['1J', '2J',]
     #},
     'cos_theta_tau1_tau2': {
-        'title': r'$\cos[\alpha(\tau_{1},\/\tau_{2})]$',
+        'title': r'$\cos[\alpha(\tau,\tau)]$',
         'root': '#font[52]{cos}(#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}})',
         'filename': 'cos_theta_tau1_tau2',
         'binning': (20, -1, 1),
     },
     'theta_tau1_tau2': {
-        'title': r'$\alpha(\tau_{1},\/\tau_{2})$',
+        'title': r'$\alpha(\tau,\tau)$',
         'root': '#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'theta_tau1_tau2',
         'binning': (20, 0, math.pi),
     },
     'dR_tau1_tau2': {
-        'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
+        'title': r'$\Delta R(\tau,\tau)$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dr_tau1_tau2',
         'binning': (8, 0.8, 2.4),
         'ypadding': (0.5, 0),
     },
     'dPhi_tau1_tau2': {
-        'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
+        'title': r'$\Delta \phi(\tau,\tau)$',
         'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dphi_tau1_tau2',
         'binning': (12, 0., 2.4),
         'legend': 'left',
     },
     'dEta_tau1_tau2': {
-        'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
+        'title': r'$\Delta \eta(\tau,\tau)$',
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'deta_tau1_tau2',
         'binning': {
@@ -561,7 +564,7 @@ VARIABLES = {
         'cats': ['2J', 'VBF']
     },
     'resonance_pt': {
-        'title': r'$p_T^{H}$',
+        'title': r'$p_{T}^{H}$',
         'root': '#font[52]{p}_{T}^{H}',
         'filename': 'resonance_pt',
         'binning': {
@@ -578,7 +581,7 @@ from . import MMC_VERSION
 mmc = MMC_VERSION
 
 VARIABLES['mmc%d_mass' % mmc] = {
-    'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
+    'title': r'$m^{MMC}_{\tau\tau}$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
     'filename': 'mmc%d_mass' % mmc,
     'binning': {
