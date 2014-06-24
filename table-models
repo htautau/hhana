@@ -118,102 +118,102 @@ def tabulate_models(year):
 
 
 def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
-    nominal_analysis = Analysis(year=year, fakes_region=nominal_model)
-    nominal_analysis.normalize(Category_Preselection)
-    qcd_nominal = nominal_analysis.qcd
-    nominal_presel_events = qcd_nominal.events(Category_Preselection)[1].value
-    # force all other models to have the same normalization as nominal at
-    # preselection
-    model_analysis = {}
-    model_scale = {}
-    for model in models:
-        if model == nominal_model:
-            model_scale[model] = 1.
-            model_analysis[model] = nominal_analysis
-        else:
-            analysis = Analysis(year=year, fakes_region=model)
-            model_analysis[model] = analysis
-            analysis.normalize(Category_Preselection)
-            model_presel_events = analysis.qcd.events(Category_Preselection)[1].value
-            model_scale[model] = nominal_presel_events / model_presel_events
-
+    """
+    Compare each fakes model with data
+    """
     fields = [
         'dR_tau1_tau2',
+        'dEta_tau1_tau2',
         'tau1_pt', 'tau2_pt',
         'mmc1_mass',
         ]
+    
+    model_analysis = {}
+    for model in models:
+        analysis = Analysis(year=year, fakes_region=model)
+        analysis.normalize(Category_Preselection)
+        model_analysis[model] = analysis
 
     for category in (Category_Boosted, Category_VBF):
         # draw BDT of data in mass sideband after subtracting Ztt and others
-        clf = nominal_analysis.get_clf(category, load=True, mass=125, transform=True)
+        clf = analysis.get_clf(category, load=True, mass=125, transform=True)
         clf_binning = clf.binning(year)
         canvas = Canvas()
-        data_hist = Hist(clf_binning, drawstyle='hist E0', linewidth=2, markersize=0,
-                        title='Data - #font[52]{Z}#rightarrow#tau#tau - Others',
-                        legendstyle='L')
-        data_scores, _ = nominal_analysis.data.scores(clf, category, TARGET_REGION, cuts=massregions.control_region)
+        data_hist = Hist(clf_binning)
+        data_scores, _ = analysis.data.scores(
+            clf, category, TARGET_REGION,
+            cuts=massregions.control_region)
         fill_hist(data_hist, data_scores)
-        for sample in (nominal_analysis.ztautau, nominal_analysis.others):
-            scores, weights = sample.scores(clf, category, TARGET_REGION, cuts=massregions.control_region)['NOMINAL']
-            weights *= -1
-            fill_hist(data_hist, scores, weights)
-        hists = [data_hist]
+        hists = []
         for model, model_name in zip(models, model_names):
-            hist = Hist(clf_binning, drawstyle='hist',
-                        linestyle='dashed', linewidth=3, legendstyle='L')
-            scores, weights = model_analysis[model].qcd.scores(
-                clf, category, TARGET_REGION, cuts=massregions.control_region)['NOMINAL']
-            fill_hist(hist, scores, weights)
-            hist.title = model_name
-            hist *= model_scale[model]
+            analysis = model_analysis[model]
+            bkg = Hist(clf_binning)
+            for sample in analysis.backgrounds:
+                scores, weights = sample.scores(
+                    clf, category, TARGET_REGION,
+                    cuts=massregions.control_region)['NOMINAL']
+                fill_hist(bkg, scores, weights)
+            # ratio
+            hist = data_hist.Clone(
+                drawstyle='hist', linestyle='dashed',
+                linewidth=3, legendstyle='L',
+                title=model_name)
+            hist -= bkg
+            hist /= data_hist
             # ignore errors
             for bin in hist.bins():
                 bin.error = 0
             hists.append(hist)
-        set_colors(hists[1:])
+        set_colors(hists)
         axes, bounds = draw(hists, pad=canvas, ypadding=(0.2, 0.05), snap=False)
         xaxis, yaxis = axes
         format_plot(canvas, data_hist, xaxis=xaxis, yaxis=yaxis,
                     xlabel='BDT Score',
-                    divisions=None, data_info=nominal_analysis.data.info,
-                    left_label=category.label, right_label='Sideband CR')
+                    divisions=None, data_info=analysis.data.info,
+                    left_label=category.label, right_label='Sideband CR',
+                    ylabel='(Data - Model) / Data')
         save_canvas(canvas, 'plots/fake_shapes',
                     'fake_shapes_bdt_{0}_{1}'.format(category.name,
                         year % 1000),
                     formats=('eps', 'png'))
-        
         # draw extra fields
         for field in fields:
             binning = get_binning(field, category, year)
             scale = get_scale(field)
             canvas = Canvas()
-            data_hist = Hist(*binning, drawstyle='hist E0', linewidth=2, markersize=0,
-                             title='Data - #font[52]{Z}#rightarrow#tau#tau - Others',
-                             legendstyle='L')
-            nominal_analysis.data.draw_array({field: data_hist}, category, TARGET_REGION, field_scale={field: scale})
-            for sample in (nominal_analysis.ztautau, nominal_analysis.others):
-                sample.draw_array({field: data_hist}, category, TARGET_REGION, scale=-1, field_scale={field: scale})
-            hists = [data_hist]
+            data_hist = Hist(*binning)
+            analysis.data.draw_array(
+                {field: data_hist}, category, TARGET_REGION,
+                field_scale={field: scale})
+            hists = []
             for model, model_name in zip(models, model_names):
-                hist = Hist(*binning, drawstyle='hist',
-                            linestyle='dashed', linewidth=3, legendstyle='L')
-                model_analysis[model].qcd.draw_array(
-                    {field: hist}, category, TARGET_REGION,
-                    field_scale={field: scale})
-                hist.title = model_name
-                hist *= model_scale[model]
+                analysis = model_analysis[model]
+                bkg = Hist(*binning)
+                for sample in analysis.backgrounds:
+                    sample.draw_array(
+                        {field: bkg}, category, TARGET_REGION,
+                        field_scale={field: scale})
+                # ratio
+                hist = data_hist.Clone(
+                    drawstyle='hist', linestyle='dashed',
+                    linewidth=3, legendstyle='L',
+                    title=model_name)
+                hist -= bkg
+                hist /= data_hist
                 # ignore errors
                 for bin in hist.bins():
                     bin.error = 0
+                # blind
+                blind_hist(field, hist)
                 hists.append(hist)
-            set_colors(hists[1:])
-            blind_hist(field, data_hist)
+            set_colors(hists)
             axes, bounds = draw(hists, pad=canvas, ypadding=(0.2, 0.05), snap=False)
             xaxis, yaxis = axes
             format_plot(canvas, data_hist, xaxis=xaxis, yaxis=yaxis,
                         units=get_units(field), xlabel=get_label(field, units=False),
-                        divisions=None, data_info=nominal_analysis.data.info,
-                        left_label=category.label)
+                        divisions=None, data_info=analysis.data.info,
+                        left_label=category.label,
+                        ylabel='(Data - Model) / Data')
             save_canvas(canvas, 'plots/fake_shapes',
                         'fake_shapes_{0}_{1}_{2}'.format(field, category.name,
                             year % 1000),
@@ -226,9 +226,8 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
             save_canvas(legend_canvas, 'plots/fake_shapes',
                         'fake_shapes_legend',
                         formats=('eps', 'png'))
-
         
 if __name__ == '__main__':
     for year in (2011, 2012):
-        tabulate_models(year)
+        #tabulate_models(year)
         draw_model_shapes(year)

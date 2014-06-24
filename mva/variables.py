@@ -9,19 +9,14 @@ def get_label(name, units=True):
     return label
 
 
-def get_range(name, category):
-    range = VARIABLES[name]['range']
-    if isinstance(range, dict):
-        return range.get(category.name.upper(), range[None])
-    return range
-
-
 def get_binning(name, category, year):
-    range = get_range(name, category)
-    bins = VARIABLES[name]['bins']
-    if isinstance(bins, dict):
-        bins = bins[year]
-    return bins, range[0], range[1]
+    binning = VARIABLES[name]['binning']
+    if isinstance(binning, dict):
+        if year in binning:
+            binning = binning[year]
+        if isinstance(binning, dict):
+            binning = binning.get(category.name.upper(), binning[None])
+    return binning
 
 
 def get_scale(name):
@@ -50,8 +45,7 @@ WEIGHTS = {
         'title': 'Pile-up Weight',
         'root': 'Pile-up Weight',
         'filename': 'weight_pileup',
-        'bins': 50,
-        'range': (-.2, 3.)
+        'binning': (50, -.2, 3.)
     },
 }
 
@@ -61,20 +55,10 @@ YEAR_VARIABLES = {
             'title': r'RunNumber',
             'root': 'Run Number',
             'filename': 'runnumber',
-            'bins': (
-                177531,
-                177986,
-                178163,
-                179710,
-                180614,
-                182013,
-                182726,
-                183544,
-                185353,
-                186516,
-                186873,
-                188902,
-                190503),
+            'binning': [
+                177531, 177986, 178163, 179710, 180614,
+                182013, 182726, 183544, 185353, 186516,
+                186873, 188902, 190503],
         }
     },
     2012: {
@@ -82,9 +66,9 @@ YEAR_VARIABLES = {
             'title': r'RunNumber',
             'root': 'Run Number',
             'filename': 'runnumber',
-            'bins': (
+            'binning': [
                 200804, 202660, 206248, 207447, 209074, 210184, 211522,
-                212619, 213431, 213900, 214281, 215414, 216399),
+                212619, 213431, 213900, 214281, 215414, 216399],
         }
     }
 }
@@ -108,8 +92,7 @@ VARIABLES = {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB,BCID}',
         'filename': 'averageIntPerXing',
-        'bins': 20,
-        'range': (0, 40),
+        'binning': (20, 0, 40),
     },
     #'actualIntPerXing': {
     #    'title': r'$\langle\mu\rangle|_{LB}(BCID)$',
@@ -122,8 +105,7 @@ VARIABLES = {
         'title': r'$\sum p_T$ Taus and Two Leading Jets',
         'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and Two Leading Jets}',
         'filename': 'sum_pt',
-        'bins': 20,
-        'range': (50, 550),
+        'binning': (20, 50, 550),
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -131,8 +113,7 @@ VARIABLES = {
         'title': r'$\sum p_T$ Taus and All Selected Jets',
         'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and All Selected Jets}',
         'filename': 'sum_pt_full',
-        'bins': 20,
-        'range': (50, 550),
+        'binning': (20, 50, 550),
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -140,10 +121,9 @@ VARIABLES = {
         'title': r'$\sum \vec{p}_T$',
         'root': '#font[52]{p}_{T}^{Total}',
         'filename': 'vector_sum_pt',
-        'bins': 20,
-        'range': {
-            'VBF': (0, 100),
-            None: (0, 200)},
+        'binning': {
+            'VBF': (20, 0, 100),
+            None: (20, 0, 200)},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -151,16 +131,14 @@ VARIABLES = {
         'title': r'Number of Selected Jets',
         'root': '#font[52]{Number of Selected Jets}',
         'filename': 'numjets',
-        'bins': 7,
-        'range': (-.5, 6.5),
+        'binning': (7, -.5, 6.5),
         'integer': True,
     },
     'MET_et': {
         'title': r'$E^{miss}_{T}$',
         'root': '#font[52]{E}^{miss}_{T}',
         'filename': 'MET',
-        'bins': 20,
-        'range': {
+        'binning': {
             'PRESELECTION': (13, 15, 80),
             'REST': (13, 15, 80),
             None: (17, 15, 100)},
@@ -171,8 +149,7 @@ VARIABLES = {
         'title': r'$E^{miss}_{T_{x}}$',
         'root': '#font[52]{E}^{miss}_{T_{x}}',
         'filename': 'MET_x',
-        'bins': 20,
-        'range': (-75, 75),
+        'binning': (20, -75, 75),
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -180,8 +157,7 @@ VARIABLES = {
         'title': r'$E^{miss}_{T_{y}}$',
         'root': '#font[52]{E}^{miss}_{T_{y}}',
         'filename': 'MET_y',
-        'bins': 20,
-        'range': (-75, 75),
+        'binning': (20, -75, 75),
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -189,22 +165,19 @@ VARIABLES = {
         'title': r'$E^{miss}_{T} \phi$',
         'root': '#font[52]{E}^{miss}_{T} #phi',
         'filename': 'MET_phi',
-        'bins': 20,
-        'range': (-math.pi, math.pi),
+        'binning': (20, -math.pi, math.pi),
     },
     'dPhi_min_tau_MET': {
         'title': r'min[$\Delta\phi$($\tau$,\/$E^{miss}_{T}$)]',
         'root': '#font[52]{min}[#font[152]{#Delta#phi}(#font[152]{#tau},#font[52]{E}^{miss}_{T})]',
         'filename': 'dPhi_min_tau_MET',
-        'bins': 20,
-        'range': (0, math.pi),
+        'binning': (20, 0, math.pi),
     },
     'MET_bisecting': {
         'title': r'MET bisects the taus',
         'root': '#font[52]{E}^{miss}_{T} bisects the taus',
         'filename': 'MET_bisecting',
-        'bins': 2,
-        'range': (-0.5, 1.5),
+        'binning': (2, -0.5, 1.5),
         'legend': 'left',
         'integer': True,
     },
@@ -228,19 +201,17 @@ VARIABLES = {
         'title': r'$E^{miss}_{T}$ Centrality',
         'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
         'filename': 'met_centrality',
-        'bins': 20,
-        'range': (-math.sqrt(2), math.sqrt(2)),
+        'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
     'mass_vis_tau1_tau2': {
         'title': r'$M^{vis}(\tau_{1},\/\tau_{2})$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_vis',
-        'bins': 20,
-        'range': {
-            'PRESELECTION': (30, 150),
-            'REST': (30, 150),
-            None: (0, 250)},
+        'binning': {
+            'PRESELECTION': (20, 30, 150),
+            'REST': (20, 30, 150),
+            None: (20, 0, 250)},
         'scale': 0.001,
         'units': 'GeV',
         'blind': (70, 110),
@@ -249,8 +220,7 @@ VARIABLES = {
         'title': r'$M^{col}(\tau_{1},\/\tau_{2})$',
         'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'mass_collinear',
-        'bins': 20,
-        'range': (0, 250),
+        'binning': (20, 0, 250),
         'units': 'GeV',
         'scale': 0.001,
         'blind': (100, 150),
@@ -259,8 +229,7 @@ VARIABLES = {
         'title': r'$M^{col}(\tau_{1},\/\tau_{2})$',
         'root': '#font[52]{m}_{#font[152]{#tau}#font[152]{#tau},#font[52]{j}1}',
         'filename': 'mass_taus_leading_jet',
-        'bins': 20,
-        'range': (0, 800),
+        'binning': (20, 0, 800),
         'units': 'GeV',
         'scale': 0.001,
     },
@@ -268,8 +237,7 @@ VARIABLES = {
         'title': r'j3 Centrality',
         'root': '#font[52]{j}_{3} #font[152]{#eta} centrality',
         'filename': 'jet3_centrality',
-        'bins': 20,
-        'range': (0, 1),
+        'binning': (20, 0, 1),
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
@@ -277,18 +245,21 @@ VARIABLES = {
         'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
         'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
         'filename': 'tau_pt_ratio',
-        'bins': 20,
-        'range': (0, 5),
+        'binning': (20, 0, 5),
     },
     'tau1_pt': {
         'title': r'$\tau_{1} p_{T}$',
         'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
         'filename': 'tau1_pt',
-        'bins': {2011: 10, 2012: 20},
-        'range': {
-            'PRESELECTION': (35, 90),
-            'REST': (35, 90),
-            None: (35, 160)},
+        'binning': {
+            2011: {
+                'PRESELECTION': (10, 35, 90),
+                'REST': (10, 35, 90),
+                None: (10, 35, 160)},
+            2012: {
+                'PRESELECTION': (20, 35, 90),
+                'REST': (20, 35, 90),
+                None: (20, 35, 160)}},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -296,11 +267,15 @@ VARIABLES = {
         'title': r'$\tau_{2} p_{T}$',
         'root': '#font[152]{#tau}_{2} #font[52]{p}_{T}',
         'filename': 'tau2_pt',
-        'bins': {2011: 10, 2012: 20},
-        'range': {
-            'PRESELECTION': (25, 60),
-            'REST': (25, 60),
-            None: (25, 100)},
+        'binning': {
+            2011: {
+                'PRESELECTION': (10, 25, 60),
+                'REST': (10, 25, 60),
+                None: (10, 25, 100)},
+            2012: {
+                'PRESELECTION': (20, 25, 60),
+                'REST': (20, 25, 60),
+                None: (20, 25, 100)}},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -308,45 +283,39 @@ VARIABLES = {
         'title': r'$\tau_{1} \eta$',
         'root': '#font[152]{#tau}_{1} #font[152]{#eta}',
         'filename': 'tau1_eta',
-        'bins': 20,
-        'range': (-3, 3),
+        'binning': (20, -3, 3),
     },
     'tau2_eta': {
         'title': r'$\tau_{2} \eta$',
         'root': '#font[152]{#tau}_{2} #font[152]{#eta}',
         'filename': 'tau2_eta',
-        'bins': 20,
-        'range': (-3, 3),
+        'binning': (20, -3, 3),
     },
     'tau1_numTrack': {
         'title': r'$\tau_{1}$ Number of Tracks',
         'root': '#font[152]{#tau}_{1} #font[52]{Number of Tracks}',
         'filename': 'tau1_numTrack',
-        'bins': 5,
-        'range': (-.5, 4.5),
+        'binning': (5, -.5, 4.5),
     },
     'tau2_numTrack': {
         'title': r'$\tau_{2}$ Number of Tracks',
         'root': '#font[152]{#tau}_{2} #font[52]{Number of Tracks}',
         'filename': 'tau2_numTrack',
-        'bins': 5,
-        'range': (-.5, 4.5),
+        'binning': (5, -.5, 4.5),
         'integer': True,
     },
     'tau1_numTrack_recounted': {
         'title': r'$\tau_{1}$ Number of Recounted Tracks',
         'root': '#font[152]{#tau}_{1} #font[52]{Number of Recounted Tracks}',
         'filename': 'tau1_numTrack_recounted',
-        'bins': 6,
-        'range': (-.5, 5.5),
+        'binning': (6, -.5, 5.5),
         'integer': True,
     },
     'tau2_numTrack_recounted': {
         'title': r'$\tau_{2}$ Number of Recounted Tracks',
         'root': '#font[152]{#tau}_{2} #font[52]{Number of Recounted Tracks}',
         'filename': 'tau2_numTrack_recounted',
-        'bins': 6,
-        'range': (-.5, 5.5),
+        'binning': (6, -.5, 5.5),
         'integer': True,
     },
     #'tau1_nPi0': {
@@ -379,20 +348,18 @@ VARIABLES = {
     #    'bins': 20,
     #    'range': (-6, 8),
     #},
-    'tau1_collinear_momentum_fraction': {
-        'title': r'$\tau_{1}$ Visible Momentum Fraction',
-        'root': '#font[152]{#tau}_{x1}',
-        'filename': 'tau1_x',
-        'bins': 20,
-        'range': (-3, 4),
-    },
-    'tau2_collinear_momentum_fraction': {
-        'title': r'$\tau_{2}$ Visible Momentum Fraction',
-        'root': '#font[152]{#tau}_{x2}',
-        'filename': 'tau2_x',
-        'bins': 20,
-        'range': (-3, 4),
-    },
+    #'tau1_collinear_momentum_fraction': {
+    #    'title': r'$\tau_{1}$ Visible Momentum Fraction',
+    #    'root': '#font[152]{#tau}_{x1}',
+    #    'filename': 'tau1_x',
+    #    'binning': (20, -3, 4),
+    #},
+    #'tau2_collinear_momentum_fraction': {
+    #    'title': r'$\tau_{2}$ Visible Momentum Fraction',
+    #    'root': '#font[152]{#tau}_{x2}',
+    #    'filename': 'tau2_x',
+    #    'binning': (20, -3, 4),
+    #},
     #'tau1_jvtxf': {
     #    'title': r'$\tau_{1}$ JVF',
     #    'root': '#font[152]{#tau}_{1} #font[52]{JVF}',
@@ -433,38 +400,33 @@ VARIABLES = {
         'title': r'$\cos[\alpha(\tau_{1},\/\tau_{2})]$',
         'root': '#font[52]{cos}(#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}})',
         'filename': 'cos_theta_tau1_tau2',
-        'bins': 20,
-        'range': (-1, 1),
+        'binning': (20, -1, 1),
     },
     'theta_tau1_tau2': {
         'title': r'$\alpha(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'theta_tau1_tau2',
-        'bins': 20,
-        'range': (0, math.pi),
+        'binning': (20, 0, math.pi),
     },
     'dR_tau1_tau2': {
         'title': r'$\Delta R(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dr_tau1_tau2',
-        'bins': 8,
-        'range': (0.8, 2.4),
+        'binning': (8, 0.8, 2.4),
         'ypadding': (0.5, 0),
     },
     'dPhi_tau1_tau2': {
         'title': r'$\Delta \phi(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'dphi_tau1_tau2',
-        'bins': 12,
-        'range': (0., 2.4),
+        'binning': (12, 0., 2.4),
         'legend': 'left',
     },
     'dEta_tau1_tau2': {
         'title': r'$\Delta \eta(\tau_{1},\/\tau_{2})$',
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'deta_tau1_tau2',
-        'bins': 10,
-        'range': {
+        'binning': {
             'BOOSTED': (10, 0, 1.5),
             'VBF': (10, 0, 1.5),
             'REST': (10, 0, 1.5),
@@ -506,8 +468,7 @@ VARIABLES = {
         'title': r'$\tau_1$ Centrality',
         'root': '#font[152]{#tau}_{1} #font[152]{#eta} centrality',
         'filename': 'tau1_centrality',
-        'bins': 20,
-        'range': (0, 1),
+        'binning': (20, 0, 1),
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
@@ -515,8 +476,7 @@ VARIABLES = {
         'title': r'$\tau_2$ Centrality',
         'root': '#font[152]{#tau}_{2} #font[152]{#eta} centrality',
         'filename': 'tau2_centrality',
-        'bins': 20,
-        'range': (0, 1),
+        'binning': (20, 0, 1),
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
@@ -524,24 +484,21 @@ VARIABLES = {
         'title': r'jet$_{1}$ $\eta$',
         'root': '#font[152]{#eta}(#font[52]{j}1)',
         'filename': 'jet1_eta',
-        'bins': 20,
-        'range': (-5, 5),
+        'binning': (20, -5, 5),
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
     'jet2_eta': {
         'title': r'jet$_{2}$ $\eta$',
         'root': '#font[152]{#eta}(#font[52]{j}2)',
         'filename': 'jet2_eta',
-        'bins': 20,
-        'range': (-5, 5),
+        'binning': (20, -5, 5),
         'cats': ['2J', 'VBF']
     },
     'jet1_pt': {
         'title': r'jet$_{1}$ $p_{T}$',
         'root': '#font[52]{p}_{T}(#font[52]{j}1)',
         'filename': 'jet1_pt',
-        'bins': 20,
-        'range': (20, 200),
+        'binning': (20, 20, 200),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
@@ -550,8 +507,7 @@ VARIABLES = {
         'title': r'jet$_{2}$ $p_{T}$',
         'root': '#font[52]{p}_{T}(#font[52]{j}2)',
         'filename': 'jet2_pt',
-        'bins': 20,
-        'range': (20, 200),
+        'binning': (20, 20, 200),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF']
@@ -561,8 +517,7 @@ VARIABLES = {
         'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
         'filename': 'dEta_jets',
         'cuts': 'dEta_jets > 0', # ignore default value in plot
-        'bins': 15,
-        'range': {
+        'binning': {
             'VBF': (15, 0, 7.5),
             None: (15, 0, 7.5)},
         'cats': ['2J', 'VBF', 'PRESELECTION']
@@ -571,8 +526,7 @@ VARIABLES = {
         'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
         'root': '#font[152]{#eta}_{#font[52]{j}_{1}} #times #font[152]{#eta}_{#font[52]{j}_{2}}',
         'filename': 'eta_product_jets',
-        'bins': 15,
-        'range': (-10, 5),
+        'binning': (15, -10, 5),
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
@@ -588,8 +542,7 @@ VARIABLES = {
         'title': r'$M(jet_{1},\/jet_{2})$',
         'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
         'filename': 'mass_jet1_jet2',
-        'bins': 20,
-        'range': (0, 1000),
+        'binning': (20, 0, 1000),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF']
@@ -598,8 +551,7 @@ VARIABLES = {
         'title': r'$p_T^{H}$',
         'root': '#font[52]{p}_{T}^{H}',
         'filename': 'resonance_pt',
-        'bins': 20,
-        'range': {
+        'binning': {
             'BOOSTED': (18, 70, 250),
             'VBF': (25, 0, 250),
             'REST': (11, 0, 110),
@@ -616,8 +568,9 @@ VARIABLES['mmc%d_mass' % mmc] = {
     'title': r'$M^{MMC}(\tau_{1},\/\tau_{2})$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
     'filename': 'mmc%d_mass' % mmc,
-    'bins': {2011: 15, 2012: 25},
-    'range': (0, 250),
+    'binning': {
+        2011: (15, 0, 250),
+        2012: (25, 0, 250)},
     'units': 'GeV',
     'blind': (100, 150),
 }
@@ -626,8 +579,7 @@ VARIABLES['mmc%d_MET_et' % mmc] = {
     'title': r'$E^{miss}_{T}$ MMC',
     'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T}',
     'filename': 'mmc%d_MET' % mmc,
-    'bins': 20,
-    'range': (0, 100),
+    'binning': (20, 0, 100),
     'units': 'GeV',
 }
 
@@ -635,8 +587,7 @@ VARIABLES['mmc%d_MET_etx' % mmc] = {
     'title': r'MMC $E^{miss}_{T_{x}}$',
     'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{x}}',
     'filename': 'mmc%d_MET_x' % mmc,
-    'bins': 20,
-    'range': (-75, 75),
+    'binning': (20, -75, 75),
     'units': 'GeV',
 }
 
@@ -644,8 +595,7 @@ VARIABLES['mmc%d_MET_ety' % mmc] = {
     'title': r'MMC $E^{miss}_{T_{y}}$',
     'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T_{y}}',
     'filename': 'mmc%d_MET_y' % mmc,
-    'bins': 20,
-    'range': (-75, 75),
+    'binning': (20, -75, 75),
     'units': 'GeV',
 }
 
@@ -653,7 +603,8 @@ VARIABLES['mmc%d_resonance_pt' % mmc] = {
     'title': r'MMC $p_T^H$',
     'root': 'MMC #font[52]{p}_{T}^{H}',
     'filename': 'mmc%d_resonance_pt' % mmc,
-    'bins': 20,
-    'range': {'BOOSTED': (50, 200), None: (0, 200)},
+    'binning': {
+        'BOOSTED': (20, 50, 200),
+        None: (20, 0, 200)},
     'units': 'GeV',
 }
