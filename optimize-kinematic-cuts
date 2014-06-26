@@ -124,7 +124,7 @@ if __name__ == '__main__':
             masses=[mass], systematics=args.systematics)
         min_score, max_score = scores.min_score, scores.max_score
         binning = clf.binning(analysis.year, overflow=1E5)
-        log.info("binning: {0}".format(str(binning)))
+        #log.info("binning: {0}".format(str(binning)))
 
 
         sig = get_sig(scores, binning,
