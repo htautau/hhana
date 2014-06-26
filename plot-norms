@@ -5,15 +5,21 @@ from rootpy.extern.argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
 parser = ArgumentParser()
+parser.add_argument('--name', default='combined')
 parser.add_argument('file')
 args = parser.parse_args()
 
+# default minimizer options
+import ROOT
+ROOT.Math.MinimizerOptions.SetDefaultStrategy(1)
+ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
+
 rfile = root_open(args.file)
-ws = rfile.combined
+ws = rfile[args.name]
 minim = ws.fit()
 result = minim.save()
 
-names = [
+all_names = [
     'ATLAS_norm_HH_2011_QCD',
     'ATLAS_norm_HH_2011_Ztt',
     'ATLAS_norm_HH_2012_QCD',
@@ -22,11 +28,15 @@ names = [
 
 vals = []
 errors = []
+names = []
 
-for name in names:
+for name in all_names:
     value = result.floatParsFinal().find(name)
+    if not value:
+        continue
     vals.append(value.getVal())
     errors.append(value.getError())
+    names.append(name)
 
 # plot
 fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
