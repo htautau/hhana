@@ -48,7 +48,7 @@ def map_pool(process, args, n_jobs=-1, **kwargs):
     return [p.output for p in procs]
 
 
-def get_workspace(scores, binning
+def get_workspace(scores, binning,
                   categories,
                   mass=125,
                   systematics=False):
@@ -80,7 +80,7 @@ def get_workspace(scores, binning
 def get_sig(scores, binning,
             mass=125,
             systematics=False):
-    ws = get_workspace(scores, binning
+    ws = get_workspace(scores, binning,
                        mass=mass,
                        systematics=systematics)
     hist = get_significance_workspace(ws)
