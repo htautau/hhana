@@ -9,7 +9,7 @@ from ROOT import TLatex
 # local imports
 from mva.samples import (
     Data, QCD, Embedded_Ztautau, MC_Ztautau,
-    Pythia_Ztautau, MC_Embedded_Ztautau)
+    Pythia_Ztautau, MC_Embedded_Ztautau, Higgs)
 from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis
@@ -23,7 +23,7 @@ parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012))
 parser.add_argument('--output-formats', default=['png'], nargs='+',
                     choices=('png', 'eps', 'pdf'),
                     help='output formats')
-parser.add_argument('--categories', default='mva',
+parser.add_argument('--categories', default='mva_all',
                     choices=CATEGORIES.keys(),
                     help='category definitions')
 parser.add_argument('shapes', nargs='*')
@@ -235,9 +235,9 @@ if not args.shapes or 'qcd' in args.shapes:
 
 
 if not args.shapes or 'qcd_ztautau' in args.shapes:
-
     ztt_eb = Embedded_Ztautau(year=args.year, label='Z#rightarrow#tau#tau')
     qcd = Analysis(args.year, fakes_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Fakes')
+    higgs = Higgs(args.year, mass=125)
     for category in categories:
         compare(ztt_eb, qcd, category, 'qcd_vs_ztautau')
-            
+        compare(ztt_eb, higgs, category, 'higgs_vs_ztautau')

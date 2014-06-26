@@ -114,7 +114,7 @@ def tabulate_models(year):
         plt.savefig('fake_yields_{0}.{1}'.format(year % 1000, fmt))
 
 
-def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
+def draw_model_shapes(year, models, model_names):
     """
     Compare each fakes model with data
     """
@@ -124,7 +124,7 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
         'tau1_pt', 'tau2_pt',
         'mmc1_mass',
         ]
-    
+        
     model_analysis = {}
     for model in models:
         analysis = Analysis(year=year, fakes_region=model)
@@ -226,4 +226,5 @@ def draw_model_shapes(year, nominal_model='nOS_NONISOL'):
 if __name__ == '__main__':
     for year in (2011, 2012):
         #tabulate_models(year)
-        draw_model_shapes(year)
+        # ignore nonisolated and nonisolated OS
+        draw_model_shapes(year, models[:-2], model_names[:-2])
