@@ -3,7 +3,6 @@ from math import pi
 
 from .base import Category
 from .. import MMC_MASS
-from ..defaults import (PT_CUT_LEAD_TAU, PT_CUT_SUBLEAD_TAU)
 # All basic cut definitions are here
 
 TAU1_MEDIUM = Cut('tau1_JetBDTSigMedium==1')
