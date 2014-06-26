@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+import os
+from math import log
+import pickle
+
+from rootpy.plotting import Hist, Canvas
+from rootpy.plotting import root2matplotlib as rplt
+from rootpy.stats.histfactory import (
+    Data, Sample, Channel, make_measurement, make_workspace)
+
+from root_numpy import fill_hist
+import numpy as np
+import matplotlib.pyplot as plt
+
+from mva import CONST_PARAMS, CACHE_DIR
+from mva.categories import Category_VBF, Category_Boosted
+from mva.samples import QCD, Ztautau
+from mva.analysis import Analysis
+from mva.defaults import TARGET_REGION
+
+from statstools.fixups import fix_measurement
+from statstools import get_significance_workspace
+from statstools.jobs import run_pool
+
+#from joblib import Parallel, delayed
+import multiprocessing
+from multiprocessing import Process
+import time
+
+
+class SigProcess(Process):
+    def __init__(self, *args, **kwargs):
+        super(SigProcess, self).__init__()
+        self.args = args
+        self.kwargs = kwargs
+        self.result = multiprocessing.Queue()
+    
+    @property
+    def output(self):
+        return self.result.get()
+
+    def run(self):
+        self.result.put(get_sig(*self.args, **self.kwargs))
+
+def map_pool(process, args, n_jobs=-1, **kwargs):
+    procs = [process(*arg, **kwargs) for arg in args]
+    run_pool(procs, n_jobs=n_jobs)
+    return [p.output for p in procs]
+
+
+def get_workspace(scores, binning
+                  categories,
+                  mass=125,
+                  systematics=False):
+
+    hist_template = Hist(binning)
+    background = []
+    for sample, scores_dict in scores.bkg_scores:
+        background.append(sample.get_histfactory_sample(
+            hist_template, None, category, TARGET_REGION, scores=scores_dict,
+            systematics=systematics))
+    signal = []
+    for sample, scores_dict in scores.all_sig_scores[mass]:
+        signal.append(sample.get_histfactory_sample(
+            hist_template, None, category, TARGET_REGION, scores=scores_dict,
+            systematics=systematics))
+    # TODO: why is the clone needed?
+    data_hist = sum([b.hist.Clone(shallow=True) for b in background])
+    data_hist.name = 'Data'
+    data = Data('Data', data_hist)
+    channel = Channel(category.name, signal + background, data)
+    measurement = make_measurement(
+        'MVA', channel,
+        POI='SigXsecOverSM',
+        const_params=CONST_PARAMS)
+    fix_measurement(measurement)
+    return make_workspace(measurement, silence=True)
+
+
+def get_sig(scores, binning,
+            mass=125,
+            systematics=False):
+    ws = get_workspace(scores, binning
+                       mass=mass,
+                       systematics=systematics)
+    hist = get_significance_workspace(ws)
+    sig = hist[2].value
+    # handle nan
+    return 0 if sig != sig else sig
+
+if __name__ == '__main__':
+ 
+    # pip install --user tabulate
+    from tabulate import tabulate
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
+    parser.add_argument('--categories', nargs='*')
+    parser.add_argument('--systematics', action='store_true', default=False)
+    parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
+    parser.add_argument('--procs', type=int, default=-1)
+    parser.add_argument('--lead-tau', type=float, default=35)
+
+    args = parser.parse_args()
+    year = args.year
+    mass = args.mass
+
+    cuts = 'tau1_pt > {0}'.format(args.lead_tau)
+
+    analysis = Analysis(year,
+                        systematics=args.systematics,
+                        qcd_workspace_norm=False,
+                        ztt_workspace_norm=False,
+                        qcd_shape_systematic=False)
+
+    for category in (Category_Boosted, Category_VBF):
+        if args.categories and category.name not in args.categories:
+            continue
+        analysis.normalize(category)
+        clf = analysis.get_clf(category, load=True, mass=mass, transform=True)
+        scores = analysis.get_scores(
+            clf, category, TARGET_REGION, mode='workspace', cuts=cuts
+            masses=[mass], systematics=args.systematics)
+        min_score, max_score = scores.min_score, scores.max_score
+        binning = clf.binning(analysis.year, overflow=1E5)
+        log.info("binning: {0}".format(str(binning)))
+
+
+        sig = get_sig(scores, binning,
+                      mass=125,
+                      systematics=args.systematics)
+        log.info('{0}: {1}'.format(category, sig))
