@@ -135,4 +135,4 @@ if __name__ == '__main__':
                       category,
                       mass=125,
                       systematics=args.systematics)
-        log.info('{0}: {1}'.format(sig))
+        log.info('{0}: {1}'.format(category.name, sig))
