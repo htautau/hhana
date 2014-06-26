@@ -120,7 +120,7 @@ if __name__ == '__main__':
         analysis.normalize(category)
         clf = analysis.get_clf(category, load=True, mass=mass, transform=True)
         scores = analysis.get_scores(
-            clf, category, TARGET_REGION, mode='workspace', cuts=cuts
+            clf, category, TARGET_REGION, mode='workspace', cuts=cuts,
             masses=[mass], systematics=args.systematics)
         min_score, max_score = scores.min_score, scores.max_score
         binning = clf.binning(analysis.year, overflow=1E5)
