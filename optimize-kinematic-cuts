@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
     lead_tau_cuts = range(35, 75, 5)
 
-    cuts = ['tau1_pt > {0}'.format(lead_tau) for lead_tau in lead_tau_cuts]
+    cuts = ['tau1_pt > {0}'.format(lead_tau*1e3) for lead_tau in lead_tau_cuts]
     sigs = []
     for cut in cuts:
         sig = get_sig(analysis, clf,
