@@ -80,17 +80,12 @@ def get_workspace(scores, binning,
 
 
 def get_sig(analysis,
+            clf,
             category,
             cuts,
             mass=125,
             systematics=False):
 
-    analysis.normalize(category)
-    clf = analysis.get_clf(
-        category, 
-        load=True, 
-        mass=mass, 
-        transform=True)
         
     scores = analysis.get_scores(
         clf, category, TARGET_REGION, 
@@ -129,18 +124,26 @@ if __name__ == '__main__':
                         qcd_workspace_norm=False,
                         ztt_workspace_norm=False,
                         qcd_shape_systematic=False)
+    analysis.normalize(Category_VBF)
+    clf = analysis.get_clf(
+        Category_VBF, 
+        load=True, 
+        mass=mass, 
+        transform=True)
 
     lead_tau_cuts = range(35, 75, 5)
 
     cuts = ['tau1_pt > {0}'.format(lead_tau) for lead_tau in lead_tau_cuts]
+    sigs = []
     for cut in cuts:
-        sig = get_sig(analysis, 
+        sig = get_sig(analysis, clf,
                       Category_VBF, 
                       cut, 
                       mass=args.mass, 
                       systematics=args.systematics)
-        log.info(sig)
+        sigs.append(sig)
+        #log.info(sig)
 #     sigs = map_pool(SigProcess, [(analysis, Category_VBF, cut) for cut in cuts], 
 #                     mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
     
-#    log.info(sigs)
+    log.info(sigs)
