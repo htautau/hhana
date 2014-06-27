@@ -4,7 +4,7 @@ from math import log
 import pickle
 import logging
 
-from rootpy.plotting import Hist, Canvas
+from rootpy.plotting import Graph, Canvas
 from rootpy.plotting import root2matplotlib as rplt
 from rootpy.stats.histfactory import (
     Data, Sample, Channel, make_measurement, make_workspace)
@@ -18,6 +18,7 @@ from mva.defaults import TARGET_REGION
 from statstools.fixups import fix_measurement
 from statstools import get_significance_workspace
 from statstools.jobs import run_pool
+from statstools.plotting import pvalue_plot
 
 #from joblib import Parallel, delayed
 import multiprocessing
@@ -125,10 +126,10 @@ if __name__ == '__main__':
     year = args.year
     mass = args.mass
 
-    lead_tau_cuts = range(35, 75, 5)
-    sublead_tau_cuts = range(25, 75, 5)
-    lead_jet_cuts = range(50, 100, 5)
-    sublead_jet_cuts = range(30, 100, 5)
+    lead_tau_cuts = range(35, 75, 2)
+    sublead_tau_cuts = range(25, 65, 2)
+    lead_jet_cuts = range(50, 90, 2)
+    sublead_jet_cuts = range(30, 70, 2)
 
     cuts_l = ['tau1_pt > {0}'.format(cut_gev*1e3) for cut_gev in lead_tau_cuts]
     cuts_sl = ['tau2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_tau_cuts]
@@ -149,3 +150,11 @@ if __name__ == '__main__':
     log.info(sigs_t_sl)
     log.info(sigs_j_l)
     log.info(sigs_j_sl)
+
+    thres = range(0, 21)
+    c = Canvas()
+    pvalue_plot(thres, [sigs_t_l, sigs_t_sl, sigs_j_l, sigs_j_sl], 
+                pad=c, xtitle='threshold step', 
+                linecolor = ['blue' 'red', 'green', 'purple'])
+
+    c.SaveAs('toto.png')
