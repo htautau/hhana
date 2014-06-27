@@ -79,10 +79,24 @@ def get_workspace(scores, binning,
     return make_workspace(measurement, silence=True)
 
 
-def get_sig(scores, binning,
+def get_sig(analysis,
             category,
+            cuts,
             mass=125,
             systematics=False):
+
+    analysis.normalize(category)
+    clf = analysis.get_clf(
+        category, 
+        load=True, 
+        mass=mass, 
+        transform=True)
+        
+    scores = analysis.get_scores(
+        clf, category, TARGET_REGION, 
+        mode='workspace', cuts=cuts,
+        masses=[mass], systematics=systematics)
+    binning = clf.binning(analysis.year, overflow=1E5)
     ws = get_workspace(scores, binning,
                        category,
                        mass=mass,
@@ -104,13 +118,11 @@ if __name__ == '__main__':
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
     parser.add_argument('--procs', type=int, default=-1)
-    parser.add_argument('--lead-tau', type=float, default=35)
 
     args = parser.parse_args()
     year = args.year
     mass = args.mass
 
-    cuts = 'tau1_pt > {0}'.format(args.lead_tau)
 
     analysis = Analysis(year,
                         systematics=args.systematics,
@@ -118,21 +130,10 @@ if __name__ == '__main__':
                         ztt_workspace_norm=False,
                         qcd_shape_systematic=False)
 
-    for category in (Category_Boosted, Category_VBF):
-        if args.categories and category.name not in args.categories:
-            continue
-        analysis.normalize(category)
-        clf = analysis.get_clf(category, load=True, mass=mass, transform=True)
-        scores = analysis.get_scores(
-            clf, category, TARGET_REGION, mode='workspace', cuts=cuts,
-            masses=[mass], systematics=args.systematics)
-        min_score, max_score = scores.min_score, scores.max_score
-        binning = clf.binning(analysis.year, overflow=1E5)
-        #log.info("binning: {0}".format(str(binning)))
+    lead_tau_cuts = range(35, 75, 5)
 
-
-        sig = get_sig(scores, binning,
-                      category,
-                      mass=125,
-                      systematics=args.systematics)
-        log.info('{0}: {1}'.format(category.name, sig))
+    cuts = ['tau1_pt > {0}'.format(lead_tau) for lead_tau in lead_tau_cuts]
+    sigs = map_pool(SigProcess, [(analysis, Category_VBF, cut) for cut in cuts], 
+                    mass=args.mass, systemmatics=args.systematics, n_jobs=args.procs)
+    
+    log.info(sigs)
