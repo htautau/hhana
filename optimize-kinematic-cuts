@@ -168,7 +168,7 @@ if __name__ == '__main__':
     c = Canvas()
     _, graphs = pvalue_plot(thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
                             pad=c, xtitle='threshold step', 
-                            yrange=(gaussian_cdf_c(2.5), 50)
+                            yrange=(gaussian_cdf_c(2.5), 50),
                             linecolor = ['blue', 'red', 'green', 'purple'])
     labels = []
     labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
