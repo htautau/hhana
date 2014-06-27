@@ -167,7 +167,7 @@ if __name__ == '__main__':
                             linecolor = ['blue', 'red', 'green', 'purple'])
     labels = []
     labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
-    labels.append('scan p_{T}(#tau_{2}): 35 - 76 GeV (2 GeV)')
+    labels.append('scan p_{T}(#tau_{2}): 25 - 65 GeV (2 GeV)')
     labels.append('scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)') 
     labels.append('scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)') 
 
