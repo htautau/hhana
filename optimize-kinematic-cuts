@@ -179,6 +179,6 @@ if __name__ == '__main__':
         graph.title = label
         graph.legendstyle = 'L'
 
-    leg = Legend(graphs, leftmargin=0.1)
+    leg = Legend(graphs, leftmargin=0.1, rightmargin=0.5)
     leg.Draw('same')
     c.SaveAs('toto.png')
