@@ -5,8 +5,7 @@ import pickle
 import logging
 
 from rootpy import ROOT
-from rootpy.plotting import Graph, Canvas, Hist
-from rootpy.plotting import root2matplotlib as rplt
+from rootpy.plotting import Graph, Canvas, Hist, Legend
 from rootpy.stats.histfactory import (
     Data, Sample, Channel, make_measurement, make_workspace)
 
