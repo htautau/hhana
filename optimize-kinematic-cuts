@@ -164,7 +164,7 @@ if __name__ == '__main__':
     log.info(pvals_j_sl)
 
 
-    thres = range(0, 21)
+    thres = range(0, 20)
     c = Canvas()
     _, graphs = pvalue_plot(thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
                             pad=c, xtitle='threshold step', 
