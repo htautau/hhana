@@ -134,6 +134,6 @@ if __name__ == '__main__':
 
     cuts = ['tau1_pt > {0}'.format(lead_tau) for lead_tau in lead_tau_cuts]
     sigs = map_pool(SigProcess, [(analysis, Category_VBF, cut) for cut in cuts], 
-                    mass=args.mass, systemmatics=args.systematics, n_jobs=args.procs)
+                    mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
     
     log.info(sigs)
