@@ -168,11 +168,18 @@ if __name__ == '__main__':
     c = Canvas()
     _, graphs = pvalue_plot(thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
                             pad=c, xtitle='threshold step', 
+                            yrange=(gaussian_cdf_c(2.5), 50)
                             linecolor = ['blue', 'red', 'green', 'purple'])
-    graphs[0].title = 'scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)' 
-    graphs[1].title = 'scan p_{T}(#tau_{2}): 35 - 76 GeV (2 GeV)' 
-    graphs[2].title = 'scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)' 
-    graphs[2].title = 'scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)' 
+    labels = []
+    labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
+    labels.append('scan p_{T}(#tau_{2}): 35 - 76 GeV (2 GeV)')
+    labels.append('scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)') 
+    labels.append('scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)') 
+
+    for graph, label in zip (graphs, labels):
+        graph.title = label
+        graph.legendstyle = 'L'
+
     leg = Legend(graphs)
     leg.Draw('same')
     c.SaveAs('toto.png')
