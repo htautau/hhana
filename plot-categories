@@ -8,7 +8,7 @@ from mva.analysis import Analysis
 from mva.variables import VARIABLES, get_label
 from mva.plotting import draw_contours
 from mva.defaults import TARGET_REGION
-from mva import save_canvas
+from mva import save_canvas, ATLAS_LABEL
 
 from rootpy.plotting import Canvas, Hist, Hist2D, Profile2D, Legend, set_style
 from rootpy.plotting.style.atlas.labels import ATLAS_label
@@ -115,9 +115,9 @@ def legend(canvas, right=False):
 def labels(canvas, category):
     with canvas:
         # draw the ATLAS label
-        ATLAS_label(0.72, 0.88,
+        ATLAS_label(0.65, 0.88,
             sep=0.1, pad=canvas, sqrts=None,
-            text="Internal", textsize=20)
+            text=ATLAS_LABEL, textsize=20)
         label = TLatex()
         label.SetNDC(True)
         label.SetTextSize(20)
