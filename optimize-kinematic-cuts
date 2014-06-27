@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 import os
-from math import log
-import pickle
 import logging
+import multiprocessing
+from multiprocessing import Process
+import time
 
 from rootpy import ROOT
 from rootpy.plotting import Graph, Canvas, Hist, Legend
 from rootpy.stats.histfactory import (
     Data, Sample, Channel, make_measurement, make_workspace)
+from rootpy.plotting.style.atlas.labels import ATLAS_label
 
 from mva import CONST_PARAMS, CACHE_DIR
 from mva.categories import Category_VBF, Category_Boosted
@@ -19,11 +21,6 @@ from statstools.fixups import fix_measurement
 from statstools import get_significance_workspace
 from statstools.jobs import run_pool
 from statstools.plotting import pvalue_plot
-
-#from joblib import Parallel, delayed
-import multiprocessing
-from multiprocessing import Process
-import time
 
 log = logging.getLogger(os.path.basename(__file__))
 gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
@@ -46,7 +43,6 @@ def map_pool(process, args, n_jobs=-1, **kwargs):
     procs = [process(*arg, **kwargs) for arg in args]
     run_pool(procs, n_jobs=n_jobs)
     return [p.output for p in procs]
-
 
 def get_workspace(scores, binning,
                   category,
@@ -179,6 +175,12 @@ if __name__ == '__main__':
         graph.title = label
         graph.legendstyle = 'L'
 
-    leg = Legend(graphs, leftmargin=0.1, rightmargin=0.5)
+    leg = Legend(graphs, 
+                 leftmargin=0.1, 
+                 rightmargin=0.5, 
+                 header=Category_VBF.label, 
+                 textsize=20)
     leg.Draw('same')
+    ATLAS_label(0.75, 0.88, text="Internal", sqrts=8, pad=c, sep=0.09)
+
     c.SaveAs('toto.png')
