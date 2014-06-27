@@ -4,7 +4,7 @@ from math import log
 import pickle
 import logging
 
-from rootpy.plotting import Graph, Canvas
+from rootpy.plotting import Graph, Canvas, Hist
 from rootpy.plotting import root2matplotlib as rplt
 from rootpy.stats.histfactory import (
     Data, Sample, Channel, make_measurement, make_workspace)
@@ -153,8 +153,8 @@ if __name__ == '__main__':
 
     thres = range(0, 21)
     c = Canvas()
-    pvalue_plot(thres, [sigs_t_l, sigs_t_sl, sigs_j_l, sigs_j_sl], 
-                pad=c, xtitle='threshold step', 
-                linecolor = ['blue' 'red', 'green', 'purple'])
-
+    _, graphs = pvalue_plot(thres, [sigs_t_l, sigs_t_sl, sigs_j_l, sigs_j_sl], 
+                            pad=c, xtitle='threshold step', 
+                            linecolor = ['blue' 'red', 'green', 'purple'])
+    
     c.SaveAs('toto.png')
