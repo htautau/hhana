@@ -155,6 +155,11 @@ if __name__ == '__main__':
     c = Canvas()
     _, graphs = pvalue_plot(thres, [sigs_t_l, sigs_t_sl, sigs_j_l, sigs_j_sl], 
                             pad=c, xtitle='threshold step', 
-                            linecolor = ['blue' 'red', 'green', 'purple'])
-    
+                            linecolor = ['blue', 'red', 'green', 'purple'])
+    graphs[0].title = 'scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)' 
+    graphs[1].title = 'scan p_{T}(#tau_{2}): 35 - 76 GeV (2 GeV)' 
+    graphs[2].title = 'scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)' 
+    graphs[2].title = 'scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)' 
+    leg = Legend(graphs)
+    leg.Draw('same')
     c.SaveAs('toto.png')
