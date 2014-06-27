@@ -181,6 +181,6 @@ if __name__ == '__main__':
                  header=Category_VBF.label, 
                  textsize=20)
     leg.Draw('same')
-    ATLAS_label(0.2, 0.88, text="Internal", sqrts=8, pad=c, sep=0.09)
+    ATLAS_label(0.2, 0.88, text="Internal", sqrts=8, pad=c, sep=0.12)
 
     c.SaveAs('toto.png')
