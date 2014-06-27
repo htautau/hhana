@@ -9,10 +9,6 @@ from rootpy.plotting import root2matplotlib as rplt
 from rootpy.stats.histfactory import (
     Data, Sample, Channel, make_measurement, make_workspace)
 
-from root_numpy import fill_hist
-import numpy as np
-import matplotlib.pyplot as plt
-
 from mva import CONST_PARAMS, CACHE_DIR
 from mva.categories import Category_VBF, Category_Boosted
 from mva.samples import QCD, Ztautau
@@ -129,26 +125,27 @@ if __name__ == '__main__':
     year = args.year
     mass = args.mass
 
-
-
     lead_tau_cuts = range(35, 75, 5)
     sublead_tau_cuts = range(25, 75, 5)
+    lead_jet_cuts = range(50, 100, 5)
+    sublead_jet_cuts = range(30, 100, 5)
+
     cuts_l = ['tau1_pt > {0}'.format(cut_gev*1e3) for cut_gev in lead_tau_cuts]
     cuts_sl = ['tau2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_tau_cuts]
+    cuts_j_l = ['jet1_pt > {0}'.format(cut_gev*1e3) for cut_gev in lead_jet_cuts]
+    cuts_j_sl = ['jet2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_jet_cuts]
 
-#     sigs = []
-#     for cut in cuts:
-#         sig = get_sig(analysis, clf,
-#                       Category_VBF, 
-#                       cut, 
-#                       mass=args.mass, 
-#                       systematics=args.systematics)
-#         sigs.append(sig)
-#         #log.info(sig)
-    sigs_l = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_l], 
-                      mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
-    sigs_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_sl], 
-                       mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+    sigs_t_l = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_l], 
+                        mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+    sigs_t_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_sl], 
+                         mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+
+    sigs_j_l = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_j_l], 
+                        mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+    sigs_j_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_j_sl], 
+                         mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
     
-    log.info(sigs_l)
-    log.info(sigs_sl)
+    log.info(sigs_t_l)
+    log.info(sigs_t_sl)
+    log.info(sigs_j_l)
+    log.info(sigs_j_sl)
