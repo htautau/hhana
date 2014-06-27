@@ -4,6 +4,7 @@ from math import log
 import pickle
 import logging
 
+from rootpy import ROOT
 from rootpy.plotting import Graph, Canvas, Hist
 from rootpy.plotting import root2matplotlib as rplt
 from rootpy.stats.histfactory import (
@@ -26,6 +27,7 @@ from multiprocessing import Process
 import time
 
 log = logging.getLogger(os.path.basename(__file__))
+gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 
 class SigProcess(Process):
     def __init__(self, *args, **kwargs):
@@ -151,9 +153,14 @@ if __name__ == '__main__':
     log.info(sigs_j_l)
     log.info(sigs_j_sl)
 
+    pvals_t_l  = [gaussian_cdf_c(sig) for sig in sigs_t_l]
+    pvals_t_sl = [gaussian_cdf_c(sig) for sig in sigs_t_sl]
+    pvals_j_l  = [gaussian_cdf_c(sig) for sig in sigs_j_l]
+    pvals_j_sl = [gaussian_cdf_c(sig) for sig in sigs_j_sl]
+
     thres = range(0, 21)
     c = Canvas()
-    _, graphs = pvalue_plot(thres, [sigs_t_l, sigs_t_sl, sigs_j_l, sigs_j_sl], 
+    _, graphs = pvalue_plot(thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
                             pad=c, xtitle='threshold step', 
                             linecolor = ['blue', 'red', 'green', 'purple'])
     graphs[0].title = 'scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)' 
