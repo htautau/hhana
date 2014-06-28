@@ -226,17 +226,22 @@ grl-12: ~/observed_grl_12.xml
 grl: grl-11 grl-12
 
 bundle:
-	rm -f ~/higgstautau-mva-plots.tar.gz
-	find plots/variables/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
+	@rm -f ~/higgstautau-mva-plots.tar.gz
+	@find plots/variables/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
 	@echo bundle at ~/higgstautau-mva-plots.tar.gz
 
 png-bundle:
-	rm -f ~/higgstautau-mva-plots.tar.gz
-	find plots/variables/$(BRANCH) -name '*.png' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
+	@rm -f ~/higgstautau-mva-plots.tar.gz
+	@find plots/variables/$(BRANCH) -name '*.png' -print0 | tar -vpcz --null -T - -f ~/higgstautau-mva-plots.tar.gz
 	@echo bundle at ~/higgstautau-mva-plots.tar.gz
 
 montage:
-	montage -tile 4x5 -geometry 400x400+3+3 plots/*.png montage.pdf
+	@montage -tile 4x5 -geometry 400x400+3+3 plots/*.png montage.pdf
+
+thesis:
+	@rm -f ~/thesis.tar.gz
+	@find plots/contours/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
+	@echo created ~/thesis.tar.gz
 
 test:
 	nosetests -s -v mva
