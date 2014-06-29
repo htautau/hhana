@@ -109,6 +109,12 @@ class QCD(Sample, Background):
                    systematics=True,
                    systematics_components=None,
                    bootstrap_data=False):
+
+        if scores is not None:
+            log.warning(
+                "scores is not None in QCD.draw_array() and will be ignored")
+            scores = None
+
         # TODO: support for field_weight_hist
         do_systematics = self.systematics and systematics
 
@@ -122,7 +128,7 @@ class QCD(Sample, Background):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 clf=clf,
-                scores=scores,
+                #scores=scores,
                 min_score=min_score,
                 max_score=max_score,
                 systematics=systematics,
@@ -139,7 +145,7 @@ class QCD(Sample, Background):
             field_scale=field_scale,
             weight_hist=weight_hist,
             clf=clf,
-            scores=scores,
+            #scores=scores,
             min_score=min_score,
             max_score=max_score)
 
@@ -303,79 +309,22 @@ class QCD(Sample, Background):
 
         return arrays
 
-    def get_shape_systematic(self, nominal_hist,
-                             expr_or_clf,
-                             category, region,
-                             cuts=None,
-                             clf=None,
-                             min_score=None,
-                             max_score=None,
-                             suffix=None,
-                             field_scale=None,
-                             weight_hist=None,
-                             weighted=True):
-        log.info("creating QCD shape systematic")
-        # HACK
-        # use preselection as reference in which all models should have the same
-        # expected number of QCD events
-        # get number of events at preselection for nominal model
-        from ..categories import Category_Preselection
+    def get_shape_systematic(self, nominal_hist, expr_or_clf,
+                             category, region, **kwargs):
+        return self.get_shape_systematic_array(
+            {expr_or_clf: nominal_hist}, category, region,
+            **kwargs)[expr_or_clf]
 
-        models = REGION_SYSTEMATICS
-
-        curr_model = self.shape_region
-        if curr_model not in models:
-            raise ValueError(
-                "no QCD shape systematic defined for nominal {0}".format(
-                    curr_model))
-
-        nominal_events = self.events(Category_Preselection, None)[1].value
-
-        hist_template = nominal_hist.Clone()
-        hist_template.Reset()
-
-        # add QCD shape systematic
-        shape_model = models[curr_model]
-        self.shape_region = shape_model
-        log.info("getting QCD shape for {0}".format(shape_model))
-        shape_sys = self.get_hist(
-            hist_template,
-            expr_or_clf,
-            category, region,
-            cuts=cuts,
-            clf=clf,
-            scores=None,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=False,
-            suffix=(suffix or '') + '_{0}'.format(shape_model),
-            field_scale=field_scale,
-            weight_hist=weight_hist,
-            weighted=weighted)
-        norm_events = self.events(Category_Preselection, None)[1].value
-        # normalize shape_sys such that it would have the same number of
-        # events as the nominal at preselection
-        shape_sys *= nominal_events / float(norm_events)
-        # restore previous shape model
-        self.shape_region = curr_model
-
-        # reflect shape about the nominal to get high and low variations
-        shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
-        shape_sys_reflect.name = shape_sys.name + '_reflected'
-
-        return shape_sys, shape_sys_reflect
-
-    def get_shape_systematic_array(
-            self, field_nominal_hist,
-            category, region,
-            cuts=None,
-            clf=None,
-            min_score=None,
-            max_score=None,
-            suffix=None,
-            field_scale=None,
-            weight_hist=None,
-            weighted=True):
+    def get_shape_systematic_array(self, field_nominal_hist,
+                                   category, region,
+                                   cuts=None,
+                                   clf=None,
+                                   min_score=None,
+                                   max_score=None,
+                                   suffix=None,
+                                   field_scale=None,
+                                   weight_hist=None,
+                                   weighted=True):
 
         log.info("creating QCD shape systematic")
 

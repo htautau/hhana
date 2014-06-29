@@ -513,6 +513,7 @@ class Analysis(object):
         log.info("constructing channels")
         channels = dict()
 
+        # determine min and max scores
         scores_obj = self.get_scores(
             clf, category, region, cuts=cuts,
             masses=[mass], mode=mode,
@@ -528,6 +529,12 @@ class Analysis(object):
         if isinstance(bins, int):
             binning = Hist(bins, min_score, max_score, type='D')
         else: # iterable
+            if bins[0] > min_score:
+                log.warning("min score is less than first edge "
+                            "(will be underflow)")
+            if bins[-1] <= max_score:
+                log.warning("max score is greater than or equal to last edge "
+                            "(will be overflow)")
             binning = Hist(bins, type='D')
 
         bkg_samples = []

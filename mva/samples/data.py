@@ -78,7 +78,8 @@ class Data(Sample):
         elif scores is None and clf is not None:
             scores = self.scores(
                 clf, category, region, cuts=cuts)
-
+        elif isinstance(scores, dict):
+            scores = scores['NOMINAL']
         self.draw_array_helper(field_hist, category, region,
             cuts=cuts,
             weighted=weighted,

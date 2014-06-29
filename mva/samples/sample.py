@@ -198,10 +198,6 @@ class Sample(object):
                           and systematics)
         if do_systematics and systematics_components is None:
             systematics_components = self.systematics_components()
-        if min_score is None:
-            min_score = getattr(category, 'workspace_min_clf', None)
-        if max_score is None:
-            max_score = getattr(category, 'workspace_max_clf', None)
 
         histname = 'hh_category_{0}_{1}'.format(category.name, self.name)
         if suffix is not None:
@@ -209,7 +205,10 @@ class Sample(object):
 
         field_hist = {}
         for field, hist in field_hist_template.items():
-            new_hist = hist.Clone(name=histname + '_{0}'.format(field))
+            if isinstance(field, basestring):
+                new_hist = hist.Clone(name=histname + '_{0}'.format(field))
+            else:
+                new_hist = hist.Clone(name=histname)
             new_hist.Reset()
             field_hist[field] = new_hist
 
@@ -219,6 +218,7 @@ class Sample(object):
                         field_scale=field_scale,
                         weight_hist=weight_hist,
                         clf=clf,
+                        scores=scores,
                         min_score=min_score,
                         max_score=max_score,
                         systematics=do_systematics,
@@ -227,213 +227,11 @@ class Sample(object):
 
         return field_hist
 
-    def get_hist(self,
-            hist_template,
-            expr_or_clf,
-            category, region,
-            cuts=None,
-            clf=None,
-            scores=None,
-            min_score=None,
-            max_score=None,
-            systematics=False,
-            systematics_components=None,
-            suffix=None,
-            field_scale=None,
-            weight_hist=None,
-            weighted=True):
-
-        do_systematics = (isinstance(self, SystematicsSample)
-                          and self.systematics
-                          and systematics)
-        if do_systematics and systematics_components is None:
-            systematics_components = self.systematics_components()
-
-        if min_score is None:
-            min_score = getattr(category, 'workspace_min_clf', None)
-        if max_score is None:
-            max_score = getattr(category, 'workspace_max_clf', None)
-
-        histname = 'hh_category_{0}_{1}'.format(category.name, self.name)
-        if suffix is not None:
-            histname += suffix
-        hist = hist_template.Clone(name=histname,
-                                   title=self.label,
-                                   **self.hist_decor)
-        hist.Reset()
-
-        if isinstance(expr_or_clf, (basestring, tuple, list)):
-            expr = expr_or_clf
-            field_hist = dict()
-            field_hist[expr] = hist
-            self.draw_array(field_hist, category, region,
-                cuts=cuts,
-                weighted=weighted,
-                field_scale=field_scale,
-                weight_hist=weight_hist,
-                clf=clf,
-                min_score=min_score,
-                max_score=max_score,
-                systematics=do_systematics,
-                systematics_components=systematics_components)
-
-        else:
-            # histogram classifier output
-            if scores is None:
-                scores = self.scores(
-                    expr_or_clf, category, region, cuts,
-                    systematics=do_systematics,
-                    systematics_components=systematics_components)
-            histogram_scores(
-                hist, scores,
-                min_score=min_score,
-                max_score=max_score,
-                inplace=True)
-
-        return hist
-
-    def get_histfactory_sample(self,
-            hist_template,
-            expr_or_clf,
-            category, region,
-            cuts=None,
-            clf=None,
-            scores=None,
-            min_score=None,
-            max_score=None,
-            systematics=False,
-            suffix=None,
-            field_scale=None,
-            weight_hist=None,
-            weighted=True,
-            no_signal_fixes=False,
-            ravel=True,
-            uniform=False):
-
-        from .data import Data
-        from .qcd import QCD
-        from .others import Others
-
-        log.info("creating histfactory sample for {0}".format(self.name))
-        if isinstance(self, Data):
-            sample = histfactory.Data(self.name)
-        else:
-            sample = histfactory.Sample(self.name)
-        hist = self.get_hist(
-            hist_template,
-            expr_or_clf,
-            category, region,
-            cuts=cuts,
-            clf=clf,
-            scores=scores,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=systematics,
-            suffix=suffix,
-            field_scale=field_scale,
-            weight_hist=weight_hist,
-            weighted=weighted)
-        # copy of unaltered nominal hist required by QCD shape
-        nominal_hist = hist.Clone()
-        if ravel:
-            # convert to 1D if 2D (also handles systematics if present)
-            hist = ravel_hist(hist)
-        if uniform:
-            # convert to uniform binning
-            hist = uniform_hist(hist)
-        #print_hist(hist)
-        # set the nominal histogram
-        sample.hist = hist
-        do_systematics = (not isinstance(self, Data)
-                          and self.systematics
-                          and systematics)
-        # add systematics samples
-        if do_systematics:
-            SYSTEMATICS = get_systematics(self.year)
-            for sys_component in self.systematics_components():
-                terms = SYSTEMATICS[sys_component]
-                if len(terms) == 1:
-                    up_term = terms[0]
-                    hist_up = hist.systematics[up_term]
-                    # use nominal hist for "down" side
-                    hist_down = hist
-                else:
-                    up_term, down_term = terms
-                    hist_up = hist.systematics[up_term]
-                    hist_down = hist.systematics[down_term]
-                if sys_component == 'JES_FlavComp':
-                    if ((isinstance(self, Signal) and self.mode == 'gg') or
-                         isinstance(self, Others)):
-                        sys_component += '_TAU_G'
-                    else:
-                        sys_component += '_TAU_Q'
-                elif sys_component == 'JES_PURho':
-                    if isinstance(self, Others):
-                        sys_component += '_TAU_QG'
-                    elif isinstance(self, Signal):
-                        if self.mode == 'gg':
-                            sys_component += '_TAU_GG'
-                        else:
-                            sys_component += '_TAU_QQ'
-                npname = get_workspace_np_name(self, sys_component, self.year)
-                histsys = histfactory.HistoSys(
-                    npname,
-                    low=hist_down,
-                    high=hist_up)
-                sample.AddHistoSys(histsys)
-
-            if isinstance(self, QCD) and self.shape_systematic:
-                high, low = self.get_shape_systematic(
-                     nominal_hist,
-                     expr_or_clf,
-                     category, region,
-                     cuts=cuts,
-                     clf=clf,
-                     min_score=min_score,
-                     max_score=max_score,
-                     suffix=suffix,
-                     field_scale=field_scale,
-                     weight_hist=weight_hist,
-                     weighted=weighted)
-                if ravel:
-                    low = ravel_hist(low)
-                    high = ravel_hist(high)
-                if uniform:
-                    low = uniform_hist(low)
-                    high = uniform_hist(high)
-                npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
-                if category.analysis_control and self.decouple_shape:
-                    npname += '_CR'
-                histsys = histfactory.HistoSys(npname, low=low, high=high)
-                sample.AddHistoSys(histsys)
-
-        if isinstance(self, Signal):
-            sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
-        elif isinstance(self, Background):
-            # only activate stat error on background samples
-            sample.ActivateStatError()
-        if not isinstance(self, Data):
-            norm_by_theory = getattr(self, 'NORM_BY_THEORY', True)
-            sample.SetNormalizeByTheory(norm_by_theory)
-            if norm_by_theory:
-                lumi_uncert = get_lumi_uncert(self.year)
-                lumi_sys = histfactory.OverallSys(
-                    'ATLAS_LUMI_{0:d}'.format(self.year),
-                    high=1. + lumi_uncert,
-                    low=1. - lumi_uncert)
-                sample.AddOverallSys(lumi_sys)
-                if self.year == 2012 and do_systematics:
-                    bch_uncert = BCH_UNCERT[category.name]
-                    bch_sys = histfactory.OverallSys(
-                        'ATLAS_BCH_Cleaning',
-                        high=1. + bch_uncert,
-                        low=1. - bch_uncert)
-                    sample.AddOverallSys(bch_sys)
-        if hasattr(self, 'histfactory') and not (
-                isinstance(self, Signal) and no_signal_fixes):
-            # perform sample-specific items
-            self.histfactory(sample, category, systematics=do_systematics)
-        return sample
+    def get_histfactory_sample(self, hist_template, expr_or_clf,
+                               category, region, **kwargs):
+        return self.get_histfactory_sample_array(
+            {expr_or_clf: hist_template}, category, region,
+            **kwargs)[expr_or_clf]
 
     def get_histfactory_sample_array(self,
                                      field_hist_template,
@@ -633,14 +431,15 @@ class Sample(object):
         return partitions
 
     def merged_records(self,
-              category=None,
-              region=None,
-              fields=None,
-              cuts=None,
-              clf=None,
-              clf_name='classifier',
-              include_weight=True,
-              systematic='NOMINAL'):
+                       category=None,
+                       region=None,
+                       fields=None,
+                       cuts=None,
+                       clf=None,
+                       clf_name='classifier',
+                       scores=None,
+                       include_weight=True,
+                       systematic='NOMINAL'):
         recs = self.records(
             category=category,
             region=region,
@@ -652,34 +451,19 @@ class Sample(object):
             if 'weight' not in fields:
                 fields = list(fields) + ['weight']
         rec = stack(recs, fields=fields)
-        if clf is not None:
-            scores, _ = clf.classify(
-                self, category, region,
-                cuts=cuts, systematic=systematic)
+        if clf is not None or scores is not None:
+            if scores is None:
+                scores, _ = clf.classify(
+                    self, category, region,
+                    cuts=cuts, systematic=systematic)
             rec = recfunctions.rec_append_fields(rec,
                 names=clf_name,
                 data=scores,
                 dtypes='f4')
         return rec
 
-    def array(self,
-              category=None,
-              region=None,
-              fields=None,
-              cuts=None,
-              clf=None,
-              clf_name='classifer',
-              include_weight=True,
-              systematic='NOMINAL'):
-        return rec2array(self.merged_records(
-            category=category,
-            region=region,
-            fields=fields,
-            cuts=cuts,
-            clf=clf,
-            clf_name=clf_name,
-            include_weight=include_weight,
-            systematic=systematic))
+    def array(self, *args, **kwargs):
+        return rec2array(self.merged_records(*args, **kwargs))
 
     def weights(self, systematic='NOMINAL'):
         weight_fields = self.weight_fields()
@@ -745,7 +529,7 @@ class Sample(object):
                 all_fields.append(f)
             elif isinstance(f, Classifier):
                 classifiers.append(f)
-            else:
+            elif f is not None:
                 all_fields.extend(list(f))
         if len(classifiers) > 1:
             raise RuntimeError(
@@ -796,13 +580,24 @@ class Sample(object):
 
             rec['weight'][:] = 1.
             scores = rec['classifier']
-        else:
+        elif all_fields or scores is None:
             # TODO: only get unblinded vars
             rec = self.merged_records(category, region,
                 fields=all_fields, cuts=cuts,
                 include_weight=True,
                 clf=classifier,
+                scores=scores,
                 systematic=systematic)
+            if scores is None and 'classifier' in rec.dtype.names:
+                scores = rec['classifier']
+        else:
+            # use scores only
+            if isinstance(self, Data) and not isinstance(scores, tuple):
+                weights = np.ones(len(scores))
+            else:
+                scores, weights = scores
+            rec = np.core.records.fromarrays([scores, weights],
+                                             names=['classifier', 'weight'])
 
         if isinstance(scores, tuple):
             # sanity
@@ -813,19 +608,22 @@ class Sample(object):
 
         weights = rec['weight']
 
-        if scores is not None:
-            if min_score is not None:
-                # cut below a minimum classifier score
-                idx = scores > min_score
-                rec = rec[idx]
-                weights = weights[idx]
-                scores = scores[idx]
-            if max_score is not None:
-                # cut above a maximum classifier score
-                idx = scores < max_score
-                rec = rec[idx]
-                weights = weights[idx]
-                scores = scores[idx]
+        if min_score is not None:
+            if scores is None:
+                raise RuntimeError("min_score specified when scores is None")
+            # cut below a minimum classifier score
+            idx = scores > min_score
+            rec = rec[idx]
+            weights = weights[idx]
+            scores = scores[idx]
+        if max_score is not None:
+            if scores is None:
+                raise RuntimeError("max_score specified when scores is None")
+            # cut above a maximum classifier score
+            idx = scores < max_score
+            rec = rec[idx]
+            weights = weights[idx]
+            scores = scores[idx]
 
         def get_weight(array, hist):
             edges = np.array(list(hist.xedges()))
@@ -856,7 +654,7 @@ class Sample(object):
             weights *= scale
 
         for fields, hist in field_hist.items():
-            if isinstance(fields, Classifier):
+            if isinstance(fields, Classifier) or fields is None:
                 fields = ['classifier']
             # fields can be a single field or list of fields
             elif not isinstance(fields, (list, tuple)):
