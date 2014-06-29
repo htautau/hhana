@@ -8,6 +8,7 @@ from .features import features_vbf, features_boosted
 
 
 class Category_VBF_NO_DETAJJ_CUT(Category_Preselection):
+    # for demonstration purposes. see plot-cuts
     name = 'vbf'
     label = '#tau_{had}#tau_{had} VBF'
     common_cuts = Category_Preselection.common_cuts
@@ -38,6 +39,17 @@ class Category_VBF_DEta_Control(Category_VBF):
     plot_label = 'Multijet CR'
     norm_category = Category_Preselection_DEta_Control
     #norm_category = Category_Preselection
+
+
+class Category_Boosted_NO_PTH_CUT(Category_Preselection):
+    # for demonstration purposes. see plot-cuts
+    name = 'boosted'
+    label = '#tau_{had}#tau_{had} Boosted'
+    common_cuts = Category_Preselection.common_cuts
+    cuts = (
+        (- Category_VBF.cuts)
+        & DETA_TAUS
+        )
 
 
 class Category_Boosted(Category_Preselection):

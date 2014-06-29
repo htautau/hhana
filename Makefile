@@ -240,7 +240,7 @@ montage:
 
 thesis:
 	@rm -f ~/thesis.tar.gz
-	@find plots/contours/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
+	@find plots/contours/$(BRANCH) plots/categories/$(BRANCH) -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
 	@echo created ~/thesis.tar.gz
 
 test:

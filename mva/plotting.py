@@ -35,7 +35,7 @@ from rootpy.stats.histfactory import HistoSys, split_norm_shape
 
 # local imports
 from .variables import VARIABLES
-from . import PLOTS_DIR, MMC_MASS, save_canvas
+from . import ATLAS_LABEL, PLOTS_DIR, MMC_MASS, save_canvas
 from .systematics import iter_systematics, systematic_name
 from .templates import RatioPlot
 from .utils import fold_overflow
@@ -1091,7 +1091,7 @@ def format_plot(pad, template, xaxis, yaxis,
                 ylabel='Events', xlabel=None,
                 units=None, data_info=None,
                 left_label=None, right_label=None,
-                atlas_label='Internal',
+                atlas_label=None,
                 textsize=22,
                 divisions=507,
                 integer=False):
@@ -1161,10 +1161,13 @@ def format_plot(pad, template, xaxis, yaxis,
         keepalive(pad, plabel)
 
     # draw the ATLAS label
-    if atlas_label:
-        ATLAS_label(0.67, 0.89,
+    if atlas_label is not False:
+        label = atlas_label or ATLAS_LABEL
+        x = (1. - pad.GetRightMargin() - 0.03) - len(label) * 0.025
+        ATLAS_label(x, 0.89,
                     sep=0.132, pad=pad, sqrts=None,
-                    text=atlas_label, textsize=textsize)
+                    text=label,
+                    textsize=textsize)
 
     pad.Update()
     pad.Modified()
