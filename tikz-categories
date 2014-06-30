@@ -94,7 +94,7 @@ figure = r"""
     \node [decision, right of= BoostedSel] (highboost) {{High $\pt^{{H}}$?}};
 
     \wheelchart[xshift=160,yshift=-695,innerradius={cuts_boosted_tight_inner:.2f}cm,outerradius=2.2cm]{{{cuts_boosted_tight_others:.2f}/red/Others, {cuts_boosted_tight_fakes:.2f}/green/Fakes, {cuts_boosted_tight_ztt:.2f}/blue/Ztt}}
-    \wheelchart[xshift=160,yshift=-695,innerradius=0,{cuts_boosted_tight_outer:.2f}=1cm]{{{cuts_boosted_tight_ggf:.2f}/purple/ggF,{cuts_boosted_tight_vbf:.2f}/orange/VBF,{cuts_boosted_tight_vh:.2f}/yellow/VH}}
+    \wheelchart[xshift=160,yshift=-695,innerradius=0,outerradius={cuts_boosted_tight_outer:.2f}cm]{{{cuts_boosted_tight_ggf:.2f}/purple/ggF,{cuts_boosted_tight_vbf:.2f}/orange/VBF,{cuts_boosted_tight_vh:.2f}/yellow/VH}}
     \node [blockSR, below of= highboost, draw=none, label={{[yshift=-2.3cm]\contour{{white}}{{Boosted High-$\pt^{{H}}$}}}}] (highboostcat) {{}};
 
     \wheelchart[xshift=315,yshift=-540,innerradius={cuts_boosted_loose_inner:.2f}cm,outerradius=2.2cm]{{{cuts_boosted_loose_others:.2f}/red/Others, {cuts_boosted_loose_fakes:.2f}/green/Fakes, {cuts_boosted_loose_ztt:.2f}/blue/Ztt}}
