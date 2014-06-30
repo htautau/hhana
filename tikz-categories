@@ -1,0 +1,182 @@
+#!/usr/bin/env python
+
+import os
+import pickle
+
+cache = 'cache/yields.pickle'
+if os.path.exists(cache):
+    # use cached yields
+    with open(cache, 'r') as cache_file:
+        yields = pickle.load(cache_file)
+else:
+    from mva.analysis import Analysis
+    from mva.categories import CATEGORIES, Category_Preselection
+    from mva.samples import Higgs
+    
+    analysis = Analysis(2012)
+    analysis.normalize(Category_Preselection)
+    signals = []
+    for modes in (['Z', 'W'], ['gg'], ['VBF']):
+        signals.append(Higgs(2012, modes=modes))
+    backgrounds = analysis.backgrounds
+
+    # get yields of each background and signal in each category
+    # for both the MVA and CBA
+    yields = {}
+    for anatype in ('all', 'cuts'):
+        for category in CATEGORIES[anatype]:
+            info = {}
+            total_background = 0.
+            for sample in backgrounds:
+                events = sample.events(
+                    category, region=analysis.target_region)[1].value
+                info[sample.name] = events
+                total_background += events
+            total_signal = 0.
+            for sample in signals:
+                events = sample.events(
+                    category, region=analysis.target_region)[1].value
+                info[sample.name] = events
+                total_signal += events
+            info['sob'] = total_signal / total_background
+            yields[category.name] = info
+    with open(cache, 'w') as cache_file:
+        pickle.dump(yields, cache_file)
+
+# get min and max s/b
+max_sob = float('-inf')
+min_sob = float('inf')
+for info in yields.values():
+    sob = info['sob']
+    if sob > max_sob:
+        max_sob = sob
+    if sob < min_sob:
+        min_sob = sob
+
+# generate formatting params
+params = {}
+for catname, info in yields.items():
+    params['{0}_ztt'.format(catname)] = info['Ztautau']
+    params['{0}_fakes'.format(catname)] = info['Fakes']
+    params['{0}_others'.format(catname)] = info['Others']
+    params['{0}_vbf'.format(catname)] = info['Signal_VBF']
+    params['{0}_ggf'.format(catname)] = info['Signal_gg']
+    params['{0}_vh'.format(catname)] = info['Signal_V']
+    radius = 0.5 + (info['sob'] - min_sob) / (max_sob - min_sob)
+    params['{0}_outer'.format(catname)] = radius 
+    params['{0}_inner'.format(catname)] = radius + 0.1
+
+
+figure = r"""
+\begin{{tikzpicture}}[scale=1]
+
+    % Nodes
+    \node [block] (init) {{Preselection}};
+    \node [decision, below of= init, node distance=120] (VBFSel) {{VBF-like?}};
+    \node [decision, below of= VBFSel, node distance=200] (BoostedSel) {{Boosted?}};
+
+    % CBA categories
+    \node [decision, right of= VBFSel] (lowdr) {{High $\pt^{{H}}$?}};
+    \node [decision, right of= lowdr] (tightjets) {{Tight di-jets?}};
+
+    \wheelchart[xshift=160,yshift=-365,innerradius={cuts_vbf_lowdr_inner:.2f}cm,outerradius=2.2cm]{{{cuts_vbf_lowdr_others:.2f}/red/Others, {cuts_vbf_lowdr_fakes:.2f}/green/Fakes, {cuts_vbf_lowdr_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=160,yshift=-365,innerradius=0,outerradius={cuts_vbf_lowdr_outer:.2f}cm]{{{cuts_vbf_lowdr_ggf:.2f}/purple/ggF,{cuts_vbf_lowdr_vbf:.2f}/orange/VBF,{cuts_vbf_lowdr_vh:.2f}/yellow/VH}}
+    \node [blockSR, below of= lowdr, draw=none, label={{[yshift=-2.3cm]\contour{{white}}{{VBF High-$\pt^{{H}}$}}}}] (lowdrcat) {{}};
+
+    \wheelchart[xshift=315,yshift=-365,innerradius={cuts_vbf_highdr_tight_inner:.2f}cm,outerradius=2.2cm]{{{cuts_vbf_highdr_tight_others:.2f}/red/Others, {cuts_vbf_highdr_tight_fakes:.2f}/green/Fakes, {cuts_vbf_highdr_tight_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=315,yshift=-365,innerradius=0,outerradius={cuts_vbf_highdr_tight_outer:.2f}cm]{{{cuts_vbf_highdr_tight_ggf:.2f}/purple/ggF,{cuts_vbf_highdr_tight_vbf:.2f}/orange/VBF,{cuts_vbf_highdr_tight_vh:.2f}/yellow/VH}}
+    \node [blockSR, below of= tightjets, draw=none, label={{[yshift=-2.3cm]\contour{{white}}{{VBF Low-$\pt^{{H}}$ Tight}}}}] (tightvbfcat) {{}};
+
+    \wheelchart[xshift=315,yshift=-45,innerradius={cuts_vbf_highdr_loose_inner:.2f}cm,outerradius=2.2cm]{{{cuts_vbf_highdr_loose_others:.2f}/red/Others, {cuts_vbf_highdr_loose_fakes:.2f}/green/Fakes, {cuts_vbf_highdr_loose_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=315,yshift=-45,innerradius=0,outerradius={cuts_vbf_highdr_loose_outer:.2f}cm]{{{cuts_vbf_highdr_loose_ggf:.2f}/purple/ggF,{cuts_vbf_highdr_loose_vbf:.2f}/orange/VBF,{cuts_vbf_highdr_loose_vh:.2f}/yellow/VH}}
+    \node [blockSR, above of= tightjets, draw=none, label={{[yshift=-2.3cm]\contour{{white}}{{VBF Low-$\pt^{{H}}$ Loose}}}}] (loosevbfcat) {{}};
+
+    \node [decision, right of= BoostedSel] (highboost) {{High $\pt^{{H}}$?}};
+
+    \wheelchart[xshift=160,yshift=-695,innerradius={cuts_boosted_tight_inner:.2f}cm,outerradius=2.2cm]{{{cuts_boosted_tight_others:.2f}/red/Others, {cuts_boosted_tight_fakes:.2f}/green/Fakes, {cuts_boosted_tight_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=160,yshift=-695,innerradius=0,{cuts_boosted_tight_outer:.2f}=1cm]{{{cuts_boosted_tight_ggf:.2f}/purple/ggF,{cuts_boosted_tight_vbf:.2f}/orange/VBF,{cuts_boosted_tight_vh:.2f}/yellow/VH}}
+    \node [blockSR, below of= highboost, draw=none, label={{[yshift=-2.3cm]\contour{{white}}{{Boosted High-$\pt^{{H}}$}}}}] (highboostcat) {{}};
+
+    \wheelchart[xshift=315,yshift=-540,innerradius={cuts_boosted_loose_inner:.2f}cm,outerradius=2.2cm]{{{cuts_boosted_loose_others:.2f}/red/Others, {cuts_boosted_loose_fakes:.2f}/green/Fakes, {cuts_boosted_loose_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=315,yshift=-540,innerradius=0,outerradius={cuts_boosted_loose_outer:.2f}cm]{{{cuts_boosted_loose_ggf:.2f}/purple/ggF,{cuts_boosted_loose_vbf:.2f}/orange/VBF,{cuts_boosted_loose_vh:.2f}/yellow/VH}}
+    \node [blockSR, right of= highboost, draw=none, label={{[yshift=-2.3cm]\contour{{white}}{{Boosted Low-$\pt^{{H}}$}}}}] (lowboostcat) {{}};
+
+    % MVA categories
+    \wheelchart[xshift=-175,yshift=-205,innerradius={vbf_inner:.2f}cm,outerradius=2.2cm]{{{vbf_others:.2f}/red/Others, {vbf_fakes:.2f}/green/Fakes, {vbf_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=-175,yshift=-205,innerradius=0,outerradius={vbf_outer:.2f}cm]{{{vbf_ggf:.2f}/purple/ggF,{vbf_vbf:.2f}/orange/VBF,{vbf_vh:.2f}/yellow/VH}}
+    \node [blockSR, left of= VBFSel, draw=none, node distance=105, label={{[yshift=-2.3cm]\contour{{white}}{{MVA VBF}}}}] (mvavbf) {{}};
+
+    \wheelchart[xshift=-175,yshift=-540,innerradius={boosted_inner:.2f}cm,outerradius=2.2cm]{{{boosted_others:.2f}/red/Others, {boosted_fakes:.2f}/green/Fakes, {boosted_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=-175,yshift=-540,innerradius=0,outerradius={boosted_outer:.2f}cm]{{{boosted_ggf:.2f}/purple/ggF,{boosted_vbf:.2f}/orange/VBF,{boosted_vh:.2f}/yellow/VH}}
+    \node [blockSR, left of= BoostedSel, draw=none, node distance=105, label={{[yshift=-2.3cm]\contour{{white}}{{MVA Boosted}}}}] (mvaboost) {{}};
+     
+    \node [blockCR, below of= BoostedSel, node distance=90] (restcat) {{Remaining events}};
+    
+    \wheelchart[xshift=-175,yshift=-695,innerradius={rest_inner:.2f}cm,outerradius=2.2cm]{{{rest_others:.2f}/red/Others, {rest_fakes:.2f}/green/Fakes, {rest_ztt:.2f}/blue/Ztt}}
+    \wheelchart[xshift=-175,yshift=-695,innerradius=0,outerradius={rest_outer:.2f}cm]{{{rest_ggf:.2f}/purple/ggF,{rest_vbf:.2f}/orange/VBF,{rest_vh:.2f}/yellow/VH}}
+    \node [blockSR, left of= restcat, draw=none, node distance=105, label={{[yshift=-2.3cm]\contour{{white}}{{MVA Rest}}}}] (mvarest) {{}};
+
+    % Feyman diagrams
+    % VBF
+    \begin{{scope}}[xshift=-70,yshift=-105,scale=2]
+    \draw[fermion] (-0.5,0.5)--(0,0.4);
+    %\node at (-0.6,0.5) {{$q$}};
+    \draw[fermion] (-0.5,-0.5)--(0,-0.4);
+    %\node at (-0.6,-0.5) {{$q'$}};
+    \draw[fermion] (0,0.4) -- (1,0.5);
+    \draw[fermion] (0,-0.4) -- (1,-0.5);
+    \draw[vector] (0,0.4) -- (0.25,0);
+    \draw[vector] (0,-0.4) -- (0.25,0);
+    %\node at (-0.05,0.25) {{$V$}};
+    %\node at (-0.05,-0.25) {{$V$}};
+    \draw[scalar] (0.25,0)--(1,0);
+    %\node at (0.85,0.25) {{$H$}};
+    \end{{scope}}
+
+    % ggF
+    \begin{{scope}}[xshift=-100,yshift=-450,scale=2]
+    \draw[smallgluon] (0,0.5)--(0.53,0.37);
+    \draw[smallgluon] (0,-0.5)--(0.68,-0.4);
+    \draw[smallgluon] (0.68,-0.4)--(1.5,-0.5);
+    \draw[smallgluon] (0.68,-0.4)--(0.68,-0.05);
+    \draw[fermion] (0.68,-0.05) arc (270:495:0.25);
+    \draw[fermion] (0.5,0.38) arc (135:270:0.25);
+    \draw[scalar] (0.93,0.2)--(1.5,0.2);
+    %\node at (1.35,0.15) {{$H$}};
+    \end{{scope}}
+
+    % Edges
+    \path [line] (init) -- (VBFSel);
+    \path [line] (VBFSel) -r node [midway,above,sloped] {{yes}} (lowdr);
+    \path [line] (lowdr) -r node [midway,above,sloped] {{no}} (tightjets);
+    \path [line] (lowdr) -r node [midway,above,sloped] {{yes}} (lowdrcat);
+    \path [line] (tightjets) -r node [midway,above,sloped] {{yes}} (tightvbfcat);
+    \path [line] (tightjets) -r node [midway,above,sloped] {{no}} (loosevbfcat);
+    \path [line] (VBFSel) -r node [midway,above,sloped] {{no}} (BoostedSel);
+    \path [line] (BoostedSel) -r node [midway,above,sloped] {{yes}} (highboost);
+    \path [line] (highboost) -r node [midway,above,sloped] {{yes}} (highboostcat);
+    \path [line] (highboost) -r node [midway,above,sloped] {{no}} (lowboostcat);
+    \path [line] (BoostedSel) -r node [midway,above,sloped] {{no}} (restcat);
+    \path [line] (VBFSel) -r node [midway,above,sloped] {{yes}} (mvavbf);
+    \path [line] (BoostedSel) -r node [midway,above,sloped] {{yes}} (mvaboost);
+    \path [line] (restcat) -r node {{}} (mvarest);
+
+    % Legend
+    \wheelchart[xshift=315,yshift=-695,innerradius=1.1cm,outerradius=2.2cm]{{10/red/Others, 10/green/Fakes, 10/blue/Ztt}}
+    \wheelchart[xshift=315,yshift=-695,innerradius=0,outerradius=1cm]{{10/purple/ggF,10/orange/VBF,10/yellow/VH}}
+    \node at (11,-25) {{VBF}};
+    \node[rotate=-50,text=white] at (11.5,-24.2) {{ggF}};
+    \node[rotate=50] at (10.5,-24.2) {{VH}};
+    \node at (11,-26) {{Fakes}};
+    \node[rotate=50,text=white] at (9.7,-23.5) {{$Z\rightarrow\tau\tau$}};
+    \node[rotate=-50] at (12.3,-23.5) {{Others}};
+
+    % background blocks
+    \background{{2}}{{1.5}}{{15}}{{-27}}{{Cut-based Analysis}}
+    \background{{-10.5}}{{1.5}}{{-2}}{{-27}}{{Multivariate Analysis}}
+
+    
+\end{{tikzpicture}}
+""".format(**params)
+
+print figure
