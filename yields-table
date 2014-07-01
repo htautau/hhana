@@ -15,7 +15,7 @@ from mva.samples import Data
 from statstools.ufloat import ufloat
 from statstools.jobs import run_pool
 
-# -------------------------------------
+
 def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMINAL'):
     """ 
 	Retrieve the (weigthed) yield and its stat error for a sample to
@@ -28,7 +28,7 @@ def get_yield(sample, Category=Category_Preselection, cuts='', systematic='NOMIN
     val, err = hist[1].value, hist[1].error 
     return val, err
 
-#------------------------------------
+
 class YieldsProcess(Process):
     def __init__(self, systematic, cuts, pickle_name, args): 
         """
@@ -45,7 +45,7 @@ class YieldsProcess(Process):
         self.pickle_name = pickle_name
         self.args = args
     def run(self):
-        yields = {}
+        yields = OrderedDict()
         analysis = get_analysis(self.args)
         for category in analysis.iter_categories(self.args.categories,
                                                  self.args.controls,
@@ -85,11 +85,10 @@ class YieldsProcess(Process):
                     pickle.dump(yields_tot, pickle_file)
 
 
-# -------------------------------------
 def print_yield(yield_tuple, syst=None):
     return str(ufloat(yield_tuple[0], yield_tuple[1], syst=syst))
 
-# -------------------------------------
+
 def get_syst_variation_dict(master_yield, syst):
     syst_variation = {}
     for cat, samples in master_yield['NOMINAL'].items():
@@ -101,26 +100,27 @@ def get_syst_variation_dict(master_yield, syst):
                 syst_variation[cat][sample] = abs(master_yield['NOMINAL'][cat][sample][0]-master_yield[syst][cat][sample][0])
     return syst_variation
 
-# -------------------------------------
+
 def get_table_template():
     latex_lines = OrderedDict()
     latex_lines['cat_name'] = '&'
     latex_lines['sep_1']    = '\\hline'
-    latex_lines['Signal_V_125'] = 'VH($m_H$ = 125 GeV) &'
-    latex_lines['Signal_VBF_125'] = 'VBF H($m_H$ = 125 GeV) &'
-    latex_lines['Signal_gg_125'] = 'ggH($m_H$ = 125 GeV) &'
-    latex_lines['Higgs']    = 'H($m_H$ = 125 GeV) &'
+    latex_lines['Signal_V_125'] = 'VH &'
+    latex_lines['Signal_VBF_125'] = 'VBF &'
+    latex_lines['Signal_gg_125'] = 'ggF &'
     latex_lines['sep_2']    = '\\hline'
-    latex_lines['Ztautau']  = 'Z$\\rightarrow\\tau\\tau$ &'
-    latex_lines['QCD']      = 'Multi-jets &'
-    latex_lines['Others']   = 'Others &'
+    latex_lines['Higgs']    = 'Total Signal &'
     latex_lines['sep_3']    = '\\hline'
-    latex_lines['TotalBkg'] = 'Total Bkg. &'
+    latex_lines['Ztautau']  = 'Z$\\rightarrow\\tau\\tau$ &'
+    latex_lines['QCD']      = 'Fakes &'
+    latex_lines['Others']   = 'Others &'
     latex_lines['sep_4']    = '\\hline'
+    latex_lines['TotalBkg'] = 'Total Background &'
+    latex_lines['sep_5']    = '\\hline'
     latex_lines['Data']     = 'Data &'
     return latex_lines
 
-# -------------------------------------
+
 def get_table_statonly(yields_nom):
     latex_lines = get_table_template()
     for cat in yields_nom.keys():
@@ -134,7 +134,7 @@ def get_table_statonly(yields_nom):
             latex_lines[sample] += '\\\\'
     return latex_lines
 
-# -------------------------------------
+
 def get_table(master_yields, syst_list):
     latex_lines = get_table_template()
     for cat in master_yields['NOMINAL'].keys():
@@ -156,7 +156,7 @@ def get_table(master_yields, syst_list):
             latex_lines[sample] += '\\\\'
     return latex_lines
 
-# -------------------------------------
+
 def get_table_variation(master_yield, variations):
     if len(variations)<2:
         variations = (variations[0], 'NOMINAL')
