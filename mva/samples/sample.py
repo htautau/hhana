@@ -210,6 +210,8 @@ class Sample(object):
             else:
                 new_hist = hist.Clone(name=histname)
             new_hist.Reset()
+            new_hist.decorate(**self.hist_decor)
+            new_hist.title = self.label
             field_hist[field] = new_hist
 
         self.draw_array(field_hist, category, region,

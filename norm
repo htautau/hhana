@@ -54,12 +54,14 @@ channels = analysis.make_var_channels(
     args.target_region,
     include_signal=False)
 
-draw_channel(channels[0], name=VARIABLES[field]['root'],
+draw_channel(
+    channels[0],
+    name=VARIABLES[field]['root'],
     category=category,
     output_name='{0}_postfit{1}'.format(field, analysis.get_suffix()),
     output_dir='plots/normalization',
     show_pvalue=True,
-    top_label="Fakes Model: {0}".format(analysis.fakes_region),
+    #top_label="Fakes Model: {0}".format(analysis.fakes_region),
     plot_label='After {0} fit'.format(VARIABLES[field]['root']),
     data_info=analysis.data.info,
     output_formats=('eps', 'png'))
