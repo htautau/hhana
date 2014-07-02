@@ -31,7 +31,8 @@ UNBLIND = {
 
 PATTERNS = [
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z]+)_(?P<mass>\d+)$'),
-    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z]+)_(?P<mass>\d+)_(?P<year>\d+)$')
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z]+)_(?P<mass>\d+)_(?P<year>\d+)$'),
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z_]+)(?P<year>\d+)_(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$')
 ]
 
 
@@ -47,7 +48,7 @@ def parse_name(name):
         raise ValueError(
             "not a valid workspace/channel name: {0}".format(name))
     return (int(match.group('year')) % 1000 + 2000,
-            match.group('category'),
+            match.group('category').strip('_'),
             int(match.group('mass')))
 
 
@@ -93,6 +94,11 @@ def get_rebinned_graph(graph_origin, binning=None, unblind=True):
             if ip>=length_filled:
                 graph_rebin.SetPoint(ip, x_rebin, 0)
                 graph_rebin.SetPointError(ip, 0, 0, 0, 0)
+            if (unblind is not True) and isinstance(unblind, (tuple, list)):
+                low, high = unblind
+                if (low < binning[ip] <= high) or (low < binning[ip+1] <= high):
+                    graph_rebin.SetPoint(ip, x_rebin, -1)
+                    graph_rebin.SetPointError(ip, 0, 0, 0, 0)
     return graph_rebin
 
 

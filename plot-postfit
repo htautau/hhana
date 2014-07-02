@@ -40,10 +40,11 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
     """
     with root_open(file_name) as file0:
         workspace = file0[ws_name]
+        mc = workspace.obj("ModelConfig")
+        obsData = workspace.data('obsData')
+        workspace.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
         roo_min = workspace.fit()
         fit_res = roo_min.save()
-        obsData =  workspace.data('obsData')
-        mc = workspace.obj("ModelConfig")
         cats =  [cat for cat in mc.GetPdf()]
     
         output_root = output_basename + '.root'
@@ -53,7 +54,7 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         root_open(output_root, 'recreate').Close()
         with open(output_pickle, 'w') as pickle_file:
             pickle.dump({}, pickle_file)
-        
+        workspace.loadSnapshot('StartingPoint')
         workers = []
         for cat in cats:
             log.info('retrieve plotting objects of {0} ...'.format(cat.name))
@@ -62,7 +63,7 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         run_pool(workers, n_jobs=n_jobs)
         
 
-def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
+def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=True):
     """
     """
     Ana = Analysis(2012)
@@ -81,6 +82,9 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     data_ws.__class__ = TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
     data.SetTitle('Data')
+    # if unblind is not True:
+    log.info(type(data))
+
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
@@ -110,11 +114,11 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     hist_signal.linewidth = 4
     hist_signal.title = Ana.higgs_125.label+ ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
-    
-    Model = HistStack(hists=[hist_fake, hist_others,
-                             hist_ztautau, hist_signal],
-                      name='Model_{0}'.format(frame.GetName()))
 
+    hists = [hist_fake, hist_others, hist_ztautau, hist_signal]
+    if (unblind is not True) and isinstance(unblind, (list, tuple)):
+        hists = [hist_fake, hist_others, hist_ztautau]
+    Model = HistStack(hists=hists, name='Model_{0}'.format(frame.GetName()))
     plotables = [Model]
 
     # TODO: make plot identical to standard variable plots
@@ -130,7 +134,8 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     c = Canvas()
     draw(plotables, pad=c, ypadding=(0.3, 0.3),
          xtitle=xtitle, ytitle= 'Events', logy=logy)
-    if '_11' in frame.GetName():
+    if year==2011:
+    #if '_11' in frame.GetName():
         text='Internal 2011'
         sqrts=7
     else:
@@ -148,10 +153,10 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
                  entrysep=0.02,
                  entryheight=0.04)
     leg.Draw()
-    label_name = None
-    for cat in categories:
-        if cat.name in frame.GetName():
-            label_name = cat.label
+    label_name = category.label
+#     for cat in categories:
+#         if cat.name in frame.GetName():
+#             label_name = cat.label
     if label_name is not None: 
         latex = TLatex(0.2, 0.85, label_name)
         latex.SetNDC()
@@ -189,7 +194,7 @@ if __name__ == '__main__':
     if not os.path.exists(plots):
         mkdir_p(plots)
 
-    set_hsg4_style()
+    set_hsg4_style(shape='rect')
     file = root_open(output + '.root')
     for _, _, names in file.walk(class_pattern='*RooPlot*'):
         for name in names:
@@ -208,6 +213,7 @@ if __name__ == '__main__':
                 log.info(unblind)
             else:
                 unblind=True
-            canvas = plot_from_frame(file, file[name], args.fit_var, binning, unblind=unblind)
+            canvas = plot_from_frame(file, file[name], args.fit_var,
+                                     category, year, binning, unblind=unblind)
             canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
     file.Close()
