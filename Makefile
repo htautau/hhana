@@ -242,6 +242,7 @@ thesis:
 	@rm -f ~/thesis.tar.gz
 	@find plots/contours/$(BRANCH) \
 	      plots/categories/$(BRANCH) \
+	      plots/fake_shapes/$(BRANCH) \
 	      plots/shapes/$(BRANCH)/higgs_vs_ztautau \
 	      plots/shapes/$(BRANCH)/qcd_vs_ztautau \
 	      plots/normalization/$(BRANCH) \
