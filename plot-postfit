@@ -18,6 +18,7 @@ from rootpy.utils.path import mkdir_p
 from mva import set_hsg4_style
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
+from statstools.fitresult import Prefit_RooFitResult
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
 from statstools.plotting import (get_uncertainty_graph, parse_name,
@@ -54,8 +55,9 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         root_open(output_root, 'recreate').Close()
         with open(output_pickle, 'w') as pickle_file:
             pickle.dump({}, pickle_file)
-        workspace.loadSnapshot('StartingPoint')
         workers = []
+        # workspace.loadSnapshot('StartingPoint')
+        # fit_res = Prefit_RooFitResult(fit_res, True)
         for cat in cats:
             log.info('retrieve plotting objects of {0} ...'.format(cat.name))
             workers.append(ModelCalculator(file0, workspace, cat, fit_res,
@@ -82,9 +84,6 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     data_ws.__class__ = TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
     data.SetTitle('Data')
-    # if unblind is not True:
-    log.info(type(data))
-
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
@@ -135,7 +134,6 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     draw(plotables, pad=c, ypadding=(0.3, 0.3),
          xtitle=xtitle, ytitle= 'Events', logy=logy)
     if year==2011:
-    #if '_11' in frame.GetName():
         text='Internal 2011'
         sqrts=7
     else:
@@ -153,15 +151,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
                  entrysep=0.02,
                  entryheight=0.04)
     leg.Draw()
-    label_name = category.label
-#     for cat in categories:
-#         if cat.name in frame.GetName():
-#             label_name = cat.label
-    if label_name is not None: 
-        latex = TLatex(0.2, 0.85, label_name)
-        latex.SetNDC()
-        latex.SetTextSize(20)
-        latex.Draw()
+    latex = TLatex(0.2, 0.85, category.label)
+    latex.SetNDC()
+    latex.SetTextSize(20)
+    latex.Draw()
     c.RedrawAxis()
     if fit_var == 'bdt':
         c.SetLogy()
