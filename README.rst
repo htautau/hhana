@@ -2,29 +2,9 @@
 
     UNDER CONSTRUCTION
 
-Skimming
-========
 
-The skimming is performed by the ``hhskim.py`` script.
-
-Run the skims on the grid (after setting up the panda client and your VOMS
-proxy with the phys-higgs production role)::
-
-    ./skim --yall mc11_hadhad mc12_hadhad data11_hadhad data12_hadhad embed11_hadhad embed12_hadhad
-
-
-Datasets
-========
-
-After the skims are finished and downloaded, update the paths in
-``higgstautau/datasets_config.yml`` and update the datasets database::
-
-    ./dsdb --reset hh
-
-Then launch the batch jobs that create all the analysis ntuples (nominal and
-systematics) with::
-
-    ./run_all_hh.sh
+Data Preparation
+================
 
 Automatically organize ROOT and log files with::
 
@@ -179,7 +159,7 @@ Construct the profile of every nuisance parameter  (NP)::
     multinp clean --file path_to_measurement_file.root
 
 Update the paths in plot-nuis and plot the profiles with::
-    
+
     plot-nuis
 
 
@@ -207,7 +187,7 @@ Postfit plot
 
 Compute the postfit histograms and errors with::
 
-    # --fit_var bdt_score/mmc_mass 	
+    # --fit_var bdt_score/mmc_mass
     plot-postfit path_to_measurement_file.root --fit-var bdt_score --force-fit --jobs -1
     # If the fit has already been performed
     plot-postfit path_to_measurement_file.root --fit-var bdt_score
