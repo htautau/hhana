@@ -17,7 +17,8 @@ Dependencies
 
    pip install --user tables
 
-* `scikit-learn <http://scikit-learn.org/stable/>`_::
+* `scikit-learn <http://scikit-learn.org/stable/>`_ (private branch with more
+  support for event weights)::
 
    git clone git://github.com/ndawe/scikit-learn.git
    cd scikit-learn
