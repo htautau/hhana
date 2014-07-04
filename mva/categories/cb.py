@@ -72,8 +72,8 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
-    # limitbins = [0,64,80,92,104,116,132,152,176,INF] # old binning
-    limitbins = [0, 80, 92, 104, 116, 132, 152, INF]
+    # limitbins = [0, 80, 92, 104, 116, 132, 152, INF] - old binning
+    limitbins = [0, 80, 104, 132, INF]
     norm_category = Category_Preselection
 
 
@@ -88,7 +88,8 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)'))
-    limitbins = [0, 64, 80, 92, 104, 116, 132, 152, 176, INF]
+    # limitbins = [0, 64, 80, 92, 104, 116, 132, 152, 176, INF] - old binning
+    limitbins = [0, 64, 80, 92, 104, 116, 152, INF]
     norm_category = Category_Preselection
 
 
@@ -99,7 +100,7 @@ class Category_Cuts_VBF_HighDR(Category_Preselection):
     color = 'red'
     linestyle = 'longdash'
     cuts = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts
-    # limitbins = [0, 64, 80, 92, 104, 116, 132, 152, INF] # old binning
+    # limitbins = [0, 64, 80, 92, 104, 116, 132, 152, INF] - old binning
     limitbins = [0, 80, 92, 104, 116, 132, 152, INF]
     norm_category = Category_Preselection
 
@@ -115,8 +116,8 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
     limitbins = {}
     limitbins[2011] = [0,64,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,INF]
-    # limitbins[2012] = [0,64,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,160,168,176,184,200,INF] # old binning
-    limitbins[2012] = [0,64,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,156,176,INF]
+    # limitbins[2012] = [0,64,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,156,176,INF] - old binning
+    limitbins[2012] = [0, 64, 72, 80, 88, 96, 104, 112, 120, 128, 140, 156, 176, INF]
     norm_category = Category_Preselection
 
 
@@ -130,10 +131,11 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))
     limitbins = {}
-    # limitbins[2011] = [0,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,156,200,INF] # old binning
+    # limitbins[2011] = [0,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,156,200,INF] - old binning
     limitbins[2011] = [0, 80, 88 ,96 ,104 ,112 ,120 ,128, 140, 156, INF]
-    # limitbins[2012] = [0,72,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,144,152,176,184,INF] # old binning
-    limitbins[2012] = [0,64,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,148,156,176,INF]
+    # limitbins[2012] = [0,64,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,148,156,176,INF] - old binning
+    # limitbins[2012] = [0, 64, 80, 88, 96, 104, 112, 120, 128, 136, 148, 176, INF] # - new binning
+    limitbins[2012] = [0, 64, 96, 104, 112, 120, 128, 136, 148, 176, INF] # - alternative new binning
     norm_category = Category_Preselection
 
 

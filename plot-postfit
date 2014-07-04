@@ -13,11 +13,13 @@ from rootpy.plotting import Canvas, HistStack, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
+from rootpy.extern.tabulartext import PrettyTable
 
 # local imports
 from mva import set_hsg4_style
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
+from statstools.fitresult import Prefit_RooFitResult
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
 from statstools.plotting import (get_uncertainty_graph, parse_name,
@@ -40,10 +42,11 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
     """
     with root_open(file_name) as file0:
         workspace = file0[ws_name]
+        mc = workspace.obj("ModelConfig")
+        obsData = workspace.data('obsData')
+        workspace.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
         roo_min = workspace.fit()
         fit_res = roo_min.save()
-        obsData =  workspace.data('obsData')
-        mc = workspace.obj("ModelConfig")
         cats =  [cat for cat in mc.GetPdf()]
     
         output_root = output_basename + '.root'
@@ -53,8 +56,9 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         root_open(output_root, 'recreate').Close()
         with open(output_pickle, 'w') as pickle_file:
             pickle.dump({}, pickle_file)
-        
         workers = []
+        # workspace.loadSnapshot('StartingPoint')
+        # fit_res = Prefit_RooFitResult(fit_res, True)
         for cat in cats:
             log.info('retrieve plotting objects of {0} ...'.format(cat.name))
             workers.append(ModelCalculator(file0, workspace, cat, fit_res,
@@ -62,7 +66,7 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         run_pool(workers, n_jobs=n_jobs)
         
 
-def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
+def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=True):
     """
     """
     Ana = Analysis(2012)
@@ -73,6 +77,7 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     graph_bkg = get_rebinned_graph(graph_bkg_ws, binning, unblind=True) 
     graph_bkg.fillstyle='//'
     graph_bkg.color='black'
+    graph_bkg.name = 'Background'
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
 
@@ -80,12 +85,14 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     # HACK HACK HACK
     data_ws.__class__ = TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
-    data.SetTitle('Data')
+    data.name = 'Data'
+    data.title = 'Data'
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
     hist_fake.color = Ana.qcd.hist_decor['color']
     hist_fake.fillstyle = 'solid'
+    hist_fake.name = 'Fakes'
     hist_fake.title = Ana.qcd.label
     hist_fake.legendstyle = 'F'
     
@@ -93,6 +100,7 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     hist_others = get_rebinned_hist(hist_others_ws, binning)
     hist_others.color = Ana.others.hist_decor['color']
     hist_others.fillstyle = 'solid'
+    hist_others.name = 'Others'
     hist_others.title = Ana.others.label
     hist_others.legendstyle = 'F'
 
@@ -100,6 +108,7 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     hist_ztautau = get_rebinned_hist(hist_ztautau_ws, binning)
     hist_ztautau.color = Ana.ztautau.hist_decor['color']
     hist_ztautau.fillstyle = 'solid'
+    hist_ztautau.name = 'Ztautau'
     hist_ztautau.title = Ana.ztautau.label
     hist_ztautau.legendstyle = 'F'
     
@@ -108,14 +117,28 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
     hist_signal.linestyle = 'solid'
     hist_signal.linewidth = 4
+    hist_signal.name = 'Signal'
     hist_signal.title = Ana.higgs_125.label+ ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
     
-    Model = HistStack(hists=[hist_fake, hist_others,
-                             hist_ztautau, hist_signal],
-                      name='Model_{0}'.format(frame.GetName()))
 
+
+    hists = [hist_fake, hist_others, hist_ztautau, hist_signal]
+    if (unblind is not True) and isinstance(unblind, (list, tuple)):
+        hists = [hist_fake, hist_others, hist_ztautau]
+    Model = HistStack(hists=hists, name='Model_{0}'.format(frame.GetName()))
     plotables = [Model]
+
+    log.info(category.name)
+    postfit_table = PrettyTable(['Sample']+['bin_{0}'.format(bin.idx) for bin in hist_ztautau.bins()]) 
+    for h in [data, graph_bkg]+hists:
+        row = [h.name]
+        #if isinstance(h, Graph):
+        for val in list(h.y()):
+            row.append('{0:1.3f}'.format(val))
+        postfit_table.add_row(row)
+    log.info(postfit_table.get_string())
+
 
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
@@ -130,7 +153,7 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
     c = Canvas()
     draw(plotables, pad=c, ypadding=(0.3, 0.3),
          xtitle=xtitle, ytitle= 'Events', logy=logy)
-    if '_11' in frame.GetName():
+    if year==2011:
         text='Internal 2011'
         sqrts=7
     else:
@@ -148,15 +171,10 @@ def plot_from_frame(file, frame, fit_var, binning=None, unblind=True):
                  entrysep=0.02,
                  entryheight=0.04)
     leg.Draw()
-    label_name = None
-    for cat in categories:
-        if cat.name in frame.GetName():
-            label_name = cat.label
-    if label_name is not None: 
-        latex = TLatex(0.2, 0.85, label_name)
-        latex.SetNDC()
-        latex.SetTextSize(20)
-        latex.Draw()
+    latex = TLatex(0.2, 0.85, category.label)
+    latex.SetNDC()
+    latex.SetTextSize(20)
+    latex.Draw()
     c.RedrawAxis()
     if fit_var == 'bdt':
         c.SetLogy()
@@ -189,7 +207,7 @@ if __name__ == '__main__':
     if not os.path.exists(plots):
         mkdir_p(plots)
 
-    set_hsg4_style()
+    set_hsg4_style(shape='rect')
     file = root_open(output + '.root')
     for _, _, names in file.walk(class_pattern='*RooPlot*'):
         for name in names:
@@ -208,6 +226,7 @@ if __name__ == '__main__':
                 log.info(unblind)
             else:
                 unblind=True
-            canvas = plot_from_frame(file, file[name], args.fit_var, binning, unblind=unblind)
+            canvas = plot_from_frame(file, file[name], args.fit_var,
+                                     category, year, binning, unblind=unblind)
             canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
     file.Close()
