@@ -47,6 +47,14 @@ Dependencies
 
    pip install --user tabulate
 
+* `hhntup <https://github.com/htautau/hhntup>`_::
+
+   git clone git://github.com/htautau/hhntup.git
+
+* `hhana <https://github.com/htautau/hhana>`_::
+
+   git clone git://github.com/htautau/hhana.git
+
 
 Data Preparation
 ================
