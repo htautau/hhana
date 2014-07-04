@@ -853,6 +853,7 @@ class SystematicsSample(Sample):
         self.db = db
         self.datasets = []
         self.systematics = systematics
+        self.norms = {}
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
 
@@ -1070,11 +1071,13 @@ class SystematicsSample(Sample):
                 table = sys_tables['NOMINAL']
                 events = sys_events['NOMINAL']
             log.debug(
-                "dataset: {0}  cross section: {1} [pb] "
-                "k-factor: {2} "
-                "filtering efficiency: {3} "
-                "events {4}".format(
-                    ds.name, xs, kfact, effic, events))
+                "\ndataset: {0}"
+                "\ntable: {1}"
+                "\ncross section: {2} [pb]"
+                "\nk-factor: {3}"
+                "\nfiltering efficiency: {4}"
+                "\nevents {5}".format(
+                    ds.name, table.name, xs, kfact, effic, events))
             actual_scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
@@ -1087,6 +1090,8 @@ class SystematicsSample(Sample):
                 scale * actual_scale *
                 LUMI[self.year] *
                 xs * kfact * effic / events)
+            if systematic in self.norms:
+                weight *= self.norms[systematic]
             # read the table with a selection
             try:
                 if table_selection:
