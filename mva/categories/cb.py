@@ -134,7 +134,8 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     # limitbins[2011] = [0,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,156,200,INF] - old binning
     limitbins[2011] = [0, 80, 88 ,96 ,104 ,112 ,120 ,128, 140, 156, INF]
     # limitbins[2012] = [0,64,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,148,156,176,INF] - old binning
-    limitbins[2012] = [0, 64, 80, 88, 96, 104, 112, 120, 128, 136, 148, 176, INF]
+    # limitbins[2012] = [0, 64, 80, 88, 96, 104, 112, 120, 128, 136, 148, 176, INF] # - new binning
+    limitbins[2012] = [0, 64, 96, 104, 112, 120, 128, 136, 148, 176, INF] # - alternative new binning
     norm_category = Category_Preselection
 
 

@@ -93,8 +93,11 @@ def fix_measurement(meas,
         process_measurement(meas,
                             merge_bins=[(3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18)],
                             merge_bins_channels=['*cuts_boosted_tight_12*'])
+        # process_measurement(meas,
+        #                     merge_bins=[(3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18), (19, 20)],
+        #                     merge_bins_channels=['*cuts_boosted_loose_12*'])
         process_measurement(meas,
-                            merge_bins=[(3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18), (19, 20)],
+                            merge_bins=[(2, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18), (19, 20)],
                             merge_bins_channels=['*cuts_boosted_loose_12*'])
 
     # fill empty bins with the average sample weight

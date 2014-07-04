@@ -120,20 +120,34 @@ def plot(name, curves, labels):
 # plot('7_8_final_cba', [cut_combined_11, cut_combined_12, cut_combined], ['CBA 7 TeV', 'CBA 8 TeV', 'CBA 7+8 TeV'])
 
 # 8 TeV mu=0, mu=1, mu=muhat
-cut_combined_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='0'))
+#cut_combined_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='0'))
 #
-cut_vbf_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=12, blind=False, profile='0'))
-cut_vbf_lowdr_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_lowdr', year=12, blind=False, profile='0'))
-cut_vbf_highdr_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_tight', year=12, blind=False, profile='0'))
-cut_vbf_highdr_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_loose', year=12, blind=False, profile='0'))
+#cut_vbf_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=12, blind=False, profile='0'))
+#cut_vbf_lowdr_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_lowdr', year=12, blind=False, profile='0'))
+#cut_vbf_highdr_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_tight', year=12, blind=False, profile='0'))
+#cut_vbf_highdr_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_loose', year=12, blind=False, profile='0'))
 #
-cut_boosted_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=12, blind=False, profile='0'))
-cut_boosted_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_tight', year=12, blind=False, profile='0'))
+#cut_boosted_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=12, blind=False, profile='0'))
+#cut_boosted_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_tight', year=12, blind=False, profile='0'))
 cut_boosted_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_loose', year=12, blind=False, profile='0'))
+cut_boosted_loose_12_mu1 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_loose', year=12, blind=False, profile='1'))
+cut_boosted_loose_12_muhat = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_loose', year=12, blind=False, profile='hat'))
+cut_boosted_loose_12 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_loose', year=12, blind=True))
+
+plot('12_boosted_loose',
+     [cut_boosted_loose_12_mu0,
+      cut_boosted_loose_12_mu1,
+      cut_boosted_loose_12_muhat,
+      cut_boosted_loose_12],
+     ['CBA Profiled at #mu=0',
+      'CBA Profiled at #mu=1',
+      'CBA Profiled at #mu=#mu_{hat}',
+      'CBA No Profile'])
+
+
 #
-plot('12_profile', [cut_combined_12_mu0], ['CBA Profiled at #mu=0'])
 #plot('12_profile_mu0', [cut_combined_12_mu0, cut_vbf_12_mu0, cut_boosted_12_mu0], ['Combined', 'vbf', 'boosted'])
-plot('12_profile_vbf_mu0', [cut_vbf_12_mu0, cut_vbf_lowdr_12_mu0, cut_vbf_highdr_tight_12_mu0, cut_vbf_highdr_loose_12_mu0],
-     ['vbf', 'vbf lowdr', 'vbf highdr tight', 'vbf highdr loose'])
-plot('12_profile_boosted_mu0', [cut_boosted_12_mu0, cut_boosted_tight_12_mu0, cut_boosted_loose_12_mu0],
-     ['boosted', 'boosted tight', 'boosted loose'])
+# plot('12_profile_vbf_mu0', [cut_vbf_12_mu0, cut_vbf_lowdr_12_mu0, cut_vbf_highdr_tight_12_mu0, cut_vbf_highdr_loose_12_mu0],
+#      ['vbf', 'vbf lowdr', 'vbf highdr tight', 'vbf highdr loose'])
+# plot('12_profile_boosted_mu0', [cut_boosted_12_mu0, cut_boosted_tight_12_mu0, cut_boosted_loose_12_mu0],
+#      ['boosted', 'boosted tight', 'boosted loose'])

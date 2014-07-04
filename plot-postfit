@@ -13,6 +13,7 @@ from rootpy.plotting import Canvas, HistStack, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
+from rootpy.extern.tabulartext import PrettyTable
 
 # local imports
 from mva import set_hsg4_style
@@ -76,6 +77,7 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     graph_bkg = get_rebinned_graph(graph_bkg_ws, binning, unblind=True) 
     graph_bkg.fillstyle='//'
     graph_bkg.color='black'
+    graph_bkg.name = 'Background'
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
 
@@ -83,12 +85,14 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     # HACK HACK HACK
     data_ws.__class__ = TGraphAsymmErrors
     data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
-    data.SetTitle('Data')
+    data.name = 'Data'
+    data.title = 'Data'
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
     hist_fake.color = Ana.qcd.hist_decor['color']
     hist_fake.fillstyle = 'solid'
+    hist_fake.name = 'Fakes'
     hist_fake.title = Ana.qcd.label
     hist_fake.legendstyle = 'F'
     
@@ -96,6 +100,7 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_others = get_rebinned_hist(hist_others_ws, binning)
     hist_others.color = Ana.others.hist_decor['color']
     hist_others.fillstyle = 'solid'
+    hist_others.name = 'Others'
     hist_others.title = Ana.others.label
     hist_others.legendstyle = 'F'
 
@@ -103,6 +108,7 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_ztautau = get_rebinned_hist(hist_ztautau_ws, binning)
     hist_ztautau.color = Ana.ztautau.hist_decor['color']
     hist_ztautau.fillstyle = 'solid'
+    hist_ztautau.name = 'Ztautau'
     hist_ztautau.title = Ana.ztautau.label
     hist_ztautau.legendstyle = 'F'
     
@@ -111,14 +117,28 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
     hist_signal.linestyle = 'solid'
     hist_signal.linewidth = 4
+    hist_signal.name = 'Signal'
     hist_signal.title = Ana.higgs_125.label+ ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
+    
+
 
     hists = [hist_fake, hist_others, hist_ztautau, hist_signal]
     if (unblind is not True) and isinstance(unblind, (list, tuple)):
         hists = [hist_fake, hist_others, hist_ztautau]
     Model = HistStack(hists=hists, name='Model_{0}'.format(frame.GetName()))
     plotables = [Model]
+
+    log.info(category.name)
+    postfit_table = PrettyTable(['Sample']+['bin_{0}'.format(bin.idx) for bin in hist_ztautau.bins()]) 
+    for h in [data, graph_bkg]+hists:
+        row = [h.name]
+        #if isinstance(h, Graph):
+        for val in list(h.y()):
+            row.append('{0:1.3f}'.format(val))
+        postfit_table.add_row(row)
+    log.info(postfit_table.get_string())
+
 
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
