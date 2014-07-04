@@ -2,6 +2,42 @@
 
     UNDER CONSTRUCTION
 
+Dependencies
+============
+
+* NumPy::
+
+   pip install --user numpy
+
+* HDF5::
+
+   yum install hdf5 hdf5-devel
+
+* PyTables::
+
+   pip install --user tables
+
+* scikit-learn::
+
+   git clone git://github.com/ndawe/scikit-learn.git
+   cd scikit-learn
+   git checkout -b htt origin/htt
+   python setup.py install --user
+
+* `rootpy <https://github.com/rootpy/rootpy>`_::
+
+   git clone git://github.com/rootpy/rootpy.git
+   cd rootpy
+   python setup.py install --user
+
+* `root_numpy <https://github.com/rootpy/root_numpy>`_::
+
+   pip install --user root_numpy
+
+* `yellowhiggs <https://pypi.python.org/pypi/yellowhiggs/>`_::
+
+   pip install --user yellowhiggs
+
 
 Data Preparation
 ================
