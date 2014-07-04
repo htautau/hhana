@@ -72,6 +72,19 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
         with root_open(os.path.join(DAT_DIR, 'embedding_corrections.root')) as file:
             self.trigger_correct = file['ebmc_weight_{0}'.format(self.year % 1000)]
             self.trigger_correct.SetDirectory(0)
+        if self.systematics:
+            # normalize ISOL and MFS variations to same as nominal
+            # at preselection
+            from ..categories import Category_Preselection
+            nps = [('MFS_UP',),
+                   ('MFS_DOWN',),
+                   ('ISOL_UP',),
+                   ('ISOL_DOWN',)]
+            nominal_events = self.events(Category_Preselection)[1].value
+            for np in nps:
+                np_events = self.events(Category_Preselection,
+                                        systematic=np)[1].value
+                self.norms[np] =  nominal_events / np_events
 
     def corrections(self, rec):
         # posterior trigger correction
