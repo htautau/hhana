@@ -32,7 +32,8 @@ UNBLIND = {
 PATTERNS = [
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z]+)_(?P<mass>\d+)$'),
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z]+)_(?P<mass>\d+)_(?P<year>\d+)$'),
-    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z_]+)(?P<year>\d+)_(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$')
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z_]+)(?P<year>\d+)_(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$'),
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z_]+)(?P<mass>\d+)$')
 ]
 
 

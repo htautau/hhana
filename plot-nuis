@@ -14,7 +14,7 @@ from rootpy import ROOT
 from ROOT import TLine
 
 #local imports
-from statstools.plotting import get_year, get_category, get_data, print_np
+from statstools.plotting import parse_name, get_category, get_data, print_np
 
 log = logging.getLogger(os.path.basename(__file__))
 
@@ -22,7 +22,7 @@ log = logging.getLogger(os.path.basename(__file__))
 style = get_style('ATLAS', shape='square')
 style.SetPadLeftMargin(0.16)
 style.SetTitleYOffset(1.4)
-style.SetTitleSize(15)
+style.SetTitleSize(20)
 set_style(style)
 
 if not os.getenv('MVA_NO_BATCH', False):
@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     # Step1: Retrieve NP scans of the combined WS
     graphs = {}
-    combined_np_path = get_pickle_path(args.path, 'hh_combination_{0}'.format(args.mass))
+    combined_np_path = get_pickle_path(args.path, 'hh_12_combination_{0}'.format(args.mass))
     if not os.path.exists(combined_np_path):
         raise RuntimeError('Need the combineds WS scans to run !')
     data_comb = get_data(combined_np_path)
@@ -104,12 +104,22 @@ if __name__ == '__main__':
         if os.path.isdir(os.path.join(args.path, dir)):
             if 'combination' in dir:
                 continue
+            log.info('channel_'+dir)
             if args.mass in dir:
                 np_path = get_pickle_path(args.path, dir)
-                year = get_year(dir)
+                if '_12_' in dir:
+                    year = 2012
+                elif '_11_' in dir:
+                    year = 2011
+                else:
+                    continue
+                _, cat_name, _ = parse_name('channel_'+dir)
+
+                log.info('{0} - {1}'.format(dir, year))
+                #year = get_year(dir)
                 if year is None:
                     continue
-                cat = get_category(dir, categories)
+                cat = get_category(cat_name, categories)
                 if cat is None:
                     continue
                 log.info(dir)
@@ -130,10 +140,10 @@ if __name__ == '__main__':
                         
     # Step 3: Draw the NPS scans
     plots = os.path.join(args.path,
-                         'hh_combination_{0}'.format(args.mass),
+                         'hh_12_combination_{0}'.format(args.mass),
                          'nuisances_scans')
     if not os.path.exists(plots):
         mkdir_p(plots)
-
     for nuis, graphs_nuis in graphs.items():
+        log.info(graphs_nuis)
         plot_nuis(nuis, graphs_nuis, plots)

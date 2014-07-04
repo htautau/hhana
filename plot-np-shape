@@ -7,6 +7,7 @@ from rootpy.extern.argparse import ArgumentParser
 from rootpy.stats.histfactory import measurements_from_xml, HistoSys, OverallSys, Sample
 from rootpy.plotting import Hist, Legend, Graph, Canvas
 from rootpy.plotting.utils import get_band
+from rootpy.utils.path import mkdir_p
 # local imports
 from statstools.fixups import find_measurements
 from statstools import log; log = log[__name__]
@@ -189,6 +190,9 @@ for input_path in args.paths:
         measurements = measurements_from_xml(path, cd_parent=True,
                                              collect_histograms=True,
                                              silence=False)
+        plots_dir = os.path.join(dirpath, 'np_shapes')
+        if not os.path.exists(plots_dir):
+            mkdir_p(plots_dir)
         for meas in measurements:
             log.info(meas.name)
             for channel in meas.channels:
@@ -205,10 +209,9 @@ for input_path in args.paths:
                                               sys_name=name,
                                               sample_name = sample.name,
                                               category_name = channel.name)
-                            save_canvas(plot, 'plots',
-                                        '{0}/shape_{1}_{2}_{3}.png'.format(meas.name,
-                                                                           channel.name,
-                                                                           sample.name,
-                                                                           name))
+                            plot.SaveAs(os.path.join(plots_dir,
+                                                     'shape_{0}_{1}_{2}.png'.format(channel.name,
+                                                                                    sample.name,
+                                                                                    name)))
                             hsys_high.Reset()
                             hsys_low.Reset()
