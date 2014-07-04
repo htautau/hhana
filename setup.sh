@@ -21,7 +21,7 @@ export HIGGSTAUTAU_MVA_DIR=$DIR_HIGGSTAUTAU_MVA_SETUP
 export PYTHONPATH=${DIR_HIGGSTAUTAU_MVA_SETUP}${PYTHONPATH:+:$PYTHONPATH}
 export PATH=${DIR_HIGGSTAUTAU_MVA_SETUP}${PATH:+:$PATH}
 
-if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau/setup.sh ]
+if [ -f ${DIR_HIGGSTAUTAU_MVA_SETUP}/../hhntup/setup.sh ]
 then
-    source ${DIR_HIGGSTAUTAU_MVA_SETUP}/../higgstautau/setup.sh
+    source ${DIR_HIGGSTAUTAU_MVA_SETUP}/../hhntup/setup.sh
 fi
