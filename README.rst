@@ -42,6 +42,10 @@ Dependencies
 
    pip install --user GitPython
 
+* `tabulate <https://pypi.python.org/pypi/tabulate>`_::
+
+   pip install --user tabulate
+
 
 Data Preparation
 ================
