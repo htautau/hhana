@@ -28,6 +28,10 @@ Dependencies
    git checkout -b htt origin/htt
    python setup.py install --user
 
+* `matplotlib <http://matplotlib.org/>`_::
+
+   pip install --user matplotlib
+
 * `rootpy <https://github.com/rootpy/rootpy>`_::
 
    git clone git://github.com/rootpy/rootpy.git
