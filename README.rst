@@ -5,19 +5,19 @@
 Dependencies
 ============
 
-* NumPy::
+* `NumPy <http://www.numpy.org/>`_::
 
    pip install --user numpy
 
-* HDF5::
+* `HDF5 <http://www.hdfgroup.org/HDF5/>`_::
 
    yum install hdf5 hdf5-devel
 
-* PyTables::
+* `PyTables <http://www.pytables.org/moin>`_::
 
    pip install --user tables
 
-* scikit-learn::
+* `scikit-learn <http://scikit-learn.org/stable/>`_::
 
    git clone git://github.com/ndawe/scikit-learn.git
    cd scikit-learn
@@ -30,13 +30,17 @@ Dependencies
    cd rootpy
    python setup.py install --user
 
-* `root_numpy <https://github.com/rootpy/root_numpy>`_::
+* `root_numpy <https://pypi.python.org/pypi/root_numpy>`_::
 
    pip install --user root_numpy
 
 * `yellowhiggs <https://pypi.python.org/pypi/yellowhiggs/>`_::
 
    pip install --user yellowhiggs
+
+* `GitPython <https://github.com/gitpython-developers/GitPython>`_::
+
+   pip install --user GitPython
 
 
 Data Preparation
