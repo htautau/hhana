@@ -223,7 +223,7 @@ if __name__ == '__main__':
             binning = get_binning(category, year, fit_var=args.fit_var)
             if args.blind:
                 unblind = get_blinding(category, year, fit_var=args.fit_var)
-                log.info(unblind)
+                log.info('Blinding region: {0}'.format(unblind))
             else:
                 unblind=True
             canvas = plot_from_frame(file, file[name], args.fit_var,

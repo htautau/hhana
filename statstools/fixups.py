@@ -76,7 +76,8 @@ def fix_measurement(meas,
                     chi2_threshold=0.99,
                     symmetrize=False,
                     symmetrize_partial=False,
-                    merge=False):
+                    merge=False,
+                    remove_samples=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
@@ -150,4 +151,8 @@ def fix_measurement(meas,
             prune_histosys_threshold=0.1, # 10%
             prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
 
-
+    if remove_samples:
+        # remove samples with integral below threshold
+        process_measurement(meas,
+            remove_samples=True,
+            remove_samples_threshold=1e-6)

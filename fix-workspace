@@ -11,6 +11,7 @@ parser.add_argument('--chi2-threshold', type=float, default=0.99)
 parser.add_argument('--symmetrize', action='store_true', default=False)
 parser.add_argument('--symmetrize-partial', action='store_true', default=False)
 parser.add_argument('--merge', action='store_true', default=False)
+parser.add_argument('--remove-samples', action='store_true', default=False)
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
@@ -23,4 +24,5 @@ fix(args.paths, n_jobs=args.jobs, suffix=args.suffix, verbose=not args.quiet,
     chi2_threshold=args.chi2_threshold,
     symmetrize=args.symmetrize,
     symmetrize_partial=args.symmetrize_partial,
+    remove_samples=args.remove_samples,
     merge=args.merge)
