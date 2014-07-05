@@ -159,42 +159,10 @@ Run the batch jobs that create the workspaces with::
     make mva-workspaces
     make cuts-workspaces
 
-Go get some coffee.
+When the batch jobs are done, create the workspace combinations with::
 
-
-Combining Workspaces
----------------------
-
-Move to the directory containing all the MVA workspaces to combine::
-
-    cd workspaces/hh_nos_nonisol_ebz_mva
-
-Combine workspaces across years with::
-
-    for mass in $(seq 100 5 150); do
-        combine hh_11_vbf_$mass hh_12_vbf_$mass --name hh_vbf_$mass;
-        combine hh_11_boosted_$mass hh_12_boosted_$mass --name hh_boosted_$mass;
-        combine hh_11_combination_$mass hh_12_combination_$mass --name hh_combination_$mass;
-    done
-
-Check your email.
-
-Move to the directory containing all the CBA workspaces to combine::
-
-    cd workspaces/hh_nos_nonisol_ebz_cuts
-
-Create VBF and boosted combinations for each year, and a combination
-across years::
-
-    for mass in $(seq 100 5 150); do
-        combine hh_11_cuts_boosted_loose_$mass hh_11_cuts_boosted_tight_$mass --name hh_11_cuts_boosted_$mass;
-        combine hh_12_cuts_boosted_loose_$mass hh_12_cuts_boosted_tight_$mass --name hh_12_cuts_boosted_$mass;
-        combine hh_11_cuts_vbf_lowdr_$mass hh_11_cuts_vbf_highdr_$mass --name hh_11_cuts_vbf_$mass;
-        combine hh_12_cuts_vbf_lowdr_$mass hh_12_cuts_vbf_highdr_loose_$mass hh_12_cuts_vbf_highdr_tight_$mass --name hh_12_cuts_vbf_$mass;
-        combine hh_11_cuts_boosted_$mass hh_12_cuts_boosted_$mass --name hh_cuts_boosted_$mass;
-        combine hh_11_cuts_vbf_$mass hh_12_cuts_vbf_$mass --name hh_cuts_vbf_$mass;
-        combine hh_11_combination_$mass hh_12_combination_$mass --name hh_combination_$mass;
-    done
+    make combine-mva
+    make combine-cuts
 
 
 Fixing Workspaces

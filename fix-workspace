@@ -6,12 +6,14 @@ parser = ArgumentParser()
 parser.add_argument('--jobs', type=int, default=-1)
 parser.add_argument('--quiet', default=False, action='store_true')
 parser.add_argument('--suffix', default='fixed')
+parser.add_argument('--prune-norms', action='store_true', default=False)
 parser.add_argument('--prune-shapes', action='store_true', default=False)
 parser.add_argument('--chi2-threshold', type=float, default=0.99)
 parser.add_argument('--symmetrize', action='store_true', default=False)
 parser.add_argument('--symmetrize-partial', action='store_true', default=False)
 parser.add_argument('--merge', action='store_true', default=False)
-parser.add_argument('--remove-samples', action='store_true', default=False)
+parser.add_argument('--prune-samples', action='store_true', default=False)
+parser.add_argument('--drop-others-shapes', action='store_true', default=False)
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
@@ -19,10 +21,13 @@ args.symmetrize = args.symmetrize or args.symmetrize_partial
 
 from statstools.fixups import fix
 
-fix(args.paths, n_jobs=args.jobs, suffix=args.suffix, verbose=not args.quiet,
+fix(args.paths, n_jobs=args.jobs,
+    suffix=args.suffix, verbose=not args.quiet,
+    prune_norms=args.prune_norms,
     prune_shapes=args.prune_shapes,
     chi2_threshold=args.chi2_threshold,
     symmetrize=args.symmetrize,
     symmetrize_partial=args.symmetrize_partial,
-    remove_samples=args.remove_samples,
+    prune_samples=args.prune_samples,
+    drop_others_shapes=args.drop_others_shapes,
     merge=args.merge)

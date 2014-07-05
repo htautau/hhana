@@ -336,10 +336,10 @@ binning-each-mass:
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
 		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
-	done; \
-	for mass in $$(seq 100 5 150); do \
-		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
 	done
+	#for mass in $$(seq 100 5 150); do \
+	#	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
+	#done
 
 .PHONY: mva-workspaces
 mva-workspaces:
@@ -366,6 +366,32 @@ mva-workspaces-multibdt:
 .PHONY: workspaces
 workspaces: mva-workspaces cuts-workspaces
 
+.PHONY: combine-mva
+combine-mva:
+	@cd workspaces/hh_nos_nonisol_ebz_mva
+	@for mass in $$(seq 100 5 150); do \
+		combine hh_11_vbf_$${mass} hh_12_vbf_$${mass} --name hh_vbf_$${mass}; \
+		combine hh_11_boosted_$${mass} hh_12_boosted_$${mass} --name hh_boosted_$${mass}; \
+		combine hh_11_combination_$${mass} hh_12_combination_$${mass} --name hh_combination_$${mass}; \
+	done;
+
+.PHONY: combine-cuts
+combine-cuts:
+	@cd workspaces/hh_nos_nonisol_ebz_cuts
+	#@for mass in $$(seq 100 5 150); do \
+		combine hh_11_cuts_boosted_loose_$${mass} hh_11_cuts_boosted_tight_$${mass} --name hh_11_cuts_boosted_$${mass}; \
+		combine hh_11_cuts_vbf_lowdr_$${mass} hh_11_cuts_vbf_highdr_$${mass} --name hh_11_cuts_vbf_$${mass}; \
+	done;
+	@for mass in $$(seq 100 5 150); do \
+		combine hh_12_cuts_boosted_loose_$${mass} hh_12_cuts_boosted_tight_$${mass} --name hh_12_cuts_boosted_$${mass}; \
+		combine hh_12_cuts_vbf_lowdr_$${mass} hh_12_cuts_vbf_highdr_loose_$${mass} hh_12_cuts_vbf_highdr_tight_$${mass} --name hh_12_cuts_vbf_$${mass}; \
+	done;
+	#for mass in $$(seq 100 5 150); do \
+		combine hh_11_cuts_boosted_$${mass} hh_12_cuts_boosted_$${mass} --name hh_cuts_boosted_$${mass}; \
+		combine hh_11_cuts_vbf_$${mass} hh_12_cuts_vbf_$${mass} --name hh_cuts_vbf_$${mass}; \
+		combine hh_11_combination_$${mass} hh_12_combination_$${mass} --name hh_combination_$${mass}; \
+	done;
+
 .PHONY: pruning
 pruning:
 	@for ana in mva; do \
@@ -376,11 +402,13 @@ pruning:
 			cp -r ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass} .; \
 			cp ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass}.root .; \
 		done; \
-		fix-workspace --quiet hh_combination_[0-9][0-9][0-9]; \
+		fix-workspace --quiet --suffix split_norm_shape hh_combination_[0-9][0-9][0-9]; \
+		fix-workspace --quiet --suffix drop_others_shapes --drop-others-shapes hh_combination_[0-9][0-9][0-9]; \
+		fix-workspace --quiet --suffix drop_others_shapes_prune_norms --drop-others-shapes --prune-norms hh_combination_[0-9][0-9][0-9]; \
 		for thresh in 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.96 0.97 0.98 0.99 1; do \
-			fix-workspace --quiet --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh} hh_combination_[0-9][0-9][0-9]; \
-			fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_sym hh_combination_[0-9][0-9][0-9]; \
-			fix-workspace --quiet --symmetrize-partial --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_part_sym hh_combination_[0-9][0-9][0-9]; \
+			fix-workspace --quiet --drop-others-shapes --prune-norms --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh} hh_combination_[0-9][0-9][0-9]; \
+			fix-workspace --quiet --drop-others-shapes --prune-norms --symmetrize --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_sym hh_combination_[0-9][0-9][0-9]; \
+			fix-workspace --quiet --drop-others-shapes --prune-norms --symmetrize-partial --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_part_sym hh_combination_[0-9][0-9][0-9]; \
 		done; \
 		cd ..; \
 	done
