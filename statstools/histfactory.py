@@ -42,9 +42,9 @@ def process_measurement(m,
                         drop_np_samples=None,
                         drop_np_channels=None,
 
-                        remove_samples=False,
-                        remove_samples_threshold=1e-7,
-                        
+                        prune_samples=False,
+                        prune_samples_threshold=1e-7,
+
                         symmetrize_names=None,
                         symmetrize_types=None,
                         symmetrize_samples=None,
@@ -189,12 +189,12 @@ def process_measurement(m,
                         s.RemoveOverallSys(name)
 
         # remove samples with integral below threshold
-        if remove_samples:
+        if prune_samples:
             for s in c.samples:
-                if s.hist.Integral()<remove_samples_threshold:
+                if s.hist.Integral() < prune_samples_threshold:
                     log.info("removing sample {0} in channel {1}".format(s.name, c.name))
                     c.RemoveSample(s.name)
-                    
+
         # apply fill_empties on nominal histograms
         if fill_empties and matched(c.name, fill_empties_channels):
             for s in c.samples:

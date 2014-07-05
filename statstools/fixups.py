@@ -72,17 +72,18 @@ def fix(inputs, suffix='fixed', verbose=False, n_jobs=-1, **kwargs):
 
 
 def fix_measurement(meas,
+                    prune_norms=False,
                     prune_shapes=False,
                     chi2_threshold=0.99,
                     symmetrize=False,
                     symmetrize_partial=False,
                     merge=False,
-                    remove_samples=False):
+                    prune_samples=False,
+                    drop_others_shapes=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
     """
-
     if merge:
         # merge bins in some channels
         process_measurement(meas,
@@ -124,12 +125,19 @@ def fix_measurement(meas,
 
     process_measurement(meas,
         split_norm_shape=True,
-        drop_np_names=["*"],
-        drop_np_types=['histosys'],
-        drop_np_samples=['Others'],
-        prune_overallsys=True,
-        prune_overallsys_threshold=0.5, # percent
         uniform_binning=True)
+
+    if drop_others_shapes:
+        process_measurement(meas,
+            drop_np_names=["*"],
+            drop_np_types=['histosys'],
+            drop_np_samples=['Others'])
+
+    if prune_norms:
+        process_measurement(meas,
+            prune_overallsys=True,
+            prune_overallsys_threshold=0.5, # percent
+            uniform_binning=True)
 
     # ignore OverallSys on Ztt that is redundant with Ztt norm
     #process_measurement(meas,
@@ -151,8 +159,8 @@ def fix_measurement(meas,
             prune_histosys_threshold=0.1, # 10%
             prune_histosys_samples=['Fakes', 'Others', 'Ztautau'])
 
-    if remove_samples:
+    if prune_samples:
         # remove samples with integral below threshold
         process_measurement(meas,
-            remove_samples=True,
-            remove_samples_threshold=1e-6)
+            prune_samples=True,
+            prune_samples_threshold=1e-6)
