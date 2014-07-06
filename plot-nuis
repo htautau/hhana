@@ -28,9 +28,9 @@ set_style(style)
 if not os.getenv('MVA_NO_BATCH', False):
     ROOT.gROOT.SetBatch(True)
 
+
 def get_pickle_path(WS_PATH, ws_name):
     return '{0}/{1}/measurement_{1}_nuispars_scan.pickle'.format(WS_PATH, ws_name)
-
 
 
 def plot_nuis(name, graphs, outdir):
@@ -55,6 +55,7 @@ def plot_nuis(name, graphs, outdir):
     c.SaveAs(os.path.join(outdir, '{0}.png'.format(name)))
     c.SaveAs(os.path.join(outdir, '{0}.eps'.format(name)))
 
+
 def make_graph(values, nominal, max_value=8, **kwargs):
     graph = Graph(len(values), **kwargs)    
     i = 0
@@ -70,6 +71,7 @@ def make_graph(values, nominal, max_value=8, **kwargs):
     graph.num_points = i
     return graph
 
+
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
     from mva.categories import CATEGORIES
@@ -79,20 +81,23 @@ if __name__ == '__main__':
     parser.add_argument('--ana', default='mva', choices=['mva', 'cba'])
     args = parser.parse_args()
     
-    if args.ana=='mva':
-        categories = CATEGORIES['mva']
+    if args.ana == 'mva':
+        categories = CATEGORIES['mva_all']
     else:
-        categories = CATEGORIES['cuts']+CATEGORIES['cuts_2011']
+        categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
 
     # Step1: Retrieve NP scans of the combined WS
     graphs = {}
-    combined_np_path = get_pickle_path(args.path, 'hh_12_combination_{0}'.format(args.mass))
+
+    combined_np_path = get_pickle_path(args.path, 'hh_combination_{0}'.format(args.mass))
+    print combined_np_path
     if not os.path.exists(combined_np_path):
         raise RuntimeError('Need the combineds WS scans to run !')
+
     data_comb = get_data(combined_np_path)
     nominal_comb = data_comb['NOMINAL']
     for nuis, values in data_comb.items():
-        if nuis=='NOMINAL':
+        if nuis == 'NOMINAL':
             continue
         graphs[nuis] = []
         graphs[nuis].append(make_graph(values, nominal_comb, drawstyle='L', linewidth=3, 
@@ -140,7 +145,7 @@ if __name__ == '__main__':
                         
     # Step 3: Draw the NPS scans
     plots = os.path.join(args.path,
-                         'hh_12_combination_{0}'.format(args.mass),
+                         'hh_combination_{0}'.format(args.mass),
                          'nuisances_scans')
     if not os.path.exists(plots):
         mkdir_p(plots)

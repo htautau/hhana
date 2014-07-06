@@ -19,6 +19,7 @@ from .asymptotics import AsymptoticsCLs
 from .significance import runSig
 from .fitresult import Prefit_RooFitResult, Partial_RooFitResult
 
+
 def get_limit(channels,
           unblind=False,
           lumi=1.,
@@ -40,10 +41,18 @@ def get_limit_workspace(workspace, unblind=False, verbose=False):
     return hist
 
 
-def get_significance_workspace(workspace, blind=True, mu_profile_value=1, verbose=False):
+def get_significance_workspace(workspace, blind=True,
+                               mu_profile_value=1, verbose=False):
+    if mu_profile_value == 'hat':
+        workspace.fit()
+        poi = workspace.obj('ModelConfig').GetParametersOfInterest().first()
+        mu_profile_value = poi.getVal()
+    elif isinstance(mu_profile_value, basestring):
+        mu_profile_value = float(mu_profile_value)
     hist = asrootpy(runSig(workspace, blind, mu_profile_value, verbose))
     hist.SetName('%s_significance' % workspace.GetName())
     return hist
+
 
 def get_bestfit_nll_workspace(workspace, return_nll=False):
     if return_nll:
@@ -54,4 +63,3 @@ def get_bestfit_nll_workspace(workspace, return_nll=False):
         roo_min = asrootpy(workspace).fit(return_nll=return_nll)
         fitres = roo_min.save()
         return fitres.minNll()
-
