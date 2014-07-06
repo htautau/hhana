@@ -38,34 +38,31 @@ using namespace RooFit;
 using namespace RooStats;
 
 
-RooDataSet* makeAsimovData(
+RooDataSet* make_asimov_data(
     RooWorkspace* w, ModelConfig* mc,
-    bool doConditional, RooNLLVar* conditioning_nll,
-    double mu_val, double mu_val_profile,
-    string* mu_str = NULL, string* mu_prof_str = NULL,
-    bool doFit = true);
+    RooNLLVar* conditioning_nll = NULL,
+    double mu_val = 1., double mu_val_profile = 1.,
+    string* mu_str = NULL, string* mu_prof_str = NULL);
 
 
 int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
 
-TH1D* runSig(RooWorkspace* ws,
-             bool isBlind = true,         // don't look at observed data
-	         double mu_profile_value = 1, // mu value to profile the obs data at before generating the expected
-	         bool verbose = false,
-             const char* modelConfigName = "ModelConfig",
-             const char* dataName = "obsData",
-             const char* asimov1DataName = "asimovData_1",
-             const char* conditional1Snapshot = "conditionalGlobs_1",
-             const char* nominalSnapshot = "nominalGlobs")
+TH1D* significance(RooWorkspace* ws,
+                   bool observed = false, // compute observed significance
+                   bool profile = false,  // profile the observed data before generating the Asimov
+                   double profile_mu = 1, // mu value to profile the observed data at before generating the Asimov
+                   bool verbose = false,
+                   const char* modelConfigName = "ModelConfig",
+                   const char* dataName = "obsData",
+                   const char* asimov1DataName = "asimovData_1",
+                   const char* conditional1Snapshot = "conditionalGlobs_1",
+                   const char* nominalSnapshot = "nominalGlobs")
 {
     string defaultMinimizer = "Minuit2"; // or "Minuit"
     int defaultStrategy     = 1;         // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
     bool doUncap            = 1;         // uncap p0
     bool doInj              = 0;         // setup the poi for injection study (zero is faster if you're not)
-    bool doMedian           = 1;         // compute median significance
-    bool doConditional      = !isBlind;  // do conditional expected data
-    bool doObs              = !isBlind;  // compute observed significance
 
     TStopwatch timer;
     timer.Start();
@@ -107,18 +104,16 @@ TH1D* runSig(RooWorkspace* ws,
 
     string condSnapshot(conditional1Snapshot);
     RooArgSet nuis_tmp2 = *mc->GetNuisanceParameters();
-    RooNLLVar* obs_nll = doObs ? (RooNLLVar*)pdf_temp->createNLL(*data, Constrain(nuis_tmp2)) : NULL;
+    RooNLLVar* obs_nll = (observed || profile) ? (RooNLLVar*)pdf_temp->createNLL(*data, Constrain(nuis_tmp2)) : NULL;
 
     RooDataSet* asimovData1 = (RooDataSet*)ws->data(asimov1DataName);
     if (!asimovData1)
     {
         string mu_str, mu_prof_str;
-        asimovData1 = makeAsimovData(
-            ws, mc,
-            doConditional, obs_nll,
-            1, mu_profile_value,
-            &mu_str, &mu_prof_str,
-            true);
+        asimovData1 = make_asimov_data(
+            ws, mc, obs_nll,
+            1, profile_mu,
+            &mu_str, &mu_prof_str);
         condSnapshot="conditionalGlobs"+mu_prof_str;
     }
 
@@ -136,58 +131,55 @@ TH1D* runSig(RooWorkspace* ws,
     mu->setConstant(0);
     if (!doInj) mu->setConstant(1);
 
-    int status,sign;
-    double med_sig=0,obs_sig=0,asimov_q0=0,obs_q0=0;
+    int status, sign;
+    double med_sig=0, obs_sig=0, asimov_q0=0, obs_q0=0;
 
-    if (doMedian)
+    ws->loadSnapshot(condSnapshot.c_str());
+    if (doInj)
+        ws->loadSnapshot("conditionalNuis_inj");
+    else
+        ws->loadSnapshot("conditionalNuis_1");
+    if (verbose)
+        mc->GetGlobalObservables()->Print("v");
+    mu->setVal(0);
+    mu->setConstant(1);
+    status = minimize(asimov_nll, ws);
+
+    if (status < 0) 
     {
-        ws->loadSnapshot(condSnapshot.c_str());
-        if (doInj)
-            ws->loadSnapshot("conditionalNuis_inj");
-        else
-            ws->loadSnapshot("conditionalNuis_1");
-	    if (verbose)
-	        mc->GetGlobalObservables()->Print("v");
-        mu->setVal(0);
-        mu->setConstant(1);
+        cout << "Retrying with conditional snapshot at mu=1" << endl;
+        ws->loadSnapshot("conditionalNuis_0");
         status = minimize(asimov_nll, ws);
+    }
+    double asimov_nll_cond = asimov_nll->getVal();
 
-        if (status < 0) 
-        {
-            cout << "Retrying with conditional snapshot at mu=1" << endl;
-            ws->loadSnapshot("conditionalNuis_0");
-            status = minimize(asimov_nll, ws);
-        }
-        double asimov_nll_cond = asimov_nll->getVal();
+    mu->setVal(1);
+    if (doInj)
+        ws->loadSnapshot("conditionalNuis_inj");
+    else
+        ws->loadSnapshot("conditionalNuis_1");
+    if (doInj)
+        mu->setConstant(0);
+    status = minimize(asimov_nll, ws);
 
-        mu->setVal(1);
-        if (doInj)
-            ws->loadSnapshot("conditionalNuis_inj");
-        else
-            ws->loadSnapshot("conditionalNuis_1");
-        if (doInj)
-            mu->setConstant(0);
+    if (status < 0) 
+    {
+        cout << "Retrying with conditional snapshot at mu=1" << endl;
+        ws->loadSnapshot("conditionalNuis_0");
         status = minimize(asimov_nll, ws);
-
-        if (status < 0) 
-        {
-            cout << "Retrying with conditional snapshot at mu=1" << endl;
-            ws->loadSnapshot("conditionalNuis_0");
-            status = minimize(asimov_nll, ws);
-        }
-
-        double asimov_nll_min = asimov_nll->getVal();
-        asimov_q0 = 2*(asimov_nll_cond - asimov_nll_min);
-        if (doUncap && mu->getVal() < 0)
-            asimov_q0 = -asimov_q0;
-
-        sign = int(asimov_q0 != 0 ? asimov_q0/fabs(asimov_q0) : 0);
-        med_sig = sign*sqrt(fabs(asimov_q0));
-
-        ws->loadSnapshot(nominalSnapshot);
     }
 
-    if (doObs)
+    double asimov_nll_min = asimov_nll->getVal();
+    asimov_q0 = 2*(asimov_nll_cond - asimov_nll_min);
+    if (doUncap && mu->getVal() < 0)
+        asimov_q0 = -asimov_q0;
+
+    sign = int(asimov_q0 != 0 ? asimov_q0/fabs(asimov_q0) : 0);
+    med_sig = sign*sqrt(fabs(asimov_q0));
+
+    ws->loadSnapshot(nominalSnapshot);
+
+    if (observed)
     {
         ws->loadSnapshot("conditionalNuis_0");
         mu->setVal(0);
@@ -224,15 +216,15 @@ TH1D* runSig(RooWorkspace* ws,
             obs_sig = sign*sqrt(fabs(obs_q0));
     }
     
-    if (doObs)
-        cout << "Observed significance: " << obs_sig << endl;
-    if (med_sig)
+    cout << "Median test stat val: " << asimov_q0 << endl;
+    cout << "Median significance:   " << med_sig << endl;
+    if (observed)
     {
-        cout << "Median test stat val: " << asimov_q0 << endl;
-        cout << "Median significance:   " << med_sig << endl;
+        cout << "Observed test stat val: " << obs_q0 << endl;
+        cout << "Observed significance: " << obs_sig << endl;
     }
 
-    TH1D* h_hypo = new TH1D("hypo","hypo",2,0,2);
+    TH1D* h_hypo = new TH1D("hypo", "hypo", 2, 0, 2);
     h_hypo->SetBinContent(1, obs_sig);
     h_hypo->SetBinContent(2, med_sig);
 
@@ -349,7 +341,8 @@ int minimize(RooNLLVar* nll, RooWorkspace* combWS)
     return status;
 }
 
-void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, RooArgSet& nuis, int& counter)
+
+void unfold_constraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, RooArgSet& nuis, int& counter)
 {
     //he is digging deep into the terms and finds gaussians,lognormals,gammas,poissons and bifurgaussians
     if (counter > 50)
@@ -374,7 +367,7 @@ void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, Roo
         if (className != "RooGaussian" && className != "RooLognormal" && className != "RooGamma" && className != "RooPoisson" && className != "RooBifurGauss")
         {
             counter++;
-            unfoldConstraints(constraint_set, final, obs, nuis, counter);
+            unfold_constraints(constraint_set, final, obs, nuis, counter);
         }
         else
         {
@@ -384,11 +377,11 @@ void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, Roo
     delete itr;
 }
 
-RooDataSet* makeAsimovData(RooWorkspace* w, ModelConfig* mc,
-                           bool doConditional, RooNLLVar* conditioning_nll, 
-                           double mu_val, double mu_val_profile,
-                           string* mu_str, string* mu_prof_str,
-                           bool doFit)
+
+RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
+                             RooNLLVar* conditioning_nll, 
+                             double mu_val, double mu_val_profile,
+                             string* mu_str, string* mu_prof_str)
 {
 
     if (mu_val_profile == -999)
@@ -437,7 +430,7 @@ RooDataSet* makeAsimovData(RooWorkspace* w, ModelConfig* mc,
     RooArgSet constraint_set_tmp(*combPdf->getAllConstraints(mc_obs, mc_nuis_tmp, false));
     RooArgSet constraint_set;
     int counter_tmp = 0;
-    unfoldConstraints(constraint_set_tmp, constraint_set, mc_obs, mc_nuis_tmp, counter_tmp);
+    unfold_constraints(constraint_set_tmp, constraint_set, mc_obs, mc_nuis_tmp, counter_tmp);
 
     TIterator* cIter = constraint_set.createIterator();
     RooAbsArg* arg;
@@ -557,26 +550,9 @@ RooDataSet* makeAsimovData(RooWorkspace* w, ModelConfig* mc,
     
     mu->setVal(mu_val_profile);
     mu->setConstant(1);
-    //int status = 0;
-
-    if (doConditional && doFit)
+    if (conditioning_nll != NULL)
     {
         minimize(conditioning_nll);
-        // cout << "Using globs for minimization" << endl;
-        // mc->GetGlobalObservables()->Print("v");
-        // cout << "Starting minimization.." << endl;
-        // RooAbsReal* nll;
-        // if (!(nll = map_data_nll[combData])) nll = combPdf->createNLL(*combData, RooFit::Constrain(nuiSet_tmp));
-        // RooMinimizer minim(*nll);
-        // minim.setStrategy(0);
-        // minim.setPrintLevel(1);
-        // status = minim.minimize(ROOT::Math::MinimizerOptions::DefaultMinimizerType().c_str(), ROOT::Math::MinimizerOptions::DefaultMinimizerAlgo().c_str());
-        // if (status != 0)
-        // {
-        //   cout << "Fit failed for mu = " << mu->getVal() << " with status " << status << endl;
-        // }
-        // cout << "Done" << endl;
-        //combPdf->fitTo(*combData,Hesse(false),Minos(false),PrintLevel(0),Extended(), Constrain(nuiSet_tmp));
     }
     mu->setConstant(0);
     mu->setVal(mu_val);
@@ -605,14 +581,18 @@ RooDataSet* makeAsimovData(RooWorkspace* w, ModelConfig* mc,
     w->saveSnapshot(("conditionalGlobs"+muStrProf.str()).c_str(),*mc->GetGlobalObservables());
     w->saveSnapshot(("conditionalNuis" +muStrProf.str()).c_str(),*mc->GetNuisanceParameters());
 
-    if (!doConditional)
+    if (conditioning_nll == NULL)
     {
         w->loadSnapshot("nominalGlobs");
         w->loadSnapshot("nominalNuis");
     }
 
-    if (_printLevel >= 1) cout << "Making asimov" << endl;
-    //make the asimov data (snipped from Kyle)
+    if (_printLevel >= 1) 
+    {
+        cout << "Making asimov" << endl;
+    }
+
+    // make the asimov data
     mu->setVal(mu_val);
 
     int iFrame=0;

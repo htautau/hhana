@@ -16,7 +16,7 @@ from rootpy.plotting import Hist
 from rootpy.stats import histfactory
 
 from .asymptotics import AsymptoticsCLs
-from .significance import runSig
+from .significance import significance
 from .fitresult import Prefit_RooFitResult, Partial_RooFitResult
 
 
@@ -41,15 +41,30 @@ def get_limit_workspace(workspace, unblind=False, verbose=False):
     return hist
 
 
-def get_significance_workspace(workspace, blind=True,
-                               mu_profile_value=1, verbose=False):
-    if mu_profile_value == 'hat':
-        workspace.fit()
-        poi = workspace.obj('ModelConfig').GetParametersOfInterest().first()
-        mu_profile_value = poi.getVal()
-    elif isinstance(mu_profile_value, basestring):
-        mu_profile_value = float(mu_profile_value)
-    hist = asrootpy(runSig(workspace, blind, mu_profile_value, verbose))
+def get_significance_workspace(workspace,
+                               observed=False, profile=False,
+                               verbose=False, **fit_params):
+    if isinstance(profile, basestring):
+        if profile == 'hat':
+            if not observed:
+                fit_params.setdefault('print_level', -1)
+            workspace.fit(**fit_params)
+            poi = workspace.obj('ModelConfig').GetParametersOfInterest().first()
+            profile_mu = poi.getVal()
+            profile = True
+        else:
+            profile_mu = float(profile)
+            profile = True
+    elif profile is None:
+        profile = False
+        profile_mu = 1.
+    elif profile in (False, True):
+        profile_mu = 1.
+    else:
+        profile_mu = float(profile)
+        profile = True
+    hist = asrootpy(significance(
+        workspace, observed, profile, profile_mu, verbose))
     hist.SetName('%s_significance' % workspace.GetName())
     return hist
 
