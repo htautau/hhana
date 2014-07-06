@@ -11,6 +11,7 @@ def make_asimov_data(workspace,
     if mu_profile is None:
         mu_profile = mu
     elif mu_profile == 'hat':
+        fit_params.setdefault('print_level', -1)
         workspace.fit(**fit_params)
         poi = model_config.GetParametersOfInterest().first()
         mu_profile = poi.getVal()

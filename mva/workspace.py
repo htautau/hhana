@@ -142,6 +142,7 @@ def write_workspaces(path, prefix, year_mass_category_channel,
 
 def mva_workspace(analysis, categories, masses,
                   clf_mass=None,
+                  clf_bins='optimal',
                   unblind=False,
                   systematics=False,
                   cuts=None):
@@ -158,14 +159,17 @@ def mva_workspace(analysis, categories, masses,
             clf = analysis.get_clf(category, load=True,
                                    mass=clf_mass or mass,
                                    transform=True)
-            # get the binning (see the optimize-binning script)
-            binning = clf.binning(analysis.year, overflow=1E5)
-            log.info("binning: {0}".format(str(binning)))
+            if clf_bins == 'optimal':
+                # get the binning (see the optimize-binning script)
+                clf_bins = clf.binning(analysis.year, overflow=1E5)
+                log.info("binning: {0}".format(str(clf_bins)))
+            elif isinstance(clf_bins, basestring):
+                clf_bins = int(clf_bins)
             # construct a "channel" for each mass point
             scores, channel = analysis.clf_channels(
                 clf, category,
                 region=analysis.target_region,
-                bins=binning,
+                bins=clf_bins,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics,

@@ -11,6 +11,7 @@ parser = cmd.analysis_parser(cmd.general_parser(
     multi_years=True, multi_categories=True))
 parser.add_argument('type', choices=('mva', 'cuts'), default='mva')
 parser.add_argument('--clf-mass', type=int, default=None)
+parser.add_argument('--clf-bins', default='optimal')
 parser.add_argument('--sideband', default=False, action='store_true')
 args = parser.parse_args()
 
@@ -23,6 +24,7 @@ params = {}
 if args.type == 'mva':
     workspace_func = mva_workspace
     params['clf_mass'] = args.clf_mass
+    params['clf_bins'] = args.clf_bins
 else:
     workspace_func = cuts_workspace
 
