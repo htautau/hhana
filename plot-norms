@@ -36,16 +36,21 @@ for name in all_names:
         continue
     vals.append(value.getVal())
     errors.append(value.getError())
-    names.append(name)
+    names.append(name.replace('ATLAS_norm_', '').replace('_', ' '))
 
 # plot
 fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
-ax.errorbar(range(len(names)), vals, yerr=errors, fmt='o')
-ax.plot([-0.5, len(names) - 0.5], [1., 1.], 'r--')
-ax.set_ylabel('Post-fit Normalization')
-ax.set_xlim(-0.5, len(names) - 0.5)
-ax.set_xticks(range(len(names)))
-ax.set_xticklabels(names, rotation=45)
+ax.errorbar(vals, range(len(names)), xerr=errors, fmt='o')
+for x, y, error in zip(vals, range(len(names)), errors):
+    plt.annotate('${0:.2f} \pm {1:.2f}$'.format(x, error),
+                 textcoords='offset points', xytext=(0, 15),
+                 bbox=dict(boxstyle='square,pad=0.5', fc='white', alpha=0.5),
+                 xy=(x, y), ha='center', va='bottom')
+ax.plot([1., 1.], [-0.5, len(names) - 0.5], 'r--')
+ax.set_xlabel('Post-fit Normalization')
+ax.set_ylim(-0.5, len(names) - 0.5)
+ax.set_yticks(range(len(names)))
+ax.set_yticklabels(names)
 plt.tight_layout()
 for fmt in ('eps', 'png'):
     plt.savefig('norms.{0}'.format(fmt))

@@ -38,6 +38,7 @@ solid_line.SetLineWidth(1)
 if not os.getenv('MVA_NO_BATCH', False):
     ROOT.gROOT.SetBatch(True)
 
+
 def plot_ranking(name, file, outdir):
     # make the ranking plot
     data = get_data(file)

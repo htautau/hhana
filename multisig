@@ -28,16 +28,10 @@ class SigProcess(Process):
         # get the significance of the workspace
         with root_open(self.file) as file:
             ws = file[self.name]
-            if self.profile=='hat':
-                ws.fit()
-                poi = ws.obj('ModelConfig').GetParametersOfInterest().first()
-                mu_profile_value = poi.getVal()
-            else:
-                mu_profile_value = float(self.profile)
             hist = get_significance_workspace(ws, 
                                               verbose=True,
                                               blind=self.blind,
-                                              mu_profile_value=mu_profile_value)
+                                              mu_profile_value=self.profile)
             sig = hist[2].value
         # write the value into a pickle
         with open(pickle_name, 'w') as pickle_file:

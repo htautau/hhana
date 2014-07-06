@@ -177,18 +177,18 @@ Apply all of the HSG4 workspace fixes with::
 Scan of the nuisance parameters
 -------------------------------
 
-Construct the profile of every nuisance parameter  (NP)::
+Construct the profile of every nuisance parameter (NP)::
 
     # submit a batch job for each NP. If --submit is omitted simply print the command.
-    multinp scans_fit --file path_to_measurement_file.root --submit
+    multinp scans_fit --submit --file path_to_measurement_file.root
     # merge all the output in a single file and compute the nominal NLL for normalisation
-    multinp merge --file path_to_measurement_file.root --jobs -1
+    multinp merge --jobs -1 --file path_to_measurement_file.root
     # Clean the directory from the individual pickle files (keep only the master)
     multinp clean --file path_to_measurement_file.root
 
-Update the paths in plot-nuis and plot the profiles with::
+Plot the NP profiles with::
 
-    plot-nuis
+    plot-nuis path_to_measurement_file.root
 
 
 Pulls of the nuisance parameters
@@ -196,11 +196,11 @@ Pulls of the nuisance parameters
 
 Compute the pull of each nuisance parameter with::
 
-    multinp pulls --file path_to_measurement_file.root --jobs -1
+    multinp pulls --jobs -1 --file path_to_measurement_file.root
 
-Update the path in plot-ranking and plot the ranking with::
+Plot the NP ranking/pulls with::
 
-   plot-ranking
+    plot-ranking path_to_measurement_file.root
 
 Significance
 ------------

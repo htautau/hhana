@@ -78,6 +78,8 @@ def plot_bdt(category, workspace_binning=True):
     else:
         bins = 10
         unblind_bins = 0.5
+    if args.unblind:
+        suffix += '_unblind'
 
     systematics=SYSTEMATICS if args.systematics else None
 

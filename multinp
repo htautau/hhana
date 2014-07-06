@@ -49,7 +49,7 @@ if __name__ == '__main__':
             cmd = ' '.join(cmd_args)
             name = cmd.replace(" ", "_")
             cmd = "cd %s && %s && %s" % (os.getcwd(), setup, cmd)
-            qsub(cmd, name=name, ncpus=args.jobs, dry_run=not args.submit)
+            qsub(cmd, name=name, ppn=args.jobs, dry_run=not args.submit)
 
     # ------------------------------------
     if 'merge' in args.actions:

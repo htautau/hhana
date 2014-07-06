@@ -39,31 +39,33 @@ using namespace RooStats;
 
 
 RooDataSet* makeAsimovData(
-        ModelConfig* mc, bool doConditional,
-        RooWorkspace* w, RooNLLVar* conditioning_nll,
-        double mu_val, string* mu_str, string* mu_prof_str,
-        double mu_val_profile, bool doFit);
+    RooWorkspace* w, ModelConfig* mc,
+    bool doConditional, RooNLLVar* conditioning_nll,
+    double mu_val, double mu_val_profile,
+    string* mu_str = NULL, string* mu_prof_str = NULL,
+    bool doFit = true);
+
 
 int minimize(RooNLLVar* nll, RooWorkspace* combWS = NULL);
 
 
 TH1D* runSig(RooWorkspace* ws,
-             bool isBlind = true, // Dont look at observed data
-	     double mu_profile_value = 1, // mu value to profile the obs data at wbefore generating the expected
-	     bool verbose = false,
+             bool isBlind = true,         // don't look at observed data
+	         double mu_profile_value = 1, // mu value to profile the obs data at before generating the expected
+	         bool verbose = false,
              const char* modelConfigName = "ModelConfig",
              const char* dataName = "obsData",
              const char* asimov1DataName = "asimovData_1",
              const char* conditional1Snapshot = "conditionalGlobs_1",
              const char* nominalSnapshot = "nominalGlobs")
 {
-    string defaultMinimizer    = "Minuit2";     // or "Minuit"
-    int defaultStrategy        = 1;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
-    bool doUncap            = 1; // uncap p0
-    bool doInj              = 0; // setup the poi for injection study (zero is faster if you're not)
-    bool doMedian           = 1; // compute median significance
-    bool doConditional      = !isBlind; // do conditional expected data
-    bool doObs              = !isBlind; // compute observed significance
+    string defaultMinimizer = "Minuit2"; // or "Minuit"
+    int defaultStrategy     = 1;         // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
+    bool doUncap            = 1;         // uncap p0
+    bool doInj              = 0;         // setup the poi for injection study (zero is faster if you're not)
+    bool doMedian           = 1;         // compute median significance
+    bool doConditional      = !isBlind;  // do conditional expected data
+    bool doObs              = !isBlind;  // compute observed significance
 
     TStopwatch timer;
     timer.Start();
@@ -111,7 +113,12 @@ TH1D* runSig(RooWorkspace* ws,
     if (!asimovData1)
     {
         string mu_str, mu_prof_str;
-        asimovData1 = makeAsimovData(mc, doConditional, ws, obs_nll, 1, &mu_str, &mu_prof_str, mu_profile_value, true);
+        asimovData1 = makeAsimovData(
+            ws, mc,
+            doConditional, obs_nll,
+            1, mu_profile_value,
+            &mu_str, &mu_prof_str,
+            true);
         condSnapshot="conditionalGlobs"+mu_prof_str;
     }
 
@@ -377,11 +384,17 @@ void unfoldConstraints(RooArgSet& initial, RooArgSet& final, RooArgSet& obs, Roo
     delete itr;
 }
 
-RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w, RooNLLVar* conditioning_nll, double mu_val, string* mu_str, string* mu_prof_str, double mu_val_profile, bool doFit)
+RooDataSet* makeAsimovData(RooWorkspace* w, ModelConfig* mc,
+                           bool doConditional, RooNLLVar* conditioning_nll, 
+                           double mu_val, double mu_val_profile,
+                           string* mu_str, string* mu_prof_str,
+                           bool doFit)
 {
 
-    if (mu_val_profile == -999) mu_val_profile = mu_val;
-
+    if (mu_val_profile == -999)
+    {
+        mu_val_profile = mu_val;
+    }
 
     cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
 
@@ -434,9 +447,9 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     {
         RooAbsPdf* pdf = (RooAbsPdf*)arg;
         if (!pdf) continue;
-//             cout << "Printing pdf" << endl;
-//             pdf->Print();
-//             cout << "Done" << endl;
+        //cout << "Printing pdf" << endl;
+        //pdf->Print();
+        //cout << "Done" << endl;
 
         /// Catch the nuisance parameter constrained here
         TIterator* nIter = mc_nuis.createIterator();
@@ -454,13 +467,12 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
 
         //RooRealVar* thisNui = (RooRealVar*)pdf->getObservables();
 
-
         //need this incase the observable isn't fundamental. 
         //in this case, see which variable is dependent on the nuisance parameter and use that.
         RooArgSet* components = pdf->getComponents();
-//             cout << "\nPrinting components" << endl;
-//             components->Print();
-//             cout << "Done" << endl;
+        //cout << "\nPrinting components" << endl;
+        //components->Print();
+        //cout << "Done" << endl;
         components->remove(*pdf);
         if (components->getSize())
         {
@@ -550,7 +562,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     if (doConditional && doFit)
     {
         minimize(conditioning_nll);
-
         // cout << "Using globs for minimization" << endl;
         // mc->GetGlobalObservables()->Print("v");
         // cout << "Starting minimization.." << endl;
@@ -565,7 +576,6 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
         //   cout << "Fit failed for mu = " << mu->getVal() << " with status " << status << endl;
         // }
         // cout << "Done" << endl;
-
         //combPdf->fitTo(*combData,Hesse(false),Minos(false),PrintLevel(0),Extended(), Constrain(nuiSet_tmp));
     }
     mu->setConstant(0);
@@ -583,10 +593,8 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     {
         RooRealVar* nui = (RooRealVar*)nui_list.at(i);
         RooRealVar* glob = (RooRealVar*)glob_list.at(i);
-
         //cout << "nui: " << nui << ", glob: " << glob << endl;
         //cout << "Setting glob: " << glob->GetName() << ", which had previous val: " << glob->getVal() << ", to conditional val: " << nui->getVal() << endl;
-
         glob->setVal(nui->getVal());
     }
 
@@ -628,11 +636,8 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
     w->defineSet("obsAndWeight",obsAndWeight);
 
     //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////
     // MAKE ASIMOV DATA FOR OBSERVABLES
+    //////////////////////////////////////////////////////
 
     // dummy var can just have one bin since it's a dummy
     //if(w->var("ATLAS_dummyX"))  w->var("ATLAS_dummyX")->setBins(1);
@@ -655,7 +660,11 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             obstmp->Print();
         }
 
-        asimovData = new RooDataSet(("asimovData"+muStr.str()).c_str(),("asimovData"+muStr.str()).c_str(),RooArgSet(obsAndWeight),WeightVar(*weightVar));
+        asimovData = new RooDataSet(
+            ("asimovData"+muStr.str()).c_str(),
+            ("asimovData"+muStr.str()).c_str(),
+            RooArgSet(obsAndWeight),
+            WeightVar(*weightVar));
 
         RooRealVar* thisObs = ((RooRealVar*)obstmp->first());
         double expectedEvents = pdftmp->expectedEvents(*obstmp);
@@ -666,9 +675,14 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             thisNorm=pdftmp->getVal(obstmp)*thisObs->getBinWidth(jj);
             if (thisNorm*expectedEvents <= 0)
             {
-                cout << "WARNING::Detected bin with zero expected events (" << thisNorm*expectedEvents << ") ! Please check your inputs. Obs = " << thisObs->GetName() << ", bin = " << jj << endl;
+                cout << "WARNING::Detected bin with zero expected events (" << thisNorm*expectedEvents 
+                     << ") ! Please check your inputs. Obs = " << thisObs->GetName()
+                     << ", bin = " << jj << endl;
             }
-            if (thisNorm*expectedEvents > 0 && thisNorm*expectedEvents < pow(10.0, 18)) asimovData->add(*mc->GetObservables(), thisNorm*expectedEvents);
+            if (thisNorm*expectedEvents > 0 && thisNorm*expectedEvents < pow(10.0, 18))
+            {
+                asimovData->add(*mc->GetObservables(), thisNorm*expectedEvents);
+            }
         }
 
         if (_printLevel >= 1)
@@ -726,9 +740,11 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             double thisNorm = 0;
             for(int jj=0; jj<thisObs->numBins(); ++jj){
                 thisObs->setBin(jj);
-
-                thisNorm=pdftmp->getVal(obstmp)*thisObs->getBinWidth(jj);
-                if (thisNorm*expectedEvents > 0 && thisNorm*expectedEvents < pow(10.0, 18)) obsDataUnbinned->add(*mc->GetObservables(), thisNorm*expectedEvents);
+                thisNorm = pdftmp->getVal(obstmp) * thisObs->getBinWidth(jj);
+                if (thisNorm*expectedEvents > 0 && thisNorm*expectedEvents < pow(10.0, 18))
+                {
+                    obsDataUnbinned->add(*mc->GetObservables(), thisNorm*expectedEvents);
+                }
             }
 
             if (_printLevel >= 1)
@@ -756,7 +772,13 @@ RooDataSet* makeAsimovData(ModelConfig* mc, bool doConditional, RooWorkspace* w,
             }
         }
 
-        asimovData = new RooDataSet(("asimovData"+muStr.str()).c_str(),("asimovData"+muStr.str()).c_str(),RooArgSet(obsAndWeight,*channelCat),Index(*channelCat),Import(asimovDataMap),WeightVar(*weightVar));
+        asimovData = new RooDataSet(
+            ("asimovData"+muStr.str()).c_str(),
+            ("asimovData"+muStr.str()).c_str(),
+            RooArgSet(obsAndWeight,*channelCat),
+            Index(*channelCat),
+            Import(asimovDataMap),
+            WeightVar(*weightVar));
         w->import(*asimovData);
     }
 
