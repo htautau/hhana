@@ -229,4 +229,5 @@ if __name__ == '__main__':
             canvas = plot_from_frame(file, file[name], args.fit_var,
                                      category, year, binning, unblind=unblind)
             canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
+            canvas.SaveAs(os.path.join(plots, 'postfit_{0}.eps'.format(name)))
     file.Close()
