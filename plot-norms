@@ -16,7 +16,7 @@ ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
 
 rfile = root_open(args.file)
 ws = rfile[args.name]
-minim = ws.fit()
+minim = ws.fit(print_level=-1)
 result = minim.save()
 
 all_names = [
