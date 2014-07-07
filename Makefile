@@ -407,4 +407,8 @@ pruning:
 .PHONY: fix-mva
 fix-mva:
 	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 workspaces/hh_nos_nonisol_ebz_mva
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva
+
+.PHONY: fix-cuts
+fix-cuts:
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_cuts
