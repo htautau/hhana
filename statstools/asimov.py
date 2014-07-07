@@ -10,7 +10,7 @@ def make_asimov_data(workspace,
         if profile == 'hat':
             fit_params.setdefault('print_level', -1)
             workspace.fit(**fit_params)
-            poi = workspace.obj('ModelConfig').GetParametersOfInterest().first()
+            poi = model_config.GetParametersOfInterest().first()
             profile_mu = poi.getVal()
             profile = True
         else:
