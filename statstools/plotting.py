@@ -77,15 +77,13 @@ def get_rebinned_hist(hist_origin, binning=None):
 def get_rebinned_graph(graph_origin, binning=None, unblind=True):
     if binning is None:
         return graph_origin
-    log.info(list(graph_origin.x()))
-    log.info('Binning: {0}'.format(binning))
     graph_rebin = Graph(len(binning)-1)
     length_filled = len(graph_rebin)
     if (unblind is not True) and isinstance(unblind, int):
         length_filled -= unblind
-    log.info('Length: {0} - {1}'.format(len(graph_rebin), length_filled))
     if len(graph_origin) != len(graph_rebin):
-        log.info('uniform: {0} bins != rebinned: {1} bins'.format(len(graph_origin), len(graph_rebin)))
+        log.warning('Length: {0} - {1}'.format(len(graph_rebin), length_filled))
+        log.warning('uniform: {0} bins != rebinned: {1} bins'.format(len(graph_origin), len(graph_rebin)))
         raise RuntimeError('wrong binning')
     else:
         for ip, (y, yerr) in enumerate(zip(graph_origin.y(), graph_origin.yerr())):
@@ -158,7 +156,7 @@ def get_uncertainty_graph(hnom, curve_uncert):
             curve_uncert.GetPoint(ip, x, y)
             if hnom.GetBinLowEdge(ibin) <= x < hnom.GetBinLowEdge(ibin + 1):
                 uncerts.append(y)
-        log.info('{0}, bin {1}: {2}'.format(hnom.name, ibin, uncerts))
+        log.debug('{0}, bin {1}: {2}'.format(hnom.name, ibin, uncerts))
         low, high = min(uncerts), max(uncerts)
         bin_center = 0.5 * (hnom.GetBinLowEdge(ibin + 1) +
                             hnom.GetBinLowEdge(ibin))

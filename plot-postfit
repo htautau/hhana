@@ -5,6 +5,8 @@ import os
 import pickle
 import logging
 
+from tabulate import tabulate
+
 # ROOT/rootpy imports
 from ROOT import TLatex, TGraphAsymmErrors, TH1 
 from rootpy import asrootpy
@@ -96,6 +98,11 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_fake.title = Ana.qcd.label
     hist_fake.legendstyle = 'F'
     
+    curve_uncert_fakes = frame.getCurve('FitError_AfterFit_Fakes_{0}'.format(frame.GetName()))
+    graph_fakes_ws = get_uncertainty_graph(hist_fake_ws, curve_uncert_fakes)
+    graph_fakes = get_rebinned_graph(graph_fakes_ws, binning, unblind=True) 
+    graph_fakes.name = 'Fakes'
+
     hist_others_ws = file.Get('h_Others_{0}'.format(frame.GetName()))
     hist_others = get_rebinned_hist(hist_others_ws, binning)
     hist_others.color = Ana.others.hist_decor['color']
@@ -103,6 +110,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_others.name = 'Others'
     hist_others.title = Ana.others.label
     hist_others.legendstyle = 'F'
+    curve_uncert_others = frame.getCurve('FitError_AfterFit_Others_{0}'.format(frame.GetName()))
+    graph_others_ws = get_uncertainty_graph(hist_others_ws, curve_uncert_others)
+    graph_others = get_rebinned_graph(graph_others_ws, binning, unblind=True) 
+    graph_others.name = 'Others'
 
     hist_ztautau_ws = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
     hist_ztautau = get_rebinned_hist(hist_ztautau_ws, binning)
@@ -111,6 +122,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_ztautau.name = 'Ztautau'
     hist_ztautau.title = Ana.ztautau.label
     hist_ztautau.legendstyle = 'F'
+    curve_uncert_ztautau = frame.getCurve('FitError_AfterFit_Ztautau_{0}'.format(frame.GetName()))
+    graph_ztautau_ws = get_uncertainty_graph(hist_ztautau_ws, curve_uncert_ztautau)
+    graph_ztautau = get_rebinned_graph(graph_ztautau_ws, binning, unblind=True) 
+    graph_ztautau.name = 'Ztautau'
     
     hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
     hist_signal = get_rebinned_hist(hist_signal_ws, binning)
@@ -120,8 +135,6 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_signal.name = 'Signal'
     hist_signal.title = Ana.higgs_125.label+ ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
-    
-
 
     hists = [hist_fake, hist_others, hist_ztautau, hist_signal]
     if (unblind is not True) and isinstance(unblind, (list, tuple)):
@@ -129,16 +142,16 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     Model = HistStack(hists=hists, name='Model_{0}'.format(frame.GetName()))
     plotables = [Model]
 
-    log.info(category.name)
-    postfit_table = PrettyTable(['Sample']+['bin_{0}'.format(bin.idx) for bin in hist_ztautau.bins()]) 
-    for h in [data, graph_bkg]+hists:
+    bin_edges = [(hist_fake.xedgesl(bin.idx), hist_fake.xedgesh(bin.idx)) for bin in hist_fake.bins()]
+    postfit_table_header = ['Sample']+['{0} - {1}'.format(int(l), int(h)) for (l, h) in bin_edges]
+    postfit_table = []
+    postfit_table.append(['Data']+[str(int(val)) for val in data.y()])
+    for h in [graph_bkg, graph_fakes, graph_others, graph_ztautau]:
         row = [h.name]
-        #if isinstance(h, Graph):
-        for val in list(h.y()):
-            row.append('{0:1.3f}'.format(val))
-        postfit_table.add_row(row)
-    log.info(postfit_table.get_string())
-
+        for val, errh, errl in zip(h.y(), h.yerrh(), h.yerrl()):
+            row.append('{0:1.2f} \pm {1:1.2f}'.format(val, errh))
+        postfit_table.append(row)
+    table = tabulate(postfit_table, postfit_table_header, tablefmt='latex')
 
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
@@ -178,7 +191,7 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     c.RedrawAxis()
     if fit_var == 'bdt':
         c.SetLogy()
-    return c
+    return c, table
 
 
 if __name__ == '__main__':
@@ -226,8 +239,12 @@ if __name__ == '__main__':
                 log.info('Blinding region: {0}'.format(unblind))
             else:
                 unblind=True
-            canvas = plot_from_frame(file, file[name], args.fit_var,
-                                     category, year, binning, unblind=unblind)
+            canvas, table = plot_from_frame(file, file[name], args.fit_var,
+                                            category, year, binning, unblind=unblind)
             canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
             canvas.SaveAs(os.path.join(plots, 'postfit_{0}.eps'.format(name)))
+            print
+            print year, category_name, mass
+            print table
+            print
     file.Close()
