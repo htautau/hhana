@@ -149,7 +149,8 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     for h in [graph_bkg, graph_fakes, graph_others, graph_ztautau]:
         row = [h.name]
         for val, errh, errl in zip(h.y(), h.yerrh(), h.yerrl()):
-            row.append('{0:1.2f} \pm {1:1.2f}'.format(val, errh))
+            #row.append('{0:1.2f} ^{{+{1:1.2f}}}_{{-{2:1.2f}}}'.format(val, errh, errl))
+            row.append('${0:1.2f} \pm {1:1.2f}$'.format(val, errh))
         postfit_table.append(row)
     table = tabulate(postfit_table, postfit_table_header, tablefmt='latex')
 
@@ -245,6 +246,10 @@ if __name__ == '__main__':
             canvas.SaveAs(os.path.join(plots, 'postfit_{0}.eps'.format(name)))
             print
             print year, category_name, mass
+            print r"\begin{table}"
+            print r"\centering"
             print table
+            print r"\caption{Postfit yield in %s}." % category.latex 
+            print r"\end{table}"
             print
     file.Close()
