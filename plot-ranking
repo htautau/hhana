@@ -108,10 +108,6 @@ def plot_ranking(name, file, outdir):
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
         postfit_impact_low, postfit_impact_high = postfit
-        log.info('{0} prefit: {1} < {2} < {3}'.format(np, prefit_low, prefit_nom, prefit_high))
-        log.info( '{0}: {1} - {2}'.format(np, prefit_impact_low, prefit_impact_high))
-        log.info('{0} postfit: {1} < {2} < {3}'.format(np, postfit_low, postfit_nom, postfit_high))
-        log.info( '{0}: {1} - {2}'.format(np, postfit_impact_low, postfit_impact_high))
         if np.split('_')[0]=='gamma' or np.split('_')[1]=='norm':
             prefit_impact_low, prefit_impact_high = postfit
             pulls_1sigma.SetPoint(i, mid-1, i)
