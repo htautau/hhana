@@ -66,7 +66,7 @@ def print_np(np):
     if np.split('_')[0]=='alpha':
         return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
     elif np.split('_')[0]=='gamma':
-        return np.replace('gamma_stat', '').replace('channel_', '').replace('125_mmc1_mass', '').replace('_', ' ')
+        return np.replace('gamma_stat', '').replace('channel_', '').replace('125_mmc1_mass_', '').replace('_', ' ')
     else:
         return np.replace('ATLAS_', '').replace('_', ' ')
 
