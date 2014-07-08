@@ -58,7 +58,15 @@ def plot_ranking(name, file, outdir):
     ranking = []
     for np, info in data.items():
         prefit_low, prefit_nom, prefit_high = info['poi_prefit']
+        if prefit_low > prefit_high:
+            prefit_low, prefit_high = prefit_high, prefit_low
+        prefit_low = min(prefit_nom, prefit_low)
+        prefit_high = max(prefit_nom, prefit_high)
         postfit_low, postfit_nom, postfit_high = info['poi_postfit']
+        if postfit_low > postfit_high:
+            postfit_low, postfit_high = postfit_high, postfit_low
+        postfit_low = min(postfit_nom, postfit_low)
+        postfit_high = max(postfit_nom, postfit_high)
         prefit_impact_low = (prefit_nom - prefit_low) / prefit_nom
         prefit_impact_high = (prefit_high - prefit_nom) / prefit_nom
         postfit_impact_low = (postfit_nom - postfit_low) / postfit_nom
