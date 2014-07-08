@@ -58,7 +58,15 @@ def plot_ranking(name, file, outdir):
     ranking = []
     for np, info in data.items():
         prefit_low, prefit_nom, prefit_high = info['poi_prefit']
+        if prefit_low > prefit_high:
+            prefit_low, prefit_high = prefit_high, prefit_low
+        prefit_low = min(prefit_nom, prefit_low)
+        prefit_high = max(prefit_nom, prefit_high)
         postfit_low, postfit_nom, postfit_high = info['poi_postfit']
+        if postfit_low > postfit_high:
+            postfit_low, postfit_high = postfit_high, postfit_low
+        postfit_low = min(postfit_nom, postfit_low)
+        postfit_high = max(postfit_nom, postfit_high)
         prefit_impact_low = (prefit_nom - prefit_low) / prefit_nom
         prefit_impact_high = (prefit_high - prefit_nom) / prefit_nom
         postfit_impact_low = (postfit_nom - postfit_low) / postfit_nom
@@ -100,6 +108,10 @@ def plot_ranking(name, file, outdir):
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
         postfit_impact_low, postfit_impact_high = postfit
+        log.info('{0} prefit: {1} < {2} < {3}'.format(np, prefit_low, prefit_nom, prefit_high))
+        log.info( '{0}: {1} - {2}'.format(np, prefit_impact_low, prefit_impact_high))
+        log.info('{0} postfit: {1} < {2} < {3}'.format(np, postfit_low, postfit_nom, postfit_high))
+        log.info( '{0}: {1} - {2}'.format(np, postfit_impact_low, postfit_impact_high))
         if np.split('_')[0]=='gamma' or np.split('_')[1]=='norm':
             prefit_impact_low, prefit_impact_high = postfit
             pulls_1sigma.SetPoint(i, mid-1, i)
