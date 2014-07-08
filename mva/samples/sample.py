@@ -346,17 +346,20 @@ class Sample(object):
                         low = uniform_hist(low)
                         high = uniform_hist(high)
                     npname = 'ATLAS_ANA_HH_{0:d}_QCD'.format(self.year)
-                    if self.decouple_shape or True:
+                    if self.decouple_shape or not self.coherent_shape:
                         npname += '_{0}'.format(category.name)
-                    #histsys = histfactory.HistoSys(npname, low=low, high=high)
-                    #sample.AddHistoSys(histsys)
-                    shapesys = histfactory.ShapeSys(npname)
-                    high -= hist
-                    high /= hist
-                    for bin in high.bins():
-                        bin.value = abs(bin.value)
-                    shapesys.hist = high
-                    sample.AddShapeSys(shapesys)
+                    if self.coherent_shape:
+                        histsys = histfactory.HistoSys(
+                            npname, low=low, high=high)
+                        sample.AddHistoSys(histsys)
+                    else:
+                        shapesys = histfactory.ShapeSys(npname)
+                        high -= hist
+                        high /= hist
+                        for bin in high.bins():
+                            bin.value = abs(bin.value)
+                        shapesys.hist = high
+                        sample.AddShapeSys(shapesys)
             if isinstance(self, Signal):
                 sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
             elif isinstance(self, Background):
