@@ -94,11 +94,17 @@ def plot_ranking(name, file, outdir):
         err_dn = mid - low
         pulls.SetPoint(i, mid, i)
         pulls.SetPointError(i, err_dn, err_up, 0, 0)
+
         log.info('{0} pull: {1} < {2} < {3}'.format(np, err_dn, mid, err_up))
         prefit_graph.SetPoint(i, 0, i)
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
         postfit_impact_low, postfit_impact_high = postfit
+        if np.split('_')[0]=='gamma' or np.split('_')[1]=='norm':
+            prefit_impact_low, prefit_impact_high = postfit
+            pulls_1sigma.SetPoint(i, mid-1, i)
+            pulls.SetPoint(i, mid-1, i)
+            pulls.SetPointError(i, 1, 1, 0, 0)
         prefit_graph.SetPointError(i, prefit_impact_low * 4, prefit_impact_high * 4, 0.5, 0)
         postfit_graph.SetPointError(i, postfit_impact_low * 4, postfit_impact_high * 4, 0, 0.5)
     nuis_name = TLatex()

@@ -63,8 +63,12 @@ def get_data(pickle_file):
 
 def print_np(np):
     # strip unneeded text from NP names
-    return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
-
+    if np.split('_')[0]=='alpha':
+        return np.replace('alpha_', '').replace('ATLAS_', '').replace('_', ' ')
+    elif np.split('_')[0]=='gamma':
+        return np.replace('gamma_stat', '').replace('channel_', '').replace('125_mmc1_mass_', '').replace('_', ' ')
+    else:
+        return np.replace('ATLAS_', '').replace('_', ' ')
 
 def get_rebinned_hist(hist_origin, binning=None):
     if binning is None:
