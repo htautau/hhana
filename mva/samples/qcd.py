@@ -234,11 +234,14 @@ class QCD(Sample, Background):
                 scale += self.scale_error
             elif sys_term == ('QCDFIT_DOWN',):
                 scale -= self.scale_error
-            # subtract SS MC
+            # subtract MC
             sys_weights *= -1 * scale
-            # add SS data
-            sys_scores = np.concatenate((sys_scores, np.copy(data_scores)))
-            sys_weights = np.concatenate((sys_weights, data_weights * scale))
+            # add data
+            # same order as in records()
+            sys_scores = np.concatenate(
+                (np.copy(data_scores), sys_scores))
+            sys_weights = np.concatenate(
+                (data_weights * scale, sys_weights))
             scores_dict[sys_term] = (sys_scores, sys_weights)
 
         return scores_dict

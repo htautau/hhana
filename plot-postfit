@@ -143,9 +143,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     plotables = [Model]
 
     bin_edges = [(hist_fake.xedgesl(bin.idx), hist_fake.xedgesh(bin.idx)) for bin in hist_fake.bins()]
-    postfit_table_header = ['Sample']+['{0} - {1}'.format(int(l), int(h)) for (l, h) in bin_edges]
+    postfit_table_header = ['Sample'] + [
+        '{0:.2g} - {1:.2g}'.format(l, h) for l, h in bin_edges]
     postfit_table = []
-    postfit_table.append(['Data']+[str(int(val)) for val in data.y()])
+    postfit_table.append(['Data'] + [str(int(val)) for val in data.y()])
     for h in [graph_bkg, graph_fakes, graph_others, graph_ztautau]:
         row = [h.name]
         for val, errh, errl in zip(h.y(), h.yerrh(), h.yerrl()):

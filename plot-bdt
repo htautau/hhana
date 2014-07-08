@@ -86,9 +86,9 @@ def plot_bdt(category, workspace_binning=True):
     signal_scale=20.
     region = TARGET_REGION
 
-    ##########################################################
-    # show the background model and data in the control region
-    log.info("plotting classifier output in control region ...")
+    ########################################################################
+    # show the background model and data in the mass sideband control region
+    log.info("plotting classifier output in the mass sideband control region ...")
     log.info(control_region)
 
     _, channel = analysis.clf_channels(clf,
@@ -116,6 +116,59 @@ def plot_bdt(category, workspace_binning=True):
         #range=(-1, 1),
         signal_scale=signal_scale,
         signal_on_top=False,
+        show_ratio=True,
+        output_dir=plot_dir('bdt'))
+    
+    ##########################################################################
+    # show the background model and 125 GeV signal in the fakes control region
+    log.info("plotting classifier output in the fakes control region ...")
+        
+    # Need to get normalization of fakes in nOS_ISOL separately since
+    # fakes are normalized in OS_ISOL
+
+    orig_qcd_scale = analysis.qcd.scale
+    #orig_mc_scales = analysis.qcd.mc_scales
+    data_events = analysis.data.events(
+        category, 'nOS_ISOL', cuts=signal_region)[1].value
+    ztt_events = analysis.ztautau.events(
+        category, 'nOS_ISOL', cuts=signal_region)[1].value
+    others_events = analysis.others.events(
+        category, 'nOS_ISOL', cuts=signal_region)[1].value
+    fakes_events = analysis.qcd.events(
+        category, 'nOS_ISOL', cuts=signal_region)[1].value
+    sf = (data_events - (
+        ztt_events + others_events + fakes_events)) / fakes_events
+    analysis.qcd.scale *= sf
+    #analysis.qcd.mc_scales = [1. / sf, 1. / sf]
+
+    scores, channel = analysis.clf_channels(clf,
+        category, 'nOS_ISOL', cuts=signal_region,
+        mass=125,
+        mode='combined',
+        systematics=systematics,
+        bins=8 if not workspace_binning else bins,
+        unblind=True,
+        no_signal_fixes=True)
+    
+    # revert fakes scale
+    analysis.qcd.scale = orig_qcd_scale
+    #analysis.qcd.mc_scales = orig_mc_scales
+
+    draw_channel(
+        channel,
+        category=category,
+        plot_label='Fakes CR',
+        signal_scale=signal_scale,
+        signal_on_top=False,
+        #fill_signal=True if args.unblind else False,
+        data_info=str(analysis.data.info),
+        output_name='event_bdt_score_fakes_region' + suffix,
+        name='BDT score',
+        ypadding=(0.4, 0.),
+        log_ypadding=(0.5, 0.1),
+        #range=(-1, 1),
+        systematics=systematics,
+        output_formats=args.output_formats,
         show_ratio=True,
         output_dir=plot_dir('bdt'))
 
