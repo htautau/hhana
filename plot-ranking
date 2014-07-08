@@ -94,10 +94,15 @@ def plot_ranking(name, file, outdir):
         err_dn = mid - low
         pulls.SetPoint(i, mid, i)
         pulls.SetPointError(i, err_dn, err_up, 0, 0)
+        if np.split('_')[0]=='gamma' or  np.split('_')[1]=='norm':
+            pulls.SetPoint(i, mid-1, i)
+            pulls_1sigma.SetPoint(i, mid-1, i)
         log.info('{0} pull: {1} < {2} < {3}'.format(np, err_dn, mid, err_up))
         prefit_graph.SetPoint(i, 0, i)
         postfit_graph.SetPoint(i, 0, i)
         prefit_impact_low, prefit_impact_high = prefit
+        if np.split('_')[1]=='norm':
+            prefit_impact_low, prefit_impact_high = postfit
         postfit_impact_low, postfit_impact_high = postfit
         prefit_graph.SetPointError(i, prefit_impact_low * 4, prefit_impact_high * 4, 0.5, 0)
         postfit_graph.SetPointError(i, postfit_impact_low * 4, postfit_impact_high * 4, 0, 0.5)

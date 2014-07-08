@@ -126,7 +126,7 @@ if __name__ == '__main__':
             poi_name = 'SigXsecOverSM'
             # define the workers
             workers = []
-            for par in nuispar_list:
+            for par in nuispar_list_tot:
                 workers.append(NuisancePullScan(master_pickle_name,
                                                 ws, mc,
                                                 poi_name, par,
