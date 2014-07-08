@@ -219,3 +219,9 @@ Compute the postfit histograms and errors with::
     plot-postfit path_to_measurement_file.root --fit-var bdt_score --force-fit --jobs -1
     # If the fit has already been performed
     plot-postfit path_to_measurement_file.root --fit-var bdt_score
+
+
+References
+==========
+
+https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/NuisanceParameterPullsWithRanking
