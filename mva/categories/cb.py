@@ -49,7 +49,7 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
     label = '#tau_{had}#tau_{had} CB VBF High-p_{T}^{H}'
     latex = '\\textbf{VBF High-$p_T^{H}$}'
     color = 'red'
-    jk_number = 11
+    jk_number = 7
     linestyle = 'dotted'
     cuts = (
         CUTS_VBF_CUTBASED
@@ -66,7 +66,7 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
     name = 'cuts_vbf_highdr_tight'
     label = '#tau_{had}#tau_{had} CB VBF Low-p_{T}^{H} Tight'
     latex = '\\textbf{VBF Low-$p_T^{H}$ Tight}'
-    jk_number = 13
+    jk_number = 9
     color = 'red'
     linestyle = 'verylongdash'
     cuts = (
@@ -85,7 +85,7 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
     latex = '\\textbf{VBF Low-$p_T^{H}$ Loose}'
     color = 'red'
     linestyle = 'dashed'
-    jk_number = 12
+    jk_number = 8
     cuts = (
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
@@ -115,7 +115,7 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     latex = '\\textbf{Boosted High-$p_T^{H}$}'
     color = 'blue'
     linestyle = 'verylongdashdot'
-    jk_number = 10
+    jk_number = 6
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
     limitbins = {}
@@ -133,7 +133,7 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     latex = '\\textbf{Boosted Low-$p_T^{H}$}'
     color = 'blue'
     linestyle = 'dotted'
-    jk_number = 9
+    jk_number = 5
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))
     limitbins = {}

@@ -24,8 +24,8 @@ MVA_cuts = Cut()
 for cat in MVA:
     MVA_cuts |= cat.cuts
 
-fields = ['EventNumber', 'mmc1_mass', 'dEta_tau1_tau2']
-names = ('EvtNum', 'MMC', 'DETA')
+fields = ['EventNumber', 'RunNumber', 'mmc1_mass', 'dEta_tau1_tau2']
+names = ('EvtNum', 'RunNum', 'MMC', 'deta')
 target_region = args.target_region
 data = analysis.data
 
