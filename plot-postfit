@@ -31,7 +31,9 @@ from statstools.plotting import (get_uncertainty_graph, parse_name,
 log = logging.getLogger(os.path.basename(__file__))
 
 
-def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
+def fit_workspace(file_name, ws_name,
+                  output_basename='frames',
+                  n_jobs=-1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -68,9 +70,10 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         run_pool(workers, n_jobs=n_jobs)
         
 
-def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=True):
+def plot_from_frame(file, name, fit_var, category, year,
+                    binning=None, unblind=True, path=None):
     ana = Analysis(2012)
-
+    frame = file[name]
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
     curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
     graph_bkg_ws = get_uncertainty_graph(hbkg, curve_uncert_bkg)
@@ -155,43 +158,57 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
 
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
-        logy = True
         xtitle = 'BDT Score'
         categories = CATEGORIES['mva_all']
     else:
-        logy = False
         xtitle = 'MMC MASS [GeV]'
         categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
-
-    c = Canvas()
-    draw(plotables, pad=c, ypadding=(0.3, 0.3),
-         xtitle=xtitle, ytitle='Events', logy=logy)
     
     if year == 2011:
         sqrts = 7
     else:
         sqrts = 8
-        
-    ATLAS_label(0.2, 0.89, pad=c, sep=0.132,
-                text=ATLAS_LABEL, sqrts=sqrts)
-    graph_bkg.Draw('sameE2')
-    data.Draw('samePE')
-    leg = Legend([data] + Model.GetHists() + [graph_bkg],
-                 rightmargin=0.2,
-                 margin=0.35,
-                 topmargin=0.01,
-                 textsize=20,
-                 entrysep=0.02,
-                 entryheight=0.04)
-    leg.Draw()
-    latex = TLatex(0.2, 0.85, category.label)
-    latex.SetNDC()
-    latex.SetTextSize(20)
-    latex.Draw()
-    c.RedrawAxis()
-    if logy:
-        c.SetLogy()
-    return c, table
+    
+    for logy in (False, True):
+        canvas = Canvas()
+        draw(plotables, pad=canvas, ypadding=(0.3, 0.3),
+            xtitle=xtitle, ytitle='Events', logy=logy)
+                
+        ATLAS_label(0.2, 0.89, pad=canvas, sep=0.132,
+                    text=ATLAS_LABEL, sqrts=sqrts)
+        graph_bkg.Draw('sameE2')
+        data.Draw('samePE')
+        leg = Legend([data] + Model.GetHists() + [graph_bkg],
+                    rightmargin=0.2,
+                    margin=0.35,
+                    topmargin=0.01,
+                    textsize=20,
+                    entrysep=0.02,
+                    entryheight=0.04)
+        leg.Draw()
+        latex = TLatex(0.2, 0.85, category.label)
+        latex.SetNDC()
+        latex.SetTextSize(20)
+        latex.Draw()
+        canvas.RedrawAxis()
+        plot_name = 'postfit_{0}'.format(name)
+        if logy:
+            canvas.SetLogy()
+            plot_name += '_logy'
+        for fmt in ('eps', 'png'):
+            if path is None:
+                canvas.SaveAs('{0}.{1}'.format(plot_name, fmt))
+            else:
+                canvas.SaveAs(os.path.join(path, '{0}.{1}'.format(plot_name, fmt)))
+    # print yields table
+    print
+    print year, category_name, mass
+    print r"\begin{table}"
+    print r"\centering"
+    print table
+    print r"\caption{Postfit yield in %s}." % category.latex 
+    print r"\end{table}"
+    print
 
 
 if __name__ == '__main__':
@@ -238,16 +255,8 @@ if __name__ == '__main__':
                 log.info('Blinding region: {0}'.format(unblind))
             else:
                 unblind=True
-            canvas, table = plot_from_frame(file, file[name], args.fit_var,
-                                            category, year, binning, unblind=unblind)
-            for fmt in ('eps', 'png'):
-                canvas.SaveAs(os.path.join(plots, 'postfit_{0}.{1}'.format(name, fmt)))
-            print
-            print year, category_name, mass
-            print r"\begin{table}"
-            print r"\centering"
-            print table
-            print r"\caption{Postfit yield in %s}." % category.latex 
-            print r"\end{table}"
-            print
+            plot_from_frame(file, name, args.fit_var,
+                            category, year, binning,
+                            unblind=unblind,
+                            path=plots)
     file.Close()
