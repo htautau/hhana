@@ -119,7 +119,10 @@ def draw_ratio(a, b, field, category, textsize=22):
         chi2_label.SetTextFont(43)
         chi2_label.SetTextSize(textsize)
         chi2_label.Draw()
-        x = (1. - pad.GetRightMargin() - 0.03) - len(ATLAS_LABEL) * 0.025
+        if ATLAS_LABEL.lower() == 'internal':
+            x = 0.67
+        else:
+            x = (1. - pad.GetRightMargin() - 0.03) - len(ATLAS_LABEL) * 0.025
         ATLAS_label(x, 0.87,
                     sep=0.132, pad=pad, sqrts=None,
                     text=ATLAS_LABEL,
@@ -127,11 +130,15 @@ def draw_ratio(a, b, field, category, textsize=22):
     return plot
 
 
-def compare(a, b, category, name):
+def compare(a, b, category, name, region_a=None, region_b=None):
+    if region_a is None:
+        region_a = TARGET_REGION
+    if region_b is None:
+        region_b = TARGET_REGION
     a_hists, field_scale = a.get_field_hist(field_dict, category)
     b_hists, _ = b.get_field_hist(field_dict, category)
-    a.draw_array(a_hists, category, TARGET_REGION, field_scale=field_scale)
-    b.draw_array(b_hists, category, TARGET_REGION, field_scale=field_scale)
+    a.draw_array(a_hists, category, region_a, field_scale=field_scale)
+    b.draw_array(b_hists, category, region_b, field_scale=field_scale)
     for field in fields:
         # draw ratio plot
         a_hist = a_hists[field]
@@ -249,3 +256,11 @@ if not args.shapes or 'qcd_ztautau' in args.shapes:
     for category in categories:
         compare(ztt_eb, qcd, category, 'qcd_vs_ztautau')
         compare(ztt_eb, higgs, category, 'higgs_vs_ztautau')
+
+if not args.shapes or 'ztautau_isolation' in args.shapes:
+    ztt = MC_Ztautau(year=args.year, label='Z#rightarrow#tau#tau')
+    ztt_isol = MC_Ztautau(year=args.year, label='Isolated Z#rightarrow#tau#tau')
+    for category in categories:
+        compare(ztt, ztt_isol, category, 'ztautau_isolation',
+                region_a='OS',
+                region_b='OS_ISOL')
