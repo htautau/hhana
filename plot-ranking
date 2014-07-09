@@ -168,6 +168,13 @@ def plot_ranking(name, file, outdir,
     line.DrawLine(0, -0.5 - 1, 0, n_points + 1 - 0.5)
     for i in xrange(n_points):
         solid_line.DrawLine(-2, i - 0.5, 2, i - 0.5)
+        np = ranking[i][0]
+        if 'gamma_stat' in np:
+            nuis_name.SetTextColor(ROOT.kRed)
+        elif 'norm' in np:
+            nuis_name.SetTextColor(ROOT.kBlue)
+        else:
+            nuis_name.SetTextColor(ROOT.kBlack)
         nuis_name.DrawLatex(-2.1, i, print_np(ranking[i][0]))
     solid_line.DrawLine(-2, i + 0.5, 2, i + 0.5)
     pulls.Draw('SAME')
