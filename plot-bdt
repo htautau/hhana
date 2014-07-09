@@ -86,9 +86,9 @@ def plot_bdt(category, workspace_binning=True):
     signal_scale=20.
     region = TARGET_REGION
 
-    ##########################################################
-    # show the background model and data in the control region
-    log.info("plotting classifier output in control region ...")
+    ########################################################################
+    # show the background model and data in the mass sideband control region
+    log.info("plotting classifier output in the mass sideband control region ...")
     log.info(control_region)
 
     _, channel = analysis.clf_channels(clf,
@@ -99,8 +99,6 @@ def plot_bdt(category, workspace_binning=True):
         systematics=systematics,
         unblind=True,
         no_signal_fixes=True)
-
-    #uniform_channel(channel)
 
     # prefit
     draw_channel(channel,
@@ -119,6 +117,55 @@ def plot_bdt(category, workspace_binning=True):
         show_ratio=True,
         output_dir=plot_dir('bdt'))
 
+    ##########################################################################
+    # show the background model and 125 GeV signal in the fakes control region
+    log.info("plotting classifier output in the fakes control region ...")
+        
+    for region_label, fakes_region in (
+            ('Non-isolated OS', 'OS_NONISOL'),
+            ('Isolated non-OS', 'nOS_ISOL')):
+        orig_qcd_scale = analysis.qcd.scale
+        data_events = analysis.data.events(
+            category, fakes_region, cuts=signal_region)[1].value
+        ztt_events = analysis.ztautau.events(
+            category, fakes_region, cuts=signal_region)[1].value
+        others_events = analysis.others.events(
+            category, fakes_region, cuts=signal_region)[1].value
+        fakes_events = analysis.qcd.events(
+            category, fakes_region, cuts=signal_region)[1].value
+        sf = (data_events - (ztt_events + others_events)) / fakes_events
+        analysis.qcd.scale *= sf
+
+        scores, channel = analysis.clf_channels(clf,
+            category, fakes_region, cuts=signal_region,
+            mass=125,
+            mode='combined',
+            systematics=systematics,
+            bins=8 if not workspace_binning else bins,
+            unblind=True,
+            no_signal_fixes=True)
+        
+        # revert fakes scale
+        analysis.qcd.scale = orig_qcd_scale
+
+        draw_channel(
+            channel,
+            category=category,
+            plot_label='{0}'.format(region_label),
+            signal_scale=signal_scale,
+            signal_on_top=False,
+            #fill_signal=True if args.unblind else False,
+            data_info=str(analysis.data.info),
+            output_name='event_bdt_score_{0}_fakes_region'.format(fakes_region.lower()) + suffix,
+            name='BDT score',
+            ypadding=(0.4, 0.),
+            log_ypadding=(0.5, 0.1),
+            #range=(-1, 1),
+            systematics=systematics,
+            output_formats=args.output_formats,
+            show_ratio=True,
+            output_dir=plot_dir('bdt'))
+
     ###################################################################
     # show the background model and 125 GeV signal in the signal region
     log.info("plotting classifier output in the signal region ...")
@@ -131,8 +178,6 @@ def plot_bdt(category, workspace_binning=True):
         bins=bins,
         unblind=args.unblind or unblind_bins,
         no_signal_fixes=True)
-
-    #uniform_channel(channel)
 
     bkg_scores = scores.bkg_scores
     sig_scores = scores.all_sig_scores[125]

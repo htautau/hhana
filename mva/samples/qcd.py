@@ -10,6 +10,7 @@ from .sample import Sample, Background
 from . import log; log = log[__name__]
 from ..systematics import systematic_name
 from ..regions import REGION_SYSTEMATICS
+from ..defaults import FAKES_REGION
 
 
 class QCD(Sample, Background):
@@ -61,8 +62,9 @@ class QCD(Sample, Background):
                  scale_error=0.,
                  data_scale=1.,
                  mc_scales=None,
-                 shape_region='nOS',
-                 decouple_shape=True,
+                 shape_region=FAKES_REGION,
+                 decouple_shape=False,
+                 coherent_shape=True,
                  workspace_norm=None,
                  constrain_norm=False,
                  shape_systematic=True,
@@ -91,6 +93,7 @@ class QCD(Sample, Background):
         self.scale_error = scale_error
         self.shape_region = shape_region
         self.decouple_shape = decouple_shape
+        self.coherent_shape = coherent_shape
         self.workspace_norm = workspace_norm
         self.constrain_norm = constrain_norm
         self.shape_systematic = shape_systematic
@@ -234,11 +237,14 @@ class QCD(Sample, Background):
                 scale += self.scale_error
             elif sys_term == ('QCDFIT_DOWN',):
                 scale -= self.scale_error
-            # subtract SS MC
+            # subtract MC
             sys_weights *= -1 * scale
-            # add SS data
-            sys_scores = np.concatenate((sys_scores, np.copy(data_scores)))
-            sys_weights = np.concatenate((sys_weights, data_weights * scale))
+            # add data
+            # same order as in records()
+            sys_scores = np.concatenate(
+                (np.copy(data_scores), sys_scores))
+            sys_weights = np.concatenate(
+                (data_weights * scale, sys_weights))
             scores_dict[sys_term] = (sys_scores, sys_weights)
 
         return scores_dict

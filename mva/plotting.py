@@ -1129,7 +1129,7 @@ def format_plot(pad, template, xaxis, yaxis,
     # draw the left label
     if left_label:
         label = ROOT.TLatex(
-            pad.GetLeftMargin() + 0.03, 0.89,
+            pad.GetLeftMargin() + 0.03, 0.88,
             left_label)
         label.SetNDC()
         label.SetTextFont(43)
@@ -1140,7 +1140,7 @@ def format_plot(pad, template, xaxis, yaxis,
 
     # draw the right label
     if right_label is not None:
-        label = ROOT.TLatex(0.7, 0.82, right_label)
+        label = ROOT.TLatex(0.68, 0.81, right_label)
         label.SetNDC()
         label.SetTextFont(43)
         label.SetTextSize(textsize)
@@ -1151,7 +1151,7 @@ def format_plot(pad, template, xaxis, yaxis,
     # draw the luminosity label
     if data_info is not None:
         plabel = ROOT.TLatex(
-            pad.GetLeftMargin() + 0.03, 0.82,
+            pad.GetLeftMargin() + 0.03, 0.81,
             str(data_info))
         plabel.SetNDC()
         plabel.SetTextFont(43)
@@ -1163,8 +1163,11 @@ def format_plot(pad, template, xaxis, yaxis,
     # draw the ATLAS label
     if atlas_label is not False:
         label = atlas_label or ATLAS_LABEL
-        x = (1. - pad.GetRightMargin() - 0.03) - len(label) * 0.025
-        ATLAS_label(x, 0.89,
+        if label.lower() == 'internal':
+            x = 0.67
+        else:
+            x = (1. - pad.GetRightMargin() - 0.03) - len(label) * 0.025
+        ATLAS_label(x, 0.88,
                     sep=0.132, pad=pad, sqrts=None,
                     text=label,
                     textsize=textsize)

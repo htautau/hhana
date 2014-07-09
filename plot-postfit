@@ -18,7 +18,7 @@ from rootpy.utils.path import mkdir_p
 from rootpy.extern.tabulartext import PrettyTable
 
 # local imports
-from mva import set_hsg4_style
+from mva import ATLAS_LABEL
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
 from statstools.fitresult import Prefit_RooFitResult
@@ -69,16 +69,14 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         
 
 def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=True):
-    """
-    """
-    Ana = Analysis(2012)
+    ana = Analysis(2012)
 
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
     curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
     graph_bkg_ws = get_uncertainty_graph(hbkg, curve_uncert_bkg)
     graph_bkg = get_rebinned_graph(graph_bkg_ws, binning, unblind=True) 
-    graph_bkg.fillstyle='//'
-    graph_bkg.color='black'
+    graph_bkg.fillstyle = '//'
+    graph_bkg.color = 'black'
     graph_bkg.name = 'Background'
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
@@ -92,10 +90,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
-    hist_fake.color = Ana.qcd.hist_decor['color']
+    hist_fake.color = ana.qcd.hist_decor['color']
     hist_fake.fillstyle = 'solid'
     hist_fake.name = 'Fakes'
-    hist_fake.title = Ana.qcd.label
+    hist_fake.title = ana.qcd.label
     hist_fake.legendstyle = 'F'
     
     curve_uncert_fakes = frame.getCurve('FitError_AfterFit_Fakes_{0}'.format(frame.GetName()))
@@ -105,10 +103,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
 
     hist_others_ws = file.Get('h_Others_{0}'.format(frame.GetName()))
     hist_others = get_rebinned_hist(hist_others_ws, binning)
-    hist_others.color = Ana.others.hist_decor['color']
+    hist_others.color = ana.others.hist_decor['color']
     hist_others.fillstyle = 'solid'
     hist_others.name = 'Others'
-    hist_others.title = Ana.others.label
+    hist_others.title = ana.others.label
     hist_others.legendstyle = 'F'
     curve_uncert_others = frame.getCurve('FitError_AfterFit_Others_{0}'.format(frame.GetName()))
     graph_others_ws = get_uncertainty_graph(hist_others_ws, curve_uncert_others)
@@ -117,10 +115,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
 
     hist_ztautau_ws = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
     hist_ztautau = get_rebinned_hist(hist_ztautau_ws, binning)
-    hist_ztautau.color = Ana.ztautau.hist_decor['color']
+    hist_ztautau.color = ana.ztautau.hist_decor['color']
     hist_ztautau.fillstyle = 'solid'
     hist_ztautau.name = 'Ztautau'
-    hist_ztautau.title = Ana.ztautau.label
+    hist_ztautau.title = ana.ztautau.label
     hist_ztautau.legendstyle = 'F'
     curve_uncert_ztautau = frame.getCurve('FitError_AfterFit_Ztautau_{0}'.format(frame.GetName()))
     graph_ztautau_ws = get_uncertainty_graph(hist_ztautau_ws, curve_uncert_ztautau)
@@ -129,11 +127,11 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     
     hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
     hist_signal = get_rebinned_hist(hist_signal_ws, binning)
-    hist_signal.color = Ana.higgs_125.hist_decor['linecolor']
+    hist_signal.color = ana.higgs_125.hist_decor['linecolor']
     hist_signal.linestyle = 'solid'
     hist_signal.linewidth = 4
     hist_signal.name = 'Signal'
-    hist_signal.title = Ana.higgs_125.label+ ' (best fit #mu)'
+    hist_signal.title = ana.higgs_125.label + ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
 
     hists = [hist_fake, hist_others, hist_ztautau, hist_signal]
@@ -143,9 +141,10 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     plotables = [Model]
 
     bin_edges = [(hist_fake.xedgesl(bin.idx), hist_fake.xedgesh(bin.idx)) for bin in hist_fake.bins()]
-    postfit_table_header = ['Sample']+['{0} - {1}'.format(int(l), int(h)) for (l, h) in bin_edges]
+    postfit_table_header = ['Sample'] + [
+        '{0:.2g} - {1:.2g}'.format(l, h) for l, h in bin_edges]
     postfit_table = []
-    postfit_table.append(['Data']+[str(int(val)) for val in data.y()])
+    postfit_table.append(['Data'] + [str(int(val)) for val in data.y()])
     for h in [graph_bkg, graph_fakes, graph_others, graph_ztautau]:
         row = [h.name]
         for val, errh, errl in zip(h.y(), h.yerrh(), h.yerrl()):
@@ -156,28 +155,28 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
 
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
+        logy = True
         xtitle = 'BDT Score'
         categories = CATEGORIES['mva_all']
-        logy = True
     else:
-        xtitle = 'MMC MASS [GeV]'
-        categories=CATEGORIES['cuts']+CATEGORIES['cuts_2011']
         logy = False
+        xtitle = 'MMC MASS [GeV]'
+        categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
 
     c = Canvas()
     draw(plotables, pad=c, ypadding=(0.3, 0.3),
-         xtitle=xtitle, ytitle= 'Events', logy=logy)
-    if year==2011:
-        text='Internal 2011'
-        sqrts=7
+         xtitle=xtitle, ytitle='Events', logy=logy)
+    
+    if year == 2011:
+        sqrts = 7
     else:
-        text='Internal 2012'
-        sqrts=8
+        sqrts = 8
         
-    ATLAS_label(0.2, 0.89, pad=c, sep=0.132, text=text, sqrts=sqrts)
+    ATLAS_label(0.2, 0.89, pad=c, sep=0.132,
+                text=ATLAS_LABEL, sqrts=sqrts)
     graph_bkg.Draw('sameE2')
     data.Draw('samePE')
-    leg = Legend([data]+Model.GetHists()+[graph_bkg],
+    leg = Legend([data] + Model.GetHists() + [graph_bkg],
                  rightmargin=0.2,
                  margin=0.35,
                  topmargin=0.01,
@@ -190,7 +189,7 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     latex.SetTextSize(20)
     latex.Draw()
     c.RedrawAxis()
-    if fit_var == 'bdt':
+    if logy:
         c.SetLogy()
     return c, table
 
@@ -206,7 +205,7 @@ if __name__ == '__main__':
     parser.add_argument('--jobs', default=-1)
     args = parser.parse_args()
 
-    if args.fit_var=='bdt':
+    if args.fit_var == 'bdt':
         categories = CATEGORIES['mva_all']
     else:
         categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
@@ -215,13 +214,12 @@ if __name__ == '__main__':
     output = input + '_postfit'
     plots = input + '_plots'
 
-    if not os.path.exists(output+'.root') or args.force_fit:
+    if not os.path.exists(output + '.root') or args.force_fit:
         fit_workspace(args.file, args.name, output, n_jobs=args.jobs)
     
     if not os.path.exists(plots):
         mkdir_p(plots)
 
-    set_hsg4_style(shape='rect')
     file = root_open(output + '.root')
     for _, _, names in file.walk(class_pattern='*RooPlot*'):
         for name in names:
@@ -242,8 +240,8 @@ if __name__ == '__main__':
                 unblind=True
             canvas, table = plot_from_frame(file, file[name], args.fit_var,
                                             category, year, binning, unblind=unblind)
-            canvas.SaveAs(os.path.join(plots, 'postfit_{0}.png'.format(name)))
-            canvas.SaveAs(os.path.join(plots, 'postfit_{0}.eps'.format(name)))
+            for fmt in ('eps', 'png'):
+                canvas.SaveAs(os.path.join(plots, 'postfit_{0}.{1}'.format(name, fmt)))
             print
             print year, category_name, mass
             print r"\begin{table}"
