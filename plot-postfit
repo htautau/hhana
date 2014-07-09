@@ -11,16 +11,19 @@ from tabulate import tabulate
 from ROOT import TLatex, TGraphAsymmErrors, TH1 
 from rootpy import asrootpy
 from rootpy.io import root_open
-from rootpy.plotting import Canvas, HistStack, Legend, set_style
+from rootpy.plotting import Canvas, HistStack, Graph, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
 from rootpy.extern.tabulartext import PrettyTable
 
 # local imports
-from mva import ATLAS_LABEL
+from mva import ATLAS_LABEL, MMC_MASS
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
+from mva.templates import RatioPlot
+from mva.variables import get_label
+
 from statstools.fitresult import Prefit_RooFitResult
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
@@ -92,6 +95,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     data.name = 'Data'
     data.title = 'Data'
     data.drawstyle = 'PE'
+    data.legendstyle = 'LEP'
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
@@ -139,7 +143,8 @@ def plot_from_frame(file, name, fit_var, category, year,
     hist_signal.title = ana.higgs_125.label + ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
 
-    hists = [hist_fake, hist_others, hist_ztautau]
+    background = [hist_fake, hist_others, hist_ztautau]
+    hists = background[:]
     if unblind is True and not isinstance(unblind, int):
         hists.append(hist_signal)
 
@@ -148,10 +153,13 @@ def plot_from_frame(file, name, fit_var, category, year,
 
     # TODO: make plot identical to standard variable plots
     if fit_var == 'bdt':
-        xtitle = 'BDT Score'
+        if category.name == 'rest':
+            xtitle = get_label('dEta_tau1_tau2') 
+        else:
+            xtitle = 'BDT Score'
         categories = CATEGORIES['mva_all']
     else:
-        xtitle = 'MMC MASS [GeV]'
+        xtitle = get_label(MMC_MASS)
         categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
     
     if year == 2011:
@@ -160,38 +168,50 @@ def plot_from_frame(file, name, fit_var, category, year,
         sqrts = 8
 
     plottables = [
-        data,
         model,
         graph_bkg,
+        data,
     ]
     
+    ratio = data / graph_bkg
+    ratio.drawstyle = 'EP'
+    
     for logy in (False, True):
-        canvas = Canvas()
-        draw(plottables, pad=canvas, ypadding=(0.3, 0.3),
-             xtitle=xtitle, ytitle='Events', logy=logy)
-                
-        ATLAS_label(0.2, 0.89, pad=canvas, sep=0.132,
+        plot_name = 'postfit_{0}'.format(name)
+        canvas = RatioPlot(
+            xtitle=xtitle,
+            ytitle='Events',
+            ratio_title='Data / Model',
+            ratio_range=(0, 2),
+            ratio_line_values=[0.5, 1, 1.5],
+            logy=logy)
+        if logy:
+            plot_name += '_logy'
+        canvas.draw('main', plottables, ypadding=(0.3, 0.3))
+        canvas.draw('ratio', ratio)
+        x, y = canvas.axes('main')
+        x.limits = model[0].bounds()
+        x.range_user = model[0].bounds()
+        x, y = canvas.axes('ratio')
+        x.limits = model[0].bounds()
+        x.range_user = model[0].bounds()
+        canvas.update_lines()
+        canvas.cd('main')
+        ATLAS_label(0.2, 0.89, pad=canvas.pad('main'), sep=0.132,
                     text=ATLAS_LABEL, sqrts=sqrts)
-        graph_bkg.Draw('sameE2')
-        data.Draw('samePE')
         leg = Legend(
-            [data] + model.hists + [graph_bkg],
-            rightmargin=0.2,
+            [data] + model.hists[::-1] + [graph_bkg],
+            leftmargin=0.45,
             margin=0.35,
-            topmargin=0.01,
+            topmargin=0.05,
             textsize=20,
             entrysep=0.02,
-            entryheight=0.04)
+            entryheight=0.05)
         leg.Draw()
         latex = TLatex(0.2, 0.85, category.label)
         latex.SetNDC()
         latex.SetTextSize(20)
         latex.Draw()
-        canvas.RedrawAxis()
-        plot_name = 'postfit_{0}'.format(name)
-        if logy:
-            canvas.SetLogy()
-            plot_name += '_logy'
         for fmt in ('eps', 'png'):
             if path is None:
                 canvas.SaveAs('{0}.{1}'.format(plot_name, fmt))
