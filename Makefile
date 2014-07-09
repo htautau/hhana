@@ -249,6 +249,11 @@ thesis:
 	      -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
 	@echo created ~/thesis.tar.gz
 
+workspace-plots:
+	@rm -f ~/workspace.tar.gz
+	@find ./workspaces -name "*.png" -print0 | tar -vpcz --null -T - -f ~/workspace.tar.gz
+	@echo created ~/workspace.tar.gz
+
 test:
 	nosetests -s -v mva
 

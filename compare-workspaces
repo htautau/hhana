@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('dirs', nargs='+')
+args = parser.parse_args()
+
+from rootpy.io import root_open
+from statstools import get_significance_workspace
+from statstools.asimov import make_asimov_data
+
+
+sigs = []
+mus = []
+
+for dir in args.dirs:
+    name, dir = dir.split(':')
+    file = root_open(dir)
+    ws = file['combined']
+    mc = ws.obj('ModelConfig')
+    ws.saveSnapshot('nomimal_globs', mc.GetGlobalObservables())
+    ws.saveSnapshot('nominal_nuis', mc.GetNuisanceParameters())
+
+    mu_row = [name]
+    data = make_asimov_data(ws, profile='hat')
+    ws.fit(data=data)
+    poi = mc.poi.first()
+    mu_row.append("{0:.3f} +/- {1:.3f}".format(poi.value, poi.error))
+    mus.append(mu_row)
+    
+    sigs_row = [name]
+    for profile in (False, 0, 1, 'hat'):
+        ws.loadSnapshot('nomimal_globs')
+        ws.loadSnapshot('nominal_nuis')
+        hist = get_significance_workspace(ws, profile=profile)
+        sigs_row.append("{0:.3f}".format(hist[2].value))
+    sigs.append(sigs_row)
+
+for row in sigs:
+    print row
+print
+for row in mus:
+    print row
