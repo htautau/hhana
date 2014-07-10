@@ -28,7 +28,6 @@ from statstools.plotting import (get_uncertainty_graph, parse_name,
                                  get_category, get_binning, get_blinding,
                                  get_rebinned_graph, get_rebinned_hist)
 
-log = logging.getLogger(os.path.basename(__file__))
 
 
 def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
