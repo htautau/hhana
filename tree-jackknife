@@ -3,18 +3,19 @@
 # python imports
 import os
 import logging
-log = logging.getLogger(os.path.basename(__file__))
+import numpy as np
+from numpy.lib import recfunctions
 
 # ROOT/rootpy/root_numpy imports
 from rootpy.io import root_open
 from rootpy.tree import Cut
 from rootpy.plotting import Hist
 from root_numpy import fill_hist, array2tree
-import numpy as np
-from numpy.lib import recfunctions
 
 # local imports
 from mva.utils import uniform_hist
+
+log = logging.getLogger(os.path.basename(__file__))
 
 fields = ['EventNumber', 'RunNumber', 'mmc1_mass', 'dEta_tau1_tau2']
 fields_names = ('EvtNum', 'RunNum', 'MMC_raw', 'deta_raw')
