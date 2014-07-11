@@ -21,7 +21,7 @@ class Category_VBF(Category_Preselection):
     latex = '\\textbf{VBF}'
     color = 'red'
     linestyle = 'dotted'
-    jk_number = 10
+    jk_number = 6
     common_cuts = Category_Preselection.common_cuts
     cuts = (
         CUTS_VBF
@@ -58,7 +58,7 @@ class Category_Boosted(Category_Preselection):
     latex = '\\textbf{Boosted}'
     color = 'blue'
     linestyle = 'dashed'
-    jk_number = 9
+    jk_number = 5
     common_cuts = Category_Preselection.common_cuts
     cuts = (
         (- Category_VBF.cuts)
@@ -85,7 +85,7 @@ class Category_Rest(Category_Preselection):
     name = 'rest'
     label = '#tau_{had}#tau_{had} Rest'
     latex = '\\textbf{Rest}'
-    jk_number = 8
+    jk_number = 4
     common_cuts = Category_Preselection.common_cuts
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts) & DETA_TAUS
     norm_category = Category_Preselection
