@@ -334,16 +334,15 @@ class QCD(Sample, Background):
 
         log.info("creating QCD shape systematic")
 
-        models = REGION_SYSTEMATICS
-
         curr_model = self.shape_region
-        if curr_model not in models:
+        if curr_model not in REGION_SYSTEMATICS:
             raise ValueError(
                 "no QCD shape systematic defined for nominal {0}".format(
                     curr_model))
+        shape_model = REGION_SYSTEMATICS[curr_model]
 
-        # use preselection as reference in which all models should have the same
-        # expected number of QCD events
+        # use preselection as reference in which all models should have the
+        # same expected number of QCD events
         # get number of events at preselection for nominal model
         from ..categories import Category_Preselection
         nominal_events = self.events(Category_Preselection, None)[1].value
@@ -354,7 +353,6 @@ class QCD(Sample, Background):
             new_hist.Reset()
             field_hist_template[field] = new_hist
 
-        shape_model = models[curr_model]
         # add QCD shape systematic
         self.shape_region = shape_model
         log.info("getting QCD shape for {0}".format(shape_model))

@@ -123,7 +123,8 @@ def plot_bdt(category, workspace_binning=True):
         
     for region_label, fakes_region in (
             ('Non-isolated OS', 'OS_NONISOL'),
-            ('Isolated non-OS', 'nOS_ISOL')):
+            ('Isolated non-OS', 'nOS_ISOL'),
+            ('Non-isolated non-OS', 'nOS_NONISOL')):
         orig_qcd_scale = analysis.qcd.scale
         data_events = analysis.data.events(
             category, fakes_region, cuts=signal_region)[1].value

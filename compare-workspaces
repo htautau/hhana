@@ -3,42 +3,94 @@
 from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument('dirs', nargs='+')
+parser.add_argument('--refit', action='store_true', default=False)
+parser.add_argument('--injection', type=float, default=1.)
+parser.add_argument('--injection-test', action='store_true', default=False)
+parser.add_argument('--unblind', action='store_true', default=False)
+parser.add_argument('files', nargs='+')
 args = parser.parse_args()
 
-from rootpy.io import root_open
-from statstools import get_significance_workspace
+from statstools.significance import SignificanceWorker
 from statstools.asimov import make_asimov_data
+from statstools.parallel import map_pool_kwargs, Worker
+from tabulate import tabulate
 
 
-sigs = []
-mus = []
+files = []
+names = []
 
-for dir in args.dirs:
-    name, dir = dir.split(':')
-    file = root_open(dir)
-    ws = file['combined']
-    mc = ws.obj('ModelConfig')
-    ws.saveSnapshot('nomimal_globs', mc.GetGlobalObservables())
-    ws.saveSnapshot('nominal_nuis', mc.GetNuisanceParameters())
+for name_file in args.files:
+    if ':' in name_file:
+        name, file = name_file.split(':')
+    else:
+        name = name_file
+        file = name_file
+    names.append(name)
+    files.append(file)
 
-    mu_row = [name]
-    data = make_asimov_data(ws, profile='hat')
-    ws.fit(data=data)
-    poi = mc.poi.first()
-    mu_row.append("{0:.3f} +/- {1:.3f}".format(poi.value, poi.error))
-    mus.append(mu_row)
-    
-    sigs_row = [name]
-    for profile in (False, 0, 1, 'hat'):
-        ws.loadSnapshot('nomimal_globs')
-        ws.loadSnapshot('nominal_nuis')
-        hist = get_significance_workspace(ws, profile=profile)
-        sigs_row.append("{0:.3f}".format(hist[2].value))
-    sigs.append(sigs_row)
+profiles = (False, 0, 1, 'hat')
+kwargs = []
+for profile in profiles:
+    kwargs.extend(
+        [dict(file=file, workspace_name='combined',
+              profile=profile, 
+              injection=args.injection,
+              injection_test=args.injection_test,
+              refit=args.refit)
+            for file in files])
+if args.unblind:
+    kwargs.extend(
+        [dict(file=file, workspace_name='combined',
+              observed=True, refit=args.refit)
+            for file in files])
 
-for row in sigs:
-    print row
-print
-for row in mus:
-    print row
+# fit all workspaces in parallel
+sigs = map_pool_kwargs(SignificanceWorker, kwargs)
+
+# make table
+sig_table = [[name] for name in names]
+mu_table = [[name] for name in names]
+for profile in profiles:
+    for i, name in enumerate(names):
+        sig, mu, mu_error = sigs.pop(0)
+        sig_table[i].append(sig)
+        mu_table[i].append('{0:.3f} +/- {1:.3f}'.format(mu, mu_error))
+if args.unblind:
+    for i, name in enumerate(names):
+        sig, mu, mu_error = sigs.pop(0)
+        sig_table[i].append(sig)
+        mu_table[i].append('{0:.3f} +/- {1:.3f}'.format(mu, mu_error))
+
+headers = (
+    ['name'] +
+    ['profile={0}'.format(profile) for profile in profiles])
+if args.unblind:
+    headers.append('observed')
+
+print "\nsignificance:\n"
+print tabulate(sig_table, headers=headers)
+print "\nmu:\n"
+print tabulate(mu_table, headers=headers)
+
+#ws = file['combined']
+#mc = ws.obj('ModelConfig')
+#mu_row = [name]
+#data = make_asimov_data(ws, profile='hat')
+#ws.fit(data=data)
+#poi = mc.poi.first()
+#mu_row.append("{0:.3f} +/- {1:.3f}".format(poi.value, poi.error))
+#mus.append(mu_row)
+        
+#sigs_row = [name]
+#for profile in (False, 0, 1, 'hat'):
+#    hist = get_significance_workspace(ws, profile=profile)
+#    print hist[2].value
+#    raw_input()
+#    sigs_row.append("{0:.3f}".format(hist[2].value))
+#sigs.append(sigs_row)
+
+#for row in sigs:
+#    print row
+#print
+#for row in mus:
+#    print row

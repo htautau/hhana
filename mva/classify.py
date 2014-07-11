@@ -125,7 +125,8 @@ def histogram_scores(hist_template, scores,
                 scores_idx = sys_scores < max_score
                 sys_scores = sys_scores[scores_idx]
                 sys_weight = sys_weight[scores_idx]
-            sys_hist = hist.Clone(name=hist.name + "_" + systematic_name(sys_term))
+            sys_hist = hist.Clone(
+                name=hist.name + "_" + systematic_name(sys_term))
             sys_hist.Reset()
             sys_hist.fill_array(sys_scores, sys_weight)
             sys_hists[sys_term] = sys_hist

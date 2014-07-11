@@ -1,44 +1,8 @@
 #!/usr/bin/env python
 
-from multiprocessing import Process
-from rootpy.io import root_open
-from statstools.jobs import run_pool
-from statstools import get_significance_workspace
-import pickle
+from statstools.parallel import run_pool
+from statstools.significance import SignificanceWorker
 import os
-
-
-class SigProcess(Process):
-    def __init__(self, file, name, unblind=False, profile=None, overwrite=False):
-        super(SigProcess, self).__init__()
-        self.file = file
-        self.name = name
-        self.unblind = unblind
-        self.profile = profile
-        self.overwrite = overwrite
-    
-    def run(self):
-        if self.unblind:
-            pickle_name = (
-                os.path.splitext(self.file)[0] +
-                '_profiled_mu{0}_unblind.pickle'.format(self.profile))
-        else:
-            pickle_name = os.path.splitext(self.file)[0] + '.pickle'
-        if os.path.exists(pickle_name) and not self.overwrite:
-            # abort
-            return
-        # get the significance of the workspace
-        with root_open(self.file) as file:
-            ws = file[self.name]
-            hist = get_significance_workspace(
-                ws, 
-                verbose=True,
-                observed=self.unblind,
-                profile=self.profile)
-            sig = hist[2].value
-        # write the value into a pickle
-        with open(pickle_name, 'w') as pickle_file:
-            pickle.dump({self.name: sig}, pickle_file)
 
 
 if __name__ == '__main__':
@@ -66,8 +30,10 @@ if __name__ == '__main__':
             root_files.append(file)
 
     # define the workers
-    workers = [SigProcess(file, args.name, unblind=args.unblind,
-                          profile=args.profile, overwrite=args.overwrite)
+    workers = [SignificanceWorker(file, args.name,
+                                  unblind=args.unblind,
+                                  profile=args.profile,
+                                  overwrite=args.overwrite)
                for file in root_files]
 
     # run the pool
