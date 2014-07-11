@@ -74,7 +74,7 @@ def fit_workspace(file_name, ws_name,
         
 
 def plot_from_frame(file, name, fit_var, category, year,
-                    binning=None, unblind=True, path=None):
+                    binning=None, unblind=False, path=None):
     ana = Analysis(2012)
     frame = file[name]
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
@@ -145,7 +145,7 @@ def plot_from_frame(file, name, fit_var, category, year,
 
     background = [hist_fake, hist_others, hist_ztautau]
     hists = background[:]
-    if unblind is True and not isinstance(unblind, int):
+    if unblind is True:
         hists.append(hist_signal)
 
     model = HistStack(hists=hists,
