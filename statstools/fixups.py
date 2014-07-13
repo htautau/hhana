@@ -108,6 +108,12 @@ def fix_measurement(meas,
         split_norm_shape=True,
         uniform_binning=True)
 
+    # decorrelate shape component of fakes uncertainty
+    process_measurement(meas,
+        decorrelate_names=['ATLAS_ANA_HH_*_QCD'],
+        decorrelate_types=['histosys'],
+        decorrelate_samples=['Fakes'])
+
     if drop_others_shapes:
         process_measurement(meas,
             drop_np_names=["*"],

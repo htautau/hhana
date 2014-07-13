@@ -37,6 +37,11 @@ def process_measurement(m,
 
                         flat_signal=None,
 
+                        decorrelate_names=None,
+                        decorrelate_types=None,
+                        decorrelate_samples=None,
+                        decorrelate_channels=None,
+
                         drop_np_names=None,
                         drop_np_types=None,
                         drop_np_samples=None,
@@ -160,6 +165,20 @@ def process_measurement(m,
         if split_norm_shape:
             for s in c.samples:
                 apply_split_norm_shape(s)
+
+        # decorrelate specific NPs
+        if decorrelate_names and matched(c.name, decorrelate_channels):
+            for s in c.samples:
+                if not matched(s.name, decorrelate_samples):
+                    continue
+                if matched('histosys', decorrelate_types, ignore_case=True):
+                    for np in s.histo_sys:
+                        if matched(np.name, decorrelate_names, ignore_case=True):
+                            np.name = np.name + '_{0}'.format(c.name)
+                if matched('overallsys', decorrelate_types, ignore_case=True):
+                    for np in s.overall_sys:
+                        if matched(np.name, decorrelate_names, ignore_case=True):
+                            np.name = np.name + '_{0}'.format(c.name)
 
         # drop NPs by name
         if drop_np_names and matched(c.name, drop_np_channels):
