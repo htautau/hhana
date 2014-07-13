@@ -17,9 +17,9 @@ with root_open(args.file) as f:
     if args.workspace not in f:
         f.ls()
     else:
-        h = significance(
+        sig, mu, mu_error = significance(
             f[args.workspace],
             observed=args.unblind,
             profile=args.profile,
             verbose=True)
-        print list(h.y())
+        print sig
