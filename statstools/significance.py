@@ -1,5 +1,6 @@
 import os
 import pickle
+
 from rootpy.io import root_open
 from .extern import significance as _significance
 from .parallel import Worker
@@ -11,40 +12,30 @@ def significance(workspace,
                  profile=False,
                  injection_test=False,
                  **fit_params):
-    model_config = workspace.obj('ModelConfig')
-    # remember nominal workspace
-    workspace.saveSnapshot('nominal_obs', model_config.global_observables)
-    workspace.saveSnapshot('nominal_nuis', model_config.nuisance_parameters)
-    workspace.saveSnapshot('nominal_poi', model_config.poi)
+    floating_profile_mu = False
+    profile_mu = 1.
     if isinstance(profile, basestring):
         if profile == 'hat':
-            if not observed:
-                fit_params.setdefault('print_level', -1)
-            # unconditional fit
-            workspace.fit(**fit_params)
-            poi = model_config.poi.first()
-            profile_mu = poi.getVal()
-            profile = True
-            # reset workspace
-            workspace.loadSnapshot('nominal_obs')
-            workspace.loadSnapshot('nominal_nuis')
-            workspace.loadSnapshot('nominal_poi')
+            floating_profile_mu = True
         else:
             profile_mu = float(profile)
-            profile = True
+        profile = True
     elif profile is None:
         profile = False
-        profile_mu = 1.
-    elif profile is False or profile is True:
-        profile_mu = 1.
-    else:
+    elif profile is not False and profile is not True:
         profile_mu = float(profile)
         profile = True
+    model_config = workspace.obj('ModelConfig')
+    # remember nominal workspace
+    workspace.saveSnapshot('nominal_globs', model_config.global_observables)
+    workspace.saveSnapshot('nominal_nuis', model_config.nuisance_parameters)
+    workspace.saveSnapshot('nominal_poi', model_config.poi)
     hist = _significance(workspace, observed,
                          injection, injection_test,
-                         profile, profile_mu)
+                         profile, profile_mu,
+                         floating_profile_mu)
     # reset workspace
-    workspace.loadSnapshot('nominal_obs')
+    workspace.loadSnapshot('nominal_globs')
     workspace.loadSnapshot('nominal_nuis')
     workspace.loadSnapshot('nominal_poi')
     if not hist:
