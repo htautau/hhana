@@ -1,12 +1,13 @@
-from .jobs import run_pool
-from .histfactory import process_measurement
+import os
+import re
+from multiprocessing import Process
+
 from rootpy.stats.histfactory import measurements_from_xml, write_measurement
 from rootpy.io import MemFile
-import os
 
+from .jobs import run_pool
+from .histfactory import process_measurement
 from . import log; log = log[__name__]
-
-from multiprocessing import Process
 
 
 class Worker(Process):
@@ -71,6 +72,14 @@ def fix(inputs, suffix='fixed', verbose=False, n_jobs=-1, **kwargs):
     run_pool(workers, n_jobs=n_jobs)
 
 
+CHANNEL_PATTERN = re.compile('^(?P<type>channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z_]+)(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$')
+
+
+def decorrelate_fakes_shape(channel, sample, name):
+    match = re.match(CHANNEL_PATTERN, channel)
+    return name + '_{0}_shape'.format(match.group('category').strip('_'))
+
+
 def fix_measurement(meas,
                     prune_norms=False,
                     prune_shapes=False,
@@ -110,9 +119,10 @@ def fix_measurement(meas,
 
     # decorrelate shape component of fakes uncertainty
     process_measurement(meas,
-        decorrelate_names=['ATLAS_ANA_HH_*_QCD'],
-        decorrelate_types=['histosys'],
-        decorrelate_samples=['Fakes'])
+        rename_names=['ATLAS_ANA_HH_*_QCD'],
+        rename_types=['histosys'],
+        rename_samples=['Fakes'],
+        rename_func=decorrelate_fakes_shape)
 
     if drop_others_shapes:
         process_measurement(meas,
