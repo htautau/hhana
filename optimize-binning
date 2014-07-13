@@ -61,7 +61,7 @@ def get_sig(scores, binning, edge=None, pos=1,
     ws = get_workspace(scores, binning,
                        mass=mass,
                        systematics=systematics)
-    sig = significance(ws)
+    sig, mu, mu_error = significance(ws)
     # handle nan
     return 0 if sig != sig else sig
 
