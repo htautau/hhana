@@ -18,18 +18,14 @@ ETC_DIR = os.path.join(BASE_DIR, 'etc')
 DAT_DIR = os.path.join(BASE_DIR, 'dat')
 BDT_DIR = os.path.join(BASE_DIR, 'bdts')
 NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v29')
-
-import ROOT
-import rootpy
-import logging
-
-# Speed things up a bit
-ROOT.SetSignalPolicy(ROOT.kSignalFast)
-
 DEFAULT_STUDENT = 'hhskim'
 
-if not os.getenv('MVA_NO_BATCH', False):
-    ROOT.gROOT.SetBatch(True)
+# import rootpy before ROOT
+import rootpy
+import ROOT
+# trigger PyROOT's finalSetup() early...
+ROOT.kTRUE
+import logging
 
 log = logging.getLogger('mva')
 if not os.environ.get("DEBUG", False):
@@ -39,6 +35,13 @@ if hasattr(logging, 'captureWarnings'):
     logging.captureWarnings(True)
 
 log['/ROOT.TH1D.Chi2TestX'].setLevel(log.WARNING)
+
+# Speed things up a bit
+ROOT.SetSignalPolicy(ROOT.kSignalFast)
+
+if not os.getenv('MVA_NO_BATCH', False):
+    ROOT.gROOT.SetBatch(True)
+    log.info("ROOT is in batch mode")
 
 from rootpy.utils.path import mkdir_p
 
@@ -88,7 +91,6 @@ with silence_sout_serr():
     from rootpy.stats import mute_roostats; mute_roostats()
 
 # default minimizer options
-import ROOT
 ROOT.Math.MinimizerOptions.SetDefaultStrategy(1)
 ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
 

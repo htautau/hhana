@@ -20,6 +20,7 @@ from mva.templates import RatioPlot
 from mva.systematics import iter_systematics
 from mva import save_canvas, log, ATLAS_LABEL
 from mva.defaults import TARGET_REGION
+from mva.plotting import compare as plotting_compare
 
 parser = ArgumentParser()
 parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012))
@@ -52,94 +53,10 @@ fields = [
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
 
-def draw_ratio(a, b, field, category, textsize=22):
-    plot = RatioPlot(
-        xtitle=field_dict[field]['root'],
-        ytitle='Normalized Events',
-        ratio_title='A / B',
-        ratio_range=(0, 2),
-        ratio_line_values=[0.5, 1, 1.5])
-    a_integral = a.integral()
-    if a_integral != 0:
-        a /= a_integral
-    b_integral = b.integral()
-    if b_integral != 0:
-        b /= b_integral
-    a.title = 'A: ' + a.title
-    b.title = 'B: ' + b.title
-    a.color = 'black'
-    b.color = 'red'
-    a.legendstyle = 'L'
-    b.legendstyle = 'L'
-    a.markersize = 0
-    b.markersize = 0
-    a.linewidth = 2
-    b.linewidth = 2
-    a.fillstyle = 'hollow'
-    b.fillstyle = 'hollow'
-    a.linestyle = 'solid'
-    b.linestyle = 'dashed'
-    a.drawstyle='hist E0'
-    b.drawstyle='hist E0'
-    plot.draw('main', [a, b], ypadding=(0.3, 0.))
-    ratio = Hist.divide(a, b, fill_value=-1)
-    ratio.drawstyle = 'hist'
-    ratio.color = 'black'
-    ratio_band = Graph(ratio, fillstyle='/', fillcolor='black', linewidth=0)
-    ratio_band.drawstyle = '20'
-    plot.draw('ratio', [ratio_band, ratio])
-    with plot.pad('main') as pad:
-        # legend
-        leg = Legend([a, b],
-                     leftmargin=0.25, topmargin=0.1,
-                     margin=0.18, textsize=textsize)
-        leg.Draw()
-        # draw the category label
-        label = TLatex(
-            pad.GetLeftMargin() + 0.04, 0.87,
-            category.label)
-        label.SetNDC()
-        label.SetTextFont(43)
-        label.SetTextSize(textsize)
-        label.Draw()
-        # show p-value and chi^2
-        pvalue = a.Chi2Test(b, 'WW')
-        pvalue_label = TLatex(
-            pad.GetLeftMargin() + 0.04, 0.8,
-            "p-value={0:.2f}".format(pvalue))
-        pvalue_label.SetNDC(True)
-        pvalue_label.SetTextFont(43)
-        pvalue_label.SetTextSize(textsize)
-        pvalue_label.Draw()
-        chi2 = a.Chi2Test(b, 'WW CHI2/NDF')
-        chi2_label = TLatex(
-            pad.GetLeftMargin() + 0.04, 0.72,
-            "#frac{{#chi^{{2}}}}{{ndf}}={0:.2f}".format(chi2))
-        chi2_label.SetNDC(True)
-        chi2_label.SetTextFont(43)
-        chi2_label.SetTextSize(textsize)
-        chi2_label.Draw()
-        x = (1. - pad.GetRightMargin() - 0.03) - len(ATLAS_LABEL) * 0.025
-        ATLAS_label(x, 0.87,
-                    sep=0.132, pad=pad, sqrts=None,
-                    text=ATLAS_LABEL,
-                    textsize=textsize)
-    return plot
-
-
-def compare(a, b, category, name):
-    a_hists, field_scale = a.get_field_hist(field_dict, category)
-    b_hists, _ = b.get_field_hist(field_dict, category)
-    a.draw_array(a_hists, category, TARGET_REGION, field_scale=field_scale)
-    b.draw_array(b_hists, category, TARGET_REGION, field_scale=field_scale)
-    for field in fields:
-        # draw ratio plot
-        a_hist = a_hists[field]
-        b_hist = b_hists[field]
-        plot = draw_ratio(a_hist, b_hist, field, category)
-        for output in ('eps', 'png'):
-            save_canvas(plot, 'plots/shapes', '{0}/shape_{0}_{1}_{2}_{3}.{4}'.format(
-                name, field, category.name, args.year % 1000, output))
+def compare(a, b, category, name, **kwargs):
+    return plotting_compare(a, b, field_dict,
+                            category, name, args.year,
+                            **kwargs)
 
 
 if not args.shapes or 'data' in args.shapes:
@@ -189,7 +106,6 @@ if not args.shapes or 'qcd' in args.shapes:
     # fakes
     qcd_nos = Analysis(args.year, fakes_region='nOS').normalize(Category_Preselection).qcd.decorate(label='Isolated nOS Fakes')
     qcd_nos_nonisol = Analysis(args.year, fakes_region='nOS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated nOS Fakes')
-    qcd_nos_double_nonisol = Analysis(args.year, fakes_region='nOS_DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated nOS Fakes')
 
     qcd_ss = Analysis(args.year, fakes_region='SS').normalize(Category_Preselection).qcd.decorate(label='Isolated SS Fakes')
     # to get OS fakes, use "best" Ztt fits from nOS_NONISOL and then change the
@@ -200,11 +116,8 @@ if not args.shapes or 'qcd' in args.shapes:
 
     qcd_ss_nonisol = Analysis(args.year, fakes_region='SS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated SS Fakes')
     qcd_os_nonisol = Analysis(args.year, fakes_region='OS_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated OS Fakes')
-    qcd_ss_double_nonisol = Analysis(args.year, fakes_region='SS_DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated SS Fakes')
-    qcd_os_double_nonisol = Analysis(args.year, fakes_region='OS_DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated OS Fakes')
 
     qcd_nonisol = Analysis(args.year, fakes_region='NONISOL').normalize(Category_Preselection).qcd.decorate(label='Non-isolated Fakes')
-    qcd_double_nonisol = Analysis(args.year, fakes_region='DOUBLE_NONISOL').normalize(Category_Preselection).qcd.decorate(label='Both Non-isolated Fakes')
 
 
     for category in categories:
@@ -232,12 +145,6 @@ if not args.shapes or 'qcd' in args.shapes:
         # compare NONISOL and OS ISOL QCD shapes
         compare(qcd_nonisol, qcd_os, category, 'qcd_nonisol_v_os_isol')
 
-        # compare nonisol with double nonisol
-        #compare(qcd_os_nonisol, qcd_os_double_nonisol, category, 'qcd_double_os')
-        #compare(qcd_ss_nonisol, qcd_ss_double_nonisol, category, 'qcd_double_ss')
-        #compare(qcd_nos_nonisol, qcd_nos_double_nonisol, category, 'qcd_double_nos')
-        #compare(qcd_nonisol, qcd_double_nonisol, category, 'qcd_double')
-
         # compare nOS NONISOL and NONISOL (no charge requirement)
         compare(qcd_nos_nonisol, qcd_nonisol, category, 'qcd_nonisol')
 
@@ -249,3 +156,11 @@ if not args.shapes or 'qcd_ztautau' in args.shapes:
     for category in categories:
         compare(ztt_eb, qcd, category, 'qcd_vs_ztautau')
         compare(ztt_eb, higgs, category, 'higgs_vs_ztautau')
+
+if not args.shapes or 'ztautau_isolation' in args.shapes:
+    ztt = MC_Ztautau(year=args.year, label='Z#rightarrow#tau#tau')
+    ztt_isol = MC_Ztautau(year=args.year, label='Isolated Z#rightarrow#tau#tau')
+    for category in categories:
+        compare(ztt, ztt_isol, category, 'ztautau_isolation',
+                region_a='OS',
+                region_b='OS_ISOL')

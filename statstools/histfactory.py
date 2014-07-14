@@ -37,6 +37,12 @@ def process_measurement(m,
 
                         flat_signal=None,
 
+                        rename_names=None,
+                        rename_types=None,
+                        rename_samples=None,
+                        rename_channels=None,
+                        rename_func=None,
+
                         drop_np_names=None,
                         drop_np_types=None,
                         drop_np_samples=None,
@@ -160,6 +166,20 @@ def process_measurement(m,
         if split_norm_shape:
             for s in c.samples:
                 apply_split_norm_shape(s)
+
+        # rename specific NPs
+        if rename_names and (rename_func is not None) and matched(c.name, rename_channels):
+            for s in c.samples:
+                if not matched(s.name, rename_samples):
+                    continue
+                if matched('histosys', rename_types, ignore_case=True):
+                    for np in s.histo_sys:
+                        if matched(np.name, rename_names, ignore_case=True):
+                            np.name = rename_func(c.name, s.name, np.name)
+                if matched('overallsys', rename_types, ignore_case=True):
+                    for np in s.overall_sys:
+                        if matched(np.name, rename_names, ignore_case=True):
+                            np.name = rename_func(c.name, s.name, np.name)
 
         # drop NPs by name
         if drop_np_names and matched(c.name, drop_np_channels):

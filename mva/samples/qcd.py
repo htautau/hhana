@@ -334,16 +334,21 @@ class QCD(Sample, Background):
 
         log.info("creating QCD shape systematic")
 
-        models = REGION_SYSTEMATICS
-
         curr_model = self.shape_region
-        if curr_model not in models:
+        if curr_model not in REGION_SYSTEMATICS:
             raise ValueError(
                 "no QCD shape systematic defined for nominal {0}".format(
                     curr_model))
+        shape_models = REGION_SYSTEMATICS[curr_model]
+        if not isinstance(shape_models, (tuple, list)):
+            shape_models = [shape_models]
+        elif len(shape_models) > 2:
+            raise ValueError("a maximum of two shape models is supported")
+        # reflect single shape about the nominal
+        reflect = len(shape_models) == 1
 
-        # use preselection as reference in which all models should have the same
-        # expected number of QCD events
+        # use preselection as reference in which all models should have the
+        # same expected number of QCD events
         # get number of events at preselection for nominal model
         from ..categories import Category_Preselection
         nominal_events = self.events(Category_Preselection, None)[1].value
@@ -354,41 +359,57 @@ class QCD(Sample, Background):
             new_hist.Reset()
             field_hist_template[field] = new_hist
 
-        shape_model = models[curr_model]
-        # add QCD shape systematic
-        self.shape_region = shape_model
-        log.info("getting QCD shape for {0}".format(shape_model))
-        field_shape_sys = self.get_hist_array(
-            field_hist_template,
-            category, region,
-            cuts=cuts,
-            clf=clf,
-            scores=None,
-            min_score=min_score,
-            max_score=max_score,
-            systematics=False,
-            suffix=(suffix or '') + '_{0}'.format(shape_model),
-            field_scale=field_scale,
-            weight_hist=weight_hist,
-            weighted=weighted)
-        norm_events = self.events(Category_Preselection, None)[1].value
-
+        # get QCD shape systematic
+        model_events = {}
+        model_field_shape_sys = {}
+        for model in shape_models:
+            self.shape_region = model
+            log.info("getting QCD shape for {0}".format(model))
+            model_field_shape_sys[model] = self.get_hist_array(
+                field_hist_template,
+                category, region,
+                cuts=cuts,
+                clf=clf,
+                scores=None,
+                min_score=min_score,
+                max_score=max_score,
+                systematics=False,
+                suffix=(suffix or '') + '_{0}'.format(model),
+                field_scale=field_scale,
+                weight_hist=weight_hist,
+                weighted=weighted)
+            model_events[model] = self.events(
+                Category_Preselection, None)[1].value
         # restore previous shape model
         self.shape_region = curr_model
 
-        field_shape_sys_reflect = {}
+        if reflect:
+            # single shape
+            model = shape_models[0]
+            field_shape_sys_reflect = {}
+            for field, shape_sys in model_field_shape_sys[model].items():
+                nominal_hist = field_nominal_hist[field]
+                # this may be approximate
+                # normalize shape_sys such that it would have the same number of
+                # events as the nominal at preselection
+                shape_sys *= nominal_events / float(model_events[model])
+                # reflect shape about the nominal to get high and low variations
+                shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
+                shape_sys_reflect.name = shape_sys.name + '_reflected'
+                field_shape_sys_reflect[field] = (shape_sys, shape_sys_reflect)
 
-        for field, shape_sys in field_shape_sys.items():
+            return field_shape_sys_reflect
+
+        model_high, model_low = shape_models
+        field_shape_sys = {}
+        for field, shape_sys_low in model_field_shape_sys[model_low].items():
+            shape_sys_high = model_field_shape_sys[model_high][field]
             nominal_hist = field_nominal_hist[field]
-
             # this may be approximate
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
-            shape_sys *= nominal_events / float(norm_events)
+            shape_sys_low *= nominal_events / float(model_events[model_low])
+            shape_sys_high *= nominal_events / float(model_events[model_high])
+            field_shape_sys[field] = (shape_sys_high, shape_sys_low)
 
-            # reflect shape about the nominal to get high and low variations
-            shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
-            shape_sys_reflect.name = shape_sys.name + '_reflected'
-            field_shape_sys_reflect[field] = (shape_sys, shape_sys_reflect)
-
-        return field_shape_sys_reflect
+        return field_shape_sys

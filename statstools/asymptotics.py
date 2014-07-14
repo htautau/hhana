@@ -1,7 +1,9 @@
-import rootpy.compiled as C
-import os
-HERE = os.path.dirname(os.path.abspath(__file__))
-PATH = os.path.join(HERE, 'src', 'AsymptoticsCLs.C')
-C.register_file(PATH, ['AsymptoticsCLs'])
-from rootpy.compiled import AsymptoticsCLs
-__all__ = ['AsymptoticsCLs']
+from rootpy import asrootpy
+from .extern import AsymptoticsCLs
+
+
+def asymptotic_CLs(workspace, observed=False, verbose=False):
+    calculator = AsymptoticsCLs(workspace, verbose)
+    hist = asrootpy(calculator.run('ModelConfig', 'obsData', 'asimovData'))
+    hist.SetName('%s_limit' % workspace.GetName())
+    return hist

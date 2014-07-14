@@ -612,7 +612,9 @@ class Analysis(object):
 
         return scores_obj, channel
 
-    def get_clf(self, category, load=False, swap=False, **kwargs):
+    def get_clf(self, category,
+                load=False, swap=False,
+                mass=125, transform=True, **kwargs):
         output_suffix = self.get_suffix()
         clf_output_suffix = self.get_suffix(clf=True)
         clf = Classifier(
@@ -621,6 +623,8 @@ class Analysis(object):
             region=self.target_region,
             clf_output_suffix=clf_output_suffix,
             output_suffix=output_suffix,
+            mass=mass,
+            transform=transform,
             **kwargs)
         if load and not clf.load(swap=swap):
             raise RuntimeError("train BDTs before requesting scores")

@@ -1,12 +1,13 @@
-from .jobs import run_pool
-from .histfactory import process_measurement
+import os
+import re
+from multiprocessing import Process
+
 from rootpy.stats.histfactory import measurements_from_xml, write_measurement
 from rootpy.io import MemFile
-import os
 
+from .jobs import run_pool
+from .histfactory import process_measurement
 from . import log; log = log[__name__]
-
-from multiprocessing import Process
 
 
 class Worker(Process):
@@ -71,37 +72,26 @@ def fix(inputs, suffix='fixed', verbose=False, n_jobs=-1, **kwargs):
     run_pool(workers, n_jobs=n_jobs)
 
 
+CHANNEL_PATTERN = re.compile('^(?P<type>channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z_]+)(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$')
+
+
+def decorrelate_fakes_shape(channel, sample, name):
+    match = re.match(CHANNEL_PATTERN, channel)
+    return name + '_{0}_shape'.format(match.group('category').strip('_'))
+
+
 def fix_measurement(meas,
                     prune_norms=False,
                     prune_shapes=False,
                     chi2_threshold=0.99,
                     symmetrize=False,
                     symmetrize_partial=False,
-                    merge=False,
                     prune_samples=False,
                     drop_others_shapes=False):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
     """
-    if merge:
-        # merge bins in some channels
-        process_measurement(meas,
-                            merge_bins=[(6, 7), (8, 9)],
-                            merge_bins_channels=['*cuts_vbf_highdr_loose_12*'])
-        process_measurement(meas,
-                            merge_bins=[(2, 3), (4, 5), (6, 7)],
-                            merge_bins_channels=['*cuts_vbf_highdr_tight_12*'])
-        process_measurement(meas,
-                            merge_bins=[(3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18)],
-                            merge_bins_channels=['*cuts_boosted_tight_12*'])
-        # process_measurement(meas,
-        #                     merge_bins=[(3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18), (19, 20)],
-        #                     merge_bins_channels=['*cuts_boosted_loose_12*'])
-        process_measurement(meas,
-                            merge_bins=[(2, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16), (17, 18), (19, 20)],
-                            merge_bins_channels=['*cuts_boosted_loose_12*'])
-
     # fill empty bins with the average sample weight
     # the so-called "Kyle-fix"
     process_measurement(meas,
@@ -126,6 +116,13 @@ def fix_measurement(meas,
     process_measurement(meas,
         split_norm_shape=True,
         uniform_binning=True)
+
+    # decorrelate shape component of fakes uncertainty
+    process_measurement(meas,
+        rename_names=['ATLAS_ANA_HH_*_QCD'],
+        rename_types=['histosys'],
+        rename_samples=['Fakes'],
+        rename_func=decorrelate_fakes_shape)
 
     if drop_others_shapes:
         process_measurement(meas,

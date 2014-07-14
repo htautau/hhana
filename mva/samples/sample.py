@@ -214,6 +214,18 @@ class Sample(object):
             new_hist.title = self.label
             field_hist[field] = new_hist
 
+        if (scores is not None and len(field_hist) == 1
+                and 'classifier' in field_hist):
+            # special case where we are only filling scores
+            # and the scores have been supplied
+            from ..classify import histogram_scores
+            hist = field_hist['classifier']
+            histogram_scores(hist, scores,
+                             min_score=min_score,
+                             max_score=max_score,
+                             inplace=True)
+            return field_hist
+
         self.draw_array(field_hist, category, region,
                         cuts=cuts,
                         weighted=weighted,

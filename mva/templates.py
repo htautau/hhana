@@ -20,7 +20,8 @@ class RatioPlot(Canvas):
                  ratio_line_width=2,
                  ratio_line_style='dashed',
                  xtitle=None, ytitle=None, ratio_title=None,
-                 tick_length=20):
+                 tick_length=20,
+                 logy=False):
 
         style = ROOT.gStyle
 
@@ -50,6 +51,8 @@ class RatioPlot(Canvas):
         # top pad for histograms
         with self:
             main = Pad(0., ratio_height, 1., 1.)
+            if logy:
+                main.SetLogy()
             main.SetBottomMargin(ratio_margin / 2.)
             main.SetTopMargin(top_margin)
             main.SetLeftMargin(left_margin)
@@ -128,6 +131,7 @@ class RatioPlot(Canvas):
         self.ratio = ratio
         self.ratio_hist = ratio_hist
         self.ratio_range = ratio_range
+        self.logy = logy
 
     def pad(self, region):
         if region == 'main':
@@ -149,14 +153,20 @@ class RatioPlot(Canvas):
             return self.ratio_hist.xaxis, self.ratio_hist.yaxis
         raise ValueError("RatioPlot region {0} does not exist".format(region))
 
+    def update_lines(self):
+        x, y = self.axes('ratio')
+        # update ratio line lengths
+        for line in self.lines:
+            line.SetX1(x.GetXmin())
+            line.SetX2(x.GetXmax())
+
     def draw(self, region, objects, **kwargs):
         pad = self.pad(region)
         x, y = self.axes(region)
         if region == 'ratio' and self.ratio_range is not None:
             y = None
+        if region == 'main' and self.logy:
+            kwargs['logy'] = True
         draw(objects, pad=pad, xaxis=x, yaxis=y, same=True, **kwargs)
         if region == 'ratio':
-            # update ratio line lengths
-            for line in self.lines:
-                line.SetX1(x.GetXmin())
-                line.SetX2(x.GetXmax())
+            self.update_lines()

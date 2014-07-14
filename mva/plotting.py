@@ -35,6 +35,7 @@ from rootpy.stats.histfactory import HistoSys, split_norm_shape
 
 # local imports
 from .variables import VARIABLES
+from .defaults import TARGET_REGION
 from . import ATLAS_LABEL, PLOTS_DIR, MMC_MASS, save_canvas
 from .systematics import iter_systematics, systematic_name
 from .templates import RatioPlot
@@ -1946,10 +1947,11 @@ def draw_ROC(bkg_scores, sig_scores):
 
 def draw_ratio(a, b, field, category,
                textsize=22,
-               ratio_range=(0,2),
-               ratio_line_values=[0.5,1,1.5],
+               ratio_range=(0, 2),
+               ratio_line_values=[0.5, 1, 1.5],
                optional_label_text=None,
-               normalize=True):
+               normalize=True,
+               logy=False):
     """
     Draw a canvas with two Hists normalized to unity on top
     and a ratio plot between the two hist
@@ -1968,7 +1970,8 @@ def draw_ratio(a, b, field, category,
                          'Normalized ' if normalize else ''),
                      ratio_title='A / B',
                      ratio_range=ratio_range,
-                     ratio_line_values=ratio_line_values)
+                     ratio_line_values=ratio_line_values,
+                     logy=logy)
     if normalize:
         a_integral = a.integral()
         if a_integral != 0:
@@ -2037,20 +2040,34 @@ def draw_ratio(a, b, field, category,
             optional_label.SetTextFont(43)
             optional_label.SetTextSize(textsize)
             optional_label.Draw()
+        if ATLAS_LABEL.lower() == 'internal':
+            x = 0.67
+        else:
+            x = (1. - pad.GetRightMargin() - 0.03) - len(ATLAS_LABEL) * 0.025
+        ATLAS_label(x, 0.87,
+                    sep=0.132, pad=pad, sqrts=None,
+                    text=ATLAS_LABEL,
+                    textsize=textsize)
     return plot
 
 
-def compare(a, b, field_dict, category, region, name, year,
+def compare(a, b, field_dict, category, name, year,
+            region_a=None, region_b=None,
             path='plots/shapes', **kwargs):
+    if region_a is None:
+        region_a = TARGET_REGION
+    if region_b is None:
+        region_b = TARGET_REGION
     a_hists, field_scale = a.get_field_hist(field_dict, category)
     b_hists, _ = b.get_field_hist(field_dict, category)
-    a.draw_array(a_hists, category, region, field_scale=field_scale)
-    b.draw_array(b_hists, category, region, field_scale=field_scale)
-    for field,_ in field_dict.items():
+    a.draw_array(a_hists, category, region_a, field_scale=field_scale)
+    b.draw_array(b_hists, category, region_b, field_scale=field_scale)
+    for field in field_dict:
         # draw ratio plot
         a_hist = a_hists[field]
         b_hist = b_hists[field]
         plot = draw_ratio(a_hist, b_hist,
                           field, category, **kwargs)
-        save_canvas(plot, path, '{0}/shape_{0}_{1}_{2}_{3}.png'.format(
-            name, field, category.name, year % 1000))
+        for output in ('eps', 'png'):
+            save_canvas(plot, path, '{0}/shape_{0}_{1}_{2}_{3}.{4}'.format(
+                name, field, category.name, year % 1000, output))

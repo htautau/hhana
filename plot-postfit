@@ -11,16 +11,19 @@ from tabulate import tabulate
 from ROOT import TLatex, TGraphAsymmErrors, TH1 
 from rootpy import asrootpy
 from rootpy.io import root_open
-from rootpy.plotting import Canvas, HistStack, Legend, set_style
+from rootpy.plotting import Canvas, HistStack, Graph, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
 from rootpy.extern.tabulartext import PrettyTable
 
 # local imports
-from mva import ATLAS_LABEL
+from mva import ATLAS_LABEL, MMC_MASS
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
+from mva.templates import RatioPlot
+from mva.variables import get_label
+
 from statstools.fitresult import Prefit_RooFitResult
 from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
@@ -31,7 +34,9 @@ from statstools.plotting import (get_uncertainty_graph, parse_name,
 log = logging.getLogger(os.path.basename(__file__))
 
 
-def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
+def fit_workspace(file_name, ws_name,
+                  output_basename='frames',
+                  n_jobs=-1):
     """
     Fit the WS and compute the histograms and TGraphAssymErrors
     for the final plotting drawing
@@ -68,9 +73,10 @@ def fit_workspace(file_name, ws_name, output_basename='frames', n_jobs=-1):
         run_pool(workers, n_jobs=n_jobs)
         
 
-def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=True):
+def plot_from_frame(file, name, fit_var, category, year,
+                    binning=None, unblind=False, path=None):
     ana = Analysis(2012)
-
+    frame = file[name]
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
     curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
     graph_bkg_ws = get_uncertainty_graph(hbkg, curve_uncert_bkg)
@@ -80,6 +86,7 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     graph_bkg.name = 'Background'
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
+    graph_bkg.drawstyle = 'E2'
 
     data_ws = frame.getHist('Data')
     # HACK HACK HACK
@@ -87,6 +94,8 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
     data.name = 'Data'
     data.title = 'Data'
+    data.drawstyle = 'PE'
+    data.legendstyle = 'LEP'
 
     hist_fake_ws = file.Get('h_Fakes_{0}'.format(frame.GetName()))
     hist_fake = get_rebinned_hist(hist_fake_ws, binning)
@@ -134,12 +143,82 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
     hist_signal.title = ana.higgs_125.label + ' (best fit #mu)'
     hist_signal.legendstyle = 'F'
 
-    hists = [hist_fake, hist_others, hist_ztautau, hist_signal]
-    if (unblind is not True) and isinstance(unblind, (list, tuple)):
-        hists = [hist_fake, hist_others, hist_ztautau]
-    Model = HistStack(hists=hists, name='Model_{0}'.format(frame.GetName()))
-    plotables = [Model]
+    background = [hist_fake, hist_others, hist_ztautau]
+    hists = background[:]
+    if unblind is True:
+        hists.append(hist_signal)
 
+    model = HistStack(hists=hists,
+                      name='Model_{0}'.format(frame.GetName()))
+
+    # TODO: make plot identical to standard variable plots
+    if fit_var == 'bdt':
+        if category.name == 'rest':
+            xtitle = get_label('dEta_tau1_tau2') 
+        else:
+            xtitle = 'BDT Score'
+        categories = CATEGORIES['mva_all']
+    else:
+        xtitle = get_label(MMC_MASS)
+        categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
+    
+    if year == 2011:
+        sqrts = 7
+    else:
+        sqrts = 8
+
+    plottables = [
+        model,
+        graph_bkg,
+        data,
+    ]
+    
+    ratio = data / graph_bkg
+    ratio.drawstyle = 'EP'
+    
+    for logy in (False, True):
+        plot_name = 'postfit_{0}'.format(name)
+        canvas = RatioPlot(
+            xtitle=xtitle,
+            ytitle='Events',
+            ratio_title='Data / Model',
+            ratio_range=(0, 2),
+            ratio_line_values=[0.5, 1, 1.5],
+            logy=logy)
+        if logy:
+            plot_name += '_logy'
+        canvas.draw('main', plottables, ypadding=(0.3, 0.3))
+        canvas.draw('ratio', ratio)
+        x, y = canvas.axes('main')
+        x.limits = model[0].bounds()
+        x.range_user = model[0].bounds()
+        x, y = canvas.axes('ratio')
+        x.limits = model[0].bounds()
+        x.range_user = model[0].bounds()
+        canvas.update_lines()
+        canvas.cd('main')
+        ATLAS_label(0.2, 0.89, pad=canvas.pad('main'), sep=0.132,
+                    text=ATLAS_LABEL, sqrts=sqrts)
+        leg = Legend(
+            [data] + model.hists[::-1] + [graph_bkg],
+            leftmargin=0.45,
+            margin=0.35,
+            topmargin=0.05,
+            textsize=20,
+            entrysep=0.02,
+            entryheight=0.05)
+        leg.Draw()
+        latex = TLatex(0.2, 0.85, category.label)
+        latex.SetNDC()
+        latex.SetTextSize(20)
+        latex.Draw()
+        for fmt in ('eps', 'png'):
+            if path is None:
+                canvas.SaveAs('{0}.{1}'.format(plot_name, fmt))
+            else:
+                canvas.SaveAs(os.path.join(path, '{0}.{1}'.format(plot_name, fmt)))
+    
+    # print yields table
     bin_edges = [(hist_fake.xedgesl(bin.idx), hist_fake.xedgesh(bin.idx)) for bin in hist_fake.bins()]
     postfit_table_header = ['Sample'] + [
         '{0:.2g} - {1:.2g}'.format(l, h) for l, h in bin_edges]
@@ -152,46 +231,14 @@ def plot_from_frame(file, frame, fit_var, category, year, binning=None, unblind=
             row.append('${0:1.2f} \pm {1:1.2f}$'.format(val, errh))
         postfit_table.append(row)
     table = tabulate(postfit_table, postfit_table_header, tablefmt='latex')
-
-    # TODO: make plot identical to standard variable plots
-    if fit_var == 'bdt':
-        logy = True
-        xtitle = 'BDT Score'
-        categories = CATEGORIES['mva_all']
-    else:
-        logy = False
-        xtitle = 'MMC MASS [GeV]'
-        categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
-
-    c = Canvas()
-    draw(plotables, pad=c, ypadding=(0.3, 0.3),
-         xtitle=xtitle, ytitle='Events', logy=logy)
-    
-    if year == 2011:
-        sqrts = 7
-    else:
-        sqrts = 8
-        
-    ATLAS_label(0.2, 0.89, pad=c, sep=0.132,
-                text=ATLAS_LABEL, sqrts=sqrts)
-    graph_bkg.Draw('sameE2')
-    data.Draw('samePE')
-    leg = Legend([data] + Model.GetHists() + [graph_bkg],
-                 rightmargin=0.2,
-                 margin=0.35,
-                 topmargin=0.01,
-                 textsize=20,
-                 entrysep=0.02,
-                 entryheight=0.04)
-    leg.Draw()
-    latex = TLatex(0.2, 0.85, category.label)
-    latex.SetNDC()
-    latex.SetTextSize(20)
-    latex.Draw()
-    c.RedrawAxis()
-    if logy:
-        c.SetLogy()
-    return c, table
+    print
+    print year, category_name, mass
+    print r"\begin{table}"
+    print r"\centering"
+    print table
+    print r"\caption{Postfit yield in %s}." % category.latex 
+    print r"\end{table}"
+    print
 
 
 if __name__ == '__main__':
@@ -201,7 +248,7 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='combined')
     parser.add_argument('--fit-var', default='bdt', choices=['bdt', 'mmc'])
     parser.add_argument('--force-fit', action='store_true', default=False)
-    parser.add_argument('--blind', action='store_true', default=False)
+    parser.add_argument('--unblind', action='store_true', default=False)
     parser.add_argument('--jobs', default=-1)
     args = parser.parse_args()
 
@@ -233,21 +280,13 @@ if __name__ == '__main__':
                 log.warning("skipping category: {0}".format(category_name))
                 continue
             binning = get_binning(category, year, fit_var=args.fit_var)
-            if args.blind:
+            if category_name != 'rest' and not args.unblind:
                 unblind = get_blinding(category, year, fit_var=args.fit_var)
                 log.info('Blinding region: {0}'.format(unblind))
             else:
-                unblind=True
-            canvas, table = plot_from_frame(file, file[name], args.fit_var,
-                                            category, year, binning, unblind=unblind)
-            for fmt in ('eps', 'png'):
-                canvas.SaveAs(os.path.join(plots, 'postfit_{0}.{1}'.format(name, fmt)))
-            print
-            print year, category_name, mass
-            print r"\begin{table}"
-            print r"\centering"
-            print table
-            print r"\caption{Postfit yield in %s}." % category.latex 
-            print r"\end{table}"
-            print
+                unblind = args.unblind
+            plot_from_frame(file, name, args.fit_var,
+                            category, year, binning,
+                            unblind=unblind,
+                            path=plots)
     file.Close()

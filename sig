@@ -10,16 +10,16 @@ parser.add_argument('file')
 parser.add_argument('workspace')
 args = parser.parse_args()
 
-from statstools import get_significance_workspace
+from statstools.significance import significance
 from rootpy.io import root_open
 
 with root_open(args.file) as f:
     if args.workspace not in f:
         f.ls()
     else:
-        h = get_significance_workspace(
+        sig, mu, mu_error = significance(
             f[args.workspace],
             observed=args.unblind,
             profile=args.profile,
             verbose=True)
-        print list(h.y())
+        print sig

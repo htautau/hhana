@@ -12,8 +12,8 @@ from rootpy.stats import ArgSet
 from pbs import qsub
 import cluster
 # local imports
-from statstools import get_bestfit_nll_workspace
-from statstools.jobs import run_pool
+from statstools.utils import get_bestfit_nll_workspace
+from statstools.parallel import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
 from statstools.pulls import NuisancePullScan, MinosError
 from mva import log; log = log['multinp']
