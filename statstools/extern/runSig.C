@@ -45,7 +45,6 @@ RooDataSet* make_asimov_data(
     string* mu_str = NULL, string* mu_prof_str = NULL,
     int print_level = 0);
 
-
 int minimize(RooNLLVar* nll);
 
 double get_sig(RooWorkspace* ws, RooNLLVar* nll, RooRealVar* mu);

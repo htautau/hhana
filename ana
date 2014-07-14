@@ -78,31 +78,6 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     is_control = category.analysis_control
 
-    if 'stability' in args.actions and not is_control:
-        # add all stability plot making here
-        # plot data with BDTs swapped and in normal order
-        clf = analysis.get_clf(category, load=True, swap=False)
-        clf_swap = analysis.get_clf(category, load=True, swap=True)
-        scores, _ = clf.classify(analysis.data, category, target_region)
-        scores_swap, _ = clf_swap.classify(analysis.data, category, target_region)
-
-        from rootpy.plotting import Canvas, Hist, Legend
-        fig = Canvas()
-        fig.SetLogy()
-        h = Hist(20, -1, 1, title='BDTs in normal order')
-        h_swap = h.Clone(color='red', markerstyle='o', title='BDTs swapped')
-        h.fill_array(scores)
-        h_swap.fill_array(scores_swap)
-        h.Draw()
-        h_swap.Draw('same')
-        h.yaxis.title = 'Events'
-        h.xaxis.title = 'BDT Score'
-        leg = Legend(2, pad=fig, leftmargin=0.3, textsize=20)
-        leg.AddEntry(h)
-        leg.AddEntry(h_swap)
-        leg.Draw()
-        fig.SaveAs('data_consistency_{0}.png'.format(category.name))
-
     if 'plotevolving' in args.actions:
         from copy import deepcopy    
 

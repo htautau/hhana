@@ -12,12 +12,12 @@ import math
 
 # rootpy imports
 from rootpy.io import root_open
-from rootpy.plotting import Hist
+from rootpy.plotting import Canvas, Hist, Legend
 
 # local imports
 from mva import log, variables, MMC_MASS, plot_dir
 from mva.plotting import (draw_channel_array, draw_channel, hist_scores,
-                          efficiency_cut)
+                          efficiency_cut, draw_ratio)
 from mva.classify import histogram_scores
 from mva.systematics import get_systematics, parse_systematics
 from mva.categories import CATEGORIES
@@ -85,6 +85,28 @@ def plot_bdt(category, workspace_binning=True):
 
     signal_scale=20.
     region = TARGET_REGION
+    
+    # plot data with BDTs swapped and in normal order
+    clf_normal = analysis.get_clf(category, load=True, swap=False)
+    clf_swap = analysis.get_clf(category, load=True, swap=True)
+    scores, _ = clf_normal.classify(analysis.data, category, target_region)
+    scores_swap, _ = clf_swap.classify(analysis.data, category, target_region)
+    min_data_score = min(scores.min(), scores_swap.min()) - 1e-5
+    max_data_score = max(scores.max(), scores_swap.max()) + 1e-5
+
+    if workspace_binning:
+        h = Hist(bins, title='BDTs in normal order')
+    else:
+        h = Hist(bins, min_data_score, max_data_score, title='BDTs in normal order')
+    h_swap = h.Clone(color='red', markerstyle='o', title='BDTs swapped')
+    h.fill_array(scores)
+    h_swap.fill_array(scores_swap)
+    fig = draw_ratio(h, h_swap,
+                     field='BDT Score', category=category,
+                     logy=True, normalize=False) 
+    fig.SaveAs('data_consistency_{0}{1}.png'.format(category.name, suffix))
+
+    return
 
     ########################################################################
     # show the background model and data in the mass sideband control region
