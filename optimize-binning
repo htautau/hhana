@@ -181,24 +181,6 @@ def get_valid_range(bkg_scores, sig_scores,
 
     # sanity check
     assert(first_bin_min_bkg < len(bkg_weighted[0]))
-    
-    """ TODO
-    # require that signal does not drop by more than X amount to the right
-    # of a bin edge (prevents potentially unsafe cutting on the tails)
-    signal_weighted = Hist(steps, left, right)
-    for sig, scores_dict in sig_scores:
-        s, w = scores_dict['NOMINAL']
-        fill_hist(signal_weighted, s, w)
-    # reverse cumsum
-    sig_sums_right = np.cumsum(np.array(list(signal_weighted.y()))[::-1])[::-1]
-    # cumsum
-    sig_sums_left = np.cumsum(np.array(list(signal_weighted.y())))
-    last_bin_min_bkg = min(last_bin_min_bkg,
-        (sig_sums_left > np.concatenate(
-            [[sig_sums_right[0]], sig_sums_right])[:-1] / sig_shrinkage
-            ).argmax() - 1)
-    """
-
     return int(first_bin_min_bkg), int(last_bin_min_bkg), bkg_weighted[0]
 
 
