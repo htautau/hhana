@@ -175,7 +175,10 @@ def plot_from_frame(file, name, fit_var, category, year,
     
     ratio = data / graph_bkg
     ratio.drawstyle = 'EP'
-    
+
+    ratio_bkg = graph_bkg/graph_bkg
+    ratio_bkg.drawstyle = 'E2'
+
     for logy in (False, True):
         plot_name = 'postfit_{0}'.format(name)
         canvas = RatioPlot(
@@ -188,7 +191,7 @@ def plot_from_frame(file, name, fit_var, category, year,
         if logy:
             plot_name += '_logy'
         canvas.draw('main', plottables, ypadding=(0.3, 0.3))
-        canvas.draw('ratio', ratio)
+        canvas.draw('ratio', [ratio, ratio_bkg])
         x, y = canvas.axes('main')
         x.limits = model[0].bounds()
         x.range_user = model[0].bounds()
