@@ -68,6 +68,7 @@ def print_np(np):
     else:
         return np.replace('ATLAS_', '').replace('_', ' ')
 
+
 def get_rebinned_hist(hist_origin, binning=None):
     if binning is None:
         return hist_origin
@@ -90,15 +91,16 @@ def get_rebinned_graph(graph_origin, binning=None, unblind=True):
             len(graph_origin), len(graph_rebin)))
         raise RuntimeError('wrong binning')
     npoints = 0
-    for y, yerr in zip(graph_origin.y(), graph_origin.yerr()):
-        x_rebin_err = 0.5 * (binning[npoints + 1] - binning[npoints])
-        x_rebin = binning[npoints] + x_rebin_err
+    for ipoint, (y, yerr) in enumerate(zip(graph_origin.y(),
+                                           graph_origin.yerr())):
+        x_rebin_err = 0.5 * (binning[ipoint + 1] - binning[ipoint])
+        x_rebin = binning[ipoint] + x_rebin_err
         if npoints >= length_filled:
             break
         elif (unblind is not True) and isinstance(unblind, (tuple, list)):
             low, high = unblind
-            if ((low < binning[npoints] < high) or
-                (low < binning[npoints + 1] < high)):
+            if ((low < binning[ipoint] < high) or
+                (low < binning[ipoint + 1] < high)):
                 continue
         graph_rebin.SetPoint(npoints, x_rebin, y)
         graph_rebin.SetPointError(
