@@ -22,7 +22,7 @@ gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
 UNBLIND = {
     2012: {
         'vbf': 3,
-        'boosted': 1},
+        'boosted': 2},
     2011: {
         'vbf': 2,
         'boosted': 2}
