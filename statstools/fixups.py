@@ -118,11 +118,13 @@ def fix_measurement(meas,
         uniform_binning=True)
 
     # decorrelate shape component of fakes uncertainty
+    """
     process_measurement(meas,
         rename_names=['ATLAS_ANA_HH_*_QCD'],
         rename_types=['histosys'],
         rename_samples=['Fakes'],
         rename_func=decorrelate_fakes_shape)
+    """
 
     if drop_others_shapes:
         process_measurement(meas,
