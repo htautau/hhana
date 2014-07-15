@@ -346,6 +346,10 @@ cuts-workspaces:
 	#	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
 	#done
 
+.PHONY: cuts-sideband-workspace
+cuts-sideband-workspace:
+	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --sideband --systematics --unblind --years 2012 --categories cuts --masses 125; \
+
 .PHONY: mva-workspaces
 mva-workspaces:
 	@for year in 2012 2011; do \
