@@ -80,7 +80,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
     curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
     graph_bkg_ws = get_uncertainty_graph(hbkg, curve_uncert_bkg)
-    graph_bkg = get_rebinned_graph(graph_bkg_ws, binning, unblind=True) 
+    graph_bkg = get_rebinned_graph(graph_bkg_ws, binning) 
     graph_bkg.fillstyle = '//'
     graph_bkg.color = 'black'
     graph_bkg.name = 'Background'
@@ -91,7 +91,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     data_ws = frame.getHist('Data')
     # HACK HACK HACK
     data_ws.__class__ = TGraphAsymmErrors
-    data = get_rebinned_graph(asrootpy(data_ws), binning, unblind=unblind)
+    data = get_rebinned_graph(asrootpy(data_ws), binning)
     data.name = 'Data'
     data.title = 'Data'
     data.drawstyle = 'PE'
@@ -107,7 +107,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     
     curve_uncert_fakes = frame.getCurve('FitError_AfterFit_Fakes_{0}'.format(frame.GetName()))
     graph_fakes_ws = get_uncertainty_graph(hist_fake_ws, curve_uncert_fakes)
-    graph_fakes = get_rebinned_graph(graph_fakes_ws, binning, unblind=True) 
+    graph_fakes = get_rebinned_graph(graph_fakes_ws, binning) 
     graph_fakes.name = 'Fakes'
 
     hist_others_ws = file.Get('h_Others_{0}'.format(frame.GetName()))
@@ -119,7 +119,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     hist_others.legendstyle = 'F'
     curve_uncert_others = frame.getCurve('FitError_AfterFit_Others_{0}'.format(frame.GetName()))
     graph_others_ws = get_uncertainty_graph(hist_others_ws, curve_uncert_others)
-    graph_others = get_rebinned_graph(graph_others_ws, binning, unblind=True) 
+    graph_others = get_rebinned_graph(graph_others_ws, binning) 
     graph_others.name = 'Others'
 
     hist_ztautau_ws = file.Get('h_Ztautau_{0}'.format(frame.GetName()))
@@ -131,7 +131,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     hist_ztautau.legendstyle = 'F'
     curve_uncert_ztautau = frame.getCurve('FitError_AfterFit_Ztautau_{0}'.format(frame.GetName()))
     graph_ztautau_ws = get_uncertainty_graph(hist_ztautau_ws, curve_uncert_ztautau)
-    graph_ztautau = get_rebinned_graph(graph_ztautau_ws, binning, unblind=True) 
+    graph_ztautau = get_rebinned_graph(graph_ztautau_ws, binning) 
     graph_ztautau.name = 'Ztautau'
     
     hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
@@ -173,10 +173,13 @@ def plot_from_frame(file, name, fit_var, category, year,
         data,
     ]
     
-    ratio = data / graph_bkg
+    ratio = Graph.divide(data, graph_bkg, 'pois')
     ratio.drawstyle = 'EP'
-
-    ratio_bkg = graph_bkg/graph_bkg
+    
+    graph_bkg_zero_error = graph_bkg.Clone()
+    for idx in xrange(len(graph_bkg_zero_error)):
+        graph_bkg_zero_error.SetPointError(idx, 0, 0, 0, 0)
+    ratio_bkg = graph_bkg / graph_bkg_zero_error
     ratio_bkg.drawstyle = 'E2'
 
     for logy in (False, True):
@@ -191,7 +194,7 @@ def plot_from_frame(file, name, fit_var, category, year,
         if logy:
             plot_name += '_logy'
         canvas.draw('main', plottables, ypadding=(0.3, 0.3))
-        canvas.draw('ratio', [ratio, ratio_bkg])
+        canvas.draw('ratio', [ratio_bkg, ratio])
         x, y = canvas.axes('main')
         x.limits = model[0].bounds()
         x.range_user = model[0].bounds()

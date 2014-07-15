@@ -77,39 +77,37 @@ def get_rebinned_hist(hist_origin, binning=None):
     return hist_rebin
 
 
-def get_rebinned_graph(graph_origin, binning=None, unblind=True):
+def get_rebinned_graph(graph_origin, binning=None):
     if binning is None:
         return graph_origin
     graph_rebin = Graph(len(binning) - 1)
-    length_filled = len(graph_rebin)
-    if (unblind is not True) and isinstance(unblind, int):
-        length_filled -= unblind
     if len(graph_origin) != len(graph_rebin):
-        log.warning('Length: {0} - {1}'.format(
-            len(graph_rebin), length_filled))
         log.warning('uniform: {0} bins != rebinned: {1} bins'.format(
             len(graph_origin), len(graph_rebin)))
         raise RuntimeError('wrong binning')
-    npoints = 0
     for ipoint, (y, yerr) in enumerate(zip(graph_origin.y(),
                                            graph_origin.yerr())):
         x_rebin_err = 0.5 * (binning[ipoint + 1] - binning[ipoint])
         x_rebin = binning[ipoint] + x_rebin_err
-        if npoints >= length_filled:
-            break
-        elif (unblind is not True) and isinstance(unblind, (tuple, list)):
-            low, high = unblind
-            if ((low < binning[ipoint] < high) or
-                (low < binning[ipoint + 1] < high)):
-                continue
-        graph_rebin.SetPoint(npoints, x_rebin, y)
+        graph_rebin.SetPoint(ipoint, x_rebin, y)
         graph_rebin.SetPointError(
-            npoints,
+            ipoint,
             x_rebin_err, x_rebin_err,
             yerr[0], yerr[1])
-        npoints += 1
-    graph_rebin.Set(npoints)
     return graph_rebin
+
+
+def blinded(obj, window, replace=-1e10):
+    if unblind is True:
+        return obj
+    """
+    if isinstance(unblind, (tuple, list)):
+        low, high = unblind
+        if ((low < binning[ipoint] < high) or
+            (low < binning[ipoint + 1] < high)):
+            continue
+    """
+    return obj
 
 
 def get_category(category_name, categories):
