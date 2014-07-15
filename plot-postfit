@@ -29,7 +29,8 @@ from statstools.postfit import FitModel, ModelCalculator
 from statstools.jobs import run_pool
 from statstools.plotting import (get_uncertainty_graph, parse_name,
                                  get_category, get_binning, get_blinding,
-                                 get_rebinned_graph, get_rebinned_hist)
+                                 get_rebinned_graph, get_rebinned_hist,
+                                 blind_graph)
 
 log = logging.getLogger(os.path.basename(__file__))
 
@@ -181,6 +182,10 @@ def plot_from_frame(file, name, fit_var, category, year,
         graph_bkg_zero_error.SetPointError(idx, 0, 0, 0, 0)
     ratio_bkg = graph_bkg / graph_bkg_zero_error
     ratio_bkg.drawstyle = 'E2'
+
+    if unblind is not True:
+        blind_graph(data, unblind)
+        blind_graph(ratio, unblind)
 
     for logy in (False, True):
         plot_name = 'postfit_{0}'.format(name)

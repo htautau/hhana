@@ -97,17 +97,29 @@ def get_rebinned_graph(graph_origin, binning=None):
     return graph_rebin
 
 
-def blinded(obj, window, replace=-1e10):
-    if unblind is True:
-        return obj
+def blind_graph(graph, window, replace=0):
     """
-    if isinstance(unblind, (tuple, list)):
-        low, high = unblind
-        if ((low < binning[ipoint] < high) or
-            (low < binning[ipoint + 1] < high)):
-            continue
+    Blind a graph in-place
     """
-    return obj
+    if window is False or window is None:
+        # do nothing
+        return
+    if isinstance(window, (tuple, list)):
+        low, high = window
+        for idx in xrange(len(graph)):
+            x, y = graph[idx]
+            xlow, xhigh = graph.xerrl(idx), graph.xerrh(idx)
+            if ((low < x - xlow < high) or
+                (low < x + xhigh < high) or
+                (low < x < high)):
+                graph[idx] = (x, replace)
+                graph.SetPointError(idx, xlow, xhigh, 0, 0)
+    else:
+        for idx in xrange(len(graph) - 1, len(graph) - 1 - window, -1):
+            x, y = graph[idx]
+            xlow, xhigh = graph.xerrl(idx), graph.xerrh(idx)
+            graph[idx] = (x, replace)
+            graph.SetPointError(idx, xlow, xhigh, 0, 0)
 
 
 def get_category(category_name, categories):
