@@ -209,7 +209,7 @@ def cuts_workspace(analysis, categories, masses,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics,
-                hybrid_data=None if unblind else {MMC_MASS:(100., 140.)},
+                hybrid_data=None if unblind else {MMC_MASS:(100., 150.)},
                 uniform=True)[MMC_MASS]
             if mass not in channels:
                 channels[mass] = {}

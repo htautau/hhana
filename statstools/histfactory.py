@@ -23,6 +23,9 @@ from . import log; log = log[__name__]
 
 
 def process_measurement(m,
+                        remove_window=None,
+                        remove_window_channels=None,
+
                         split_norm_shape=False,
 
                         fill_empties=False,
@@ -86,6 +89,17 @@ def process_measurement(m,
     for c in m.channels:
         log.info("processing measurement `{0}` channel `{1}` ...".format(
             m.name, c.name))
+
+        # remove a range of bin (useful for sideband fit bias tests)
+        if remove_window is not None and matched(c.name, remove_window_channels):
+            log.info("removing window {0} from channel `{1}`".format(
+                remove_window, c.name))
+            c.data.hist = apply_remove_window(c.data.hist, remove_window)
+            for s in c.samples:
+                s.hist = apply_remove_window(s.hist, remove_window)
+                for histosys in s.histo_sys:
+                    histosys.high = apply_remove_window(histosys.high, remove_window)
+                    histosys.low = apply_remove_window(histosys.low, remove_window)
 
         # flat signal binning
         if flat_signal is not None:
@@ -372,6 +386,25 @@ def matched(name, patterns, ignore_case=False):
         if fnmatch(name, pattern):
             return True
     return False
+
+
+def apply_remove_window(hist, window):
+    """
+    Remove a window of bins from a histogram
+    """
+    low, high = window
+    keep_bins = []
+    for bin in hist.bins():
+        if ((low < hist.xedgesl(bin.idx) < high) or
+            (low < hist.xedgesh(bin.idx) < high) or
+            (low < bin.x < high)):
+            continue
+        keep_bins.append(bin.idx)
+    hist_window = Hist(len(keep_bins), 0, len(keep_bins),
+                       type=hist.TYPE, name=hist.name + '_window')
+    for idx_window, idx in enumerate(keep_bins):
+        hist_window[idx_window] = hist[idx]
+    return hist_window
 
 
 def apply_split_norm_shape(s):
