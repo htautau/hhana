@@ -348,7 +348,7 @@ cuts-workspaces:
 
 .PHONY: cuts-sideband-workspace
 cuts-sideband-workspace:
-	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --sideband --systematics --unblind --years 2012 --categories cuts --masses 125; \
+	@PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --sideband --systematics --unblind --years 2012 --categories cuts --masses 125; \
 
 .PHONY: mva-workspaces
 mva-workspaces:

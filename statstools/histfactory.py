@@ -90,7 +90,7 @@ def process_measurement(m,
         log.info("processing measurement `{0}` channel `{1}` ...".format(
             m.name, c.name))
 
-        # remove a range of bin (useful for sideband fit bias tests)
+        # remove a range of bins (useful for sideband fit bias tests)
         if remove_window is not None and matched(c.name, remove_window_channels):
             log.info("removing window {0} from channel `{1}`".format(
                 remove_window, c.name))
@@ -403,7 +403,7 @@ def apply_remove_window(hist, window):
     hist_window = Hist(len(keep_bins), 0, len(keep_bins),
                        type=hist.TYPE, name=hist.name + '_window')
     for idx_window, idx in enumerate(keep_bins):
-        hist_window[idx_window] = hist[idx]
+        hist_window[idx_window + 1] = hist[idx]
     return hist_window
 
 

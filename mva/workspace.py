@@ -192,6 +192,7 @@ def cuts_workspace(analysis, categories, masses,
                    unblind=False,
                    systematics=False,
                    cuts=None):
+    hybrid_data = None if unblind else {MMC_MASS:(100., 150.)}
     channels = {}
     for category in analysis.iter_categories(categories):
         if isinstance(category.limitbins, dict):
@@ -209,8 +210,7 @@ def cuts_workspace(analysis, categories, masses,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics,
-                hybrid_data=None if unblind else {MMC_MASS:(100., 150.)},
-                uniform=True)[MMC_MASS]
+                hybrid_data=hybrid_data)[MMC_MASS]
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel
