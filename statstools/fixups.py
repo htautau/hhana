@@ -87,11 +87,16 @@ def fix_measurement(meas,
                     symmetrize=False,
                     symmetrize_partial=False,
                     prune_samples=False,
-                    drop_others_shapes=False):
+                    drop_others_shapes=False,
+                    remove_window=None):
     """
     Apply the HSG4 fixes on a HistFactory::Measurement
     Changes are applied in-place
     """
+    if remove_window is not None:
+        process_measurement(meas,
+            remove_window=remove_window)
+
     # fill empty bins with the average sample weight
     # the so-called "Kyle-fix"
     process_measurement(meas,

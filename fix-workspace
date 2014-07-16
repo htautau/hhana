@@ -13,10 +13,13 @@ parser.add_argument('--symmetrize', action='store_true', default=False)
 parser.add_argument('--symmetrize-partial', action='store_true', default=False)
 parser.add_argument('--prune-samples', action='store_true', default=False)
 parser.add_argument('--drop-others-shapes', action='store_true', default=False)
+parser.add_argument('--remove-window', default=None)
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
 args.symmetrize = args.symmetrize or args.symmetrize_partial
+if args.remove_window is not None:
+    args.remove_window = map(float, args.remove_window.split(','))
 
 from statstools.fixups import fix
 
@@ -28,4 +31,5 @@ fix(args.paths, n_jobs=args.jobs,
     symmetrize=args.symmetrize,
     symmetrize_partial=args.symmetrize_partial,
     prune_samples=args.prune_samples,
-    drop_others_shapes=args.drop_others_shapes)
+    drop_others_shapes=args.drop_others_shapes,
+    remove_window=args.remove_window)
