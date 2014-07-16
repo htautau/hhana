@@ -349,7 +349,7 @@ class Analysis(object):
         """
         # TODO: implement blinding
         log.info("constructing channels")
-        samples = [self.data]+self.backgrounds
+        samples = [self.data] + self.backgrounds
         channel_name = 'hh_{0}_{1}'.format(self.year % 1000, category.name)
         suffix = None
         if include_signal:
@@ -363,7 +363,8 @@ class Analysis(object):
         # create HistFactory samples
         histfactory_samples = []
         for s in samples:
-            field_hist, _ = s.get_field_hist(vars, category, templates=templates)
+            field_hist, _ = s.get_field_hist(
+                vars, category, templates=templates)
             field_sample = s.get_histfactory_sample_array(
                 field_hist,
                 category, region,
@@ -390,23 +391,35 @@ class Analysis(object):
                 [s[field] for s in histfactory_samples[1:]],
                 data=histfactory_samples[0][field])
             # implement hybrid data if requested
+            # TODO: clean up
             if isinstance(hybrid_data, dict):
-                log.info('Hybrid data has been requested')
+                log.info('constructing hybrid data')
                 if field in hybrid_data.keys():
                     if isinstance(hybrid_data[field], (list, tuple)):
-                        log.info('Hybrid data: replacing data by s+b prediction for {0} in range {1}'.format(field, hybrid_data[field]))
+                        log.info('hybrid data: replacing data by s+b '
+                                 'prediction for {0} in range {1}'.format(
+                                    field, hybrid_data[field]))
                         if len(hybrid_data[field])!=2:
-                            log.error('Hybrid data: Need to specify a range with only two edged')
-                        # Get the range of bins to be replaced (add 1 additional bin on both side for safety)
-                        (replace_low, replace_high) = (hybrid_data[field][0], hybrid_data[field][1])
-                        hist_data_template = self.data.get_field_hist(vars, category)
-                        log.info('Hybrid data: template binning {0}'.format(list(hist_data_template[0][field].xedges())))
-                        replace_bin = (hist_data_template[0][field].FindBin(float(replace_low))-1,
-                                       hist_data_template[0][field].FindBin(float(replace_high))+1)
+                            log.error('hybrid data: Need to specify a '
+                                      'range with only two edged')
+                        # Get the range of bins to be replaced (add 1
+                        # additional bin on both side for safety)
+                        (replace_low, replace_high) = (
+                            hybrid_data[field][0], hybrid_data[field][1])
+                        hist_data_template = self.data.get_field_hist(
+                            vars, category)
+                        log.info('hybrid data: template binning {0}'.format(
+                            list(hist_data_template[0][field].xedges())))
+                        replace_bin = (
+                            hist_data_template[0][field].FindBin(float(replace_low))-1,
+                            hist_data_template[0][field].FindBin(float(replace_high))+1)
                         total_bkg_sig = sum([s.hist for s in channel.samples])
-                        log.info( 'Hybrid data: before --> {0}'.format(list(channel.data.hist.y())))
-                        channel.data.hist[replace_bin[0]:replace_bin[1]] = total_bkg_sig[replace_bin[0]:replace_bin[1]]
-                        log.info( 'Hybrid data: after --> {0}'.format(list(channel.data.hist.y())))
+                        log.info('hybrid data: before --> {0}'.format(
+                            list(channel.data.hist.y())))
+                        channel.data.hist[replace_bin[0]:replace_bin[1]] = \
+                            total_bkg_sig[replace_bin[0]:replace_bin[1]]
+                        log.info('hybrid data: after --> {0}'.format(
+                            list(channel.data.hist.y())))
             field_channels[field] = channel
         return field_channels
 
