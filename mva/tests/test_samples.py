@@ -1,5 +1,5 @@
 from mva.analysis import Analysis
-from mva.samples import Higgs
+from mva.samples import Higgs, QCD
 from mva.categories import Category_VBF, Category_Boosted, Category_Preselection
 from mva.defaults import TARGET_REGION
 from rootpy.plotting import Hist
@@ -13,7 +13,7 @@ def check_partition(sample, category, region):
     rec = sample.merged_records(
         category, region)
     left, right = sample.partitioned_records(category, region)
-    assert_equals(left.shape[0] + right.shape[0], rec.shape[0])
+    assert_equal(left.shape[0] + right.shape[0], rec.shape[0])
 
 
 def check_events(analysis, sample, category, region):
@@ -63,7 +63,8 @@ def test_samples():
         for sample in analysis.backgrounds + [analysis.higgs_125]:
             for category in (Category_VBF, Category_Boosted):
                 for region in ('OS_ISOL', 'OS', 'nOS_ISOL'):
-                    yield check_partition, sample, category, region
+                    if not isinstance(sample, QCD):
+                        yield check_partition, sample, category, region
                     yield check_events, analysis, sample, category, region
 
 
