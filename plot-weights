@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+from rootpy.plotting import Hist, Canvas
+from rootpy.plotting.utils import draw
+from root_numpy import fill_hist
+from mva.samples import Embedded_Ztautau
+from mva import save_canvas
+from mva.categories import Category_Preselection
+
+for year in (2011, 2012):
+    ztt = Embedded_Ztautau(year=year)
+    weights = ztt.weights()
+    rec = ztt.merged_records(category=Category_Preselection, fields=weights, include_weight=False)
+    for field in weights:
+        array = rec[field]
+        canvas = Canvas()
+        xmin, xmax = array.min(), array.max()
+        width = xmax - xmin
+        hist = Hist(30, xmin - width / 4, xmax + width / 4,
+                    drawstyle='hist', linewidth=2)
+        fill_hist(hist, array)
+        logy = array.std() < 0.1 * width
+        draw(hist, canvas, ytitle='Events', xtitle=field,
+             xdivisions=507, logy=logy, logy_crop_value=1)
+        save_canvas(canvas, 'plots/weights',
+                    'emb_ztt_weight_{0}_{1}'.format(field, year % 1000),
+                    formats=('eps', 'png'))
