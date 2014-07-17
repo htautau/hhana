@@ -164,3 +164,11 @@ if not args.shapes or 'ztautau_isolation' in args.shapes:
         compare(ztt, ztt_isol, category, 'ztautau_isolation',
                 region_a='OS',
                 region_b='OS_ISOL')
+
+if not args.shapes or 'emb_ztautau_isolation' in args.shapes:
+    ztt = Embedded_Ztautau(year=args.year, label='Z#rightarrow#tau#tau')
+    ztt_isol = Embedded_Ztautau(year=args.year, label='Isolated Z#rightarrow#tau#tau')
+    for category in categories:
+        compare(ztt, ztt_isol, category, 'emb_ztautau_isolation',
+                region_a='OS',
+                region_b='OS_ISOL')
