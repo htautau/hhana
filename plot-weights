@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+import ROOT
 from ROOT import TLatex
-from rootpy.plotting import Hist, Canvas
+from rootpy.plotting import Hist, Canvas, Pad, Legend
 from rootpy.plotting.utils import draw
 from root_numpy import fill_hist
 from mva.samples import Embedded_Ztautau, Data
-from mva import save_canvas
+from mva.variables import get_binning, get_label
+from mva import save_canvas, MMC_MASS
 from mva.categories import Category_Preselection
+from mva.plotting import set_colors
 import numpy as np
 
 
@@ -19,12 +22,31 @@ def draw_array(array, field, year, data_info):
     fill_hist(hist, array)
     logy = array.std() < 0.1 * width
     draw(hist, canvas, ytitle='Events', xtitle=field,
-            xdivisions=507, logy=logy, logy_crop_value=1,
-            ypadding=(0.25, 0))
+         xdivisions=507, logy=logy, logy_crop_value=1,
+         ypadding=(0.25, 0))
     label.DrawLatex(0.45, 0.85, str(data_info))
     save_canvas(canvas, 'plots/weights',
                 'emb_ztt_weight_{0}_{1}'.format(field, year % 1000),
                 formats=('eps', 'png'))
+
+
+WEIGHTS = [
+    None,
+    'tau_id_sf',
+    'tau_trigger_eff',
+    'mc_weight',
+    'posterior_trigger_correction',
+    'embedding_spin_weight',
+    'embedding_reco_unfold',
+    'embedding_trigger_weight',]
+
+FIELDS = [
+    'dR_tau1_tau2',
+    'dEta_tau1_tau2',
+    'dPhi_tau1_tau2',
+    MMC_MASS,
+    'tau1_pt',
+    'tau2_pt']
 
 
 for year in (2011, 2012):
@@ -43,4 +65,43 @@ for year in (2011, 2012):
     rec['weight'] *= product.max() / rec['weight'].max()
     for field in weights + ['weight']:
         array = rec[field]
-        draw_array(array, field, year, data.info) 
+        draw_array(array, field, year, data.info)
+
+    # draw dPhi dR and mass after removing each weight
+    for field in FIELDS:
+        hists = []
+        for weight in WEIGHTS:
+            ztt = Embedded_Ztautau(year=year)
+            if weight is not None:
+                setattr(ztt, weight, False)
+            hist = Hist(*get_binning(field, Category_Preselection, year),
+                        title='no {0}'.format(weight) if weight is not None
+                              else 'all weights',
+                        linewidth=2, drawstyle='hist', legendstyle='L')
+            ztt.draw(field, hist, category=Category_Preselection)
+            # normalize
+            hist /= hist.integral()
+            hists.append(hist)
+        # ratio wrt nominal
+        nominal = hists[0].Clone()
+        for hist in hists:
+            hist /= nominal
+        set_colors(hists)
+        canvas = Canvas(width=ROOT.gStyle.GetCanvasDefW() * 2)
+        pad = Pad(0, 0, .5, 1)
+        pad.Draw()
+        pad.cd()
+        draw(hists, pad, ytitle='Events', xtitle=get_label(field),
+             xdivisions=507, ypadding=(0.25, 0), snap=False)
+        pad.cd()
+        label.DrawLatex(0.45, 0.85, str(data.info))
+        canvas.cd()
+        leg_pad = Pad(.5, 0, 1, 1)
+        leg_pad.Draw()
+        leg_pad.cd()
+        leg = Legend(hists, pad=leg_pad, leftmargin=-0.15, topmargin=0,
+                     margin=0.15)
+        leg.Draw()
+        save_canvas(canvas, 'plots/weights',
+                    'emb_ztt_weight_{0}_{1}'.format(field, year % 1000),
+                    formats=('eps', 'png'))

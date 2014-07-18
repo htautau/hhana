@@ -66,8 +66,18 @@ class Pythia_Ztautau(MC_Ztautau):
 class Embedded_Ztautau(Ztautau, SystematicsSample):
 
     def __init__(self, *args, **kwargs):
-        self.tauspinner = kwargs.pop('tauspinner', True)
-        self.posterior_trigger_correction = kwargs.pop('posterior_trigger_correction', True)
+        self.mc_weight = kwargs.pop(
+            'mc_weight', True)
+        self.posterior_trigger_correction = kwargs.pop(
+            'posterior_trigger_correction', True)
+        self.embedding_spin_weight = kwargs.pop(
+            'embedding_spin_weight', True)
+        self.embedding_reco_unfold = kwargs.pop(
+            'embedding_reco_unfold', True)
+        self.embedding_trigger_weight = kwargs.pop(
+            'embedding_trigger_weight', True)
+        self.tau_trigger_eff = kwargs.pop(
+            'tau_trigger_eff', True)
         super(Embedded_Ztautau, self).__init__(*args, **kwargs)
         with root_open(os.path.join(DAT_DIR, 'embedding_corrections.root')) as file:
             self.trigger_correct = file['ebmc_weight_{0}'.format(self.year % 1000)]
@@ -76,10 +86,11 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
             # normalize ISOL and MFS variations to same as nominal
             # at preselection
             from ..categories import Category_Preselection
-            nps = [('MFS_UP',),
-                   ('MFS_DOWN',),
-                   ('ISOL_UP',),
-                   ('ISOL_DOWN',)]
+            nps = [
+                ('MFS_UP',),
+                ('MFS_DOWN',),
+                ('ISOL_UP',),
+                ('ISOL_DOWN',)]
             nominal_events = self.events(Category_Preselection)[1].value
             for np in nps:
                 np_events = self.events(Category_Preselection,
@@ -98,22 +109,23 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
         # No FAKERATE for embedding since fakes are data
         return super(Embedded_Ztautau, self).systematics_components() + [
             'MFS',
-            'ISOL',
-        ]
+            'ISOL',]
 
     def weight_fields(self):
-        weights = super(Embedded_Ztautau, self).weight_fields() + [
-            'mc_weight',
-            'embedding_reco_unfold',
-            'embedding_trigger_weight',
-        ]
-        if self.tauspinner:
+        weights = super(Embedded_Ztautau, self).weight_fields()
+        if self.mc_weight:
+            weights.append('mc_weight')
+        if self.embedding_reco_unfold:
+            weights.append('embedding_reco_unfold')
+        if self.embedding_trigger_weight:
+            weights.append('embedding_trigger_weight')
+        if self.embedding_spin_weight:
             weights.append('embedding_spin_weight')
         return weights
 
     def weight_systematics(self):
         systematics = super(Embedded_Ztautau, self).weight_systematics()
-        if self.year == 2011:
+        if self.tau_trigger_eff and self.year == 2011:
             systematics.update({
                 'TRIGGER': {
                     'UP': [
@@ -124,9 +136,8 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
                         'tau2_trigger_eff_low'],
                     'NOMINAL': [
                         'tau1_trigger_eff',
-                        'tau2_trigger_eff']},
-            })
-        else:
+                        'tau2_trigger_eff']}})
+        elif self.tau_trigger_eff:
             systematics.update({
                 'TRIGGER': {
                     'UP': [
@@ -181,8 +192,7 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
             'ISOL': { # MUON ISOLATION
                 'UP': Cut('(embedding_isolation == 2)'),
                 'DOWN': Cut(),
-                'NOMINAL': Cut('(embedding_isolation >= 1)')},
-        })
+                'NOMINAL': Cut('(embedding_isolation >= 1)')}})
         return systematics
 
     def xsec_kfact_effic(self, isample):

@@ -35,7 +35,7 @@ from ..systematics import (
 from ..lumi import LUMI, get_lumi_uncert
 from .db import DB, TEMPFILE, get_file
 from ..cachedtable import CachedTable
-from ..variables import get_binning
+from ..variables import get_binning, get_scale
 
 BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
 
@@ -810,45 +810,47 @@ class SystematicsSample(Sample):
 
     def weight_systematics(self):
         systematics = {}
-        if self.year == 2011:
-            tauid = {
-                'TAU_ID': {
-                    'UP': [
-                        'tau1_id_sf_high',
-                        'tau2_id_sf_high'],
-                    'DOWN': [
-                        'tau1_id_sf_low',
-                        'tau2_id_sf_low'],
-                    'NOMINAL': [
-                        'tau1_id_sf',
-                        'tau2_id_sf']}
-                }
-        else:
-            tauid = {
-                'TAU_ID': {
-                    'STAT_UP': [
-                        'tau1_id_sf_stat_high',
-                        'tau2_id_sf_stat_high'],
-                    'STAT_DOWN': [
-                        'tau1_id_sf_stat_low',
-                        'tau2_id_sf_stat_low'],
-                    'UP': [
-                        'tau1_id_sf_sys_high',
-                        'tau2_id_sf_sys_high'],
-                    'DOWN': [
-                        'tau1_id_sf_sys_low',
-                        'tau2_id_sf_sys_low'],
-                    'NOMINAL': [
-                        'tau1_id_sf',
-                        'tau2_id_sf']},
-                }
-        systematics.update(tauid)
+        if self.tau_id_sf:
+            if self.year == 2011:
+                tauid = {
+                    'TAU_ID': {
+                        'UP': [
+                            'tau1_id_sf_high',
+                            'tau2_id_sf_high'],
+                        'DOWN': [
+                            'tau1_id_sf_low',
+                            'tau2_id_sf_low'],
+                        'NOMINAL': [
+                            'tau1_id_sf',
+                            'tau2_id_sf']}
+                    }
+            else:
+                tauid = {
+                    'TAU_ID': {
+                        'STAT_UP': [
+                            'tau1_id_sf_stat_high',
+                            'tau2_id_sf_stat_high'],
+                        'STAT_DOWN': [
+                            'tau1_id_sf_stat_low',
+                            'tau2_id_sf_stat_low'],
+                        'UP': [
+                            'tau1_id_sf_sys_high',
+                            'tau2_id_sf_sys_high'],
+                        'DOWN': [
+                            'tau1_id_sf_sys_low',
+                            'tau2_id_sf_sys_low'],
+                        'NOMINAL': [
+                            'tau1_id_sf',
+                            'tau2_id_sf']},
+                    }
+            systematics.update(tauid)
         return systematics
 
     def cut_systematics(self):
         return {}
 
-    def __init__(self, year, db=DB, systematics=False, **kwargs):
+    def __init__(self, year, db=DB, systematics=False,
+                 tau_id_sf=True, **kwargs):
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
@@ -875,6 +877,7 @@ class SystematicsSample(Sample):
         self.db = db
         self.datasets = []
         self.systematics = systematics
+        self.tau_id_sf = tau_id_sf
         self.norms = {}
         rfile = get_file(self.student)
         h5file = get_file(self.student, hdf=True)
@@ -944,9 +947,11 @@ class SystematicsSample(Sample):
                 (ds, tables, weighted_events, xs, kfact, effic))
 
     def draw(self, field, hist, category=None, region=None, **kwargs):
+        field_scale = {field: get_scale(field)}
         return self.draw_array({field: hist},
                                category=category,
                                region=region,
+                               field_scale=field_scale,
                                **kwargs)
 
     def draw_array(self, field_hist,
