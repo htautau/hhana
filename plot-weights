@@ -96,7 +96,8 @@ for year in (2011, 2012):
         pad = Pad(0, 0, .5, 1)
         pad.Draw()
         pad.cd()
-        draw(hists, pad, ytitle='Events', xtitle=get_label(field),
+        draw(hists, pad, ytitle='(no weight X) / (all weights)',
+             xtitle=get_label(field),
              xdivisions=507, ypadding=(0.25, 0), snap=False)
         pad.cd()
         label.DrawLatex(0.45, 0.85, str(data.info))
