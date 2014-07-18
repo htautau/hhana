@@ -2,11 +2,11 @@
 
 import ROOT
 from ROOT import TLatex
-from rootpy.plotting import Hist, Canvas, Pad, Legend
+from rootpy.plotting import Hist, Hist2D, Canvas, Pad, Legend
 from rootpy.plotting.utils import draw
 from root_numpy import fill_hist
 from mva.samples import Embedded_Ztautau, Data
-from mva.variables import get_binning, get_label
+from mva.variables import get_binning, get_label, get_scale
 from mva import save_canvas, MMC_MASS
 from mva.categories import Category_Preselection
 from mva.plotting import set_colors
@@ -66,15 +66,20 @@ for year in (2011, 2012):
     for field in weights + ['weight']:
         array = rec[field]
         draw_array(array, field, year, data.info)
+    
+    rec_fields = ztt.merged_records(
+        category=Category_Preselection,
+        fields=FIELDS)
 
-    # draw dPhi dR and mass after removing each weight
     for field in FIELDS:
+        binning = get_binning(field, Category_Preselection, year)
+        # draw each field after removing each weight
         hists = []
         for weight in WEIGHTS:
             ztt = Embedded_Ztautau(year=year)
             if weight is not None:
                 setattr(ztt, weight, False)
-            hist = Hist(*get_binning(field, Category_Preselection, year),
+            hist = Hist(*binning,
                         title='no {0}'.format(weight) if weight is not None
                               else 'all weights',
                         linewidth=2, drawstyle='hist', legendstyle='L')
@@ -105,3 +110,22 @@ for year in (2011, 2012):
         save_canvas(canvas, 'plots/weights',
                     'emb_ztt_weight_{0}_{1}'.format(field, year % 1000),
                     formats=('eps', 'png'))
+
+        # draw correlation of this field with each weight
+        for weight in weights:
+            rec_x = rec_fields[field] * get_scale(field)
+            rec_y = rec[weight]
+            canvas = Canvas()
+            hist = Hist2D(binning[0], binning[1], binning[2],
+                          20, float(rec_y.min()), float(rec_y.max()),
+                          drawstyle='BOX', color='red', fillstyle='solid')
+            fill_hist(hist, np.c_[rec_x, rec_y])
+            hist.Draw()
+            hist.xaxis.title = get_label(field)
+            hist.xaxis.SetNdivisions(507)
+            hist.yaxis.title = weight
+            hist.yaxis.SetNdivisions(507)
+            save_canvas(canvas, 'plots/weights',
+                'emb_ztt_weight_{0}_vs_{1}_{2}'.format(weight, field, year % 1000),
+                formats=('eps', 'png'))
+
