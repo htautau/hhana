@@ -3,6 +3,7 @@ import os
 import sys
 import pickle
 from operator import add, itemgetter
+from collections import namedtuple
 
 # numpy imports
 import numpy as np
@@ -38,6 +39,14 @@ from ..cachedtable import CachedTable
 from ..variables import get_binning, get_scale
 
 BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
+
+
+class Dataset(namedtuple('Dataset',
+                         ('ds', 'tables', 'events',
+                          'xs', 'kfact', 'effic'))):
+    @property
+    def name(self):
+        return self.ds.name
 
 
 def get_workspace_np_name(sample, syst, year):
@@ -891,7 +900,7 @@ class SystematicsSample(Sample):
             treename = treename.replace('-', '_')
 
             tables = {}
-            weighted_events = {}
+            events = {}
 
             if isinstance(self, Embedded_Ztautau):
                 events_bin = 1
@@ -903,7 +912,7 @@ class SystematicsSample(Sample):
             tables['NOMINAL'] =  CachedTable.hook(getattr(
                 h5file.root, treename))
             cutflow_hist = rfile[treename + events_hist_suffix]
-            weighted_events['NOMINAL'] = cutflow_hist[events_bin].value
+            events['NOMINAL'] = cutflow_hist[events_bin].value
             del cutflow_hist
 
             if self.systematics:
@@ -917,7 +926,7 @@ class SystematicsSample(Sample):
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sys_name))
                         cutflow_hist = rfile[sys_name + events_hist_suffix]
-                        weighted_events[sys_term] = cutflow_hist[events_bin].value
+                        events[sys_term] = cutflow_hist[events_bin].value
                         del cutflow_hist
 
                 if systematics_samples:
@@ -930,7 +939,7 @@ class SystematicsSample(Sample):
                         tables[sys_term] = CachedTable.hook(getattr(
                             h5file.root, sample_name))
                         cutflow_hist = rfile[sample_name + events_hist_suffix]
-                        weighted_events[sys_term] = cutflow_hist[events_bin].value
+                        events[sys_term] = cutflow_hist[events_bin].value
                         del cutflow_hist
 
             if hasattr(self, 'xsec_kfact_effic'):
@@ -942,9 +951,10 @@ class SystematicsSample(Sample):
                 "k-factor: {2} "
                 "filtering efficiency: {3} "
                 "events {4}".format(
-                    ds.name, xs, kfact, effic, weighted_events['NOMINAL']))
-            self.datasets.append(
-                (ds, tables, weighted_events, xs, kfact, effic))
+                    ds.name, xs, kfact, effic, events['NOMINAL']))
+            dataset = Dataset(ds=ds, tables=tables, events=events,
+                              xs=xs, kfact=kfact, effic=effic)
+            self.datasets.append(dataset)
 
     def draw(self, field, hist, category=None, region=None, **kwargs):
         field_scale = {field: get_scale(field)}
@@ -1087,16 +1097,16 @@ class SystematicsSample(Sample):
         recs = []
         if return_idx:
             idxs = []
-        for ds, sys_tables, sys_events, xs, kfact, effic in self.datasets:
+        for ds in self.datasets:
             try:
-                table = sys_tables[systematic]
-                events = sys_events[systematic]
+                table = ds.tables[systematic]
+                events = ds.events[systematic]
             except KeyError:
-                log.debug(
+                log.warning(
                     "table for %s not present for %s "
                     "using NOMINAL" % (systematic, ds.name))
-                table = sys_tables['NOMINAL']
-                events = sys_events['NOMINAL']
+                table = ds.tables['NOMINAL']
+                events = ds.events['NOMINAL']
             log.debug(
                 "\ndataset: {0}"
                 "\ntable: {1}"
@@ -1104,7 +1114,7 @@ class SystematicsSample(Sample):
                 "\nk-factor: {3}"
                 "\nfiltering efficiency: {4}"
                 "\nevents {5}".format(
-                    ds.name, table.name, xs, kfact, effic, events))
+                    ds.name, table.name, ds.xs, ds.kfact, ds.effic, events))
             actual_scale = self.scale
             if isinstance(self, Ztautau):
                 if systematic == ('ZFIT_UP',):
@@ -1116,7 +1126,7 @@ class SystematicsSample(Sample):
             weight = (
                 scale * actual_scale *
                 LUMI[self.year] *
-                xs * kfact * effic / events)
+                ds.xs * ds.kfact * ds.effic / events)
             if systematic in self.norms:
                 weight *= self.norms[systematic]
             # read the table with a selection

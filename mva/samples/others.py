@@ -24,6 +24,10 @@ class Others(MC, Background):
     NO_KYLEFIX = True
     NORM_BY_THEORY = True
 
+    def __init__(self, *args, **kwargs):
+        self.matched = kwargs.pop('matched', True)
+        super(Others, self).__init__(*args, **kwargs)
+
     def histfactory(self, sample, category, systematics=False):
         if not systematics:
             return
@@ -35,6 +39,7 @@ class Others(MC, Background):
 
     def cuts(self, *args, **kwargs):
         cut = super(Others, self).cuts(*args, **kwargs)
-        # require that at least one tau matches truth
-        cut &= Cut('tau1_matched || tau2_matched')
+        if self.matched:
+            # require that at least one tau matches truth
+            cut &= Cut('tau1_matched || tau2_matched')
         return cut
