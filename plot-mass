@@ -7,6 +7,7 @@ from rootpy.plotting.style.atlas import ATLAS_label
 
 from mva.cmd import get_parser
 from mva.analysis import get_analysis
+from mva.samples import Higgs
 from mva.categories import (
     Category_Preselection,
     Category_Cuts_Boosted_Preselection, Category_Cuts_VBF_Preselection,
@@ -99,7 +100,7 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
                      entryheight=0.04,
                      margin=0.2,
                      textsize=22 )
-    leg_col.SetHeader( 'Collinear')
+    leg_col.SetHeader('Collinear')
     leg_col.AddEntry(ztt_col, style='L')
     leg_col.AddEntry(higgs_col, style='L')
 
@@ -125,7 +126,7 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
         plot.SaveAs('plots/mmc_col_masses_%s%s.%s' % (category.name, output_suffix, fmt))
 
 
-def mmc_resolution_graph(category, x_shift=0):
+def mmc_resolution_graph(year, category, x_shift=0):
     """
     Return a Graph() of fitted mmc mass as a
     function of m_H. The error correspond to the gaussian fit
@@ -133,19 +134,17 @@ def mmc_resolution_graph(category, x_shift=0):
     -- parameters
     category: analysis Category where the Higgs samples are taken
     x_shift: Shift to apply on the position of the graph points (to overlay several graphs)
-    TODO: Implement a protection against silly values
     """
-    mass_list = range(100, 155, 5)
-    gr_res = Graph(len(mass_list))
-    gr_res.name = 'graph_res_'+category.name
-    for im, mass in enumerate(mass_list):
-        higgs_sample = analysis.get_signals(mass,mode='combined')
+    gr_res = Graph(len(Higgs.MASSES))
+    gr_res.name = 'graph_res_' + category.name
+    for im, mass in enumerate(Higgs.MASSES):
+        higgs = Higgs(year=year, mass=mass)
         template = Hist(40, 0, 200, linewidth=3, drawstyle='hist')
         higgs_mmc = template.Clone(name="mmc_%d"% mass)
-        higgs_sample[0].draw(MMC_MASS, higgs_mmc, category, TARGET_REGION)
+        higgs.draw(MMC_MASS, higgs_mmc, category, TARGET_REGION)
         higgs_fit = higgs_mmc.Fit('gaus', 'S')
         if mass == 125:
-            plot_mmc_fit(higgs_mmc, higgs_fit, higgs_sample[0], category)
+            plot_mmc_fit(higgs_mmc, higgs_fit, higgs, category)
         gr_res.SetPoint(im, mass + x_shift, higgs_fit.Parameter(1))
         gr_res.SetPointError(im, 0, 0, higgs_fit.Parameter(2), higgs_fit.Parameter(2))
     return gr_res
@@ -168,17 +167,16 @@ def plot_mmc_fit(higgs_mmc, higgs_fit, sample=None, category=None ):
     gaus_fit.SetLineColor(ROOT.kRed)
     gaus_fit.Draw('same')
     
-    """
     gaus_label = ROOT.TLatex(
-        plot.GetLeftMargin() + 0.03, 0.53,
-        "Gaussian Fit: #mu={0:.1f} #sigma={1:.1f}".format(
+        plot.GetLeftMargin() + 0.08, 0.53,
+        "#splitline{{Gaussian Fit:}}{{#mu={0:.1f} #sigma={1:.1f}}}".format(
             higgs_fit.Parameter(1),
             higgs_fit.Parameter(2)))
     gaus_label.SetNDC()
     gaus_label.SetTextFont(43)
     gaus_label.SetTextSize(22)
+    gaus_label.SetTextColor(ROOT.kRed)
     gaus_label.Draw()
-    """
 
     sample_name = None
     sample_label = None
@@ -219,7 +217,7 @@ def plot_mmc_fit(higgs_mmc, higgs_fit, sample=None, category=None ):
         plot.SaveAs('./plots/mmc_fit_%s_%s%s.%s' % (sample_name,category_name,output_suffix,fmt) )
 
 
-def plot_resolution():
+def plot_resolution(year):
     colors = ('black', 'blue', 'red')
     styles = ('circle', 'square', 'triangle')
     categories = (Category_Preselection, Category_Boosted, Category_VBF)
@@ -228,7 +226,7 @@ def plot_resolution():
     graphs = []
     for category,linecolor,markerstyle,x_shift in zip(categories,colors,styles,x_shifts):
         log.info( 'Fit MMC in '+category.name ) 
-        graph_cat = mmc_resolution_graph(category, x_shift)
+        graph_cat = mmc_resolution_graph(year, category, x_shift)
         graph_cat.linecolor = linecolor
         graph_cat.markerstyle = markerstyle
         graph_cat.markercolor = linecolor
@@ -279,7 +277,7 @@ analysis = get_analysis(args, systematics=False)
 output_suffix = analysis.get_suffix()
 
 categories = [Category_Preselection, Category_Boosted, Category_VBF]
-plot_resolution()
+plot_resolution(args.year)
 
 template = Hist(40, 0, 200, linewidth=3, drawstyle='hist')
 with root_open('mmc_hadhad_histos.root', 'recreate') as out:
