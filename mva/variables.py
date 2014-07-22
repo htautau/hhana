@@ -591,6 +591,7 @@ VARIABLES['mmc%d_mass' % mmc] = {
     'blind': (100, 150),
 }
 
+"""
 VARIABLES['mmc%d_MET_et' % mmc] = {
     'title': r'$E^{miss}_{T}$ MMC',
     'root': '#font[52]{MMC} #font[52]{E}^{miss}_{T}',
@@ -624,3 +625,4 @@ VARIABLES['mmc%d_resonance_pt' % mmc] = {
         None: (20, 0, 200)},
     'units': 'GeV',
 }
+"""
