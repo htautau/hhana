@@ -71,7 +71,8 @@ class Higgs(MC, Signal):
                 assert mass in Higgs.MASSES
                 masses = [mass]
             else:
-                masses = Higgs.MASSES
+                # default to 125
+                masses = [125]
         else:
             assert len(masses) > 0
             for mass in masses:
@@ -83,6 +84,7 @@ class Higgs(MC, Signal):
                 assert mode in Higgs.MODES
                 modes = [mode]
             else:
+                # default to all modes
                 modes = Higgs.MODES
         else:
             assert len(modes) > 0
