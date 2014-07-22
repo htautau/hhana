@@ -227,7 +227,8 @@ class Analysis(object):
             ztautau=self.ztautau,
             qcd=self.qcd,
             category=category,
-            param=self.norm_field)
+            param=self.norm_field,
+            target_region=self.target_region)
         return self
 
     def iter_categories(self, *definitions, **kwargs):

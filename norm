@@ -38,6 +38,7 @@ cache.set_scales(
     args.embedding,
     field,
     args.fakes_region,
+    args.target_region,
     qcd_scale=qcd_scale,
     qcd_scale_error=qcd_scale_error,
     qcd_data_scale=1.,

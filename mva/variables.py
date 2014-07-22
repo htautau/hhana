@@ -324,14 +324,14 @@ VARIABLES = {
         'title': r'$\tau_{1}$ Number of Recounted Tracks',
         'root': '#font[152]{#tau}_{1} #font[52]{Number of Recounted Tracks}',
         'filename': 'tau1_numTrack_recounted',
-        'binning': (6, -.5, 5.5),
+        'binning': (5, 0.5, 5.5),
         'integer': True,
     },
     'tau2_numTrack_recounted': {
         'title': r'$\tau_{2}$ Number of Recounted Tracks',
         'root': '#font[152]{#tau}_{2} #font[52]{Number of Recounted Tracks}',
         'filename': 'tau2_numTrack_recounted',
-        'binning': (6, -.5, 5.5),
+        'binning': (5, 0.5, 5.5),
         'integer': True,
     },
     #'tau1_nPi0': {
