@@ -261,9 +261,11 @@ test:
 norms:
 	@for year in 2011 2012; do \
 		for model in OS_NONISOL nOS nOS_ISOL nOS_NONISOL SS SS_ISOL SS_NONISOL NONISOL; do \
-			PBS_LOG=log PBS_QUEUE=short run-cluster ./norm --fakes-region $${model} --year $${year}; \
-			PBS_LOG=log PBS_QUEUE=short run-cluster ./norm --no-embedding --fakes-region $${model} --year $${year}; \
+			nohup ./norm --fakes-region $${model} --year $${year} & \
+			nohup ./norm --no-embedding --fakes-region $${model} --year $${year} & \
 		done; \
+		nohup ./norm --fakes-region SS_NTRK --target-region OS_NTRK --year $${year} & \
+		nohup ./norm --no-embedding --fakes-region SS_NTRK --target-region OS_NTRK --year $${year} & \
 	done
 
 .PHONY: model-plots

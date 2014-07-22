@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+from mva.analysis import Analysis
+from mva.categories import Category_Preselection, Category_Rest, Category_Boosted, Category_VBF
+from mva.samples import Higgs
+from tabulate import tabulate
+
+categories = (
+    Category_Preselection, Category_Rest,
+    Category_Boosted, Category_VBF)
+headers = [c.name for c in categories]
+headers.insert(0, 'sample / category')
+
+for year in (2011, 2012):
+    ana = Analysis(year=year)
+    ana.normalize(Category_Preselection)
+    higgs = Higgs(year=year, mass=125)
+    table = []
+    for sample in (ana.ztautau, ana.qcd, higgs):
+        row = [sample.name]
+        for category in categories:
+            events = sample.events(category, ana.target_region)
+            row.append(
+                "{0:.1f} +/- {1:.1f}".format(
+                    events[1].value, events[1].error))
+        table.append(row)
+    print year
+    print tabulate(table, headers=headers)
+    print

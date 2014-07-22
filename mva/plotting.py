@@ -68,6 +68,8 @@ rc('text.latex', preamble=LATEX_PREAMBLE)
 
 
 def set_colors(hists, colors=cm.jet):
+    if isinstance(colors, basestring):
+        colors = getattr(cm, colors)
     if hasattr(colors, '__call__'):
         for i, h in enumerate(hists):
             color = colors((i + 1) / float(len(hists) + 1))

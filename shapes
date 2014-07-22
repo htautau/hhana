@@ -75,15 +75,15 @@ if not args.shapes or 'ztt' in args.shapes:
     
     # compare with and without spin weight
     ztt_eb_spin = Embedded_Ztautau(year=args.year, label='TauSpinner')
-    ztt_eb_nospin = Embedded_Ztautau(year=args.year, label='No TauSpinner', tauspinner=False)
+    ztt_eb_nospin = Embedded_Ztautau(year=args.year, label='No TauSpinner', embedding_spin_weight=False)
 
     # compare with and without posterior trigger correction
     ztt_eb_correct = Embedded_Ztautau(year=args.year, label='Corrected')
     ztt_eb_nocorrect = Embedded_Ztautau(year=args.year, label='Uncorrected', posterior_trigger_correction=False)
 
     # compare 2011 with 2012 embedding
-    ztt_eb_11 = Embedded_Ztautau(year=2011, label='7 TeV Embedding')
-    ztt_eb_12 = Embedded_Ztautau(year=2012, label='8 TeV Embedding')
+    #ztt_eb_11 = Embedded_Ztautau(year=2011, label='7 TeV Embedding')
+    #ztt_eb_12 = Embedded_Ztautau(year=2012, label='8 TeV Embedding')
 
     # MC Ztt and MC embedded Ztt
     #ztt_pyth = Pythia_Ztautau(year=2012, label='MC')
@@ -99,7 +99,7 @@ if not args.shapes or 'ztt' in args.shapes:
         # compare MC Ztautau with embedded MC Zmumu
         #compare(ztt_pyth, ztt_mceb, category, 'ebztt')
         # compare 7 TeV with 8 TeV embedding
-        compare(ztt_eb_12, ztt_eb_11, category, 'ztt_7_v_8')
+        #compare(ztt_eb_12, ztt_eb_11, category, 'ztt_7_v_8')
 
 
 if not args.shapes or 'qcd' in args.shapes:
@@ -162,5 +162,13 @@ if not args.shapes or 'ztautau_isolation' in args.shapes:
     ztt_isol = MC_Ztautau(year=args.year, label='Isolated Z#rightarrow#tau#tau')
     for category in categories:
         compare(ztt, ztt_isol, category, 'ztautau_isolation',
+                region_a='OS',
+                region_b='OS_ISOL')
+
+if not args.shapes or 'emb_ztautau_isolation' in args.shapes:
+    ztt = Embedded_Ztautau(year=args.year, label='Z#rightarrow#tau#tau')
+    ztt_isol = Embedded_Ztautau(year=args.year, label='Isolated Z#rightarrow#tau#tau')
+    for category in categories:
+        compare(ztt, ztt_isol, category, 'emb_ztautau_isolation',
                 region_a='OS',
                 region_b='OS_ISOL')

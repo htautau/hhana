@@ -5,6 +5,8 @@ from rootpy.io import root_open
 from rootpy.stats import histfactory
 from rootpy.utils.path import mkdir_p
 
+from statstools.histfactory import to_uniform_binning, apply_remove_window
+
 from . import log; log = log[__name__]
 from . import CONST_PARAMS, CACHE_DIR, MMC_MASS, POI
 from .categories import CATEGORIES
@@ -191,14 +193,14 @@ def mva_workspace(analysis, categories, masses,
 def cuts_workspace(analysis, categories, masses,
                    unblind=False,
                    systematics=False,
-                   cuts=None):
+                   cuts=None,
+                   sideband=False):
     hybrid_data = None if unblind else {MMC_MASS:(100., 150.)}
     channels = {}
     for category in analysis.iter_categories(categories):
-        if isinstance(category.limitbins, dict):
-            binning = category.limitbins[analysis.year]
-        else:
-            binning = category.limitbins
+        binning = category.limitbins
+        if isinstance(binning, dict):
+            binning = binning[analysis.year]
         hist_template = Hist(binning, type='D')
         for mass in masses:
             channel = analysis.get_channel_array(
@@ -210,7 +212,28 @@ def cuts_workspace(analysis, categories, masses,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics,
-                hybrid_data=hybrid_data)[MMC_MASS]
+                hybrid_data=hybrid_data,
+                uniform=False)[MMC_MASS]
+            if sideband:
+                # remove the signal window
+                remove_window = (100, 150)
+                channel.data.hist = apply_remove_window(
+                    channel.data.hist, remove_window)
+                for s in channel.samples:
+                    s.hist = apply_remove_window(
+                        s.hist, remove_window)
+                    for histosys in s.histo_sys:
+                        histosys.high = apply_remove_window(
+                            histosys.high, remove_window)
+                        histosys.low = apply_remove_window(
+                            histosys.low, remove_window)
+            # convert to uniform binning
+            channel.data.hist = to_uniform_binning(channel.data.hist)
+            for s in channel.samples:
+                s.hist = to_uniform_binning(s.hist)
+                for histosys in s.histo_sys:
+                    histosys.high = to_uniform_binning(histosys.high)
+                    histosys.low = to_uniform_binning(histosys.low)
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel

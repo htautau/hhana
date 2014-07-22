@@ -29,6 +29,7 @@ if args.type == 'mva':
     params['clf_swap'] = args.clf_swap
 else:
     workspace_func = cuts_workspace
+    params['sideband'] = args.sideband
 
 years = args.years
 categories = args.categories

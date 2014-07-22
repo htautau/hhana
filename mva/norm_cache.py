@@ -2,7 +2,7 @@ from . import log; log = log[__name__]
 from . import samples, CACHE_DIR
 
 import os
-import cPickle as pickle
+import yaml
 import atexit
 
 from rootpy.utils.lock import lock
@@ -10,7 +10,7 @@ from rootpy.utils.lock import lock
 
 MODIFIED = False
 UPDATED = set()
-SCALES_FILE = os.path.join(CACHE_DIR, 'norm.cache')
+SCALES_FILE = os.path.join(CACHE_DIR, 'norm.yml')
 
 
 def read_scales():
@@ -19,7 +19,7 @@ def read_scales():
         log.info("reading background scale factors from %s" % SCALES_FILE)
         with lock(SCALES_FILE):
             with open(SCALES_FILE) as cache:
-                scales = pickle.load(cache)
+                scales = yaml.load(cache)
     return scales
 
 
@@ -35,8 +35,8 @@ def write_scales():
         scales = {}
         if os.path.isfile(SCALES_FILE):
             with open(SCALES_FILE) as cache:
-                scales = pickle.load(cache)
-        for year, category, embedded, param, shape_region in UPDATED:
+                scales = yaml.load(cache)
+        for year, category, embedded, param, shape_region, target_region in UPDATED:
             if year not in scales:
                 scales[year] = {}
             if category not in scales[year]:
@@ -45,36 +45,16 @@ def write_scales():
                 scales[year][category][embedded] = {}
             if param not in scales[year][category][embedded]:
                 scales[year][category][embedded][param] = {}
-            scales[year][category][embedded][param][shape_region] = \
-                SCALES[year][category][embedded][param][shape_region]
+            if shape_region not in scales[year][category][embedded][param]:
+                scales[year][category][embedded][param][shape_region] = {}
+            scales[year][category][embedded][param][shape_region][target_region] = \
+                SCALES[year][category][embedded][param][shape_region][target_region]
         with open(SCALES_FILE, 'w') as cache:
-            pickle.dump(scales, cache)
+            yaml.dump(scales, cache, default_flow_style=False)
 
 
-def print_scales():
-    for year in SCALES.keys():
-        for category in sorted(SCALES[year].keys()):
-            for embedding in SCALES[year][category].keys():
-                params = sorted(SCALES[year][category][embedding].keys())
-                for param in params:
-                    for shape_region in SCALES[year][category][embedding][param].keys():
-                        qcd_scale, qcd_scale_error, \
-                        ztautau_scale, ztautau_scale_error = \
-                        SCALES[year][category][embedding][param][shape_region]
-                        log.info("%d scale factors for %s category" % (year, category))
-                        log.info("embedding: %s" % str(embedding))
-                        log.info("QCD shape region: %s" % shape_region)
-                        log.info("fits were derived via %s parameters" % param)
-                        log.info("    qcd scale: %.3f +/- %.4f" %
-                            (qcd_scale, qcd_scale_error))
-                        log.info("    ztautau scale: %.3f +/- %.4f" %
-                            (ztautau_scale, ztautau_scale_error))
-
-
-def qcd_ztautau_norm(ztautau,
-                     qcd,
-                     category,
-                     param):
+def qcd_ztautau_norm(ztautau, qcd,
+                     category, param, target_region):
     norm_category = getattr(category, 'norm_category', None)
     if norm_category is not None:
         category = norm_category.name
@@ -88,7 +68,8 @@ def qcd_ztautau_norm(ztautau,
     param = param.upper()
 
     scales = get_scales(
-        ztautau.year, category, is_embedded, param, qcd.shape_region)
+        ztautau.year, category, is_embedded, param,
+        qcd.shape_region, target_region)
 
     qcd.scale = scales['qcd_scale']
     qcd.scale_error = scales['qcd_scale_error']
@@ -103,17 +84,20 @@ def qcd_ztautau_norm(ztautau,
     ztautau.scale_error = scales['z_scale_error']
 
 
-def get_scales(year, category, embedded, param, shape_region, verbose=True):
-    year %= 1E3
+def get_scales(year, category, embedded, param,
+               shape_region, target_region,
+               verbose=True):
+    year %= 1000
     category = category.upper()
     param = param.upper()
-    if has_category(year, category, embedded, param, shape_region):
-        scales = SCALES[year][category][embedded][param][shape_region]
+    if has_category(year, category, embedded, param, shape_region, target_region):
+        scales = SCALES[year][category][embedded][param][shape_region][target_region]
         if verbose:
             log.info("%d scale factors for %s category" % (year, category))
             log.info("embedding: %s" % str(embedded))
-            log.info("QCD shape region: %s" % shape_region)
-            log.info("scale factors were derived via fit using %s parameters" % param)
+            log.info("fakes shape region: %s" % shape_region)
+            log.info("target region: %s" % target_region)
+            log.info("derived from fit of %s" % param)
             log.info("        QCD scale: %.3f +/- %.4f" % (
                 scales['qcd_scale'], scales['qcd_scale_error']))
             log.info("   QCD data scale: %.3f" % scales['qcd_data_scale'])
@@ -128,49 +112,44 @@ def get_scales(year, category, embedded, param, shape_region, verbose=True):
         (year, category, embedded, param, shape_region))
 
 
-def has_category(year, category, embedded, param, shape_region):
-    year %= 1E3
+def has_category(year, category, embedded, param, shape_region, target_region):
+    year %= 1000
     category = category.upper()
     param = param.upper()
-    return (year in SCALES and category in SCALES[year] and
-            embedded in SCALES[year][category] and
-            param in SCALES[year][category][embedded] and
-            shape_region in SCALES[year][category][embedded][param])
+    try:
+        SCALES[year][category][embedded][param][shape_region][target_region]
+        return True
+    except KeyError:
+        return False
 
 
-def set_scales(year, category, embedded, param, shape_region,
+def set_scales(year, category, embedded, param,
+               shape_region, target_region,
                qcd_scale, qcd_scale_error,
                qcd_data_scale,
                qcd_z_scale,
                qcd_others_scale,
                z_scale, z_scale_error):
     global MODIFIED
-    year %= 1E3
+    if shape_region == target_region:
+        raise ValueError(
+            "fakes shape region cannot equal "
+            "the target region: {0}".format(target_region))
+    year %= 1000
     param = param.upper()
     category = category.upper()
 
     log.info("setting %d scale factors for %s category" % (year, category))
     log.info("embedding: %s" % str(embedded))
-    log.info("QCD shape region: %s" % shape_region)
-    log.info("new scale factors derived via fit using %s parameters" % param)
+    log.info("fakes shape region: %s" % shape_region)
+    log.info("target region: %s" % target_region)
+    log.info("derived from fit of %s" % param)
     log.info("        QCD scale: %.3f +/- %.4f" % (qcd_scale, qcd_scale_error))
     log.info("   QCD data scale: %.3f" % qcd_data_scale)
     log.info("    QCD ztt scale: %.3f" % qcd_z_scale)
     log.info(" QCD others scale: %.3f" % qcd_others_scale)
     log.info("        ztt scale: %.3f +/- %.4f" % (z_scale, z_scale_error))
 
-    """
-    if has_category(year, category, embedded, param, shape_region):
-        scales = get_scales(year, category, embedded, param, shape_region,
-                            verbose=False)
-        log.info("scale factors were previously:")
-        log.info("    qcd scale: %.3f +/- %.4f" % (
-                qcd_scale_old,
-                qcd_scale_error_old))
-        log.info("    ztt scale: %.3f +/- %.4f" % (
-                ztautau_scale_old,
-                ztautau_scale_error_old))
-    """
     if year not in SCALES:
         SCALES[year] = {}
     if category not in SCALES[year]:
@@ -179,8 +158,10 @@ def set_scales(year, category, embedded, param, shape_region,
         SCALES[year][category][embedded] = {}
     if param not in SCALES[year][category][embedded]:
         SCALES[year][category][embedded][param] = {}
+    if shape_region not in SCALES[year][category][embedded][param]:
+        SCALES[year][category][embedded][param][shape_region] = {}
 
-    SCALES[year][category][embedded][param][shape_region] = {
+    SCALES[year][category][embedded][param][shape_region][target_region] = {
         'qcd_scale': qcd_scale,
         'qcd_scale_error': qcd_scale_error,
         'qcd_data_scale': qcd_data_scale,
@@ -189,5 +170,5 @@ def set_scales(year, category, embedded, param, shape_region,
         'z_scale': z_scale,
         'z_scale_error': z_scale_error,
         }
-    UPDATED.add((year, category, embedded, param, shape_region))
+    UPDATED.add((year, category, embedded, param, shape_region, target_region))
     MODIFIED = True
