@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+from rootpy.tree import Cut
+from mva.analysis import Analysis
+from mva import MMC_MASS
+from mva.samples import Higgs
+from mva.categories import (Category_Preselection, Category_Rest,
+                            Category_Boosted, Category_VBF)
+
+categories = (Category_Boosted, Category_VBF)
+
+ztt_cr = Cut('70 < {0} < 110'.format(MMC_MASS)) & Cut('resonance_pt > 120000')
+
+
+for year in (2011, 2012):
+    ana_isol = Analysis(year=year, target_region='OS_ISOL').normalize(Category_Preselection)
+    ana = Analysis(year=year, target_region='OS').normalize(Category_Preselection)
+    ztt_isol = ana_isol.ztautau
+    ztt = ana.ztautau
+    qcd_isol = ana_isol.qcd
+    qcd = ana.qcd
+    others = ana.others
+    data = ana.data
+    higgs = Higgs(year=year)
+    for category in categories:
+        data_isol_events = data.events(category, 'OS_ISOL', cuts=ztt_cr)[1].value
+        qcd_isol_events = qcd_isol.events(category, 'OS_ISOL', cuts=ztt_cr)[1].value
+        ztt_isol_events = ztt_isol.events(category, 'OS_ISOL', cuts=ztt_cr)[1].value
+        others_isol_events = others.events(category, 'OS_ISOL', cuts=ztt_cr)[1].value
+        higgs_isol_events = higgs.events(category, 'OS_ISOL', cuts=ztt_cr)[1].value
+
+        data_events = data.events(category, 'OS', cuts=ztt_cr)[1].value
+        qcd_events = qcd.events(category, 'OS', cuts=ztt_cr)[1].value
+        ztt_events = ztt.events(category, 'OS', cuts=ztt_cr)[1].value
+        others_events = others.events(category, 'OS', cuts=ztt_cr)[1].value
+        higgs_events = higgs.events(category, 'OS', cuts=ztt_cr)[1].value
+        
+        print year
+        print 'OS'
+        print category.name, data_events, ztt_events / data_events, qcd_events / data_events, others_events / data_events, higgs_events / data_events
+        print 'OS ISOL'
+        print category.name, data_isol_events, ztt_isol_events / data_isol_events, qcd_isol_events / data_isol_events, others_isol_events / data_isol_events, higgs_isol_events / data_isol_events
+        print (ztt_isol_events / (data_isol_events - qcd_isol_events - others_isol_events)) / (ztt_events / (data_events - qcd_events - others_events))
+        print
