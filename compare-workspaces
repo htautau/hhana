@@ -4,8 +4,8 @@ from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('--refit', action='store_true', default=False)
-parser.add_argument('--injection', type=float, default=1.)
-parser.add_argument('--injection-test', action='store_true', default=False)
+#parser.add_argument('--injection', type=float, default=1.)
+#parser.add_argument('--injection-test', action='store_true', default=False)
 parser.add_argument('--unblind', action='store_true', default=False)
 parser.add_argument('files', nargs='+')
 args = parser.parse_args()
@@ -28,14 +28,14 @@ for name_file in args.files:
     names.append(name)
     files.append(file)
 
-profiles = (False, 0, 1, 'hat')
+profiles = (0, 1)#, False, 'hat')
 kwargs = []
 for profile in profiles:
     kwargs.extend(
         [dict(file=file, workspace_name='combined',
               profile=profile, 
-              injection=args.injection,
-              injection_test=args.injection_test,
+              #injection=args.injection,
+              #injection_test=args.injection_test,
               refit=args.refit)
             for file in files])
 if args.unblind:
