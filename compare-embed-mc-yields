@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+from mva.analysis import Analysis
+from mva.categories import Category_Preselection, CATEGORIES
+from mva.samples import MC_Ztautau
+#from mva.defaults import TARGET_REGION
+from tabulate import tabulate
+
+TARGET_REGION = 'OS_ISOL'
+
+ana = Analysis(2012, target_region=TARGET_REGION)
+ana.normalize(Category_Preselection)
+ztt = ana.ztautau
+mcztt = MC_Ztautau(2012)
+# fix norm of mc to embed at preselection
+mcztt.scale = ztt.events(Category_Preselection, TARGET_REGION)[1].value / mcztt.events(Category_Preselection, TARGET_REGION)[1].value
+
+headers = ['Category', 'Embedded', 'MC', 'Embedded / MC']
+table = []
+for category in CATEGORIES['cuts']:
+    embed_events = ztt.events(category, TARGET_REGION)
+    mc_events = mcztt.events(category, TARGET_REGION)
+    table.append([
+        category.name,
+        "{a.value:.1f} +/- {a.error:.1f}".format(a=embed_events[1]),
+        "{a.value:.1f} +/- {a.error:.1f}".format(a=mc_events[1]),
+        "{a.value:.2f} +/- {a.error:.2f}".format(a=(embed_events / mc_events)[1])])
+
+print tabulate(table, headers=headers)
