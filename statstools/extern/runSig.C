@@ -17,7 +17,6 @@ Modified by Noel Dawe
 #include <iomanip>
 
 #include "TH1D.h"
-#include "TFile.h"
 #include "Math/MinimizerOptions.h"
 
 #include "RooCategory.h"
@@ -45,9 +44,8 @@ RooDataSet* make_asimov_data(
     string* mu_str = NULL, string* mu_prof_str = NULL,
     int print_level = 0);
 
-int minimize(RooNLLVar* nll);
 
-double get_sig(RooWorkspace* ws, RooNLLVar* nll, RooRealVar* mu);
+int minimize(RooNLLVar* nll);
 
 
 TH1D* significance(RooWorkspace* ws,
@@ -58,10 +56,12 @@ TH1D* significance(RooWorkspace* ws,
                    double profile_mu = 1,            // mu value to profile the observed data at before generating the Asimov
                    bool floating_profile_mu = false, // if true then profile at mu hat
                    const char* modelConfigName = "ModelConfig",
-                   const char* dataName = "obsData")
+                   const char* dataName = "obsData",
+                   bool verbose = false)
 {
-    string defaultMinimizer = "Minuit2"; // or "Minuit"
-    int defaultStrategy     = 1;         // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
+    string defaultMinimizer    = "Minuit2";     // or "Minuit"
+    int defaultStrategy        = 1;             // Minimization strategy. 0-2. 0 = fastest, least robust. 2 = slowest, most robust
+    bool doUncap               = 1;             // uncap p0
 
     if (!ws)
     {
@@ -80,12 +80,14 @@ TH1D* significance(RooWorkspace* ws,
         cout << "ERROR::Dataset: " << dataName << " doesn't exist!" << endl;
         return NULL;
     }
+    if (verbose)
+      mc->GetNuisanceParameters()->Print("v");
     
     // save original state
     ws->saveSnapshot("significance::nominal_globs", *mc->GetGlobalObservables());
     ws->saveSnapshot("significance::nominal_nuis", *mc->GetNuisanceParameters());
     ws->saveSnapshot("significance::nominal_poi", *mc->GetParametersOfInterest());
-
+    
     // minimizer options
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer(defaultMinimizer.c_str());
     ROOT::Math::MinimizerOptions::SetDefaultStrategy(defaultStrategy);
@@ -93,43 +95,124 @@ TH1D* significance(RooWorkspace* ws,
     //RooNLLVar::SetIgnoreZeroEntries(1);
     //ROOT::Math::MinimizerOptions::SetDefaultMaxFunctionCalls(20000);
     //RooMinimizer::SetMaxFunctionCalls(10000);
-    
-    RooRealVar* mu = (RooRealVar*)mc->GetParametersOfInterest()->first();
-    RooArgSet nuis = *mc->GetNuisanceParameters();
-    RooArgSet globs = *mc->GetGlobalObservables();
-    RooAbsPdf* pdf = mc->GetPdf();
-    RooNLLVar* nll = NULL;
 
+    RooArgSet nuis(*mc->GetNuisanceParameters());
+    RooRealVar* mu = (RooRealVar*)mc->GetParametersOfInterest()->first();
+    RooAbsPdf* pdf = mc->GetPdf();
+    
+    if (!doUncap)
+        mu->setRange(0, 40);
+    else
+        mu->setRange(-40, 40);
+
+    RooArgSet nuis_tmp1 = *mc->GetNuisanceParameters();
+    RooNLLVar* obs_nll = (observed || profile) ? (RooNLLVar*)pdf->createNLL(*data, Constrain(nuis_tmp1)) : NULL;
+
+    int status, sign;
+    double sig=0, q0=0;
+    
     if (observed)
     {
-        // observed NLL
-        nll = (RooNLLVar*)pdf->createNLL(*data, Constrain(nuis), GlobalObservables(globs));
+        //ws->loadSnapshot("make_asimov_data::conditional_nuis_0"); ???
+        mu->setVal(0);
+        mu->setConstant(1);
+        status = minimize(obs_nll);
+        /*
+        if (status < 0) 
+        {
+            cout << "Retrying with conditional snapshot at mu=1" << endl;
+            ws->loadSnapshot("make_asimov_data::conditional_nuis_0");
+            status = minimize(obs_nll);
+        } ??? */
+        double obs_nll_cond = obs_nll->getVal();
+
+        //ws->loadSnapshot("ucmles"); ???
+        mu->setConstant(0);
+        status = minimize(obs_nll);
+        /*
+        if (status < 0) 
+        {
+            cout << "Retrying with conditional snapshot at mu=1" << endl;
+            ws->loadSnapshot("make_asimov_data::conditional_nuis_0");
+            status = minimize(obs_nll);
+        } ??? */
+        double obs_nll_min = obs_nll->getVal();
+
+        q0 = 2*(obs_nll_cond - obs_nll_min);
+        if (doUncap && mu->getVal() < 0)
+            q0 = -q0;
+
+        sign = int(q0 == 0 ? 0 : q0 / fabs(q0));
+        if (!doUncap && ((q0 < 0 && q0 > -0.1) || mu->getVal() < 0.001))
+            sig = 0; 
+        else
+            sig = sign*sqrt(fabs(q0));
     }
     else
     {
-        RooNLLVar* profile_nll = NULL;
-        if (profile)
-            profile_nll = (RooNLLVar*)pdf->createNLL(*data, Constrain(nuis), GlobalObservables(globs));
-        // make asimov data
         string mu_str, mu_prof_str;
         RooDataSet* asimov_data = make_asimov_data(
-            ws, mc, profile_nll,
-            injection_mu, profile_mu,
-            floating_profile_mu,
+            ws, mc, obs_nll,
+            injection_mu, profile_mu, floating_profile_mu,
             &mu_str, &mu_prof_str);
-        // asimov NLL
-        nll = (RooNLLVar*)pdf->createNLL(*asimov_data, Constrain(nuis), GlobalObservables(globs));
+        string condSnapshot = "make_asimov_data::conditional_globs" + mu_prof_str;
+
+        RooArgSet nuis_tmp2 = *mc->GetNuisanceParameters();
+        RooNLLVar* asimov_nll = (RooNLLVar*)pdf->createNLL(*asimov_data, Constrain(nuis_tmp2));
+
+        mu->setVal(1);
+        mu->setConstant(0);
+        if (!injection_test) mu->setConstant(1);
+
+        ws->loadSnapshot(condSnapshot.c_str());
+        if (injection_test)
+            ws->loadSnapshot("conditional_nuis_injection");
+        else
+            ws->loadSnapshot("make_asimov_data::conditional_nuis_1");
+	    if (verbose)
+	        mc->GetGlobalObservables()->Print("v");
+        mu->setVal(0);
+        mu->setConstant(1);
+        status = minimize(asimov_nll);
+
+        if (status < 0) 
+        {
+            cout << "Retrying with conditional snapshot at mu=1" << endl;
+            ws->loadSnapshot("make_asimov_data::conditional_nuis_0");
+            status = minimize(asimov_nll);
+        }
+        double asimov_nll_cond = asimov_nll->getVal();
+
+        mu->setVal(1);
+        if (injection_test)
+            ws->loadSnapshot("conditional_nuis_injection");
+        else
+            ws->loadSnapshot("make_asimov_data::conditional_nuis_1");
+        if (injection_test)
+            mu->setConstant(0);
+        status = minimize(asimov_nll);
+
+        if (status < 0) 
+        {
+            cout << "Retrying with conditional snapshot at mu=1" << endl;
+            ws->loadSnapshot("make_asimov_data::conditional_nuis_0");
+            status = minimize(asimov_nll);
+        }
+
+        double asimov_nll_min = asimov_nll->getVal();
+        q0 = 2*(asimov_nll_cond - asimov_nll_min);
+        if (doUncap && mu->getVal() < 0)
+            q0 = -q0;
+
+        sign = int(q0 != 0 ? q0/fabs(q0) : 0);
+        sig = sign*sqrt(fabs(q0));
     }
-    
-    // compute the significance
-    double sig = get_sig(ws, nll, mu);
-    if (sig == -999)
-        return NULL;
-            
-    TH1D* h_hypo = new TH1D("significance", "significance", 2, 0, 2);
+        
+    TH1D* h_hypo = new TH1D("significance", "significance", 3, 0, 3);
     h_hypo->SetBinContent(1, sig);
     h_hypo->SetBinContent(2, mu->getVal());
     h_hypo->SetBinError(2, mu->getError());
+    h_hypo->SetBinContent(3, q0);
     
     // restore original state
     ws->loadSnapshot("significance::nominal_globs");
@@ -140,58 +223,12 @@ TH1D* significance(RooWorkspace* ws,
 }
 
 
-double get_sig(RooWorkspace* ws, RooNLLVar* nll, RooRealVar* mu)
-{
-    int status, sign;
-    double sig=0, q0=0;
-
-    // restore nominal state
-    ws->loadSnapshot("significance::nominal_globs");
-    ws->loadSnapshot("significance::nominal_nuis");
-
-    // conditional fit with mu=0
-    mu->setVal(0);
-    mu->setConstant(1);
-    status = minimize(nll);
-    if (status < 0) 
-    {
-        cout << "ERROR: FIT FAILED" << endl;
-        return -999.;
-    }
-    double nll_cond = nll->getVal();
-
-    // restore nominal state
-    ws->loadSnapshot("significance::nominal_globs");
-    ws->loadSnapshot("significance::nominal_nuis");
-    
-    // unconditional fit
-    mu->setVal(0);
-    mu->setConstant(0);
-    status = minimize(nll);
-    if (status < 0) 
-    {
-        cout << "ERROR: FIT FAILED" << endl;
-        return -999.;
-    }
-    double nll_min = nll->getVal();
-
-    q0 = 2*(nll_cond - nll_min);
-
-    sign = int(q0 == 0 ? 0 : q0 / fabs(q0));
-    sig = sign * sqrt(fabs(q0));
-
-    cout << "test stat val: " << q0 << endl;
-    cout << "significance:  " << sig << endl;
-    return sig;
-}
-
-
 int minimize(RooNLLVar* nll)
 {
     int printLevel = ROOT::Math::MinimizerOptions::DefaultPrintLevel();
     RooFit::MsgLevel msglevel = RooMsgService::instance().globalKillBelow();
-    if (printLevel < 0)
-        RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+    if (printLevel < 0) RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+
     int strat = ROOT::Math::MinimizerOptions::DefaultStrategy();
     RooMinimizer minim(*nll);
     minim.setStrategy(strat);
@@ -251,8 +288,7 @@ int minimize(RooNLLVar* nll)
         ROOT::Math::MinimizerOptions::SetDefaultMinimizer(minType.c_str());
     }
 
-    if (printLevel < 0)
-        RooMsgService::instance().setGlobalKillBelow(msglevel);
+    if (printLevel < 0) RooMsgService::instance().setGlobalKillBelow(msglevel);
 
     return status;
 }
@@ -302,6 +338,12 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
     //make asimov data//
     ////////////////////
 
+    cout << "Creating asimov data at mu = " << mu_val << ", profiling at mu = " << mu_val_profile << endl;
+    
+    // save original state
+    w->saveSnapshot("make_asimov_data::nominal_globs", *mc->GetGlobalObservables());
+    w->saveSnapshot("make_asimov_data::nominal_nuis", *mc->GetNuisanceParameters());
+
     //ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
     //int strat = ROOT::Math::MinimizerOptions::SetDefaultStrategy(0);
     //int printLevel = ROOT::Math::MinimizerOptions::DefaultPrintLevel();
@@ -328,7 +370,7 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
     RooArgSet mc_globs = *mc->GetGlobalObservables();
     RooArgSet mc_nuis = *mc->GetNuisanceParameters();
 
-    // pair the nuisance parameter to the global observable
+    //pair the nuisance parameter to the global observable
     RooArgSet mc_nuis_tmp = mc_nuis;
     RooArgList nui_list("ordered_nuis");
     RooArgList glob_list("ordered_globs");
@@ -340,11 +382,11 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
     TIterator* cIter = constraint_set.createIterator();
     RooAbsArg* arg;
 
+    /// Go through all constraints
     while ((arg = (RooAbsArg*)cIter->Next()))
     {
         RooAbsPdf* pdf = (RooAbsPdf*)arg;
-        if (!pdf)
-            continue;
+        if (!pdf) continue;
 
         /// Catch the nuisance parameter constrained here
         TIterator* nIter = mc_nuis.createIterator();
@@ -360,11 +402,10 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
         }
         delete nIter;
 
-        // need this if the observable isn't fundamental. 
-        // in this case, see which variable is dependent on the nuisance parameter and use that.
+        //need this incase the observable isn't fundamental. 
+        //in this case, see which variable is dependent on the nuisance parameter and use that.
         RooArgSet* components = pdf->getComponents();
         components->remove(*pdf);
-
         if (components->getSize())
         {
             TIterator* itr1 = components->createIterator();
@@ -375,8 +416,7 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
                 RooAbsArg* arg2;
                 while ((arg2 = (RooAbsArg*)itr2->Next()))
                 {
-                    if (arg1 == arg2)
-                        continue;
+                    if (arg1 == arg2) continue;
                     if (arg2->dependsOn(*arg1))
                     {
                         components->remove(*arg1);
@@ -415,22 +455,15 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
             continue;
         }
 
-        if (print_level > 0)
-        {
-            cout << "Pairing nui: " << thisNui->GetName()
-                 << ", with glob: " << thisGlob->GetName()
-                 << ", from constraint: " << pdf->GetName() << endl;
-        }
+        if (print_level > 0) cout << "Pairing nui: " << thisNui->GetName() << ", with glob: " << thisGlob->GetName() << ", from constraint: " << pdf->GetName() << endl;
 
         nui_list.add(*thisNui);
         glob_list.add(*thisGlob);
     }
     delete cIter;
     
-    // save original state
-    w->saveSnapshot("make_asimov_data::nominal_globs", *mc->GetGlobalObservables());
-    w->saveSnapshot("make_asimov_data::nominal_nuis", *mc->GetNuisanceParameters());
-
+    RooArgSet nuiSet_tmp(nui_list);
+    
     // conditional profiling
     if (conditioning_nll != NULL)
     {
@@ -448,9 +481,9 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
         minimize(conditioning_nll);
     }
     mu->setConstant(0);
+    mu->setVal(mu_val);
 
-    // loop over the nui/glob list, grab the corresponding variable from the
-    // tmp ws, and set the glob to the value of the nui
+    //loop over the nui/glob list, grab the corresponding variable from the tmp ws, and set the glob to the value of the nui
     int nrNuis = nui_list.getSize();
     if (nrNuis != glob_list.getSize())
     {
@@ -458,38 +491,39 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
         return NULL;
     }
 
-    for (int i = 0; i < nrNuis; ++i)
+    for (int i=0;i<nrNuis;i++)
     {
         RooRealVar* nui = (RooRealVar*)nui_list.at(i);
         RooRealVar* glob = (RooRealVar*)glob_list.at(i);
-        if (print_level > 0)
-        {
-            cout << "Setting glob: " << glob->GetName()
-                 << ", which had previous val: " << glob->getVal()
-                 << ", to conditional val: " << nui->getVal() << endl;
-        }
+        //cout << "nui: " << nui << ", glob: " << glob << endl;
+        //cout << "Setting glob: " << glob->GetName() << ", which had previous val: " << glob->getVal() << ", to conditional val: " << nui->getVal() << endl;
         glob->setVal(nui->getVal());
     }
 
     // save the snapshots of conditional parameters
-    w->saveSnapshot(("make_asimov_data::conditional_globs" + muStr.str()).c_str(), *mc->GetGlobalObservables());
-    w->saveSnapshot(("make_asimov_data::conditional_nuis" + muStr.str()).c_str(), *mc->GetNuisanceParameters());
-    
+    w->saveSnapshot(("make_asimov_data::conditional_globs"+muStrProf.str()).c_str(),*mc->GetGlobalObservables());
+    w->saveSnapshot(("make_asimov_data::conditional_nuis" +muStrProf.str()).c_str(),*mc->GetNuisanceParameters());
+
     if (conditioning_nll == NULL)
     {
-        // restore nominal state
+        // restore original state
         w->loadSnapshot("make_asimov_data::nominal_globs");
         w->loadSnapshot("make_asimov_data::nominal_nuis");
     }
 
+    if (print_level > 0)
+        cout << "Making asimov" << endl;
+
     // make the asimov data
     mu->setVal(mu_val);
 
-    int iFrame = 0;
+    int iFrame=0;
 
     const char* weightName="weightVar";
     RooArgSet obsAndWeight;
+    //cout << "adding obs" << endl;
     obsAndWeight.add(*mc->GetObservables());
+    //cout << "adding weight" << endl;
 
     RooRealVar* weightVar = NULL;
     if (!(weightVar = w->var(weightName)))
@@ -497,16 +531,16 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
         w->import(*(new RooRealVar(weightName, weightName, 1,0,10000000)));
         weightVar = w->var(weightName);
     }
+    //cout << "weightVar: " << weightVar << endl;
     obsAndWeight.add(*w->var(weightName));
+
+    //cout << "defining set" << endl;
     w->defineSet("obsAndWeight",obsAndWeight);
 
-    //////////////////////////////////////////////////////
     // MAKE ASIMOV DATA FOR OBSERVABLES
-    //////////////////////////////////////////////////////
-
     RooSimultaneous* simPdf = dynamic_cast<RooSimultaneous*>(mc->GetPdf());
-    RooDataSet* asimovData;
 
+    RooDataSet* asimovData;
     if (!simPdf)
     {
         // Get pdf associated with state from simpdf
@@ -535,16 +569,13 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
             thisNorm=pdftmp->getVal(obstmp)*thisObs->getBinWidth(jj);
             if (thisNorm*expectedEvents <= 0)
             {
-                cout << "WARNING::Detected bin with zero expected events (" << thisNorm*expectedEvents 
+                cout << "WARNING::Detected bin with zero expected events (" << thisNorm*expectedEvents
                      << ") ! Please check your inputs. Obs = " << thisObs->GetName()
                      << ", bin = " << jj << endl;
             }
             if (thisNorm*expectedEvents > 0 && thisNorm*expectedEvents < pow(10.0, 18))
-            {
                 asimovData->add(*mc->GetObservables(), thisNorm*expectedEvents);
-            }
         }
-
         if (print_level > 0)
         {
             asimovData->Print();
@@ -559,22 +590,27 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
             asimovData->Print();
             cout << endl;
         }
+        w->import(*asimovData);
     }
     else
     {
         map<string, RooDataSet*> asimovDataMap;
-        RooCategory* channelCat = (RooCategory*)&simPdf->indexCat();
+
+        //try fix for sim pdf
+        RooCategory* channelCat = (RooCategory*)&simPdf->indexCat();//(RooCategory*)w->cat("master_channel");//(RooCategory*) (&simPdf->indexCat());
+        //    TIterator* iter = simPdf->indexCat().typeIterator() ;
         TIterator* iter = channelCat->typeIterator() ;
         RooCatType* tt = NULL;
         int nrIndices = 0;
         while((tt=(RooCatType*) iter->Next())) {
             nrIndices++;
         }
-        for (int i=0; i < nrIndices; ++i){
+        for (int i=0;i<nrIndices;i++){
             channelCat->setIndex(i);
-            ++iFrame;
+            iFrame++;
             // Get pdf associated with state from simpdf
             RooAbsPdf* pdftmp = simPdf->getPdf(channelCat->getLabel()) ;
+
             // Generate observables defined by the pdf associated with this state
             RooArgSet* obstmp = pdftmp->getObservables(*mc->GetObservables()) ;
 
@@ -589,17 +625,15 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
                 Form("combAsimovData%d",iFrame),
                 RooArgSet(obsAndWeight,*channelCat),
                 WeightVar(*weightVar));
-
             RooRealVar* thisObs = ((RooRealVar*)obstmp->first());
             double expectedEvents = pdftmp->expectedEvents(*obstmp);
             double thisNorm = 0;
             for(int jj=0; jj<thisObs->numBins(); ++jj){
                 thisObs->setBin(jj);
-                thisNorm = pdftmp->getVal(obstmp) * thisObs->getBinWidth(jj);
+
+                thisNorm=pdftmp->getVal(obstmp)*thisObs->getBinWidth(jj);
                 if (thisNorm*expectedEvents > 0 && thisNorm*expectedEvents < pow(10.0, 18))
-                {
                     obsDataUnbinned->add(*mc->GetObservables(), thisNorm*expectedEvents);
-                }
             }
 
             if (print_level > 0)
@@ -609,7 +643,7 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
             }
             if(obsDataUnbinned->sumEntries()!=obsDataUnbinned->sumEntries()){
                 cout << "sum entries is nan"<<endl;
-                return NULL;
+                exit(1);
             }
 
             asimovDataMap[string(channelCat->getLabel())] = obsDataUnbinned;
@@ -623,8 +657,8 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
         }
 
         asimovData = new RooDataSet(
-            ("asimovData" + muStr.str()).c_str(),
-            ("asimovData" + muStr.str()).c_str(),
+            ("asimovData"+muStr.str()).c_str(),
+            ("asimovData"+muStr.str()).c_str(),
             RooArgSet(obsAndWeight,*channelCat),
             Index(*channelCat),
             Import(asimovDataMap),
@@ -633,7 +667,7 @@ RooDataSet* make_asimov_data(RooWorkspace* w, ModelConfig* mc,
 
     // restore original state
     w->loadSnapshot("make_asimov_data::nominal_globs");
-    w->loadSnapshot("make_asimov_data::nominal_nuis");
+    //w->loadSnapshot("make_asimov_data::nominal_nuis");
 
     return asimovData;
 }
