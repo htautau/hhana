@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+from rootpy.io import root_open
+
+from statstools.asimov import make_asimov_data
+from statstools.parallel import Worker, run_pool 
+from root_numpy import matrix
+
+
+class ToyWorker(Worker):
+    def __init__(self, file):
+        self.file = file
+        super(ToyWorker, self).__init__()
+    
+    def work(self):
+        import ROOT
+        from ROOT import RooRandom
+        gen = RooRandom.randomGenerator()
+        gen.SetSeed(0)
+        ROOT.gRandom.SetSeed(0)
+        ws = root_open(self.file)['combined']
+        data = make_asimov_data(ws, profile='hat')
+        minim = ws.fit(data=data)
+        #minim = ws.fit()
+        result = minim.save()
+        return result.correlation('ATLAS_norm_HH_2012_Ztt', 'SigXsecOverSM')
+
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('file')
+    args = parser.parse_args()
+
+    workers = [ToyWorker(args.file) for i in xrange(5)]
+    run_pool(workers)
+    results = [w.output for w in workers]
+    print results
