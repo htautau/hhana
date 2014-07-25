@@ -198,7 +198,9 @@ def plot_from_frame(file, name, fit_var, category, year,
             logy=logy)
         if logy:
             plot_name += '_logy'
-        canvas.draw('main', plottables, ypadding=(0.3, 0.3))
+        canvas.draw('main', plottables,
+                    ypadding=(0.4 if logy else 0.3, 0),
+                    logy_crop_value=1e-1)
         canvas.draw('ratio', [ratio_bkg, ratio])
         x, y = canvas.axes('main')
         x.limits = model[0].bounds()
