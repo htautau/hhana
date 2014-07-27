@@ -32,6 +32,7 @@ CUTS_0J = (- LEAD_JET_50)
 MET = Cut('MET_et > 20000')
 DR_TAUS = Cut('0.8 < dR_tau1_tau2 < 2.4')
 DETA_TAUS = Cut('dEta_tau1_tau2 < 1.5')
+DETA_TAUS_CR = Cut('dEta_tau1_tau2 > 1.5')
 RESONANCE_PT = Cut('resonance_pt > 100000')
 
 # use .format() to set centality value
@@ -53,10 +54,20 @@ CUTS_VBF = (
     & DETA_TAUS
     )
 
+CUTS_VBF_CR = (
+    CUTS_2J
+    & DETA_TAUS_CR
+    )
+
 # Boosted category cuts
 CUTS_BOOSTED = (
     RESONANCE_PT
     & DETA_TAUS
+    )
+
+CUTS_BOOSTED_CR = (
+    RESONANCE_PT
+    & DETA_TAUS_CR
     )
 
 

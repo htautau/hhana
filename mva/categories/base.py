@@ -45,3 +45,7 @@ class Category(object):
         if cls.is_control:
             return cls.__bases__[0]
         return cls
+
+    @classmethod
+    def control(clf, name):
+        return clf.controls[name]
