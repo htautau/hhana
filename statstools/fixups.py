@@ -100,6 +100,7 @@ def fix_measurement(meas,
     # fill empty bins with the average sample weight
     # the so-called "Kyle-fix"
     process_measurement(meas,
+        zero_negs=True,
         fill_empties=True,
         fill_empties_samples=['Fakes', 'Ztautau'])
 
@@ -116,7 +117,9 @@ def fix_measurement(meas,
             symmetrize_names=['*'],
             symmetrize_types=["histosys"],
             symmetrize_partial=symmetrize_partial,
-            asymmetry_threshold=0.5)
+            asymmetry_threshold=0.5,
+            # fix possible negatives that are created
+            zero_negs=True)
 
     process_measurement(meas,
         split_norm_shape=True,

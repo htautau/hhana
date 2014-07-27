@@ -28,6 +28,8 @@ def process_measurement(m,
 
                         split_norm_shape=False,
 
+                        zero_negs=False,
+
                         fill_empties=False,
                         fill_empties_samples=None,
                         fill_empties_channels=None,
@@ -91,15 +93,18 @@ def process_measurement(m,
             m.name, c.name))
 
         # remove a range of bins (useful for sideband fit bias tests)
-        if remove_window is not None and matched(c.name, remove_window_channels):
+        if remove_window is not None and matched(
+                c.name, remove_window_channels):
             log.info("removing window {0} from channel `{1}`".format(
                 remove_window, c.name))
             c.data.hist = apply_remove_window(c.data.hist, remove_window)
             for s in c.samples:
                 s.hist = apply_remove_window(s.hist, remove_window)
                 for histosys in s.histo_sys:
-                    histosys.high = apply_remove_window(histosys.high, remove_window)
-                    histosys.low = apply_remove_window(histosys.low, remove_window)
+                    histosys.high = apply_remove_window(
+                        histosys.high, remove_window)
+                    histosys.low = apply_remove_window(
+                        histosys.low, remove_window)
 
         # flat signal binning
         if flat_signal is not None:
@@ -117,7 +122,8 @@ def process_measurement(m,
                     for ibin in xrange(data_hist.nbins(0), 0, -1):
                         if data_hist.GetBinContent(ibin) > 0:
                             break
-                    log.info("detected data blinding in bin {0:d} and above".format(ibin + 1))
+                    log.info("detected data blinding in bin {0:d} "
+                             "and above".format(ibin + 1))
                     blind_cut = data_hist.GetBinCenter(ibin + 1)
                 data_hist = apply_rebin(data_hist, quantiles)
                 if data_is_partially_blind:
@@ -129,7 +135,8 @@ def process_measurement(m,
                 c.data.hist = data_hist
 
                 for s in c.samples:
-                    log.info("applying rebinning {0} on sample `{1}`".format(quantiles, s.name))
+                    log.info("applying rebinning {0} on sample `{1}`".format(
+                             quantiles, s.name))
                     s.hist = apply_rebin(s.hist, quantiles)
                     for histosys in s.histo_sys:
                         histosys.high = apply_rebin(histosys.high, quantiles)
@@ -147,7 +154,8 @@ def process_measurement(m,
                 for ibin in xrange(data_hist.nbins(0), 0, -1):
                     if data_hist.GetBinContent(ibin) > 0:
                         break
-                log.info("detected data blinding in bin {0:d} and above".format(ibin + 1))
+                log.info("detected data blinding in bin {0:d} "
+                         "and above".format(ibin + 1))
                 blind_cut = data_hist.GetBinCenter(ibin + 1)
             data_hist = apply_rebin(data_hist, rebin)
             if data_is_partially_blind:
@@ -158,7 +166,8 @@ def process_measurement(m,
                     data_hist.SetBinError(ibin + 1, 0)
             c.data.hist = data_hist
             for s in c.samples:
-                log.info("applying rebinning {0:d} on sample `{1}`".format(rebin, s.name))
+                log.info("applying rebinning {0:d} on sample `{1}`".format(
+                         rebin, s.name))
                 s.hist = apply_rebin(s.hist, rebin)
                 for histosys in s.histo_sys:
                     histosys.high = apply_rebin(histosys.high, rebin)
@@ -182,7 +191,8 @@ def process_measurement(m,
                 apply_split_norm_shape(s)
 
         # rename specific NPs
-        if rename_names and (rename_func is not None) and matched(c.name, rename_channels):
+        if rename_names and (rename_func is not None) and matched(
+                c.name, rename_channels):
             for s in c.samples:
                 if not matched(s.name, rename_samples):
                     continue
@@ -207,8 +217,8 @@ def process_measurement(m,
                             names.append(np.name)
 
                     for name in names:
-                        log.info(
-                            "removing HistoSys `{0}` from sample `{1}`".format(name, s.name))
+                        log.info("removing HistoSys `{0}` from sample "
+                                 "`{1}`".format(name, s.name))
                         s.RemoveHistoSys(name)
 
                 if matched('overallsys', drop_np_types, ignore_case=True):
@@ -218,15 +228,16 @@ def process_measurement(m,
                             names.append(np.name)
 
                     for name in names:
-                        log.info(
-                            "removing OverallSys `{0}` from sample `{1}`".format(name, s.name))
+                        log.info("removing OverallSys `{0}` from sample "
+                                 "`{1}`".format(name, s.name))
                         s.RemoveOverallSys(name)
 
         # remove samples with integral below threshold
         if prune_samples:
             for s in c.samples:
                 if s.hist.Integral() < prune_samples_threshold:
-                    log.info("removing sample {0} in channel {1}".format(s.name, c.name))
+                    log.info("removing sample {0} in channel {1}".format(
+                             s.name, c.name))
                     c.RemoveSample(s.name)
 
         # apply fill_empties on nominal histograms
@@ -235,7 +246,8 @@ def process_measurement(m,
                 if not matched(s.name, fill_empties_samples):
                     continue
                 if not is_signal(s):
-                    log.info("applying fill_empties on sample `{0}`".format(s.name))
+                    log.info("applying fill_empties on sample `{0}`".format(
+                             s.name))
                     s.hist = apply_fill_empties(s.hist)
 
         # smooth
@@ -244,15 +256,18 @@ def process_measurement(m,
                 if not matched(s.name, smooth_histosys_samples):
                     continue
                 for histosys in s.histo_sys:
-                    smooth_shape(s, s.hist, histosys, smooth_histosys_iterations)
+                    smooth_shape(s, s.hist, histosys,
+                                 smooth_histosys_iterations)
 
         # prune shapes
         if prune_histosys and matched(c.name, prune_histosys_channels):
 
             # total bkg needed for max method
             if prune_histosys_method == 'max':
-                total_bkg = sum([s.hist.Clone(shallow=True) for s in c.samples if not is_signal(s)])
-                total_sig = sum([s.hist.Clone(shallow=True) for s in c.samples if is_signal(s)])
+                total_bkg = sum([s.hist.Clone(shallow=True)
+                                 for s in c.samples if not is_signal(s)])
+                total_sig = sum([s.hist.Clone(shallow=True)
+                                 for s in c.samples if is_signal(s)])
 
             for s in c.samples:
                 if not matched(s.name, prune_histosys_samples):
@@ -264,9 +279,10 @@ def process_measurement(m,
                                 histosys.name,
                                 prune_histosys_blacklist):
                             continue
-                        if not shape_is_significant(total_sig if is_signal(s) else total_bkg,
-                                                    histosys.high, histosys.low,
-                                                    prune_histosys_threshold):
+                        if not shape_is_significant(
+                                total_sig if is_signal(s) else total_bkg,
+                                histosys.high, histosys.low,
+                                prune_histosys_threshold):
                             names.append(histosys.name)
 
                 elif prune_histosys_method == 'chi2':
@@ -275,7 +291,9 @@ def process_measurement(m,
                                 histosys.name,
                                 prune_histosys_blacklist):
                             continue
-                        if not shape_chi2_test(s.hist, histosys.high, histosys.low, prune_histosys_threshold):
+                        if not shape_chi2_test(s.hist,
+                                               histosys.high, histosys.low,
+                                               prune_histosys_threshold):
                             names.append(histosys.name)
 
                 elif prune_histosys_method == 'ks':
@@ -330,6 +348,14 @@ def process_measurement(m,
                                 log.info("symmetrized OverallSys `{0}` in sample `{1}`".format(
                                     np.name, s.name))
 
+        # zero out negatives
+        if zero_negs:
+            for s in c.samples:
+                s.hist = apply_zero_negs(s.hist)
+                for histosys in s.histo_sys:
+                    histosys.high = apply_zero_negs(histosys.high)
+                    histosys.low = apply_zero_negs(histosys.low)
+
         # convert to uniform binning
         if uniform_binning:
             c.data.hist = to_uniform_binning(c.data.hist)
@@ -338,13 +364,6 @@ def process_measurement(m,
                 for histosys in s.histo_sys:
                     histosys.high = to_uniform_binning(histosys.high)
                     histosys.low = to_uniform_binning(histosys.low)
-
-        # zero out negatives
-        for s in c.samples:
-            s.hist = zero_negs(s.hist)
-            for histosys in s.histo_sys:
-                histosys.high = zero_negs(histosys.high)
-                histosys.low = zero_negs(histosys.low)
 
         # construct hybrid data
         if hybrid_data:
@@ -616,7 +635,7 @@ def to_uniform_binning(hist):
     return new_hist
 
 
-def zero_negs(hist):
+def apply_zero_negs(hist):
     """
     Return a clone of this histogram with all negative bins set to zero. The
     errors of these bins are left untouched.
@@ -668,8 +687,10 @@ def apply_fill_empties(hist):
     """
     fixed_hist = hist.Clone(name=hist.name + '_fill_empties', shallow=True)
 
-    sumW2TotBin = sum([bin.error**2 for bin in hist.bins()])
+    # value
     avWeightBin = hist.GetSumOfWeights() / hist.GetEntries()
+    # error
+    sumW2TotBin = sum([bin.error**2 for bin in hist.bins()])
     sqrt_avW2Bin = sqrt(sumW2TotBin / hist.GetEntries())
 
     applied = False
