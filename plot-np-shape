@@ -188,7 +188,6 @@ for input_path in args.paths:
     input_path = os.path.normpath(input_path)
     for dirpath, measurement_file in find_measurements(input_path):
         path = os.path.join(dirpath, measurement_file)
-        log.info("Reading {0} ...".format(path))
         measurements = measurements_from_xml(
             path, cd_parent=True,
             collect_histograms=True,
@@ -216,5 +215,3 @@ for input_path in args.paths:
                             plot.SaveAs(os.path.join(plots_dir,
                                                      'shape_{0}_{1}_{2}.png'.format(
                                                          channel.name, sample.name, name)))
-                            hsys_high.Reset()
-                            hsys_low.Reset()
