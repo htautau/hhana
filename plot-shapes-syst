@@ -24,20 +24,13 @@ from mva.templates import RatioPlot
 from mva import save_canvas
 from mva import log; log=log[__name__]
 from mva.plotting import draw_ratio
-args=get_parser(actions=False).parse_args()
 
-categories=CATEGORIES[args.categories]
-
-SYSTEMATICS=get_systematics(args.year)
-analysis=get_analysis(args)
-output_suffix=analysis.get_suffix()
-
-norm_cache.qcd_ztautau_norm(ztautau=analysis.ztautau,
-                            qcd=analysis.qcd,
-                            category=Category_Preselection,
-                            param=analysis.norm_field)
-
-
+args = get_parser(actions=False).parse_args()
+categories = CATEGORIES[args.categories]
+SYSTEMATICS = get_systematics(args.year)
+analysis = get_analysis(args)
+analysis.normalize(Category_Preselection)
+output_suffix = analysis.get_suffix()
 
 # list of fields to plot
 fields=[
@@ -48,7 +41,6 @@ fields=[
 
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
-
 backgrounds = analysis.backgrounds
 signals = analysis.signals
 ztautau = analysis.ztautau
@@ -57,18 +49,18 @@ qcd = analysis.qcd
 TotalBkg = CompositeSample(backgrounds, name='TotalBkg', label='Total Background')
 TotalSig = CompositeSample(signals, name='TotalSig', label='H#rightarrow#tau#tau')
 
-TestedSamples = [ztautau,qcd,TotalBkg,TotalSig] 
-# TestedSamples=[TotalSig] 
-
-
+samples = [
+    ztautau, qcd, 
+    TotalBkg, TotalSig
+    ] 
 
 log.info(backgrounds)
-for s in TestedSamples:
+for s in samples:
     for category in categories:
         log.info(category)
         events = s.events(category, TARGET_REGION)
-        log.info ( "The total number of events in %s is %d"% (s.name,events[1].value) )
-        field_hist,field_scale = ztautau.get_field_hist(field_dict, category)
+        log.info("The total number of events in %s is %d"% (s.name,events[1].value))
+        field_hist, field_scale = ztautau.get_field_hist(field_dict, category)
         log.info(str(field_hist))
         log.info(str(field_scale))
         s.draw_array(field_hist,
@@ -77,24 +69,16 @@ for s in TestedSamples:
                      field_scale=field_scale,
                      systematics=args.systematics)
         log.info(str(field_hist))
-            
-
-        for field,hist in field_hist.items():
+        for field, hist in field_hist.items():
             for syst,hist_syst in hist.systematics.items():
                 hist.title='NOMINAL'
                 hist_syst.title=syst[0]
                 log.info(syst)
-                plot=draw_ratio(hist,hist_syst,field,category,
-                                textsize=18,
-                                ratio_range=(0.8,1.2),
-                                ratio_line_values=[0.9,1,1.1],
-                                optional_label_text=s.label )
-                save_canvas( plot,
-                             'plots',
-                             '{0}/shape_{1}_{2}_{3}_{4}.eps'.format( s.name,
-                                                                     syst[0],
-                                                                     field,
-                                                                     category.name,
-                                                                     args.year%1000) )
-
-
+                plot = draw_ratio(hist,hist_syst,field,category,
+                                 textsize=18,
+                                 ratio_range=(0.8, 1.2),
+                                 ratio_line_values=[0.9, 1, 1.1],
+                                 optional_label_text=s.label)
+                save_canvas(plot, 'plots/systematics_shapes',
+                            '{0}/shape_{1}_{2}_{3}_{4}.eps'.format(
+                                s.name, syst[0], field, category.name, args.year % 1000))
