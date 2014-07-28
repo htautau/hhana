@@ -126,7 +126,7 @@ def draw_ratio(nom, sys_var,
         # draw the category label
         label = ROOT.TLatex(
             pad.GetLeftMargin() + 0.04, 0.87,
-            sys_name)
+            "{0}: {1}".format(sample_name, sys_name))
         label.SetNDC()
         label.SetTextFont(43)
         label.SetTextSize(textsize)
@@ -158,17 +158,16 @@ def draw_ratio(nom, sys_var,
         chi2_do_label.SetTextFont(43)
         chi2_do_label.SetTextSize(textsize)
         chi2_do_label.Draw()
-        if sample_name is not None:
-            if category_name is not None:
-                sample_cat_text = '{0}; {1}'.format(category_name, sample_name)
-                sample_cat_label = ROOT.TLatex(pad.GetLeftMargin()+0.04, 0.8, sample_cat_text)
-                sample_cat_label.SetNDC(True)
-                sample_cat_label.SetTextFont(43)
-                sample_cat_label.SetTextSize(textsize)
-                sample_cat_label.Draw()
+        if category_name is not None:
+            sample_cat_label = ROOT.TLatex(pad.GetLeftMargin()+0.04, 0.8,
+                                           category_name)
+            sample_cat_label.SetNDC(True)
+            sample_cat_label.SetTextFont(43)
+            sample_cat_label.SetTextSize(textsize)
+            sample_cat_label.Draw()
         if optional_label_text is not None:
             optional_label = ROOT.TLatex(pad.GetLeftMargin()+0.55,0.87,
-                                         optional_label_text )
+                                         optional_label_text)
             optional_label.SetNDC(True)
             optional_label.SetTextFont(43)
             optional_label.SetTextSize(textsize)
@@ -185,15 +184,16 @@ for input_path in args.paths:
     Traverse all measurements and create the syst plots
     """
     if not os.path.isdir(input_path):
-        raise ValueError("input must be an existing directory")
+        raise ValueError("{0} is not an existing directory".format(input_path))
     input_path = os.path.normpath(input_path)
     for dirpath, measurement_file in find_measurements(input_path):
         path = os.path.join(dirpath, measurement_file)
         log.info("Reading {0} ...".format(path))
-        measurements = measurements_from_xml(path, cd_parent=True,
-                                             collect_histograms=True,
-                                             silence=False)
-        plots_dir = os.path.join(dirpath, 'np_shapes')
+        measurements = measurements_from_xml(
+            path, cd_parent=True,
+            collect_histograms=True,
+            silence=True)
+        plots_dir = os.path.join(os.path.normpath(dirpath) + '_plots', 'np_shapes')
         if not os.path.exists(plots_dir):
             mkdir_p(plots_dir)
         for meas in measurements:
