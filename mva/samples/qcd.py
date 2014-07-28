@@ -386,16 +386,16 @@ class QCD(Sample, Background):
         def fix_empty_shape(nominal, shape):
             """
             If the shape uncertainty has zero/negative events in a given bin
-            where the nominal model has events, then assign a 100% uncertainty
-            in the same direction as the variation in the previous bin.
+            where the nominal model has events, then assign at least 100%
+            uncertainty in the same direction as the variation in the previous
+            bin.
             """
             for bin_nom, bin_shape in zip(nominal.bins(), shape.bins()):
                 if bin_shape.value <= 0 and bin_nom.value > 0:
                     idx = bin_shape.idx
                     if shape[idx - 1].value - nominal[idx - 1].value >= 0:
-                        bin_shape.value = 2. * bin_nom.value
-                    else:
-                        bin_shape.value = 0.
+                        # at least 100% uncertainty
+                        bin_shape.value = 2 * bin_nom.value - bin_shape.value
                     # fill with average of variation to the left and right
                     #bin_shape.value = bin_nom.value + (
                     #    (shape[idx - 1].value - nominal[idx - 1].value) +
