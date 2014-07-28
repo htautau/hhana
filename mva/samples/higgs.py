@@ -49,10 +49,10 @@ class Higgs(MC, Signal):
     QCDscale_ggH2in  ggH    boosted          0.90/1.11
     QCDscale_ggH2in  ggH    VBF              1.24/0.81'''.split('\n'))
 
-    GEN_QMASS = map(lambda token: token.strip().split(), '''\
-    Gen_Qmass_ggH    ggH    VBF              1.19/0.81
-    Gen_Qmass_ggH    ggH    boosted          1.24/0.76
-    Gen_Qmass_ggH    ggH    rest             1.04/0.96'''.split('\n'))
+    #GEN_QMASS = map(lambda token: token.strip().split(), '''\
+    #Gen_Qmass_ggH    ggH    VBF              1.19/0.81
+    #Gen_Qmass_ggH    ggH    boosted          1.24/0.76
+    #Gen_Qmass_ggH    ggH    rest             1.04/0.96'''.split('\n'))
 
     #QCDscale_ggH3in_file = root_open(
     #    os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
@@ -193,10 +193,10 @@ class Higgs(MC, Signal):
                 sample.AddOverallSys(qcd_scale_term, low, high)
 
         # GEN_QMASS
-        for qmass_term, qmass_mode, qmass_category, values in self.GEN_QMASS:
-            if qmass_mode == _qcd_scale_mode and qmass_category.lower() in category.name.lower():
-                high, low = map(float, values.split('/'))
-                sample.AddOverallSys(qmass_term, low, high)
+        #for qmass_term, qmass_mode, qmass_category, values in self.GEN_QMASS:
+        #    if qmass_mode == _qcd_scale_mode and qmass_category.lower() in category.name.lower():
+        #        high, low = map(float, values.split('/'))
+        #        sample.AddOverallSys(qmass_term, low, high)
 
         # BR_tautau
         _, (br_up, br_down) = yellowhiggs.br(
