@@ -18,6 +18,7 @@ from mva.templates import RatioPlot
 from mva import save_canvas
 
 parser = ArgumentParser()
+parser.add_argument('--logy', action='store_true', default=False)
 parser.add_argument('paths', nargs='+')
 args = parser.parse_args()
 
@@ -39,7 +40,8 @@ def draw_ratio(nom, sys_var,
                sys_name='syst',
                sample_name=None,
                category_name=None,
-               optional_label_text=None):
+               optional_label_text=None,
+               logy=False):
     """
     Draw a canvas with an Hists and its up/down systematic variations 
     and a ratio plot between the variations and the nominal
@@ -104,7 +106,7 @@ def draw_ratio(nom, sys_var,
 
     plot = RatioPlot(xtitle='Observable',
                      ytitle='Events',
-                     logy=True,
+                     logy=logy,
                      ratio_title='Rel. Variation',
                      ratio_range=None,
                      ratio_line_values=(0,),
@@ -117,8 +119,9 @@ def draw_ratio(nom, sys_var,
     with plot.pad('main') as pad:
         # legend
         leg = Legend([nom, up, do],
-                     leftmargin=0.56, topmargin=0.13,
-                     margin=0.25, textsize=textsize)
+                     leftmargin=0.56, topmargin=0.18,
+                     entrysep=0.01, entryheight=0.05,
+                     margin=0.27, textsize=textsize)
         leg.Draw()
         # draw the category label
         label = ROOT.TLatex(
@@ -129,9 +132,15 @@ def draw_ratio(nom, sys_var,
         label.SetTextSize(textsize)
         label.Draw()
         # show p-value and chi^2
-        if nom.integral() !=0:
-            chi2_up = nom.Chi2Test(up, 'WW CHI2/NDF')
-            chi2_do = nom.Chi2Test(do, 'WW CHI2/NDF')
+        if nom.integral() != 0:
+            try:
+                chi2_up = nom.Chi2Test(up, 'WW CHI2/NDF')
+            except:
+                chi2_up = 0
+            try:
+                chi2_do = nom.Chi2Test(do, 'WW CHI2/NDF')
+            except:
+                chi2_do = 0
         else:
             chi2_up = 0
             chi2_do = 0
@@ -201,8 +210,9 @@ for input_path in args.paths:
                             hsys_low, hsys_high = sample.sys_hist(name)
                             plot = draw_ratio(hnom, (hsys_high, hsys_low),
                                               sys_name=name,
-                                              sample_name = sample.name,
-                                              category_name = channel.name)
+                                              sample_name=sample.name,
+                                              category_name=channel.name,
+                                              logy=args.logy)
                             plot.SaveAs(os.path.join(plots_dir,
                                                      'shape_{0}_{1}_{2}.png'.format(
                                                          channel.name, sample.name, name)))
