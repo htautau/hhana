@@ -21,8 +21,8 @@ class Ztautau(Background):
         # isolation systematic
         sample.AddOverallSys(
             'ATLAS_ANA_HH_{0:d}_Isolation'.format(self.year),
-            low=1. - 0.06,
-            high=1. + 0.06)
+            1. - 0.06,
+            1. + 0.06)
         if self.workspace_norm is False:
             return
         if self.workspace_norm is not None:

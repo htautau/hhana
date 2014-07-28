@@ -183,8 +183,8 @@ class Higgs(MC, Signal):
         # isolation systematic
         sample.AddOverallSys(
             'ATLAS_ANA_HH_{0:d}_Isolation'.format(self.year),
-            low=1. - 0.06,
-            high=1. + 0.06)
+            1. - 0.06,
+            1. + 0.06)
 
         mode = self.modes[0]
 
