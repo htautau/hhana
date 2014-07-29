@@ -4,6 +4,7 @@ import os
 from fnmatch import fnmatch
 from rootpy.io import root_open
 from rootpy.plotting.contrib import plot_corrcoef_matrix
+from rootpy.utils.path import mkdir_p
 from rootpy.extern.argparse import ArgumentParser
 from root_numpy import matrix
 import matplotlib.pyplot as plt
@@ -64,16 +65,43 @@ def shorten_name(name):
 
 
 output = os.path.splitext(args.file)[0] + '_plots'
+if not os.path.exists(output):
+    mkdir_p(output)
 rfile = root_open(args.file)
 ws = rfile[args.name]
 # unconditional fit
 minim = ws.fit(print_level=-1)
 result = minim.save()
 plot_norms(result, path=output)
+
 # plot correlation matrix
+from matplotlib import pyplot as plt
+import matplotlib.colors as mcolors
+c = mcolors.ColorConverter().to_rgb
+
+
+def make_colormap(seq):
+    """Return a LinearSegmentedColormap
+    seq: a sequence of floats and RGB-tuples. The floats should be increasing
+    and in the interval (0,1).
+
+    http://stackoverflow.com/questions/16834861/create-own-colormap-using-matplotlib-and-plot-color-scale
+    """
+    seq = [(None,) * 3, 0.0] + list(seq) + [1.0, (None,) * 3]
+    cdict = {'red': [], 'green': [], 'blue': []}
+    for i, item in enumerate(seq):
+        if isinstance(item, float):
+            r1, g1, b1 = seq[i - 1]
+            r2, g2, b2 = seq[i + 1]
+            cdict['red'].append([item, r1, r2])
+            cdict['green'].append([item, g1, g2])
+            cdict['blue'].append([item, b1, b2])
+    return mcolors.LinearSegmentedColormap('CustomMap', cdict)
+
+fig = plt.figure(figsize=(14, 14), dpi=200)
+ax = fig.add_subplot(111)
 plot_corrcoef_matrix(
     matrix(result.correlation_matrix),
     fields=[shorten_name(p.name) for p in result.floating_params_final],
-    output_name=os.path.join(output, 'correlations.png'),
-    fontsize=7, figsize=(14, 14), dpi=100,
-    cmap='jet')
+    fontsize=7, cmap='jet', cmap_text=make_colormap([c('white'), 0.33, c('black'), 0.66, c('white')]), axes=ax)
+plt.savefig(os.path.join(output, 'correlations.png'), bbox_inches='tight')
