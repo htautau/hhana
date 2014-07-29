@@ -1,8 +1,19 @@
 #!/usr/bin/env python
 
+import os
+from fnmatch import fnmatch
 from rootpy.io import root_open
+from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.extern.argparse import ArgumentParser
+from root_numpy import matrix
 import matplotlib.pyplot as plt
+import logging
+
+log = logging.getLogger(os.path.basename(__file__))
+if not os.environ.get("DEBUG", False):
+    log.setLevel(logging.INFO)
+if hasattr(logging, 'captureWarnings'):
+    logging.captureWarnings(True)
 
 parser = ArgumentParser()
 parser.add_argument('--name', default='combined')
@@ -14,43 +25,55 @@ import ROOT
 ROOT.Math.MinimizerOptions.SetDefaultStrategy(1)
 ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
 
+
+def plot_norms(result, path='', pattern='*_norm_*'):
+    """
+    Plot post-fit normalization factors
+    """
+    vals = []
+    errors = []
+    names = []
+    # find all norms
+    for param in result.floating_params_final:
+        if fnmatch(param.name, pattern):
+            vals.append(param.value)
+            errors.append(param.error)
+            names.append(param.name.replace('ATLAS_norm_', '').replace('_', ' '))
+    # plot
+    fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
+    ax.errorbar(vals, range(len(names)), xerr=errors, fmt='o')
+    for x, y, error in zip(vals, range(len(names)), errors):
+        plt.annotate('${0:.2f} \pm {1:.2f}$'.format(x, error),
+                    textcoords='offset points', xytext=(0, 15),
+                    bbox=dict(boxstyle='square,pad=0.5', fc='white', alpha=0.5),
+                    xy=(x, y), ha='center', va='bottom')
+    ax.plot([1., 1.], [-0.5, len(names) - 0.5], 'r--')
+    ax.set_xlabel('Post-fit Normalization')
+    ax.set_ylim(-0.5, len(names) - 0.5)
+    ax.set_yticks(range(len(names)))
+    ax.set_yticklabels(names)
+    plt.tight_layout()
+    for fmt in ('eps', 'png'):
+        filename = os.path.join(output, 'norms.{0}'.format(fmt))
+        log.info("writing {0}".format(filename))
+        plt.savefig(filename)
+
+
+def shorten_name(name):
+    return name.replace('ATLAS_', '').replace('alpha_', '').replace('mmc1_mass_', '').replace('channel_', '').replace('gamma_', '').replace('_', ' ')
+
+
+output = os.path.splitext(args.file)[0] + '_plots'
 rfile = root_open(args.file)
 ws = rfile[args.name]
+# unconditional fit
 minim = ws.fit(print_level=-1)
 result = minim.save()
-
-all_names = [
-    'ATLAS_norm_HH_2011_QCD',
-    'ATLAS_norm_HH_2011_Ztt',
-    'ATLAS_norm_HH_2012_QCD',
-    'ATLAS_norm_HH_2012_Ztt',
-]
-
-vals = []
-errors = []
-names = []
-
-for name in all_names:
-    value = result.floatParsFinal().find(name)
-    if not value:
-        continue
-    vals.append(value.getVal())
-    errors.append(value.getError())
-    names.append(name.replace('ATLAS_norm_', '').replace('_', ' '))
-
-# plot
-fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
-ax.errorbar(vals, range(len(names)), xerr=errors, fmt='o')
-for x, y, error in zip(vals, range(len(names)), errors):
-    plt.annotate('${0:.2f} \pm {1:.2f}$'.format(x, error),
-                 textcoords='offset points', xytext=(0, 15),
-                 bbox=dict(boxstyle='square,pad=0.5', fc='white', alpha=0.5),
-                 xy=(x, y), ha='center', va='bottom')
-ax.plot([1., 1.], [-0.5, len(names) - 0.5], 'r--')
-ax.set_xlabel('Post-fit Normalization')
-ax.set_ylim(-0.5, len(names) - 0.5)
-ax.set_yticks(range(len(names)))
-ax.set_yticklabels(names)
-plt.tight_layout()
-for fmt in ('eps', 'png'):
-    plt.savefig('norms.{0}'.format(fmt))
+plot_norms(result, path=output)
+# plot correlation matrix
+plot_corrcoef_matrix(
+    matrix(result.correlation_matrix),
+    fields=[shorten_name(p.name) for p in result.floating_params_final],
+    output_name=os.path.join(output, 'correlations.png'),
+    fontsize=7, figsize=(14, 14), dpi=100,
+    cmap='jet')
