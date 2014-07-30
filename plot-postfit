@@ -8,7 +8,6 @@ import logging
 from tabulate import tabulate
 
 # ROOT/rootpy imports
-from ROOT import TLatex, TGraphAsymmErrors, TH1 
 from rootpy import asrootpy
 from rootpy.io import root_open
 from rootpy.plotting import Canvas, HistStack, Graph, Legend, set_style
@@ -16,6 +15,7 @@ from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
 from rootpy.extern.tabulartext import PrettyTable
+from ROOT import TLatex, TGraphAsymmErrors, TH1 
 
 # local imports
 from mva import ATLAS_LABEL, MMC_MASS
@@ -141,7 +141,7 @@ def plot_from_frame(file, name, fit_var, category, year,
     hist_signal.linestyle = 'solid'
     hist_signal.linewidth = 4
     hist_signal.name = 'Signal'
-    hist_signal.title = ana.higgs_125.label + ' (best fit #mu)'
+    hist_signal.title = ana.higgs_125.label
     hist_signal.legendstyle = 'F'
 
     background = [hist_fake, hist_others, hist_ztautau]
@@ -210,7 +210,7 @@ def plot_from_frame(file, name, fit_var, category, year,
         x.range_user = model[0].bounds()
         canvas.update_lines()
         canvas.cd('main')
-        ATLAS_label(0.2, 0.89, pad=canvas.pad('main'), sep=0.132,
+        ATLAS_label(0.2, 0.86, pad=canvas.pad('main'), sep=0.132,
                     text=ATLAS_LABEL, sqrts=sqrts)
         leg = Legend(
             [data] + model.hists[::-1] + [graph_bkg],
@@ -221,7 +221,7 @@ def plot_from_frame(file, name, fit_var, category, year,
             entrysep=0.02,
             entryheight=0.05)
         leg.Draw()
-        latex = TLatex(0.2, 0.85, category.label)
+        latex = TLatex(0.2, 0.82, category.label)
         latex.SetNDC()
         latex.SetTextSize(20)
         latex.Draw()
