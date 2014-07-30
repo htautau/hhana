@@ -18,6 +18,11 @@ class Ztautau(Background):
     NORM_BY_THEORY = False
 
     def histfactory(self, sample, category, systematics=False):
+        # isolation systematic
+        sample.AddOverallSys(
+            'ATLAS_ANA_HH_{0:d}_Isolation'.format(self.year),
+            1. - 0.06,
+            1. + 0.06)
         if self.workspace_norm is False:
             return
         if self.workspace_norm is not None:

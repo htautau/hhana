@@ -77,9 +77,9 @@ def get_workspace_np_name(sample, syst, year):
     npname = npname.replace('JES_PURho_TAU_QQ_{0}'.format(year),
                             'JES_{0}_PileRho_TAU_QQ'.format(year))
     npname = npname.replace('FAKERATE', 'TAU_JFAKE')
-    npname = npname.replace('MET_RESOSOFTTERMS_{0}'.format(year),
+    npname = npname.replace('MET_RESOSOFTTERMS',
                             'MET_RESOSOFT')
-    npname = npname.replace('MET_SCALESOFTTERMS_{0}'.format(year),
+    npname = npname.replace('MET_SCALESOFTTERMS',
                             'MET_SCALESOFT')
     from .ztautau import Embedded_Ztautau
     if isinstance(sample, Embedded_Ztautau):
@@ -93,7 +93,6 @@ def get_workspace_np_name(sample, syst, year):
     npname = npname.replace('MFS', 'ANA_EMB_MFS')
     # correlate across years:
     npname = npname.replace('JER_{0}'.format(year), 'JER')
-    npname = npname.replace('PU_RESCALE_{0}'.format(year), 'PU_RESCALE')
     return npname
 
 
@@ -382,7 +381,7 @@ class Sample(object):
                         shapesys.hist = high
                         sample.AddShapeSys(shapesys)
             if isinstance(self, Signal):
-                sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
+                sample.AddNormFactor('SigXsecOverSM', 0., -200., 200., False)
             elif isinstance(self, Background):
                 # only activate stat error on background samples
                 sample.ActivateStatError()

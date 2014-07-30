@@ -30,6 +30,7 @@ def significance(workspace,
     workspace.saveSnapshot('nominal_globs', model_config.global_observables)
     workspace.saveSnapshot('nominal_nuis', model_config.nuisance_parameters)
     workspace.saveSnapshot('nominal_poi', model_config.poi)
+    print profile
     hist = _significance(workspace, observed,
                          injection, injection_test,
                          profile, profile_mu,

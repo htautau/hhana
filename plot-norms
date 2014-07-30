@@ -1,8 +1,21 @@
 #!/usr/bin/env python
 
+import os
+from fnmatch import fnmatch
 from rootpy.io import root_open
+from rootpy.plotting.contrib import plot_corrcoef_matrix
+from rootpy.utils.path import mkdir_p
 from rootpy.extern.argparse import ArgumentParser
+from root_numpy import matrix
+import numpy as np
 import matplotlib.pyplot as plt
+import logging
+
+log = logging.getLogger(os.path.basename(__file__))
+if not os.environ.get("DEBUG", False):
+    log.setLevel(logging.INFO)
+if hasattr(logging, 'captureWarnings'):
+    logging.captureWarnings(True)
 
 parser = ArgumentParser()
 parser.add_argument('--name', default='combined')
@@ -14,43 +27,107 @@ import ROOT
 ROOT.Math.MinimizerOptions.SetDefaultStrategy(1)
 ROOT.Math.MinimizerOptions.SetDefaultMinimizer('Minuit2')
 
+
+def plot_norms(result, path='', pattern='*_norm_*'):
+    """
+    Plot post-fit normalization factors
+    """
+    vals = []
+    errors = []
+    names = []
+    # find all norms
+    for param in result.floating_params_final:
+        if fnmatch(param.name, pattern):
+            vals.append(param.value)
+            errors.append(param.error)
+            names.append(param.name.replace('ATLAS_norm_', '').replace('_', ' '))
+    # plot
+    fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
+    ax.errorbar(vals, range(len(names)), xerr=errors, fmt='o')
+    for x, y, error in zip(vals, range(len(names)), errors):
+        plt.annotate('${0:.2f} \pm {1:.2f}$'.format(x, error),
+                    textcoords='offset points', xytext=(0, 15),
+                    bbox=dict(boxstyle='square,pad=0.5', fc='white', alpha=0.5),
+                    xy=(x, y), ha='center', va='bottom')
+    ax.plot([1., 1.], [-0.5, len(names) - 0.5], 'r--')
+    ax.set_xlabel('Post-fit Normalization')
+    ax.set_ylim(-0.5, len(names) - 0.5)
+    ax.set_yticks(range(len(names)))
+    ax.set_yticklabels(names)
+    plt.tight_layout()
+    for fmt in ('eps', 'png'):
+        filename = os.path.join(output, 'norms.{0}'.format(fmt))
+        log.info("writing {0}".format(filename))
+        plt.savefig(filename)
+
+
+def shorten_name(name):
+    return name.replace('ATLAS_', '').replace('alpha_', '').replace('mmc1_mass_', '').replace('channel_', '').replace('gamma_', '').replace('_', ' ')
+
+
+output = os.path.splitext(args.file)[0] + '_plots'
+if not os.path.exists(output):
+    mkdir_p(output)
 rfile = root_open(args.file)
 ws = rfile[args.name]
+# unconditional fit
 minim = ws.fit(print_level=-1)
 result = minim.save()
+plot_norms(result, path=output)
 
-all_names = [
-    'ATLAS_norm_HH_2011_QCD',
-    'ATLAS_norm_HH_2011_Ztt',
-    'ATLAS_norm_HH_2012_QCD',
-    'ATLAS_norm_HH_2012_Ztt',
-]
 
-vals = []
-errors = []
-names = []
+def make_colormap(seq, name='CustomMap'):
+    """Return a matplotlib LinearSegmentedColormap
+    seq: a sequence of floats and RGB-tuples. The floats should be increasing
+    and in the interval (0,1).
+    
+    References
+    ----------
+    http://stackoverflow.com/questions/16834861/create-own-colormap-using-matplotlib-and-plot-color-scale
 
-for name in all_names:
-    value = result.floatParsFinal().find(name)
-    if not value:
-        continue
-    vals.append(value.getVal())
-    errors.append(value.getError())
-    names.append(name.replace('ATLAS_norm_', '').replace('_', ' '))
+    """
+    import matplotlib.colors as mcolors
+    to_rgb = mcolors.ColorConverter().to_rgb
 
-# plot
-fig, ax = plt.subplots(figsize=(7, 5), dpi=100)
-ax.errorbar(vals, range(len(names)), xerr=errors, fmt='o')
-for x, y, error in zip(vals, range(len(names)), errors):
-    plt.annotate('${0:.2f} \pm {1:.2f}$'.format(x, error),
-                 textcoords='offset points', xytext=(0, 15),
-                 bbox=dict(boxstyle='square,pad=0.5', fc='white', alpha=0.5),
-                 xy=(x, y), ha='center', va='bottom')
-ax.plot([1., 1.], [-0.5, len(names) - 0.5], 'r--')
-ax.set_xlabel('Post-fit Normalization')
-ax.set_ylim(-0.5, len(names) - 0.5)
-ax.set_yticks(range(len(names)))
-ax.set_yticklabels(names)
-plt.tight_layout()
-for fmt in ('eps', 'png'):
-    plt.savefig('norms.{0}'.format(fmt))
+    def convert(color):
+        try:
+            return to_rgb(color)
+        except: 
+            return color
+
+    seq = [(None,) * 3, 0.0] + list(seq) + [1.0, (None,) * 3]
+    cdict = {'red': [], 'green': [], 'blue': []}
+    for i, item in enumerate(seq):
+        if isinstance(item, float):
+            r1, g1, b1 = convert(seq[i - 1])
+            r2, g2, b2 = convert(seq[i + 1])
+            cdict['red'].append([item, r1, r2])
+            cdict['green'].append([item, g1, g2])
+            cdict['blue'].append([item, b1, b2])
+    return mcolors.LinearSegmentedColormap(name, cdict)
+
+
+fields = [shorten_name(p.name) for p in result.floating_params_final]
+corr = matrix(result.correlation_matrix)
+# compress by removing rows and cols that have low sums
+abs_corr = np.abs(np.asarray(corr))
+abs_corr[np.triu_indices(len(abs_corr))] = 0
+ignore_rows = abs_corr.max(axis=1) <= 0.1
+ignore_cols = abs_corr.max(axis=0) <= 0.1
+ignore = ignore_rows & ignore_cols
+ignore_idx = np.flatnonzero(ignore)
+corr = np.delete(corr, ignore_idx, axis=0)
+corr = np.delete(corr, ignore_idx, axis=1)
+keep_idx = np.flatnonzero(-ignore)
+fields = np.take(fields, keep_idx)
+
+# plot correlation matrix
+fig = plt.figure(figsize=(14, 14))
+ax = fig.add_subplot(111)
+plot_corrcoef_matrix(
+    corr, fields=fields,
+    fontsize=7, cmap='jet',
+    cmap_text=make_colormap(['white', 0.33, 'black', 0.66, 'white']),
+    axes=ax)
+plt.savefig(os.path.join(output, 'correlations.png'),
+            bbox_inches='tight', dpi=300)

@@ -3,7 +3,9 @@ from rootpy.tree import Cut
 from .common import (
     Category_Preselection,
     Category_Preselection_DEta_Control,
-    CUTS_VBF, CUTS_BOOSTED, DETA_TAUS)
+    CUTS_VBF, CUTS_VBF_CR,
+    CUTS_BOOSTED, CUTS_BOOSTED_CR,
+    DETA_TAUS)
 from .features import features_vbf, features_boosted
 
 
@@ -13,6 +15,16 @@ class Category_VBF_NO_DETAJJ_CUT(Category_Preselection):
     label = '#tau_{had}#tau_{had} VBF'
     common_cuts = Category_Preselection.common_cuts
     cuts = CUTS_VBF
+
+
+class Category_VBF_DEta_Control(Category_Preselection):
+    is_control = True
+    name = 'vbf_deta_control'
+    plot_label = 'Multijet CR'
+    common_cuts = Category_Preselection.common_cuts
+    #norm_category = Category_Preselection_DEta_Control
+    norm_category = Category_Preselection
+    cuts = CUTS_VBF_CR & Cut('dEta_jets > 2.0')
 
 
 class Category_VBF(Category_Preselection):
@@ -31,14 +43,7 @@ class Category_VBF(Category_Preselection):
     # train with only VBF mode
     signal_train_modes = ['VBF']
     norm_category = Category_Preselection
-
-
-class Category_VBF_DEta_Control(Category_VBF):
-    is_control = True
-    name = 'vbf_deta_control'
-    plot_label = 'Multijet CR'
-    norm_category = Category_Preselection_DEta_Control
-    #norm_category = Category_Preselection
+    controls = {'deta': Category_VBF_DEta_Control}
 
 
 class Category_Boosted_NO_PTH_CUT(Category_Preselection):
@@ -50,6 +55,17 @@ class Category_Boosted_NO_PTH_CUT(Category_Preselection):
         (- Category_VBF.cuts)
         & DETA_TAUS
         )
+
+
+class Category_Boosted_DEta_Control(Category_Preselection):
+    is_control = True
+    name = 'boosted_deta_control'
+    label = '#tau_{had}#tau_{had} Boosted'
+    plot_label = 'Multijet CR'
+    common_cuts = Category_Preselection.common_cuts
+    #norm_category = Category_Preselection_DEta_Control
+    norm_category = Category_Preselection
+    cuts = (- Category_VBF.cuts) & CUTS_BOOSTED_CR
 
 
 class Category_Boosted(Category_Preselection):
@@ -69,15 +85,7 @@ class Category_Boosted(Category_Preselection):
     # train with all modes (inherited from Category in base.py)
     #signal_train_modes =
     norm_category = Category_Preselection
-
-
-class Category_Boosted_DEta_Control(Category_Boosted):
-    is_control = True
-    name = 'boosted_deta_control'
-    label = '#tau_{had}#tau_{had} Boosted'
-    plot_label = 'Multijet CR'
-    #norm_category = Category_Preselection_DEta_Control
-    norm_category = Category_Preselection
+    controls = {'deta': Category_Boosted_DEta_Control}
 
 
 class Category_Rest(Category_Preselection):

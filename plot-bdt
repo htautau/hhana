@@ -86,6 +86,7 @@ def plot_bdt(category, workspace_binning=True):
     signal_scale=20.
     region = TARGET_REGION
     
+    """
     # plot data with BDTs swapped and in normal order
     clf_normal = analysis.get_clf(category, load=True, swap=False)
     clf_swap = analysis.get_clf(category, load=True, swap=True)
@@ -114,8 +115,7 @@ def plot_bdt(category, workspace_binning=True):
                      field='BDT Score', category=category,
                      logy=True, normalize=False) 
     fig.SaveAs('data_consistency_{0}{1}.png'.format(category.name, suffix))
-
-    return
+    """
 
     ########################################################################
     # show the background model and data in the mass sideband control region
@@ -147,7 +147,38 @@ def plot_bdt(category, workspace_binning=True):
         signal_on_top=False,
         show_ratio=True,
         output_dir=plot_dir('bdt'))
+    
+    #######################################################################
+    # deta control region
+    log.info("plotting classifier output in the deta > 1.5 control region ...")
 
+    _, channel = analysis.clf_channels(clf,
+        category.control('deta'), region, cuts=signal_region,
+        mass=125,
+        mode='combined',
+        bins=bins,
+        systematics=systematics,
+        unblind=True,
+        no_signal_fixes=True)
+
+    # prefit
+    draw_channel(channel,
+        category=category,
+        plot_label='#Delta#eta CR',
+        data_info=str(analysis.data.info),
+        output_name='event_bdt_score_deta_control' + suffix,
+        name='BDT score',
+        systematics=systematics,
+        output_formats=args.output_formats,
+        ypadding=(0.5, 0.),
+        log_ypadding=(0.55, 0.1),
+        #range=(-1, 1),
+        signal_scale=signal_scale,
+        signal_on_top=False,
+        show_ratio=True,
+        output_dir=plot_dir('bdt'))
+
+    """
     ##########################################################################
     # show the background model and 125 GeV signal in the fakes control region
     log.info("plotting classifier output in the fakes control region ...")
@@ -197,6 +228,7 @@ def plot_bdt(category, workspace_binning=True):
             output_formats=args.output_formats,
             show_ratio=True,
             output_dir=plot_dir('bdt'))
+    """
 
     ###################################################################
     # show the background model and 125 GeV signal in the signal region

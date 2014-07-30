@@ -51,7 +51,7 @@ def matched(name, patterns):
 
 
 def plot_ranking(name, file, outdir,
-                 patterns=None,
+                 patterns=None, highest=None,
                  row_pixels=30,
                  label_pixels=None):
     if label_pixels is None:
@@ -87,6 +87,9 @@ def plot_ranking(name, file, outdir,
                 (postfit_impact_low, postfit_impact_high)))
     # sort by postfit impact
     ranking.sort(key=lambda item: abs(item[1]))
+    if highest:
+        # only show the N highest ranked NPs
+        ranking = ranking[-highest:]
     n_points = len(ranking)
     # setup canvas
     c = Canvas(width=1024, height=300 + (row_pixels + 2) * n_points)
@@ -212,6 +215,7 @@ if __name__ == '__main__':
     parser.add_argument('--row-pixels', type=int, default=30)
     parser.add_argument('--label-pixels', type=int, default=None)
     parser.add_argument('--patterns', nargs='+', default=None)
+    parser.add_argument('--highest', type=int, default=None)
     args = parser.parse_args()
 
     input = os.path.splitext(args.file)[0]
@@ -224,5 +228,6 @@ if __name__ == '__main__':
     plot_ranking(
         args.name, pulls, plots,
         patterns=args.patterns,
+        highest=args.highest,
         row_pixels=args.row_pixels,
         label_pixels=args.label_pixels)

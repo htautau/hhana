@@ -4,6 +4,7 @@ from .extern import make_asimov_data as _make_asimov_data
 
 def make_asimov_data(workspace,
                      mu=1., profile=False,
+                     toy=False,
                      **fit_params):
     floating_profile_mu = False
     profile_mu = 1.
@@ -34,7 +35,8 @@ def make_asimov_data(workspace,
     else:
         obs_nll = None
     asimov = _make_asimov_data(workspace, model_config,
-                               obs_nll, mu, profile_mu,
+                               toy, obs_nll,
+                               mu, profile_mu,
                                floating_profile_mu)
     # reset workspace
     workspace.loadSnapshot('nominal_globs')

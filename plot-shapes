@@ -49,6 +49,8 @@ fields = [
     'tau1_eta',
     'tau2_eta',
     'numJets',
+    'tau1_numTrack',
+    'tau2_numTrack',
 ]
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
@@ -170,5 +172,22 @@ if not args.shapes or 'emb_ztautau_isolation' in args.shapes:
     ztt_isol = Embedded_Ztautau(year=args.year, label='Isolated Z#rightarrow#tau#tau')
     for category in categories:
         compare(ztt, ztt_isol, category, 'emb_ztautau_isolation',
+                region_a='OS',
+                region_b='OS_ISOL')
+
+if not args.shapes or 'higgs_isolation' in args.shapes:
+    htt = Higgs(year=args.year, mass=125, label='H(125)#rightarrow#tau#tau')
+    htt_isol = Higgs(year=args.year, mass=125, label='Isolated H(125)#rightarrow#tau#tau')
+    for category in categories:
+        compare(htt, htt_isol, category, 'higgs_isolation',
+                region_a='OS',
+                region_b='OS_ISOL')
+
+
+if not args.shapes or 'data_isolation' in args.shapes:
+    htt = Data(year=args.year, label='Data')
+    htt_isol = Data(year=args.year, label='Isolated Data')
+    for category in categories:
+        compare(htt, htt_isol, category, 'data_isolation',
                 region_a='OS',
                 region_b='OS_ISOL')

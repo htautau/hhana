@@ -383,16 +383,34 @@ class QCD(Sample, Background):
         # restore previous shape model
         self.shape_region = curr_model
 
+        def fix_empty_shape(nominal, shape):
+            """
+            If the shape uncertainty has zero/negative events in a given bin
+            where the nominal model has events, then assign at least 100%
+            uncertainty in the same direction as the variation in the previous
+            bin.
+            """
+            for bin_nom, bin_shape in zip(nominal.bins(), shape.bins()):
+                if bin_shape.value <= 0 and bin_nom.value > 0:
+                    idx = bin_shape.idx
+                    if shape[idx - 1].value - nominal[idx - 1].value >= 0:
+                        # at least 100% uncertainty
+                        bin_shape.value = 2 * bin_nom.value - bin_shape.value
+                    # fill with average of variation to the left and right
+                    #bin_shape.value = bin_nom.value + (
+                    #    (shape[idx - 1].value - nominal[idx - 1].value) +
+                    #    (shape[idx + 1].value - nominal[idx + 1].value)) / 2.
+
         if reflect:
             # single shape
             model = shape_models[0]
             field_shape_sys_reflect = {}
             for field, shape_sys in model_field_shape_sys[model].items():
                 nominal_hist = field_nominal_hist[field]
-                # this may be approximate
                 # normalize shape_sys such that it would have the same number of
                 # events as the nominal at preselection
                 shape_sys *= nominal_events / float(model_events[model])
+                fix_empty_shape(nominal_hist, shape_sys)
                 # reflect shape about the nominal to get high and low variations
                 shape_sys_reflect = nominal_hist + (nominal_hist - shape_sys)
                 shape_sys_reflect.name = shape_sys.name + '_reflected'
@@ -405,11 +423,12 @@ class QCD(Sample, Background):
         for field, shape_sys_low in model_field_shape_sys[model_low].items():
             shape_sys_high = model_field_shape_sys[model_high][field]
             nominal_hist = field_nominal_hist[field]
-            # this may be approximate
             # normalize shape_sys such that it would have the same number of
             # events as the nominal at preselection
             shape_sys_low *= nominal_events / float(model_events[model_low])
             shape_sys_high *= nominal_events / float(model_events[model_high])
+            fix_empty_shape(nominal_hist, shape_sys_low)
+            fix_empty_shape(nominal_hist, shape_sys_high)
             field_shape_sys[field] = (shape_sys_high, shape_sys_low)
 
         return field_shape_sys
