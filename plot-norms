@@ -7,6 +7,7 @@ from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.utils.path import mkdir_p
 from rootpy.extern.argparse import ArgumentParser
 from root_numpy import matrix
+import numpy as np
 import matplotlib.pyplot as plt
 import logging
 
@@ -74,9 +75,6 @@ minim = ws.fit(print_level=-1)
 result = minim.save()
 plot_norms(result, path=output)
 
-# plot correlation matrix
-from matplotlib import pyplot as plt
-
 
 def make_colormap(seq, name='CustomMap'):
     """Return a matplotlib LinearSegmentedColormap
@@ -109,11 +107,27 @@ def make_colormap(seq, name='CustomMap'):
     return mcolors.LinearSegmentedColormap(name, cdict)
 
 
+fields = [shorten_name(p.name) for p in result.floating_params_final]
+corr = matrix(result.correlation_matrix)
+# compress by removing rows and cols that have low sums
+abs_corr = np.abs(np.asarray(corr))
+abs_corr[np.triu_indices(len(abs_corr))] = 0
+ignore_rows = abs_corr.max(axis=1) <= 0.05
+ignore_cols = abs_corr.max(axis=0) <= 0.05
+ignore = ignore_rows & ignore_cols
+ignore_idx = np.flatnonzero(ignore)
+corr = np.delete(corr, ignore_idx, axis=0)
+corr = np.delete(corr, ignore_idx, axis=1)
+keep_idx = np.flatnonzero(-ignore)
+fields = np.take(fields, keep_idx)
+
+# plot correlation matrix
 fig = plt.figure(figsize=(14, 14))
 ax = fig.add_subplot(111)
 plot_corrcoef_matrix(
-    matrix(result.correlation_matrix),
-    fields=[shorten_name(p.name) for p in result.floating_params_final],
-    fontsize=7, cmap='jet', cmap_text=make_colormap(['white', 0.33, 'black', 0.66, 'white']), axes=ax)
+    corr, fields=fields,
+    fontsize=7, cmap='jet',
+    cmap_text=make_colormap(['white', 0.33, 'black', 0.66, 'white']),
+    axes=ax)
 plt.savefig(os.path.join(output, 'correlations.png'),
             bbox_inches='tight', dpi=300)
