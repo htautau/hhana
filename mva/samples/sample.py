@@ -381,7 +381,7 @@ class Sample(object):
                         shapesys.hist = high
                         sample.AddShapeSys(shapesys)
             if isinstance(self, Signal):
-                sample.AddNormFactor('SigXsecOverSM', 0., 0., 200., False)
+                sample.AddNormFactor('SigXsecOverSM', 0., -200., 200., False)
             elif isinstance(self, Background):
                 # only activate stat error on background samples
                 sample.ActivateStatError()
