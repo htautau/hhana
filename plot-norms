@@ -112,8 +112,8 @@ corr = matrix(result.correlation_matrix)
 # compress by removing rows and cols that have low sums
 abs_corr = np.abs(np.asarray(corr))
 abs_corr[np.triu_indices(len(abs_corr))] = 0
-ignore_rows = abs_corr.max(axis=1) <= 0.05
-ignore_cols = abs_corr.max(axis=0) <= 0.05
+ignore_rows = abs_corr.max(axis=1) <= 0.1
+ignore_cols = abs_corr.max(axis=0) <= 0.1
 ignore = ignore_rows & ignore_cols
 ignore_idx = np.flatnonzero(ignore)
 corr = np.delete(corr, ignore_idx, axis=0)
