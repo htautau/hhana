@@ -137,8 +137,6 @@ if __name__ == '__main__':
         jointype='leftouter', usemask=False,
         defaults=defaults)
 
-    print combined_rec.dtype.names
-
     with root_open('hh_jackknife.root', 'recreate') as out:
         outtree = array2tree(combined_rec, name='datatree') 
         outtree.Write()
