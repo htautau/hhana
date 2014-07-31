@@ -36,7 +36,7 @@ def plot_norms(result, path='', pattern='*_norm_*'):
     errors = []
     names = []
     # find all norms
-    for param in result.floating_params_final:
+    for param in result.final_params:
         if fnmatch(param.name, pattern):
             vals.append(param.value)
             errors.append(param.error)
@@ -107,7 +107,7 @@ def make_colormap(seq, name='CustomMap'):
     return mcolors.LinearSegmentedColormap(name, cdict)
 
 
-names = [shorten_name(p.name) for p in result.floating_params_final]
+names = [shorten_name(p.name) for p in result.final_params]
 corr = matrix(result.correlation_matrix)
 # compress by removing rows and cols that have low sums
 abs_corr = np.abs(np.asarray(corr))
@@ -129,5 +129,6 @@ plot_corrcoef_matrix(
     fontsize=7, cmap='jet',
     cmap_text=make_colormap(['white', 0.33, 'black', 0.66, 'white']),
     grid=True, axes=ax)
-plt.savefig(os.path.join(output, 'correlations.png'),
-            bbox_inches='tight', dpi=300)
+filename = os.path.join(output, 'correlations.png')
+log.info("writing {0}".format(filename))
+plt.savefig(filename, bbox_inches='tight', dpi=300)
