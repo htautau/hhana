@@ -10,183 +10,134 @@ from numpy.lib import recfunctions
 from rootpy.io import root_open
 from rootpy.tree import Cut
 from rootpy.plotting import Hist
-from root_numpy import fill_hist, array2tree
-
-# local imports
-from mva.utils import uniform_hist
+from root_numpy import fill_hist, array2tree, stack
 
 log = logging.getLogger(os.path.basename(__file__))
 
 fields = ['EventNumber', 'RunNumber', 'mmc1_mass', 'dEta_tau1_tau2']
-fields_names = ('EvtNum', 'RunNum', 'MMC_raw', 'deta_raw')
+fields_names = ['EvtNum', 'RunNum', 'MMC_raw', 'deta_raw']
 
-def get_transformed_rec(rec, binning):
+
+def binned_rec(rec, hist):
     """
     Transform a 1D array of values into
     a 1D array of histogram bins centers
     """
     if len(rec) == 0:
         return rec
-    indices = fill_hist(binning, rec, return_indices=True)
-    uni_hist = uniform_hist(binning)
+    indices = fill_hist(hist, rec, return_indices=True)
+    uni_hist = hist.uniform_binned()
     return np.take(list(uni_hist.x(overflow=True)), indices)
 
-def get_record_overlap(analysis,
-                       mva_cat,
-                       cba_cat,
-                       clf):
-    """
-    TODO: Add a description
-    """
 
-    rec = analysis.data.merged_records(
-        mva_cat, analysis.target_region, fields=fields,
-        include_weight=False, cuts=cba_cat.cuts)
-    rec.dtype.names = fields_names
-
-    if isinstance(cba_cat.limitbins, dict):
-        mmc_bins = cba_cat.limitbins[analysis.year]
-    else:
-        mmc_bins = cba_cat.limitbins
-    mmcs = get_transformed_rec(
-        rec['MMC_raw'], Hist(mmc_bins))
-
-    if not mva_cat.analysis_control:
-        scores_raw, _ = analysis.data.scores(
-            clf, mva_cat, analysis.target_region,
-            systematics=False, cuts=cba_cat.cuts)
-        bins = clf.binning(analysis.year, overflow=1E5)
-        scores = get_transformed_rec(
-            scores_raw, Hist(bins))
-        detas = -999*np.ones(len(rec))
-    else:
-        scores_raw = -999*np.ones(len(rec))
-        scores = -999*np.ones(len(rec))
-        detas = get_transformed_rec(rec['deta_raw'], Hist(5, 0, 1.5))
-        
-    rec = recfunctions.rec_append_fields(rec, data=mmcs, names='MMC', dtypes='f4')
-    rec = recfunctions.rec_append_fields(rec, data=detas, names='deta', dtypes='f4')
-    rec = recfunctions.rec_append_fields(rec, data=scores_raw, names='BDT_raw', dtypes='f4')
-    rec = recfunctions.rec_append_fields(rec, data=scores, names='BDT', dtypes='f4')
-
-    rec = recfunctions.rec_append_fields(
-        rec, data=[mva_cat.jk_number for i in range(0, len(rec))],
-        names='catMVA', dtypes='i4')
-    rec = recfunctions.rec_append_fields(
-        rec, data=[cba_cat.jk_number for i in range(0, len(rec))],
-        names='catCBA', dtypes='i4')
-    rec = recfunctions.rec_append_fields(
-        rec, data=np.ones(len(rec)),
-        names='IsMVA', dtypes='i4')
-    rec = recfunctions.rec_append_fields(
-        rec, data=np.ones(len(rec)),
-        names='IsCBA', dtypes='i4')
-    return rec
-
-def get_record_disjonction(analysis,
-                           category,
-                           exclusion_cut,
-                           clf=None,
-                           cat_type='MVA',
-                           excl_type='CBA'):
-    """
-    TODO: Add a descrition
-    """
-
+def get_records(analysis, category,
+                binned_field, binned_field_name, hist,
+                category_type, clf=None):
+    # get the record array
     rec = analysis.data.merged_records(
         category, analysis.target_region, fields=fields,
-        include_weight=False, cuts=exclusion_cut)
-    rec.dtype.names = fields_names
-
-    if excl_type == 'CBA':
-        mmcs = -999*np.ones(len(rec))
-        if not category.analysis_control:
-            scores_raw, _ = analysis.data.scores(
-                clf, category, analysis.target_region,
-                systematics=False, cuts=exclusion_cut)
-            bins = clf.binning(analysis.year, overflow=1E5)
-            scores = get_transformed_rec(
-                scores_raw, Hist(bins))
-            detas = -999*np.ones(len(rec))
-        else:
-            scores_raw = -999*np.ones(len(rec))
-            scores = -999*np.ones(len(rec))
-            detas = get_transformed_rec(
-                rec['deta_raw'], Hist(5, 0, 1.5))
+        include_weight=False, clf=clf, clf_name='BDT_raw')
+    # rename fields
+    if clf is not None:
+        rec.dtype.names = fields_names + ['BDT_raw']
     else:
+        rec.dtype.names = fields_names
+    # rebin field of interest
+    binned_array = binned_rec(rec[binned_field], hist)
+    # category index
+    index_array = np.empty(len(rec), dtype=int)
+    index_array.fill(category.jk_number)
+    # category type
+    type_array = np.ones(len(rec), dtype=int)
+    # merge fields
+    rec = recfunctions.rec_append_fields(
+        rec, data=[binned_array, index_array, type_array],
+        names=[binned_field_name, 
+               'cat{0}'.format(category_type),
+               'Is{0}'.format(category_type)],
+        dtypes=['f4', 'i4', 'i4'])
+    return rec
+
+
+if __name__ == '__main__':
+    # local imports
+    from mva.analysis import Analysis
+    from mva.categories import CATEGORIES, Category_Preselection
+
+    analysis = Analysis(2012)
+    analysis.normalize(Category_Preselection)
+    
+    log.info('iterate over MVA categories')
+    mva_cr_recs = []
+    for category in CATEGORIES['mva_workspace_controls']:
+        hist = Hist(5, 0, 1.5)
+        rec = get_records(analysis, category,
+                          'deta_raw', 'deta',
+                          hist, 'MVA')
+        mva_cr_recs.append(rec)
+
+    mva_recs = []
+    for category in CATEGORIES['mva']:
+        clf = analysis.get_clf(
+            category, load=True,
+            mass=125, transform=True)
+        hist = Hist(clf.binning(analysis.year, overflow=1E5))
+        rec = get_records(analysis, category,
+                          'BDT_raw', 'BDT',
+                          hist, 'MVA', clf)
+        mva_recs.append(rec)
+    
+    log.info('iterate over CBA categories')
+    cba_recs = []
+    for category in CATEGORIES['cuts']:
         if isinstance(category.limitbins, dict):
             mmc_bins = category.limitbins[analysis.year]
         else:
             mmc_bins = category.limitbins
-        mmcs = get_transformed_rec(rec['MMC_raw'], Hist(mmc_bins))
-        scores_raw = -999*np.ones(len(rec))
-        scores = -999*np.ones(len(rec))
-        detas = -999*np.ones(len(rec))
-        
-    rec = recfunctions.rec_append_fields(rec, data=mmcs, names='MMC', dtypes='f4')
-    rec = recfunctions.rec_append_fields(rec, data=detas, names='deta', dtypes='f4')
-    rec = recfunctions.rec_append_fields(rec, data=scores_raw, names='BDT_raw', dtypes='f4')
-    rec = recfunctions.rec_append_fields(rec, data=scores, names='BDT', dtypes='f4')
+        hist = Hist(mmc_bins)
+        rec = get_records(analysis, category, 'MMC_raw', 'MMC', hist, 'CBA')
+        cba_recs.append(rec)
 
-    rec = recfunctions.rec_append_fields(
-        rec, data=[category.jk_number for i in range(0, len(rec))],
-        names='cat{0}'.format(cat_type), dtypes='i4')
-    rec = recfunctions.rec_append_fields(
-        rec, data=-999*np.ones(len(rec)),
-        names='cat{0}'.format(excl_type), dtypes='i4')
-    rec = recfunctions.rec_append_fields(
-        rec, data=np.ones(len(rec)),
-        names='Is{0}'.format(cat_type), dtypes='i4')
-    rec = recfunctions.rec_append_fields(
-        rec, data=np.zeros(len(rec)),
-        names='Is{0}'.format(excl_type), dtypes='i4')
-    return rec
+    # get full array of unique run/event numbers and common fields
+    combined_rec = stack(mva_cr_recs + mva_recs + cba_recs,
+                         fields=fields_names) 
+    combined_rec = np.unique(combined_rec)
+    
+    defaults = {
+        'MMC': -1.,
+        'BDT': -999.,
+        'BDT_raw': -999.,
+        'deta': -1.,
+        'catMVA': -1,
+        'catCBA': -1,
+        'IsMVA': 0,
+        'IsCBA': 0}
+    
+    # join the records by key=[RunNumber, EventNumber]
+    combined_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        combined_rec, stack(mva_cr_recs, fields=['EvtNum', 'RunNum', 'deta']),
+        jointype='leftouter', usemask=False,
+        defaults=defaults)
+    
+    combined_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        combined_rec, stack(mva_cr_recs + mva_recs, fields=['EvtNum', 'RunNum', 'IsMVA', 'catMVA']),
+        jointype='leftouter', usemask=False,
+        defaults=defaults)
+    
+    combined_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        combined_rec, stack(mva_recs, fields=['EvtNum', 'RunNum', 'BDT', 'BDT_raw']),
+        jointype='leftouter', usemask=False,
+        defaults=defaults)
+    
+    combined_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        combined_rec, stack(cba_recs, fields=['EvtNum', 'RunNum', 'IsCBA', 'catCBA', 'MMC']),
+        jointype='leftouter', usemask=False,
+        defaults=defaults)
 
-if __name__ == '__main__':
-    # local imports
-    from mva.cmd import get_parser
-    from mva.analysis import get_analysis
-    from mva.categories import CATEGORIES
-
-    args = get_parser(actions=False).parse_args()
-    analysis = get_analysis(args)
-
-    CB_cuts = Cut()
-    for cat in CATEGORIES['cuts']:
-        CB_cuts |= cat.cuts
-
-    MVA_cuts = Cut()
-    for cat in CATEGORIES['mva_all']:
-        MVA_cuts |= cat.cuts
-
-    recs = []
-    log.info('Iterate over MVA categories')
-    for category in analysis.iter_categories('mva_all'):
-        clf = None
-        if not category.analysis_control:
-            clf = analysis.get_clf(
-                category, load=True,
-                mass=125, transform=True)
- 
-        for cba_cat in CATEGORIES['cuts']:
-            rec = get_record_overlap(analysis, category, cba_cat, clf)
-            recs.append(rec)
-            rec = get_record_disjonction(analysis, category, -CB_cuts, clf=clf)
-            recs.append(rec)
-
-    log.info('Iterate over CBA categories')
-    for category in analysis.iter_categories('cuts'):
-        clf = None
-        rec = get_record_disjonction(
-            analysis, category, -MVA_cuts,
-            cat_type='CBA', excl_type='MVA')
-        if len(rec)>0:
-            recs.append(rec)
-
-    big_rec = np.concatenate(recs)
     with root_open('hh_jackknife.root', 'recreate') as out:
-        output_name = 'datatree'
-        outtree = array2tree(big_rec, name='datatree') 
+        outtree = array2tree(combined_rec, name='datatree') 
         outtree.Write()
-        out.Close()
-

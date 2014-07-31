@@ -53,13 +53,13 @@ mu_table = [[name] for name in names]
 for profile in profiles:
     for i, name in enumerate(names):
         sig, mu, mu_error = sigs.pop(0)
-        sig_table[i].append(sig)
-        mu_table[i].append('{0:.3f} +/- {1:.3f}'.format(mu, mu_error))
+        sig_table[i].append('{0:.2f}'.format(sig))
+        mu_table[i].append('{0:.2f} +/- {1:.2f}'.format(mu, mu_error))
 if args.unblind:
     for i, name in enumerate(names):
         sig, mu, mu_error = sigs.pop(0)
-        sig_table[i].append(sig)
-        mu_table[i].append('{0:.3f} +/- {1:.3f}'.format(mu, mu_error))
+        sig_table[i].append('{0:.2f}'.format(sig))
+        mu_table[i].append('{0:.2f} +/- {1:.2f}'.format(mu, mu_error))
 
 headers = (
     ['name'] +
