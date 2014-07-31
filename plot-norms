@@ -107,7 +107,7 @@ def make_colormap(seq, name='CustomMap'):
     return mcolors.LinearSegmentedColormap(name, cdict)
 
 
-fields = [shorten_name(p.name) for p in result.floating_params_final]
+names = [shorten_name(p.name) for p in result.floating_params_final]
 corr = matrix(result.correlation_matrix)
 # compress by removing rows and cols that have low sums
 abs_corr = np.abs(np.asarray(corr))
@@ -119,15 +119,15 @@ ignore_idx = np.flatnonzero(ignore)
 corr = np.delete(corr, ignore_idx, axis=0)
 corr = np.delete(corr, ignore_idx, axis=1)
 keep_idx = np.flatnonzero(-ignore)
-fields = np.take(fields, keep_idx)
+names = np.take(names, keep_idx)
 
 # plot correlation matrix
 fig = plt.figure(figsize=(14, 14))
 ax = fig.add_subplot(111)
 plot_corrcoef_matrix(
-    corr, fields=fields,
+    corr, names=names,
     fontsize=7, cmap='jet',
     cmap_text=make_colormap(['white', 0.33, 'black', 0.66, 'white']),
-    axes=ax)
+    grid=True, axes=ax)
 plt.savefig(os.path.join(output, 'correlations.png'),
             bbox_inches='tight', dpi=300)
