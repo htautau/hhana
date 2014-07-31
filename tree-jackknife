@@ -106,6 +106,7 @@ if __name__ == '__main__':
     defaults = {
         'MMC': -1.,
         'BDT': -999.,
+        'BDT_raw': -999.,
         'deta': -1.,
         'catMVA': -1,
         'catCBA': -1,
