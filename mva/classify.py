@@ -37,8 +37,7 @@ from . import MMC_MASS, MMC_PT
 from .plotting import (
     draw, plot_clf, plot_grid_scores,
     hist_scores, draw_samples_array,
-    draw_channel_array, draw_channel,
-    efficiency_cut)
+    draw_channel_array, draw_channel)
 from . import variables, CACHE_DIR, BDT_DIR, PLOTS_DIR, plot_dir
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV

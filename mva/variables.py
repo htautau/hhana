@@ -168,6 +168,7 @@ VARIABLES = {
         'binning': (20, -75, 75),
         'scale': 0.001,
         'units': 'GeV',
+        'legend': 'left',
     },
     'MET_ety': {
         'title': r'$E^{miss}_{T_{y}}$',
@@ -176,6 +177,7 @@ VARIABLES = {
         'binning': (20, -75, 75),
         'scale': 0.001,
         'units': 'GeV',
+        'legend': 'left',
     },
     'MET_phi': {
         'title': r'$E^{miss}_{T} \phi$',
@@ -300,12 +302,14 @@ VARIABLES = {
         'root': '#font[152]{#tau}_{1} #font[152]{#eta}',
         'filename': 'tau1_eta',
         'binning': (20, -3, 3),
+        'legend': 'left',
     },
     'tau2_eta': {
         'title': r'$\tau_{2} \eta$',
         'root': '#font[152]{#tau}_{2} #font[152]{#eta}',
         'filename': 'tau2_eta',
         'binning': (20, -3, 3),
+        'legend': 'left',
     },
     'tau1_numTrack': {
         'title': r'$\tau_{1}$ Number of Tracks',
@@ -501,14 +505,16 @@ VARIABLES = {
         'root': '#font[152]{#eta}(#font[52]{j}1)',
         'filename': 'jet1_eta',
         'binning': (20, -5, 5),
-        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
+        'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
+        'legend': 'left',
     },
     'jet2_eta': {
         'title': r'jet$_{2}$ $\eta$',
         'root': '#font[152]{#eta}(#font[52]{j}2)',
         'filename': 'jet2_eta',
         'binning': (20, -5, 5),
-        'cats': ['2J', 'VBF']
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
     },
     'jet1_pt': {
         'title': r'jet$_{1}$ $p_{T}$',
