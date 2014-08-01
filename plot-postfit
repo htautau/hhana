@@ -88,6 +88,19 @@ def plot_from_frame(file, name, fit_var, category, year,
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
     graph_bkg.drawstyle = 'E2'
+    
+    hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
+    curve_uncert_signal = frame.getCurve('FitError_AfterFit_sum_sig_{0}'.format(frame.GetName()))
+    graph_signal_ws = get_uncertainty_graph(hist_signal_ws, curve_uncert_signal)
+    graph_signal = get_rebinned_graph(graph_signal_ws, binning)
+    graph_signal.name = 'Signal'
+    hist_signal = get_rebinned_hist(hist_signal_ws, binning)
+    hist_signal.color = ana.higgs_125.hist_decor['linecolor']
+    hist_signal.linestyle = 'solid'
+    hist_signal.linewidth = 4
+    hist_signal.name = 'Signal'
+    hist_signal.title = ana.higgs_125.label
+    hist_signal.legendstyle = 'F'
 
     data_ws = frame.getHist('Data')
     # HACK HACK HACK
@@ -135,15 +148,6 @@ def plot_from_frame(file, name, fit_var, category, year,
     graph_ztautau = get_rebinned_graph(graph_ztautau_ws, binning) 
     graph_ztautau.name = 'Ztautau'
     
-    hist_signal_ws = file.Get('h_sum_sig_{0}'.format(frame.GetName()))
-    hist_signal = get_rebinned_hist(hist_signal_ws, binning)
-    hist_signal.color = ana.higgs_125.hist_decor['linecolor']
-    hist_signal.linestyle = 'solid'
-    hist_signal.linewidth = 4
-    hist_signal.name = 'Signal'
-    hist_signal.title = ana.higgs_125.label
-    hist_signal.legendstyle = 'F'
-
     background = [hist_fake, hist_others, hist_ztautau]
     hists = background[:]
     if unblind is True:
@@ -237,7 +241,7 @@ def plot_from_frame(file, name, fit_var, category, year,
         '{0:.2g} - {1:.2g}'.format(l, h) for l, h in bin_edges]
     postfit_table = []
     postfit_table.append(['Data'] + [str(int(val)) for val in data.y()])
-    for h in [graph_bkg, graph_fakes, graph_others, graph_ztautau]:
+    for h in [graph_signal, graph_bkg, graph_fakes, graph_others, graph_ztautau]:
         row = [h.name]
         for val, errh, errl in zip(h.y(), h.yerrh(), h.yerrl()):
             #row.append('{0:1.2f} ^{{+{1:1.2f}}}_{{-{2:1.2f}}}'.format(val, errh, errl))

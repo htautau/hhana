@@ -30,11 +30,14 @@ def label_plot(pad, template, xaxis, yaxis,
     if xlabel:
         xaxis.SetTitle(xlabel)
 
+    left, right, bottom, top = pad.margin_pixels
+    height = float(pad.height_pixels)
+
     # draw the category label
     if category_label:
         label = ROOT.TLatex(
             1. - pad.GetRightMargin(),
-            1. - pad.GetTopMargin() + 0.02,
+            1. - (textsize - 2) / height,
             category_label)
         label.SetNDC()
         label.SetTextFont(43)
@@ -47,7 +50,8 @@ def label_plot(pad, template, xaxis, yaxis,
     # draw the luminosity label
     if data_info is not None:
         plabel = ROOT.TLatex(
-            1. - pad.GetRightMargin() - 0.03, 0.88,
+            1. - pad.GetRightMargin() - 0.03,
+            1. - (top + textsize + 15) / height,
             str(data_info))
         plabel.SetNDC()
         plabel.SetTextFont(43)
@@ -60,7 +64,8 @@ def label_plot(pad, template, xaxis, yaxis,
     # draw the ATLAS label
     if atlas_label is not False:
         label = atlas_label or ATLAS_LABEL
-        ATLAS_label(pad.GetLeftMargin() + 0.03, 0.88,
+        ATLAS_label(pad.GetLeftMargin() + 0.03,
+                    1. - (top + textsize + 15) / height,
                     sep=0.132, pad=pad, sqrts=None,
                     text=label,
                     textsize=textsize)
@@ -69,10 +74,12 @@ def label_plot(pad, template, xaxis, yaxis,
     if extra_label is not None:
         if extra_label_position == 'left':
             label = ROOT.TLatex(pad.GetLeftMargin() + 0.03,
-                                0.82, extra_label)
+                                1. - (top + 2 * (textsize + 15)) / height,
+                                extra_label)
         else: # right
             label = ROOT.TLatex(1. - pad.GetRightMargin() - 0.03,
-                                0.82, extra_label)
+                                1. - (top + 2 * (textsize + 15)) / height,
+                                extra_label)
             label.SetTextAlign(31)
         label.SetNDC()
         label.SetTextFont(43)

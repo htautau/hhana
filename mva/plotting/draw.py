@@ -271,9 +271,10 @@ def draw(name,
         fig = RatioPlot(
             logy=logy,
             ratio_title='Data / Model',
-            ratio_range=(0, 2),
-            ratio_height=0.15,
-            ratio_margin=0.06)
+            ratio_limits=(0, 2),
+            offset=-122,
+            ratio_margin=22,
+            prune_ratio_ticks=True)
     else:
         fig = SimplePlot(logy=logy)
 

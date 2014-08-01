@@ -19,21 +19,8 @@ class SimplePlot(Canvas):
                  tick_length=15,
                  logy=False):
 
-        style = ROOT.gStyle
-
-        # plot dimensions in pixels
-        if height is None:
-            height = style.GetCanvasDefH()
-        if width is None:
-            width = style.GetCanvasDefW()
-
-        # margins
-        left_margin = style.GetPadLeftMargin()
-        bottom_margin = style.GetPadBottomMargin()
-        top_margin = style.GetPadTopMargin()
-        right_margin = style.GetPadRightMargin()
-
         super(SimplePlot, self).__init__(width=width, height=height)
+        left, right, bottom, top = self.margin
         self.SetMargin(0, 0, 0, 0)
 
         # top pad for histograms
@@ -41,10 +28,7 @@ class SimplePlot(Canvas):
             main = Pad(0., 0., 1., 1.)
             if logy:
                 main.SetLogy()
-            main.SetBottomMargin(bottom_margin)
-            main.SetTopMargin(top_margin)
-            main.SetLeftMargin(left_margin)
-            main.SetRightMargin(right_margin)
+            main.margin = (left, right, bottom, top)
             main.Draw()
 
         # draw axes
@@ -169,7 +153,7 @@ class RatioPlot(Canvas):
         if ratio_limits is not None:
             low, high = ratio_limits
             if prune_ratio_ticks:
-                delta = 0.1 * (high - low) / float(ratio_divisions % 100)
+                delta = 0.01 * (high - low) / float(ratio_divisions % 100)
                 low += delta
                 high -= delta
             yaxis.SetLimits(low, high)
