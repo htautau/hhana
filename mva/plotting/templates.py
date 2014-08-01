@@ -16,7 +16,7 @@ class SimplePlot(Canvas):
 
     def __init__(self, width=None, height=None,
                  xtitle=None, ytitle=None,
-                 tick_length=20,
+                 tick_length=15,
                  logy=False):
 
         style = ROOT.gStyle
@@ -86,7 +86,10 @@ class SimplePlot(Canvas):
         x, y = self.axes(region)
         if self.logy:
             kwargs['logy'] = True
-        draw(objects, pad=pad, xaxis=x, yaxis=y, same=True, **kwargs)
+        _, bounds = draw(objects, pad=pad,
+                         xaxis=x, yaxis=y,
+                         same=True, **kwargs)
+        return bounds
 
 
 class RatioPlot(Canvas):
@@ -98,7 +101,7 @@ class RatioPlot(Canvas):
                  ratio_line_width=2,
                  ratio_line_style='dashed',
                  xtitle=None, ytitle=None, ratio_title=None,
-                 tick_length=20,
+                 tick_length=15,
                  logy=False):
 
         style = ROOT.gStyle
@@ -245,6 +248,9 @@ class RatioPlot(Canvas):
             y = None
         if region == 'main' and self.logy:
             kwargs['logy'] = True
-        draw(objects, pad=pad, xaxis=x, yaxis=y, same=True, **kwargs)
+        _, bounds = draw(objects, pad=pad,
+                         xaxis=x, yaxis=y,
+                         same=True, **kwargs)
         if region == 'ratio':
             self.update_lines()
+        return bounds

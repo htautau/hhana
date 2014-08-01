@@ -211,6 +211,9 @@ def draw(name,
         else:
             ypadding = (.35, .0)
 
+    template = data or model[0]
+    xdivisions = min(template.nbins(), 7) if integer else 507
+
     """
     if show_ratio:
         # define the pad setup for the ratio plot
@@ -265,7 +268,12 @@ def draw(name,
     """
 
     if show_ratio:
-        fig = RatioPlot(logy=logy)
+        fig = RatioPlot(
+            logy=logy,
+            ratio_title='Data / Model',
+            ratio_range=(0, 2),
+            ratio_height=0.15,
+            ratio_margin=0.06)
     else:
         fig = SimplePlot(logy=logy)
 
@@ -379,7 +387,8 @@ def draw(name,
 
         # draw ratio plot
         if model is not None and show_ratio:
-            ratio_pad.cd()
+            #ratio_pad.cd()
+            fig.cd('ratio')
             total_model = sum(model)
             ratio_hist = Hist.divide(data, total_model)
             # remove bins where data is zero
@@ -397,14 +406,15 @@ def draw(name,
                 ratio_range = (0.8, 1.2)
             elif max_dev < 0.4:
                 ratio_range = (0.6, 1.4)
-
             ruler_high = (ratio_range[1] + 1.) / 2.
             ruler_low = (ratio_range[0] + 1.) / 2.
 
             ratio_hist.linecolor = 'black'
             ratio_hist.linewidth = 2
             ratio_hist.fillstyle = 'hollow'
+            ratio_hist.drawstyle = 'E0'
 
+            """
             # draw empty copy of ratio_hist first so lines will show
             ratio_hist_tmp = ratio_hist.Clone()
             ratio_hist_tmp.Reset()
@@ -444,23 +454,28 @@ def draw(name,
             line_dn.linestyle = 'dashed'
             line_dn.linewidth = 2
             line_dn.Draw()
+            """
 
             # draw band below points on ratio plot
             ratio_hist_high = Hist.divide(
                 total_model + high_band_model, total_model)
             ratio_hist_low = Hist.divide(
                 total_model - low_band_model, total_model)
-            ratio_pad.cd()
+            #ratio_pad.cd()
+            fig.cd('ratio')
             error_band = rootpy_utils.get_band(
                 ratio_hist_high, ratio_hist_low)
             error_band.fillstyle = '/'
             error_band.fillcolor = '#858585'
-            error_band.Draw('same E2')
+            error_band.drawstyle = 'E2'
+            fig.draw('ratio', [error_band, ratio_hist], xdivisions=xdivisions)
+            #error_band.Draw('same E2')
 
             # draw points above band
-            ratio_hist.Draw('same E0')
+            #ratio_hist.Draw('same E0')
 
     if separate_legends:
+        fig.cd('main')
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
             #pad=hist_pad,
             pad=fig.pad('main'),
@@ -508,6 +523,7 @@ def draw(name,
             n_entries += len(model)
             if systematics:
                 n_entries += 1
+        fig.cd('main')
         legend = Legend(
             n_entries,
             pad=fig.pad('main'),
@@ -529,9 +545,13 @@ def draw(name,
             legend.AddEntry(model_err_band, style='F')
         legends.append(legend)
 
-    template = data or model[0]
-
     # draw the objects
+    bounds = fig.draw('main', objects, ypadding=ypadding,
+                      logy_crop_value=1E-1,
+                      xdivisions=xdivisions)
+    xaxis, yaxis = fig.axes('main')
+
+    """
     axes, bounds = rootpy_utils.draw(
         objects,
         #pad=hist_pad,
@@ -541,8 +561,7 @@ def draw(name,
         logy_crop_value=1E-1,
         xdivisions=min(template.nbins(), 7) if integer
                    else 507)
-
-    xaxis, yaxis = axes
+    """
     base_xaxis = xaxis
     xmin, xmax, ymin, ymax = bounds
 
