@@ -95,8 +95,10 @@ class SimplePlot(Canvas):
 class RatioPlot(Canvas):
 
     def __init__(self, width=None, height=None,
-                 ratio_height=0.2, ratio_margin=0.05,
-                 ratio_range=(0, 2), ratio_divisions=4,
+                 offset=0,
+                 ratio_height=None, ratio_margin=26,
+                 ratio_limits=(0, 2), ratio_divisions=4,
+                 prune_ratio_ticks=False,
                  ratio_line_values=(1,),
                  ratio_line_width=2,
                  ratio_line_style='dashed',
@@ -104,49 +106,35 @@ class RatioPlot(Canvas):
                  tick_length=15,
                  logy=False):
 
-        style = ROOT.gStyle
+        # first init as normal canvas
+        super(RatioPlot, self).__init__(width=width, height=height)
 
-        # plot dimensions in pixels
-        if height is not None:
-            figheight = baseheight = height
-        else:
-            figheight = baseheight = style.GetCanvasDefH()
-        if width is not None:
-            figwidth = basewidth = width
-        else:
-            figwidth = basewidth = style.GetCanvasDefW()
+        # get margins in pixels
+        left, right, bottom, top = self.margin_pixels
+        default_height = self.height
+        default_frame_height = default_height - bottom - top
 
-        # margins
-        left_margin = style.GetPadLeftMargin()
-        bottom_margin = style.GetPadBottomMargin()
-        top_margin = style.GetPadTopMargin()
-        right_margin = style.GetPadRightMargin()
+        if ratio_height is None:
+            ratio_height = default_height / 4.
 
-        figheight += (ratio_height + ratio_margin) * figheight
-        ratio_height += bottom_margin + ratio_margin / 2.
+        self.height += ratio_height + ratio_margin + offset
+        self.margin = (0, 0, 0, 0)
 
-        super(RatioPlot, self).__init__(
-            width=int(figwidth), height=int(figheight))
-        self.SetMargin(0, 0, 0, 0)
+        main_height = default_frame_height + top + ratio_margin / 2. + offset
+        ratio_height += ratio_margin / 2. + bottom
 
         # top pad for histograms
         with self:
-            main = Pad(0., ratio_height, 1., 1.)
+            main = Pad(0., ratio_height / self.height, 1., 1.)
             if logy:
                 main.SetLogy()
-            main.SetBottomMargin(ratio_margin / 2.)
-            main.SetTopMargin(top_margin)
-            main.SetLeftMargin(left_margin)
-            main.SetRightMargin(right_margin)
+            main.margin_pixels = (left, right, ratio_margin / 2., top)
             main.Draw()
 
         # bottom pad for ratio plot
         with self:
-            ratio = Pad(0, 0, 1, ratio_height)
-            ratio.SetBottomMargin(bottom_margin / ratio_height)
-            ratio.SetTopMargin(ratio_margin / (2. * ratio_height))
-            ratio.SetLeftMargin(left_margin)
-            ratio.SetRightMargin(right_margin)
+            ratio = Pad(0, 0, 1, ratio_height / self.height)
+            ratio.margin_pixels = (left, right, bottom, ratio_margin / 2.)
             ratio.Draw()
 
         # draw main axes
@@ -160,7 +148,7 @@ class RatioPlot(Canvas):
         xaxis.SetTitleOffset(1000)
         # adjust y-axis title spacing
         yaxis.SetTitleOffset(
-            yaxis.GetTitleOffset() * figheight / baseheight)
+            yaxis.GetTitleOffset() * self.height / default_height)
 
         # draw ratio axes
         with ratio:
@@ -169,17 +157,23 @@ class RatioPlot(Canvas):
 
         # adjust x-axis label and title spacing
         xaxis, yaxis = ratio_hist.xaxis, ratio_hist.yaxis
+
         xaxis.SetLabelOffset(
-            xaxis.GetLabelOffset() / ratio_height)
+            xaxis.GetLabelOffset() * self.height / ratio_height)
         xaxis.SetTitleOffset(
-            xaxis.GetTitleOffset() / ratio_height)
+            xaxis.GetTitleOffset() * self.height / ratio_height)
         # adjust y-axis title spacing
         yaxis.SetTitleOffset(
-            yaxis.GetTitleOffset() * figheight / baseheight)
+            yaxis.GetTitleOffset() * self.height / default_height)
 
-        if ratio_range is not None:
-            yaxis.SetLimits(*ratio_range)
-            yaxis.SetRangeUser(*ratio_range)
+        if ratio_limits is not None:
+            low, high = ratio_limits
+            if prune_ratio_ticks:
+                delta = 0.1 * (high - low) / float(ratio_divisions % 100)
+                low += delta
+                high -= delta
+            yaxis.SetLimits(low, high)
+            yaxis.SetRangeUser(low, high)
             yaxis.SetNdivisions(ratio_divisions)
 
         if xtitle is not None:
@@ -211,7 +205,7 @@ class RatioPlot(Canvas):
         self.main_hist = main_hist
         self.ratio = ratio
         self.ratio_hist = ratio_hist
-        self.ratio_range = ratio_range
+        self.ratio_limits = ratio_limits
         self.logy = logy
 
     def pad(self, region):
@@ -244,7 +238,7 @@ class RatioPlot(Canvas):
     def draw(self, region, objects, **kwargs):
         pad = self.pad(region)
         x, y = self.axes(region)
-        if region == 'ratio' and self.ratio_range is not None:
+        if region == 'ratio' and self.ratio_limits is not None:
             y = None
         if region == 'main' and self.logy:
             kwargs['logy'] = True
