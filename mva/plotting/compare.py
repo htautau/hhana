@@ -1,3 +1,6 @@
+from rootpy.plotting import Legend
+from ..variables import VARIABLES
+from .templates import RatioPlot
 
 
 def draw_ratio(a, b, field, category,

@@ -7,8 +7,86 @@ from rootpy.plotting.shapes import Line
 
 
 __all__ = [
+    'SimplePlot',
     'RatioPlot',
 ]
+
+
+class SimplePlot(Canvas):
+
+    def __init__(self, width=None, height=None,
+                 xtitle=None, ytitle=None,
+                 tick_length=20,
+                 logy=False):
+
+        style = ROOT.gStyle
+
+        # plot dimensions in pixels
+        if height is None:
+            height = style.GetCanvasDefH()
+        if width is None:
+            width = style.GetCanvasDefW()
+
+        # margins
+        left_margin = style.GetPadLeftMargin()
+        bottom_margin = style.GetPadBottomMargin()
+        top_margin = style.GetPadTopMargin()
+        right_margin = style.GetPadRightMargin()
+
+        super(SimplePlot, self).__init__(width=width, height=height)
+        self.SetMargin(0, 0, 0, 0)
+
+        # top pad for histograms
+        with self:
+            main = Pad(0., 0., 1., 1.)
+            if logy:
+                main.SetLogy()
+            main.SetBottomMargin(bottom_margin)
+            main.SetTopMargin(top_margin)
+            main.SetLeftMargin(left_margin)
+            main.SetRightMargin(right_margin)
+            main.Draw()
+
+        # draw axes
+        with main:
+            main_hist = Hist(1, 0, 1)
+            main_hist.Draw('AXIS')
+
+        if xtitle is not None:
+            main_hist.xaxis.title = xtitle
+        if ytitle is not None:
+            main_hist.yaxis.title = ytitle
+
+        # set the tick lengths
+        tick_length_pixels(main, main_hist.xaxis, main_hist.yaxis,
+                           tick_length)
+
+        self.main = main
+        self.main_hist = main_hist
+        self.logy = logy
+
+    def pad(self, region):
+        if region == 'main':
+            return self.main
+        raise ValueError("SimplePlot region {0} does not exist".format(region))
+
+    def cd(self, region=None):
+        if region is not None:
+            self.pad(region).cd()
+        else:
+            super(SimplePlot, self).cd()
+
+    def axes(self, region):
+        if region == 'main':
+            return self.main_hist.xaxis, self.main_hist.yaxis
+        raise ValueError("SimplePlot region {0} does not exist".format(region))
+
+    def draw(self, region, objects, **kwargs):
+        pad = self.pad(region)
+        x, y = self.axes(region)
+        if self.logy:
+            kwargs['logy'] = True
+        draw(objects, pad=pad, xaxis=x, yaxis=y, same=True, **kwargs)
 
 
 class RatioPlot(Canvas):

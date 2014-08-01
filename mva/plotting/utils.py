@@ -8,8 +8,9 @@ def label_plot(pad, template, xaxis, yaxis,
                ylabel='Events', xlabel=None,
                units=None, data_info=None,
                category_label=None,
-               right_label=None,
                atlas_label=None,
+               extra_label=None,
+               extra_label_position='left',
                textsize=22):
 
     # set the axis labels
@@ -43,24 +44,15 @@ def label_plot(pad, template, xaxis, yaxis,
             label.Draw()
         keepalive(pad, label)
 
-    # draw the right label
-    if right_label is not None:
-        label = ROOT.TLatex(0.68, 0.81, right_label)
-        label.SetNDC()
-        label.SetTextFont(43)
-        label.SetTextSize(textsize)
-        with pad:
-            label.Draw()
-        keepalive(pad, label)
-
     # draw the luminosity label
     if data_info is not None:
         plabel = ROOT.TLatex(
-            pad.GetLeftMargin() + 0.03, 0.88,
+            1. - pad.GetRightMargin() - 0.03, 0.88,
             str(data_info))
         plabel.SetNDC()
         plabel.SetTextFont(43)
         plabel.SetTextSize(textsize)
+        plabel.SetTextAlign(31)
         with pad:
             plabel.Draw()
         keepalive(pad, plabel)
@@ -68,14 +60,45 @@ def label_plot(pad, template, xaxis, yaxis,
     # draw the ATLAS label
     if atlas_label is not False:
         label = atlas_label or ATLAS_LABEL
-        if label.lower() == 'internal':
-            x = 0.67
-        else:
-            x = (1. - pad.GetRightMargin() - 0.03) - len(label) * 0.025
-        ATLAS_label(x, 0.88,
+        ATLAS_label(pad.GetLeftMargin() + 0.03, 0.88,
                     sep=0.132, pad=pad, sqrts=None,
                     text=label,
                     textsize=textsize)
 
+    # draw the extra label
+    if extra_label is not None:
+        if extra_label_position == 'left':
+            label = ROOT.TLatex(pad.GetLeftMargin() + 0.03,
+                                0.82, extra_label)
+        else: # right
+            label = ROOT.TLatex(1. - pad.GetRightMargin() - 0.03,
+                                0.82, extra_label)
+            label.SetTextAlign(31)
+        label.SetNDC()
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        with pad:
+            label.Draw()
+        keepalive(pad, label)
+
     pad.Update()
     pad.Modified()
+
+
+def legend_params(position='left'):
+    if position == 'left':
+        return dict(
+            leftmargin=0.03,
+            rightmargin=0.48,
+            margin=0.35,
+            entrysep=0.01,
+            entryheight=0.035,
+            topmargin=0.09)
+    else:
+        return dict(
+            leftmargin=0.39,
+            rightmargin=0.12,
+            margin=0.35,
+            entrysep=0.01,
+            entryheight=0.035,
+            topmargin=0.09)

@@ -33,9 +33,9 @@ from ..variables import VARIABLES
 from ..defaults import TARGET_REGION
 from .. import ATLAS_LABEL, PLOTS_DIR, MMC_MASS, save_canvas
 from ..systematics import iter_systematics, systematic_name
-from .templates import RatioPlot
+from .templates import RatioPlot, SimplePlot
 from ..utils import fold_overflow
-from .utils import label_plot
+from .utils import label_plot, legend_params
 from . import log
 
 from statstools.utils import efficiency_cut, significance
@@ -154,7 +154,7 @@ def draw(name,
          ylabel='Events',
          blind=False,
          show_ratio=False,
-         ratio_range=None,
+         ratio_range=(0, 2),
          ratio_height=0.15,
          ratio_margin=0.06,
          output_formats=None,
@@ -165,7 +165,6 @@ def draw(name,
          logy=False,
          logy_min=None,
          separate_legends=False,
-         legend_leftmargin=0.39,
          ypadding=None,
          legend_position='right',
          range=None,
@@ -212,11 +211,9 @@ def draw(name,
         else:
             ypadding = (.35, .0)
 
+    """
     if show_ratio:
         # define the pad setup for the ratio plot
-        if ratio_range is None:
-            ratio_range = (0, 2)
-
         # start with defaults in current gStyle
         prev_style = ROOT.gStyle
         style = prev_style.Clone()
@@ -265,9 +262,15 @@ def draw(name,
         # simple case without ratio plot
         fig = Canvas()
         hist_pad = fig
+    """
 
-    if logy:
-        hist_pad.SetLogy()
+    if show_ratio:
+        fig = RatioPlot(logy=logy)
+    else:
+        fig = SimplePlot(logy=logy)
+
+    #if logy:
+    #    hist_pad.SetLogy()
 
     if signal is not None:
         if signal_scale != 1.:
@@ -348,7 +351,7 @@ def draw(name,
         if signal_on_top:
             high += total_model
             low += total_model
-        hist_pad.cd()
+        #hist_pad.cd()
         error_band_signal = rootpy_utils.get_band(
             low, high,
             middle_hist=total_signal * signal_scale)
@@ -459,8 +462,9 @@ def draw(name,
 
     if separate_legends:
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
-            pad=hist_pad,
-            leftmargin=legend_leftmargin,
+            #pad=hist_pad,
+            pad=fig.pad('main'),
+            leftmargin=0.39,
             rightmargin=0.12,
             margin=0.35,
             textsize=textsize,
@@ -477,7 +481,8 @@ def draw(name,
             if systematics:
                 n_entries += 1
             model_legend = Legend(n_entries,
-                pad=hist_pad,
+                #pad=hist_pad,
+                pad=fig.pad('main'),
                 leftmargin=0.05,
                 rightmargin=0.46,
                 margin=0.35,
@@ -503,26 +508,11 @@ def draw(name,
             n_entries += len(model)
             if systematics:
                 n_entries += 1
-        if legend_position == 'left':
-            legend = Legend(n_entries,
-                pad=hist_pad,
-                leftmargin=0.03,
-                rightmargin=0.48,
-                margin=0.35,
-                textsize=textsize,
-                entrysep=0.02,
-                entryheight=0.04,
-                topmargin=0.09)
-        else:
-            legend = Legend(n_entries,
-                pad=hist_pad,
-                leftmargin=legend_leftmargin,
-                rightmargin=0.12,
-                margin=0.35,
-                textsize=textsize,
-                entrysep=0.02,
-                entryheight=0.04,
-                topmargin=0.09)
+        legend = Legend(
+            n_entries,
+            pad=fig.pad('main'),
+            textsize=textsize,
+            **legend_params(legend_position))
         if data is not None:
             legend.AddEntry(data, style='lep')
         if signal is not None:
@@ -544,7 +534,8 @@ def draw(name,
     # draw the objects
     axes, bounds = rootpy_utils.draw(
         objects,
-        pad=hist_pad,
+        #pad=hist_pad,
+        pad=fig.pad('main'),
         logy=logy,
         ypadding=ypadding,
         logy_crop_value=1E-1,
@@ -552,28 +543,35 @@ def draw(name,
                    else 507)
 
     xaxis, yaxis = axes
+    base_xaxis = xaxis
     xmin, xmax, ymin, ymax = bounds
 
+    if show_ratio:
+        base_xaxis = fig.axes('ratio')[0]
+
     # draw the legends
-    hist_pad.cd()
+    #hist_pad.cd()
+    fig.cd('main')
     for legend in legends:
         legend.Draw()
 
+    """
     if show_ratio:
         # hide x labels on top hist
-        xaxis.SetLabelOffset(100)
+        #xaxis.SetLabelOffset(100)
         base_hist = ratio_hist_tmp
         base_hist.xaxis.SetTitleOffset(
             base_hist.xaxis.GetTitleOffset() * 3)
         base_hist.xaxis.SetLabelOffset(
             base_hist.xaxis.GetLabelOffset() * 4)
+    """
 
-    label_plot(hist_pad, template=template,
-               xaxis=ratio_hist_tmp.xaxis if show_ratio else xaxis,
-               yaxis=yaxis,
+    label_plot(fig.pad('main'), template=template,
+               xaxis=base_xaxis, yaxis=yaxis,
                xlabel=name, ylabel=ylabel, units=units,
                category_label=category.label,
-               right_label=plot_label,
+               extra_label=plot_label,
+               extra_label_position='right' if legend_position == 'left' else 'left',
                data_info=data_info)
 
     if logy and logy_min is not None:
@@ -583,7 +581,8 @@ def draw(name,
     # draw arrows
     if arrow_values is not None:
         arrow_top = ymin + (ymax - ymin) / 2.
-        hist_pad.cd()
+        #hist_pad.cd()
+        fig.cd('main')
         for value in arrow_values:
             arrow = Arrow(value, arrow_top, value, ymin, 0.05, '|>')
             arrow.SetAngle(30)
@@ -591,7 +590,8 @@ def draw(name,
             arrow.Draw()
 
     if show_pvalue and data is not None and model:
-        hist_pad.cd()
+        #hist_pad.cd()
+        fig.cd('main')
         total_model = sum(model)
         # show p-value and chi^2
         pvalue = total_model.Chi2Test(data, 'WW')
@@ -612,9 +612,10 @@ def draw(name,
         chi2_label.Draw()
 
     if top_label is not None:
-        hist_pad.cd()
+        #hist_pad.cd()
+        fig.cd('main')
         label = ROOT.TLatex(
-            hist_pad.GetLeftMargin() + 0.08, 0.97,
+            fig.pad('main').GetLeftMargin() + 0.08, 0.97,
             top_label)
         label.SetNDC(True)
         label.SetTextFont(43)
@@ -641,6 +642,6 @@ def draw(name,
             output_filename = '{0}.{1}'.format(filename, format)
             save_canvas(fig, output_dir, output_filename)
 
-    if prev_style is not None:
-        prev_style.cd()
+    #if prev_style is not None:
+    #    prev_style.cd()
     return fig
