@@ -100,6 +100,6 @@ def legend_params(position, textsize):
         x=20, y=50, width=0.5,
         pixels=True,
         margin=0.25,
-        entrysep=3,
-        entryheight=textsize + 5,
+        entrysep=2,
+        entryheight=textsize + 4,
         textsize=textsize)

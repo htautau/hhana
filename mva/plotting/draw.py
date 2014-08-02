@@ -272,7 +272,7 @@ def draw(name,
             logy=logy,
             ratio_title='Data / Model',
             ratio_limits=(0, 2),
-            offset=-122,
+            offset=-72,
             ratio_margin=22,
             prune_ratio_ticks=True)
     else:
