@@ -92,20 +92,14 @@ def label_plot(pad, template, xaxis, yaxis,
     pad.Modified()
 
 
-def legend_params(position='left'):
-    if position == 'left':
-        return dict(
-            leftmargin=0.03,
-            rightmargin=0.48,
-            margin=0.35,
-            entrysep=0.01,
-            entryheight=0.035,
-            topmargin=0.09)
-    else:
-        return dict(
-            leftmargin=0.39,
-            rightmargin=0.12,
-            margin=0.35,
-            entrysep=0.01,
-            entryheight=0.035,
-            topmargin=0.09)
+def legend_params(position, textsize):
+    location = 'upper {0}'.format(position)
+    return dict(
+        anchor=location,
+        reference=location,
+        x=20, y=50, width=0.5,
+        pixels=True,
+        margin=0.25,
+        entrysep=3,
+        entryheight=textsize + 5,
+        textsize=textsize)

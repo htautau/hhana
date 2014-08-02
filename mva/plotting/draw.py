@@ -528,8 +528,7 @@ def draw(name,
         legend = Legend(
             n_entries,
             pad=fig.pad('main'),
-            textsize=textsize,
-            **legend_params(legend_position))
+            **legend_params(legend_position, textsize))
         if data is not None:
             legend.AddEntry(data, style='lep')
         if signal is not None:
