@@ -41,7 +41,7 @@ from . import log
 from statstools.utils import efficiency_cut, significance
 
 
-def uncertainty_band(model, systematics, systematics_components):
+def uncertainty_band(model, systematics): #, systematics_components):
     # TODO determine systematics from model itself
     if not isinstance(model, (list, tuple)):
         model = [model]
@@ -61,6 +61,7 @@ def uncertainty_band(model, systematics, systematics_components):
                 "only one or two variations "
                 "per term are allowed: {0}".format(variations))
 
+        """
         if systematics_components is not None:
             if high not in systematics_components:
                 log.warning("filtering out {0}".format(high))
@@ -68,6 +69,7 @@ def uncertainty_band(model, systematics, systematics_components):
             if low not in systematics_components:
                 log.warning("filtering out {0}".format(low))
                 low = 'NOMINAL'
+        """
 
         if high == 'NOMINAL' and low == 'NOMINAL':
             continue
@@ -95,7 +97,7 @@ def uncertainty_band(model, systematics, systematics_components):
         if total_high.Integral() <= 0:
             log.warning("{0}_UP is non-positive".format(term))
 
-        for i in total_high.bins_range():
+        for i in total_high.bins_range(overflow=True):
             total_max[i].value = max(total_high[i].value, total_low[i].value, total_model[i].value)
             total_min[i].value = min(total_high[i].value, total_low[i].value, total_model[i].value)
 
@@ -108,30 +110,32 @@ def uncertainty_band(model, systematics, systematics_components):
         var_low.append(total_min)
 
         log.debug("{0} {1}".format(str(term), str(variations)))
-        log.debug("{0} {1}".format(total_max.integral(), total_min.integral()))
+        log.debug("{0} {1} {2}".format(
+            total_max.integral(),
+            total_model.integral(),
+            total_min.integral()))
 
-    log.debug(str(systematics_components))
-    if systematics_components is None:
-        # include stat error variation
-        total_model_stat_high = total_model.Clone()
-        total_model_stat_low = total_model.Clone()
-        for i in xrange(len(total_model)):
-            total_model_stat_high[i].value += total_model.yerrh(i)
-            total_model_stat_low[i].value -= total_model.yerrl(i)
-        var_high.append(total_model_stat_high)
-        var_low.append(total_model_stat_low)
+    #log.debug(str(systematics_components))
+    # include stat error variation
+    total_model_stat_high = total_model.Clone()
+    total_model_stat_low = total_model.Clone()
+    for i in total_model.bins_range(overflow=True):
+        total_model_stat_high[i].value += total_model.yerrh(i)
+        total_model_stat_low[i].value -= total_model.yerrl(i)
+    var_high.append(total_model_stat_high)
+    var_low.append(total_model_stat_low)
 
     # sum variations in quadrature bin-by-bin
     high_band = total_model.Clone()
     high_band.Reset()
     low_band = high_band.Clone()
-    for i in xrange(len(high_band)):
+    for i in high_band.bins_range(overflow=True):
         sum_high = math.sqrt(
             sum([(v[i].value - total_model[i].value)**2 for v in var_high]))
         sum_low = math.sqrt(
             sum([(v[i].value - total_model[i].value)**2 for v in var_low]))
-        high_band[i] = sum_high
-        low_band[i] = sum_low
+        high_band[i].value = sum_high
+        low_band[i].value = sum_low
     return total_model, high_band, low_band
 
 
@@ -159,7 +163,7 @@ def draw(name,
          ratio_margin=0.06,
          output_formats=None,
          systematics=None,
-         systematics_components=None,
+         #systematics_components=None,
          integer=False,
          textsize=22,
          logy=False,
@@ -338,7 +342,7 @@ def draw(name,
     if model is not None:
         # draw uncertainty band
         total_model, high_band_model, low_band_model = uncertainty_band(
-            model, systematics, systematics_components)
+            model, systematics) #, systematics_components)
         high = total_model + high_band_model
         low = total_model - low_band_model
         error_band_model = rootpy_utils.get_band(
@@ -354,7 +358,7 @@ def draw(name,
 
     if signal is not None and show_signal_error:
         total_signal, high_band_signal, low_band_signal = uncertainty_band(
-            signal, systematics, systematics_components)
+            signal, systematics) #, systematics_components)
         high = (total_signal + high_band_signal) * signal_scale
         low = (total_signal - low_band_signal) * signal_scale
         if signal_on_top:

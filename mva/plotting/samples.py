@@ -242,20 +242,25 @@ def draw_channel(channel, fit=None, no_data=False,
     model_hists = []
     signal_hists = []
     systematics_terms = {}
-    sys_names = channel.sys_names()
     for sample in channel.samples:
         nominal_hist = sample.hist
         _systematics = {}
-        for sys_name in sys_names:
+        for sys_name, osys, hsys in sample.iter_sys():
             systematics_terms[sys_name] = (
                 sys_name + '_UP',
                 sys_name + '_DOWN')
-            dn_hist, up_hist = sample.sys_hist(sys_name)
-            hsys = HistoSys(sys_name, low=dn_hist, high=up_hist)
-            norm, shape = split_norm_shape(hsys, nominal_hist)
-            # include only overallsys component
-            _systematics[sys_name + '_DOWN'] = nominal_hist * norm.low
-            _systematics[sys_name + '_UP'] = nominal_hist * norm.high
+            if hsys is not None:
+                # include only overallsys component
+                norm, shape = split_norm_shape(hsys, nominal_hist)
+                if osys is not None:
+                    osys.low *= norm.low
+                    osys.high *= norm.high
+                else:
+                    osys = norm
+            _systematics[sys_name + '_DOWN'] = nominal_hist * osys.low
+            _systematics[sys_name + '_UP'] = nominal_hist * osys.high
+            log.debug("sample: {0} overallsys: {1} high: {2} low: {3}".format(
+                sample.name, sys_name, osys.high, osys.low))
         nominal_hist.systematics = _systematics
         if sample.GetNormFactor('SigXsecOverSM') is not None:
             signal_hists.append(nominal_hist)

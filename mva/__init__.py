@@ -30,6 +30,7 @@ import logging
 log = logging.getLogger('mva')
 if not os.environ.get("DEBUG", False):
     log.setLevel(logging.INFO)
+rootpy.log.setLevel(logging.INFO)
 
 if hasattr(logging, 'captureWarnings'):
     logging.captureWarnings(True)
