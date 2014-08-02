@@ -21,12 +21,13 @@ from ROOT import TLatex, TGraphAsymmErrors, TH1
 from mva import ATLAS_LABEL, MMC_MASS
 from mva.categories import CATEGORIES
 from mva.analysis import Analysis
-from mva.templates import RatioPlot
+from mva.plotting.templates import RatioPlot
+from mva.plotting.utils import legend_params, label_plot
 from mva.variables import get_label
 
 from statstools.fitresult import Prefit_RooFitResult
 from statstools.postfit import FitModel, ModelCalculator
-from statstools.jobs import run_pool
+from statstools.parallel import run_pool
 from statstools.plotting import (get_uncertainty_graph, parse_name,
                                  get_category, get_binning, get_blinding,
                                  get_rebinned_graph, get_rebinned_hist,
@@ -55,13 +56,13 @@ def fit_workspace(file_name, ws_name,
         workspace.saveSnapshot('StartingPoint', mc.GetPdf().getParameters(obsData))
         roo_min = workspace.fit()
         fit_res = roo_min.save()
-        cats =  [cat for cat in mc.GetPdf()]
-    
+        cats = [cat for cat in mc.GetPdf()]
         output_root = output_basename + '.root'
         output_pickle = output_basename + '.pickle'
         log.info('Output: {0}'.format(output_root))
         log.info('Output: {0}'.format(output_pickle))
-        root_open(output_root, 'recreate').Close()
+        with root_open(output_root, 'recreate'):
+            fit_res.Write('fitresult')
         with open(output_pickle, 'w') as pickle_file:
             pickle.dump({}, pickle_file)
         workers = []
@@ -75,15 +76,17 @@ def fit_workspace(file_name, ws_name,
         
 
 def plot_from_frame(file, name, fit_var, category, year,
-                    binning=None, unblind=False, path=None):
+                    binning=None, unblind=False, path=None, mu=None):
     ana = Analysis(2012)
     frame = file[name]
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
     curve_uncert_bkg = frame.getCurve('FitError_AfterFit_sum_bkg_{0}'.format(frame.GetName()))
     graph_bkg_ws = get_uncertainty_graph(hbkg, curve_uncert_bkg)
     graph_bkg = get_rebinned_graph(graph_bkg_ws, binning) 
-    graph_bkg.fillstyle = '//'
-    graph_bkg.color = 'black'
+    graph_bkg.fillstyle = '/'
+    graph_bkg.linewidth = 0
+    graph_bkg.linecolor = 'white'
+    graph_bkg.fillcolor = '#858585'
     graph_bkg.name = 'Background'
     graph_bkg.title = 'Uncert.'
     graph_bkg.legendstyle = 'F'
@@ -97,10 +100,12 @@ def plot_from_frame(file, name, fit_var, category, year,
     hist_signal = get_rebinned_hist(hist_signal_ws, binning)
     hist_signal.color = ana.higgs_125.hist_decor['linecolor']
     hist_signal.linestyle = 'solid'
-    hist_signal.linewidth = 4
+    hist_signal.linewidth = 2
     hist_signal.name = 'Signal'
     hist_signal.title = ana.higgs_125.label
-    hist_signal.legendstyle = 'F'
+    if mu is not None:
+        hist_signal.title += ' (#mu={0:.1f})'.format(mu)
+    hist_signal.legendstyle = 'L'
 
     data_ws = frame.getHist('Data')
     # HACK HACK HACK
@@ -197,13 +202,15 @@ def plot_from_frame(file, name, fit_var, category, year,
             xtitle=xtitle,
             ytitle='Events',
             ratio_title='Data / Model',
-            ratio_range=(0, 2),
-            ratio_line_values=[0.5, 1, 1.5],
+            ratio_limits=(0, 2),
+            prune_ratio_ticks=True,
+            offset=-72,
+            ratio_margin=22,
             logy=logy)
         if logy:
             plot_name += '_logy'
         canvas.draw('main', plottables,
-                    ypadding=(0.4 if logy else 0.3, 0),
+                    ypadding=(0.45 if logy else 0.3, 0),
                     logy_crop_value=1e-1)
         canvas.draw('ratio', [ratio_bkg, ratio])
         x, y = canvas.axes('main')
@@ -214,21 +221,19 @@ def plot_from_frame(file, name, fit_var, category, year,
         x.range_user = model[0].bounds()
         canvas.update_lines()
         canvas.cd('main')
-        ATLAS_label(0.2, 0.86, pad=canvas.pad('main'), sep=0.132,
-                    text=ATLAS_LABEL, sqrts=sqrts)
+                
         leg = Legend(
             [data] + model.hists[::-1] + [graph_bkg],
-            leftmargin=0.45,
-            margin=0.35,
-            topmargin=0.05,
-            textsize=20,
-            entrysep=0.02,
-            entryheight=0.05)
+            **legend_params(position='right', textsize=22))
         leg.Draw()
-        latex = TLatex(0.2, 0.82, category.label)
-        latex.SetNDC()
-        latex.SetTextSize(20)
-        latex.Draw()
+        
+        label_plot(canvas.pad('main'), model[0],
+                   xaxis=canvas.axes('ratio')[0],
+                   yaxis=canvas.axes('main')[1], ylabel='Events',
+                   category_label=category.label,
+                   data_info=ana.data.info,
+                   units='GeV' if fit_var == 'mmc' else None)
+
         for fmt in ('eps', 'png'):
             if path is None:
                 canvas.SaveAs('{0}.{1}'.format(plot_name, fmt))
@@ -285,6 +290,8 @@ if __name__ == '__main__':
         mkdir_p(plots)
 
     file = root_open(output + '.root')
+    fit_result = file['fitresult']
+    mu = fit_result.final_params.find('SigXsecOverSM').value
     for _, _, names in file.walk(class_pattern='*RooPlot*'):
         for name in names:
             log.info('Channel: {0}'.format(name))
@@ -305,5 +312,5 @@ if __name__ == '__main__':
             plot_from_frame(file, name, args.fit_var,
                             category, year, binning,
                             unblind=unblind,
-                            path=plots)
+                            path=plots, mu=mu)
     file.Close()
