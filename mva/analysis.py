@@ -53,6 +53,7 @@ def get_analysis(args, **kwargs):
         qcd_shape_systematic=args.qcd_shape_systematic,
         random_mu=args.random_mu,
         mu=args.mu,
+        ggf_weight=args.ggf_weight,
         suffix=args.suffix)
     return analysis
 
@@ -72,6 +73,7 @@ class Analysis(object):
                  qcd_shape_systematic=True,
                  random_mu=False,
                  mu=1.,
+                 ggf_weight=True,
                  suffix=None,
                  norm_field=NORM_FIELD):
         self.year = year
@@ -122,7 +124,8 @@ class Analysis(object):
             linecolor='red',
             linewidth=2,
             linestyle='dashed',
-            scale=self.mu)
+            scale=self.mu,
+            ggf_weight=ggf_weight)
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
@@ -145,6 +148,7 @@ class Analysis(object):
             self.ztautau,
         ]
 
+        self.ggf_weight = ggf_weight
         self.signals = self.get_signals(125)
 
     def get_signals(self, mass=125, mode=None, scale_125=False):
@@ -162,7 +166,8 @@ class Analysis(object):
                     scale=self.mu,
                     linecolor='red',
                     linewidth=2,
-                    linestyle='solid')
+                    linestyle='solid',
+                    ggf_weight=self.ggf_weight)
                 if m != 125 and scale_125:
                     log.warning("SCALING SIGNAL TO 125")
                     log.info(str(s.mass))
@@ -178,7 +183,8 @@ class Analysis(object):
                         year=self.year,
                         mass=m,
                         systematics=False,
-                        scale=self.mu).events()[1].value
+                        scale=self.mu,
+                        ggf_weight=self.ggf_weight).events()[1].value
                     log.warning("SCALING SIGNAL TO 125")
                     sf = events_125 / curr_events
                     log.info(str(sf))
@@ -188,7 +194,8 @@ class Analysis(object):
                         mode=mode,
                         mass=m,
                         systematics=self.systematics,
-                        scale=self.mu)
+                        scale=self.mu,
+                        ggf_weight=self.ggf_weight)
                     if m != 125 and scale_125:
                         log.warning("SCALING SIGNAL TO 125")
                         log.info(str(s.mass))
@@ -202,7 +209,8 @@ class Analysis(object):
                         modes=modes,
                         mass=m,
                         systematics=self.systematics,
-                        scale=self.mu))
+                        scale=self.mu,
+                        ggf_weight=self.ggf_weight))
         elif isinstance(mode, (list, tuple)):
             for _mass in mass:
                 for _mode in mode:
@@ -211,7 +219,8 @@ class Analysis(object):
                         mass=_mass,
                         mode=_mode,
                         systematics=self.systematics,
-                        scale=self.mu))
+                        scale=self.mu,
+                        ggf_weight=self.ggf_weight))
         else:
             for m in mass:
                 signals.append(samples.Higgs(
@@ -219,7 +228,8 @@ class Analysis(object):
                     mass=m,
                     mode=mode,
                     systematics=self.systematics,
-                    scale=self.mu))
+                    scale=self.mu,
+                    ggf_weight=self.ggf_weight))
         return signals
 
     def normalize(self, category):

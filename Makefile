@@ -246,7 +246,9 @@ thesis:
 	      plots/shapes/$(BRANCH)/higgs_vs_ztautau \
 	      plots/shapes/$(BRANCH)/qcd_vs_ztautau \
 	      plots/normalization/$(BRANCH) \
-	      -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
+	      plots/bdt/$(BRANCH) \
+	      plots/variables/$(BRANCH) \
+	      -maxdepth 1 -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
 	@echo created ~/thesis.tar.gz
 
 workspace-plots:
@@ -284,16 +286,16 @@ model-plots:
 plots:
 	@for year in 2011 2012; do \
 		for category in vbf boosted rest; do \
-			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
+			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-features --unblind --systematics --show-ratio --year $${year} --category-names $${category} --output-formats eps png; \
 		done; \
-		PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-features --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
+		PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-features --unblind --systematics --show-ratio --year $${year} --categories presel --output-formats eps png; \
 	done
 
 .PHONY: mva-plots
 mva-plots:
 	@for year in 2011 2012; do \
 		for category in vbf boosted; do \
-			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-bdt --systematics --year $${year} --category-names $${category} --output-formats eps png; \
+			PBS_LOG=log PBS_MEM=12gb run-cluster ./plot-bdt --unblind --systematics --year $${year} --category-names $${category} --output-formats eps png; \
 		done; \
 	done
 

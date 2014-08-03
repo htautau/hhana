@@ -5,7 +5,7 @@ from multiprocessing import Process
 from rootpy.stats.histfactory import measurements_from_xml, write_measurement
 from rootpy.io import MemFile
 
-from .jobs import run_pool
+from .parallel import run_pool
 from .histfactory import process_measurement
 from . import log; log = log[__name__]
 

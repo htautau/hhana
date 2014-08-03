@@ -395,7 +395,8 @@ class Sample(object):
                         high=1. + lumi_uncert,
                         low=1. - lumi_uncert)
                     sample.AddOverallSys(lumi_sys)
-                    if self.year == 2012 and do_systematics:
+                    if (self.year == 2012 and
+                            do_systematics and category.name in BCH_UNCERT):
                         bch_uncert = BCH_UNCERT[category.name]
                         bch_sys = histfactory.OverallSys(
                             'ATLAS_BCH_Cleaning',

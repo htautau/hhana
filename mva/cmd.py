@@ -81,6 +81,9 @@ def analysis_parser(parser=None):
     parser.add_argument('--no-qcd-shape-systematic',
             dest='qcd_shape_systematic',
             action='store_false', default=True)
+    parser.add_argument('--no-ggf-weight',
+            dest='ggf_weight',
+            action='store_false', default=True)
     return parser
 
 
