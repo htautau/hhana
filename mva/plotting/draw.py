@@ -218,59 +218,6 @@ def draw(name,
     template = data or model[0]
     xdivisions = min(template.nbins(), 7) if integer else 507
 
-    """
-    if show_ratio:
-        # define the pad setup for the ratio plot
-        # start with defaults in current gStyle
-        prev_style = ROOT.gStyle
-        style = prev_style.Clone()
-
-        # plot dimensions in pixels
-        figheight = baseheight = style.GetCanvasDefH()
-        figwidth = basewidth = style.GetCanvasDefW()
-
-        # margins
-        left_margin = style.GetPadLeftMargin()
-        bottom_margin = style.GetPadBottomMargin()
-        top_margin = style.GetPadTopMargin()
-        right_margin = style.GetPadRightMargin()
-
-        figheight += (ratio_height + ratio_margin) * figheight
-        ratio_height += bottom_margin + ratio_margin / 2.
-
-        style.SetTitleYOffset(style.GetTitleYOffset() * figheight / baseheight)
-        style.cd()
-
-        # main canvas
-        fig = Canvas(width=int(figwidth), height=int(figheight))
-        fig.SetMargin(0, 0, 0, 0)
-
-        # top pad for histograms
-        hist_pad = Pad(0., ratio_height, 1., 1.,
-                       name='top', title='top')
-        hist_pad.SetBottomMargin(ratio_margin / 2.)
-        hist_pad.SetTopMargin(top_margin)
-        hist_pad.SetLeftMargin(left_margin)
-        hist_pad.SetRightMargin(right_margin)
-        hist_pad.Draw()
-
-        # bottom pad for ratio plot
-        fig.cd()
-        ratio_pad = Pad(0, 0, 1, ratio_height,
-                        name='ratio', title='ratio')
-        ratio_pad.SetBottomMargin(bottom_margin / ratio_height)
-        ratio_pad.SetTopMargin(ratio_margin / (2. * ratio_height))
-        ratio_pad.SetLeftMargin(left_margin)
-        ratio_pad.SetRightMargin(right_margin)
-        ratio_pad.Draw()
-        hist_pad.cd()
-    else:
-        prev_style = None
-        # simple case without ratio plot
-        fig = Canvas()
-        hist_pad = fig
-    """
-
     if show_ratio:
         fig = RatioPlot(
             logy=logy,
@@ -281,9 +228,6 @@ def draw(name,
             prune_ratio_ticks=True)
     else:
         fig = SimplePlot(logy=logy)
-
-    #if logy:
-    #    hist_pad.SetLogy()
 
     if signal is not None:
         if signal_scale != 1.:
@@ -364,7 +308,6 @@ def draw(name,
         if signal_on_top:
             high += total_model
             low += total_model
-        #hist_pad.cd()
         error_band_signal = rootpy_utils.get_band(
             low, high,
             middle_hist=total_signal * signal_scale)
@@ -392,7 +335,6 @@ def draw(name,
 
         # draw ratio plot
         if model is not None and show_ratio:
-            #ratio_pad.cd()
             fig.cd('ratio')
             total_model = sum(model)
             ratio_hist = Hist.divide(data, total_model)
@@ -466,7 +408,6 @@ def draw(name,
                 total_model + high_band_model, total_model)
             ratio_hist_low = Hist.divide(
                 total_model - low_band_model, total_model)
-            #ratio_pad.cd()
             fig.cd('ratio')
             error_band = rootpy_utils.get_band(
                 ratio_hist_high, ratio_hist_low)
@@ -474,15 +415,10 @@ def draw(name,
             error_band.fillcolor = '#858585'
             error_band.drawstyle = 'E2'
             fig.draw('ratio', [error_band, ratio_hist], xdivisions=xdivisions)
-            #error_band.Draw('same E2')
-
-            # draw points above band
-            #ratio_hist.Draw('same E0')
 
     if separate_legends:
         fig.cd('main')
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
-            #pad=hist_pad,
             pad=fig.pad('main'),
             leftmargin=0.39,
             rightmargin=0.12,
@@ -501,7 +437,6 @@ def draw(name,
             if systematics:
                 n_entries += 1
             model_legend = Legend(n_entries,
-                #pad=hist_pad,
                 pad=fig.pad('main'),
                 leftmargin=0.05,
                 rightmargin=0.46,
@@ -555,39 +490,20 @@ def draw(name,
                       xdivisions=xdivisions)
     xaxis, yaxis = fig.axes('main')
 
-    """
-    axes, bounds = rootpy_utils.draw(
-        objects,
-        #pad=hist_pad,
-        pad=fig.pad('main'),
-        logy=logy,
-        ypadding=ypadding,
-        logy_crop_value=1E-1,
-        xdivisions=min(template.nbins(), 7) if integer
-                   else 507)
-    """
     base_xaxis = xaxis
+    base_xaxis.range_user = template.bounds()
+    base_xaxis.limits = template.bounds()
     xmin, xmax, ymin, ymax = bounds
 
     if show_ratio:
         base_xaxis = fig.axes('ratio')[0]
+        base_xaxis.range_user = template.bounds()
+        base_xaxis.limits = template.bounds()
 
     # draw the legends
-    #hist_pad.cd()
     fig.cd('main')
     for legend in legends:
         legend.Draw()
-
-    """
-    if show_ratio:
-        # hide x labels on top hist
-        #xaxis.SetLabelOffset(100)
-        base_hist = ratio_hist_tmp
-        base_hist.xaxis.SetTitleOffset(
-            base_hist.xaxis.GetTitleOffset() * 3)
-        base_hist.xaxis.SetLabelOffset(
-            base_hist.xaxis.GetLabelOffset() * 4)
-    """
 
     label_plot(fig.pad('main'), template=template,
                xaxis=base_xaxis, yaxis=yaxis,
@@ -604,7 +520,6 @@ def draw(name,
     # draw arrows
     if arrow_values is not None:
         arrow_top = ymin + (ymax - ymin) / 2.
-        #hist_pad.cd()
         fig.cd('main')
         for value in arrow_values:
             arrow = Arrow(value, arrow_top, value, ymin, 0.05, '|>')
@@ -613,7 +528,6 @@ def draw(name,
             arrow.Draw()
 
     if show_pvalue and data is not None and model:
-        #hist_pad.cd()
         fig.cd('main')
         total_model = sum(model)
         # show p-value and chi^2
@@ -635,7 +549,6 @@ def draw(name,
         chi2_label.Draw()
 
     if top_label is not None:
-        #hist_pad.cd()
         fig.cd('main')
         label = ROOT.TLatex(
             fig.pad('main').GetLeftMargin() + 0.08, 0.97,
@@ -665,6 +578,4 @@ def draw(name,
             output_filename = '{0}.{1}'.format(filename, format)
             save_canvas(fig, output_dir, output_filename)
 
-    #if prev_style is not None:
-    #    prev_style.cd()
     return fig
