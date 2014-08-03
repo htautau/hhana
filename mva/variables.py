@@ -591,7 +591,7 @@ VARIABLES['mmc%d_mass' % mmc] = {
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
     'filename': 'mmc%d_mass' % mmc,
     'binning': {
-        2011: (15, 0, 250),
+        2011: (25, 0, 250),
         2012: (25, 0, 250)},
     'units': 'GeV',
     'blind': (100, 150),
