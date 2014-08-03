@@ -147,7 +147,8 @@ def plot_bdt(category, workspace_binning=True):
         signal_on_top=False,
         show_ratio=True,
         output_dir=plot_dir('bdt'))
-    
+   
+    """
     #######################################################################
     # deta control region
     log.info("plotting classifier output in the deta > 1.5 control region ...")
@@ -178,7 +179,6 @@ def plot_bdt(category, workspace_binning=True):
         show_ratio=True,
         output_dir=plot_dir('bdt'))
 
-    """
     ##########################################################################
     # show the background model and 125 GeV signal in the fakes control region
     log.info("plotting classifier output in the fakes control region ...")
