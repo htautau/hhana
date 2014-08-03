@@ -246,7 +246,9 @@ thesis:
 	      plots/shapes/$(BRANCH)/higgs_vs_ztautau \
 	      plots/shapes/$(BRANCH)/qcd_vs_ztautau \
 	      plots/normalization/$(BRANCH) \
-	      -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
+	      plots/bdt/$(BRANCH) \
+	      plots/variables/$(BRANCH) \
+	      -maxdepth 1 -name '*.eps' -print0 | tar -vpcz --null -T - -f ~/thesis.tar.gz
 	@echo created ~/thesis.tar.gz
 
 workspace-plots:
