@@ -13,9 +13,9 @@ from rootpy.plotting import Hist
 from root_numpy import rec2array
 
 # local imports
-from . import samples, log; log = log[__name__]
+from . import log; log = log[__name__]
 from . import norm_cache, CONST_PARAMS
-from .samples import Higgs, Data
+from . import samples
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
 from .defaults import (
@@ -29,7 +29,8 @@ Scores = namedtuple('Scores', [
     'bkg_scores',
     'all_sig_scores',
     'min_score',
-    'max_score',])
+    'max_score',
+])
 
 
 def get_analysis(args, **kwargs):
@@ -310,7 +311,7 @@ class Analysis(object):
                 clf=clf,
                 min_score=min_score,
                 max_score=max_score,
-                suffix=suffix if not isinstance(s, Higgs) else None,
+                suffix=suffix if not isinstance(s, samples.Higgs) else None,
                 no_signal_fixes=no_signal_fixes,
                 systematics=systematics)
             histfactory_samples.append(sample)
@@ -387,7 +388,7 @@ class Analysis(object):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 systematics=systematics,
-                suffix=suffix if not isinstance(s, Higgs) else None,
+                suffix=suffix if not isinstance(s, samples.Higgs) else None,
                 no_signal_fixes=no_signal_fixes,
                 bootstrap_data=bootstrap_data,
                 ravel=ravel,
@@ -537,7 +538,6 @@ class Analysis(object):
         Return a HistFactory Channel for each mass hypothesis
         """
         log.info("constructing channels")
-        channels = dict()
 
         # determine min and max scores
         scores_obj = self.get_scores(
