@@ -540,16 +540,9 @@ def draw(name,
         if logy:
             filename += '_logy'
         filename += '_root'
-
-        # generate list of requested output formats
         if output_formats is None:
             output_formats = ('png',)
-        elif isinstance(output_formats, basestring):
-            output_formats = output_formats.split()
-
         # save the figure
-        for format in output_formats:
-            output_filename = '{0}.{1}'.format(filename, format)
-            save_canvas(fig, output_dir, output_filename)
+        save_canvas(fig, output_dir, filename, formats=output_formats)
 
     return fig

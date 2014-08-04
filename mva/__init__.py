@@ -109,6 +109,8 @@ def save_canvas(canvas, directory, name, formats=None):
     if not os.path.exists(path):
         mkdir_p(path)
     if formats is not None:
+        if isinstance(formats, basestring):
+            formats = formats.split()
         for fmt in formats:
             if fmt[0] != '.':
                 fmt = '.' + fmt

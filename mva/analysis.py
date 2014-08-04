@@ -16,6 +16,7 @@ from root_numpy import rec2array
 from . import log; log = log[__name__]
 from . import norm_cache, CONST_PARAMS
 from . import samples
+from .samples import Higgs
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
 from .defaults import (
@@ -311,7 +312,7 @@ class Analysis(object):
                 clf=clf,
                 min_score=min_score,
                 max_score=max_score,
-                suffix=suffix if not isinstance(s, samples.Higgs) else None,
+                suffix=suffix if not isinstance(s, Higgs) else None,
                 no_signal_fixes=no_signal_fixes,
                 systematics=systematics)
             histfactory_samples.append(sample)
@@ -388,7 +389,7 @@ class Analysis(object):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 systematics=systematics,
-                suffix=suffix if not isinstance(s, samples.Higgs) else None,
+                suffix=suffix if not isinstance(s, Higgs) else None,
                 no_signal_fixes=no_signal_fixes,
                 bootstrap_data=bootstrap_data,
                 ravel=ravel,
