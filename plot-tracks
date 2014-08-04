@@ -16,10 +16,12 @@ def draw_tracks(year):
     set_hsg4_style(shape='rect')
     ana = Analysis(year=year, target_region='OS', fakes_region='SS')
     ana.normalize(Category_Preselection)
-    fields = ['tau1_numTrack_recounted', 'tau2_numTrack_recounted']
+    fields = ['tau1_numTrack_recounted', 'tau2_numTrack_recounted',
+              'tau1_numTrack', 'tau2_numTrack']
     hists = []
     for sample in ana.backgrounds:
         array = sample.array(Category_Preselection, 'OS', fields=fields)
+        weights = array[:,-1]
         decor = sample.hist_decor.copy()
         decor['linewidth'] = 1
         decor['linecolor'] = 'black'
@@ -30,8 +32,11 @@ def draw_tracks(year):
                       legendstyle='F',
                       title=sample.label,
                       **decor)
-        fill_hist(hist, array[:,:2], array[:,-1])
+        fill_hist(hist, array[:,:2], weights)
         hists.append(hist)
+        # get acceptance of the isolation cut
+        isolated = array[:,0].ravel() == array[:,2].ravel()
+        print year, sample.name, weights[isolated].sum() / weights.sum()
     canvas = Canvas(width=700)
     stack = HistStack(hists)
     stack.Draw()
