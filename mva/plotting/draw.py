@@ -1,44 +1,18 @@
 # stdlib imports
-import os
-import sys
 import math
-import itertools
-from itertools import izip
-
-# numpy imports
-import numpy as np
-
-# matplotlib imports
-import matplotlib
-from matplotlib import pyplot as plt
-import matplotlib.font_manager as fm
-from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
-                               MaxNLocator, FuncFormatter, MultipleLocator)
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
 
 # ROOT/rootpy imports
 import ROOT
-from rootpy.context import invisible_canvas
-from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack, Graph
-import rootpy.plotting.root2matplotlib as rplt
-from rootpy.io import root_open
-from rootpy.plotting.shapes import Line, Arrow
+from rootpy.plotting import Legend, Hist, HistStack
+from rootpy.plotting.shapes import Arrow
 import rootpy.plotting.utils as rootpy_utils
-from rootpy.plotting.style.atlas.labels import ATLAS_label
-from rootpy.plotting.contrib.quantiles import qqgraph
 
 # local imports
-from ..variables import VARIABLES
-from ..defaults import TARGET_REGION
-from .. import ATLAS_LABEL, PLOTS_DIR, MMC_MASS, save_canvas
-from ..systematics import iter_systematics, systematic_name
+from .. import PLOTS_DIR, save_canvas
 from .templates import RatioPlot, SimplePlot
 from ..utils import fold_overflow
 from .utils import label_plot, legend_params
 from . import log
-
-from statstools.utils import efficiency_cut, significance
 
 
 def uncertainty_band(model, systematics): #, systematics_components):

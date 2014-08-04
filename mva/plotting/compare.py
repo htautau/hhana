@@ -1,6 +1,13 @@
-from rootpy.plotting import Legend
+from rootpy.plotting import Legend, Hist, Graph
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+
+import ROOT
+
 from ..variables import VARIABLES
 from .templates import RatioPlot
+from ..defaults import TARGET_REGION
+from .. import ATLAS_LABEL
+from .. import save_canvas
 
 
 def draw_ratio(a, b, field, category,

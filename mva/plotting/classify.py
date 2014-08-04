@@ -1,6 +1,25 @@
-from statstools.utils import efficiency_cut
+
+# stdlib imports
+import os
+
+# local imports
+from . import log
+from ..variables import VARIABLES
+from .. import PLOTS_DIR
+from .draw import draw
+from statstools.utils import efficiency_cut, significance
+
+# matplotlib imports
 from matplotlib import cm
+from matplotlib import pyplot as plt
+from matplotlib.ticker import MaxNLocator, FuncFormatter
+
+# numpy imports
+import numpy as np
+
+# rootpy imports
 from rootpy.plotting.contrib import plot_corrcoef_matrix
+from rootpy.plotting import Hist
 
 
 def correlations(signal, signal_weight,
