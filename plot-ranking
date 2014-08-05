@@ -51,7 +51,7 @@ def matched(name, patterns):
 
 
 def plot_ranking(name, file, outdir,
-                 patterns=None, highest=None,
+                 patterns=None, top=None,
                  row_pixels=30,
                  label_pixels=None):
     if label_pixels is None:
@@ -87,9 +87,9 @@ def plot_ranking(name, file, outdir,
                 (postfit_impact_low, postfit_impact_high)))
     # sort by postfit impact
     ranking.sort(key=lambda item: abs(item[1]))
-    if highest:
-        # only show the N highest ranked NPs
-        ranking = ranking[-highest:]
+    if top:
+        # only show the N top ranked NPs
+        ranking = ranking[-top:]
     n_points = len(ranking)
     # setup canvas
     c = Canvas(width=1024, height=300 + (row_pixels + 2) * n_points)
@@ -194,8 +194,6 @@ def plot_ranking(name, file, outdir,
     mu_legend.Draw()
     theta_legend = Legend(
         (pulls, pulls_1sigma), pad=pad1,
-        topmargin=0.85,
-        leftmargin=0,
         entryheight=0.018,
         margin=0.1)
     theta_legend.position_pixels = (left_pixels, 20, c.width, 100)
@@ -215,7 +213,7 @@ if __name__ == '__main__':
     parser.add_argument('--row-pixels', type=int, default=30)
     parser.add_argument('--label-pixels', type=int, default=None)
     parser.add_argument('--patterns', nargs='+', default=None)
-    parser.add_argument('--highest', type=int, default=None)
+    parser.add_argument('--top', type=int, default=None)
     args = parser.parse_args()
 
     input = os.path.splitext(args.file)[0]
@@ -228,6 +226,6 @@ if __name__ == '__main__':
     plot_ranking(
         args.name, pulls, plots,
         patterns=args.patterns,
-        highest=args.highest,
+        top=args.top,
         row_pixels=args.row_pixels,
         label_pixels=args.label_pixels)
