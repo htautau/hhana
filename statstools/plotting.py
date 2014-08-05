@@ -13,8 +13,6 @@ from rootpy.memory import keepalive
 from rootpy.context import preserve_current_canvas
 
 # local imports
-from mva import CACHE_DIR
-from mva.samples import Higgs
 from . import log; log = log[__name__]
 
 gaussian_cdf_c = ROOT.Math.gaussian_cdf_c
@@ -129,6 +127,7 @@ def get_category(category_name, categories):
 
 
 def get_binning(category, year, fit_var='mmc'):
+    from mva import CACHE_DIR
     if fit_var == 'mmc':
         binning = category.limitbins
         if isinstance(binning, (tuple, list)):
