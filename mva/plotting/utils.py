@@ -1,7 +1,21 @@
 import ROOT
+from itertools import izip
+from matplotlib import cm
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 from rootpy.memory.keepalive import keepalive
 from .. import ATLAS_LABEL
+
+
+def set_colors(hists, colors='jet'):
+    if isinstance(colors, basestring):
+        colors = cm.get_cmap(colors, len(hists))
+    if hasattr(colors, '__call__'):
+        for i, h in enumerate(hists):
+            color = colors((i + 1) / float(len(hists) + 1))
+            h.SetColor(color)
+    else:
+        for h, color in izip(hists, colors):
+            h.SetColor(color)
 
 
 def label_plot(pad, template, xaxis, yaxis,

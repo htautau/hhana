@@ -268,6 +268,8 @@ norms:
 		done; \
 		nohup ./norm --fakes-region SS_NTRK --target-region OS_NTRK --year $${year} & \
 		nohup ./norm --no-embedding --fakes-region SS_NTRK --target-region OS_NTRK --year $${year} & \
+		nohup ./norm --fakes-region SS --target-region OS --year $${year} & \
+		nohup ./norm --no-embedding --fakes-region SS --target-region OS --year $${year} & \
 	done
 
 .PHONY: model-plots

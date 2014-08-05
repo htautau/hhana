@@ -4,41 +4,29 @@ import pickle
 from operator import itemgetter
 import types
 import shutil
-import math
 from cStringIO import StringIO
 
 # numpy imports
 import numpy as np
 
-# matplotlib imports
-from matplotlib import cm
-
 # scikit-learn imports
 import sklearn
 from sklearn.cross_validation import StratifiedKFold
-from sklearn.grid_search import GridSearchCV
-from sklearn.metrics import (
-    classification_report, precision_score, accuracy_score, roc_auc_score)
+from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 # rootpy imports
-from rootpy.plotting import Hist
-from rootpy.io import root_open
 from rootpy.extern.tabulartext import PrettyTable
 
 # root_numpy imports
 from root_numpy import rec2array
 
 # local imports
-from .samples import *
 from . import log; log = log[__name__]
 from . import MMC_MASS, MMC_PT
-from .plotting import (
-    draw, plot_clf, plot_grid_scores,
-    hist_scores, draw_samples_array,
-    draw_channel_array, draw_channel)
-from . import variables, CACHE_DIR, BDT_DIR, PLOTS_DIR, plot_dir
+from .plotting import plot_grid_scores
+from . import variables, CACHE_DIR, BDT_DIR
 from .systematics import systematic_name
 from .grid_search import BoostGridSearchCV
 

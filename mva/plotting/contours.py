@@ -1,6 +1,7 @@
 import ROOT
 import numpy as np
 from rootpy import asrootpy
+from rootpy.context import invisible_canvas
 from rootpy.plotting.base import linestyles_text2root
 from rootpy.plotting.base import convert_color
 from math import atan, pi, copysign

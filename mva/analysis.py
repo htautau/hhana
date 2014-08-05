@@ -13,9 +13,10 @@ from rootpy.plotting import Hist
 from root_numpy import rec2array
 
 # local imports
-from . import samples, log; log = log[__name__]
+from . import log; log = log[__name__]
 from . import norm_cache, CONST_PARAMS
-from .samples import Higgs, Data
+from . import samples
+from .samples import Higgs
 from .categories import CATEGORIES
 from .classify import histogram_scores, Classifier
 from .defaults import (
@@ -29,7 +30,8 @@ Scores = namedtuple('Scores', [
     'bkg_scores',
     'all_sig_scores',
     'min_score',
-    'max_score',])
+    'max_score',
+])
 
 
 def get_analysis(args, **kwargs):
@@ -537,7 +539,6 @@ class Analysis(object):
         Return a HistFactory Channel for each mass hypothesis
         """
         log.info("constructing channels")
-        channels = dict()
 
         # determine min and max scores
         scores_obj = self.get_scores(

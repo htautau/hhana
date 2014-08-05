@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+from rootpy.plotting import HistStack, Hist2D, Canvas, Legend
+from rootpy.plotting.style.atlas import ATLAS_label
+from rootpy import asrootpy
+from root_numpy import fill_hist
+from mva import set_hsg4_style, ATLAS_LABEL, save_canvas, plot_dir
+from mva.analysis import Analysis
+from mva.variables import get_label, VARIABLES
+from mva.categories import Category_Preselection
+from mva.plotting import draw_channel_array
+from ROOT import TLatex
+
+
+def draw_tracks(year):
+    set_hsg4_style(shape='rect')
+    ana = Analysis(year=year, target_region='OS', fakes_region='SS')
+    ana.normalize(Category_Preselection)
+    fields = ['tau1_numTrack_recounted', 'tau2_numTrack_recounted',
+              'tau1_numTrack', 'tau2_numTrack']
+    hists = []
+    for sample in ana.backgrounds:
+        array = sample.array(Category_Preselection, 'OS', fields=fields)
+        weights = array[:,-1]
+        decor = sample.hist_decor.copy()
+        decor['linewidth'] = 1
+        decor['linecolor'] = 'black'
+        decor['fillcolor'] = decor['color']
+        del decor['color']
+        hist = Hist2D(5, .5, 5.5, 5, .5, 5.5,
+                      drawstyle='LEGO10',
+                      legendstyle='F',
+                      title=sample.label,
+                      **decor)
+        fill_hist(hist, array[:,:2], weights)
+        hists.append(hist)
+        # get acceptance of the isolation cut
+        isolated = array[:,0].ravel() == array[:,2].ravel()
+        print year, sample.name, weights[isolated].sum() / weights.sum()
+    canvas = Canvas(width=700)
+    stack = HistStack(hists)
+    stack.Draw()
+    x = stack.xaxis
+    y = stack.yaxis
+    z = stack.zaxis
+    x.divisions = 5
+    y.divisions = 5
+    x.title = get_label(fields[0])
+    y.title = get_label(fields[1])
+    z.title = 'Events'
+    z.SetTitleOffset(1.6)
+    # draw labels
+    category_label = TLatex(0.05, 0.88, Category_Preselection.label)
+    category_label.SetTextSize(22)
+    category_label.SetNDC()
+    category_label.Draw()
+    lumi_label = TLatex(0.05, 0.94, str(ana.data.info))
+    lumi_label.SetTextSize(22)
+    lumi_label.SetNDC()
+    lumi_label.Draw()
+    ATLAS_label(0.73, 0.94, sep=0.11, pad=canvas, sqrts=None,
+                text=ATLAS_LABEL, textsize=22)
+    # draw legend
+    legend = Legend(hists[::-1], x=0, y=20, width=0.3,
+                    pad=canvas,
+                    anchor='upper right',
+                    reference='upper right',
+                    pixels=True,
+                    textsize=22)
+    legend.Draw()
+    save_canvas(canvas, plot_dir('track_isolation'),
+                'tracks_recounted_2D_{0}'.format(year % 1000),
+                formats=('eps', 'png'))
+    set_hsg4_style(shape='square')
+    draw_channel_array(
+        ana,
+        vars=VARIABLES,
+        plots=fields,
+        mass=125,
+        mode='combined',
+        signal_scale=50,
+        category=Category_Preselection,
+        region=ana.target_region,
+        output_formats=('eps', 'png'),
+        show_ratio=False,
+        output_dir=plot_dir('track_isolation'))
+
+for year in (2011, 2012):
+    draw_tracks(year)

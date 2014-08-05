@@ -7,6 +7,7 @@ from mva.categories import (
 from mva.analysis import Analysis
 from mva.variables import VARIABLES, get_label
 from mva.plotting import draw_contours
+from mva.plotting.utils import legend_params
 from mva.defaults import TARGET_REGION
 from mva import save_canvas, ATLAS_LABEL
 
@@ -104,11 +105,9 @@ def legend(canvas, right=False):
                  title=s.label)
             for s, style in zip(samples, styles)]
     with canvas:
-        legend = Legend(objs, pad=canvas, textsize=20,
-                        leftmargin=0.5 if right else 0.04,
-                        rightmargin=0.04 if right else 0.5,
-                        topmargin=0.1,
-                        margin=0.3)
+        legend = Legend(objs, pad=canvas,
+                        **legend_params('right' if right else 'left',
+                                        textsize=20))
         legend.Draw()
 
 

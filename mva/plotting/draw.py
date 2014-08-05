@@ -1,44 +1,18 @@
 # stdlib imports
-import os
-import sys
 import math
-import itertools
-from itertools import izip
-
-# numpy imports
-import numpy as np
-
-# matplotlib imports
-import matplotlib
-from matplotlib import pyplot as plt
-import matplotlib.font_manager as fm
-from matplotlib.ticker import (AutoMinorLocator, NullFormatter,
-                               MaxNLocator, FuncFormatter, MultipleLocator)
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
 
 # ROOT/rootpy imports
 import ROOT
-from rootpy.context import invisible_canvas
-from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, HistStack, Graph
-import rootpy.plotting.root2matplotlib as rplt
-from rootpy.io import root_open
-from rootpy.plotting.shapes import Line, Arrow
+from rootpy.plotting import Legend, Hist, HistStack
+from rootpy.plotting.shapes import Arrow
 import rootpy.plotting.utils as rootpy_utils
-from rootpy.plotting.style.atlas.labels import ATLAS_label
-from rootpy.plotting.contrib.quantiles import qqgraph
 
 # local imports
-from ..variables import VARIABLES
-from ..defaults import TARGET_REGION
-from .. import ATLAS_LABEL, PLOTS_DIR, MMC_MASS, save_canvas
-from ..systematics import iter_systematics, systematic_name
+from .. import PLOTS_DIR, save_canvas
 from .templates import RatioPlot, SimplePlot
 from ..utils import fold_overflow
-from .utils import label_plot, legend_params
+from .utils import label_plot, legend_params, set_colors
 from . import log
-
-from statstools.utils import efficiency_cut, significance
 
 
 def uncertainty_band(model, systematics): #, systematics_components):
@@ -420,13 +394,13 @@ def draw(name,
         fig.cd('main')
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
             pad=fig.pad('main'),
-            leftmargin=0.39,
-            rightmargin=0.12,
+            anchor='upper right',
+            reference='upper right',
+            x=0.05, y=0.15,
             margin=0.35,
             textsize=textsize,
             entrysep=0.02,
-            entryheight=0.04,
-            topmargin=0.15)
+            entryheight=0.04)
         right_legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -438,13 +412,13 @@ def draw(name,
                 n_entries += 1
             model_legend = Legend(n_entries,
                 pad=fig.pad('main'),
-                leftmargin=0.05,
-                rightmargin=0.46,
+                anchor='upper left',
+                reference='upper left',
+                x=0.05, y=0.15,
                 margin=0.35,
                 textsize=textsize,
                 entrysep=0.02,
-                entryheight=0.04,
-                topmargin=0.15)
+                entryheight=0.04)
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
             if systematics:
@@ -566,16 +540,9 @@ def draw(name,
         if logy:
             filename += '_logy'
         filename += '_root'
-
-        # generate list of requested output formats
         if output_formats is None:
             output_formats = ('png',)
-        elif isinstance(output_formats, basestring):
-            output_formats = output_formats.split()
-
         # save the figure
-        for format in output_formats:
-            output_filename = '{0}.{1}'.format(filename, format)
-            save_canvas(fig, output_dir, output_filename)
+        save_canvas(fig, output_dir, filename, formats=output_formats)
 
     return fig
