@@ -11,7 +11,7 @@ import rootpy.plotting.utils as rootpy_utils
 from .. import PLOTS_DIR, save_canvas
 from .templates import RatioPlot, SimplePlot
 from ..utils import fold_overflow
-from .utils import label_plot, legend_params
+from .utils import label_plot, legend_params, set_colors
 from . import log
 
 
@@ -394,13 +394,13 @@ def draw(name,
         fig.cd('main')
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
             pad=fig.pad('main'),
-            leftmargin=0.39,
-            rightmargin=0.12,
+            anchor='upper right',
+            reference='upper right',
+            x=0.05, y=0.15,
             margin=0.35,
             textsize=textsize,
             entrysep=0.02,
-            entryheight=0.04,
-            topmargin=0.15)
+            entryheight=0.04)
         right_legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -412,13 +412,13 @@ def draw(name,
                 n_entries += 1
             model_legend = Legend(n_entries,
                 pad=fig.pad('main'),
-                leftmargin=0.05,
-                rightmargin=0.46,
+                anchor='upper left',
+                reference='upper left',
+                x=0.05, y=0.15,
                 margin=0.35,
                 textsize=textsize,
                 entrysep=0.02,
-                entryheight=0.04,
-                topmargin=0.15)
+                entryheight=0.04)
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
             if systematics:
