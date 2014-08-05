@@ -14,7 +14,7 @@ from rootpy.utils.path import mkdir_p
 # local imports
 from statstools.fixups import find_measurements
 from statstools import log; log = log['plot-np-shape']
-from mva.templates import RatioPlot
+from mva.plotting.templates import RatioPlot
 from mva import save_canvas
 
 parser = ArgumentParser()
@@ -107,10 +107,10 @@ def draw_ratio(nom, sys_var,
     plot = RatioPlot(xtitle='Observable',
                      ytitle='Events',
                      logy=logy,
-                     ratio_title='Rel. Variation',
-                     ratio_range=None,
                      ratio_line_values=(0,),
-                     ratio_margin=0.06)
+                     ratio_limits=(-1, 1),
+                     ratio_title='Rel. Variation',
+                     prune_ratio_ticks=True, ratio_margin=22, offset=-72)
 
     plot.draw('main', [nom, up, do], ypadding=(0.4, 0.), logy_crop_value=1e-1)
     plot.draw('ratio', [ratio_up, ratio_do],
@@ -118,8 +118,7 @@ def draw_ratio(nom, sys_var,
 
     with plot.pad('main') as pad:
         # legend
-        leg = Legend([nom, up, do],
-                     leftmargin=0.56, topmargin=0.18,
+        leg = Legend([nom, up, do], 0, 0.19,
                      entrysep=0.01, entryheight=0.05,
                      margin=0.27, textsize=textsize)
         leg.Draw()
