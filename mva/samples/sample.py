@@ -26,7 +26,7 @@ from higgstautau import samples as samples_db
 # local imports
 from . import log; log = log[__name__]
 from .. import variables
-from .. import DEFAULT_STUDENT, ETC_DIR, CACHE_DIR
+from .. import NTUPLE_PATH, DEFAULT_STUDENT, ETC_DIR, CACHE_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
@@ -105,6 +105,7 @@ class Sample(object):
         return []
 
     def __init__(self, year, scale=1., cuts=None,
+                 ntuple_path=NTUPLE_PATH,
                  student=DEFAULT_STUDENT,
                  trigger=True,
                  name='Sample',
@@ -120,6 +121,7 @@ class Sample(object):
             self._cuts = Cut()
         else:
             self._cuts = cuts
+        self.ntuple_path = ntuple_path
         self.student = student
         self.name = name
         self.label = label
@@ -888,8 +890,8 @@ class SystematicsSample(Sample):
         self.systematics = systematics
         self.tau_id_sf = tau_id_sf
         self.norms = {}
-        rfile = get_file(self.student)
-        h5file = get_file(self.student, hdf=True)
+        rfile = get_file(self.ntuple_path, self.student)
+        h5file = get_file(self.ntuple_path, self.student, hdf=True)
 
         from .ztautau import Embedded_Ztautau
 
