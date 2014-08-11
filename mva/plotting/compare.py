@@ -1,7 +1,9 @@
-from rootpy.plotting import Legend
+from rootpy.plotting import Legend, Hist, Graph
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+from rootpy import ROOT
 from ..variables import VARIABLES
 from .templates import RatioPlot
-
+from .. import ATLAS_LABEL
 
 def draw_ratio(a, b, field, category,
                textsize=22,
@@ -27,7 +29,7 @@ def draw_ratio(a, b, field, category,
                      ytitle='{0}Events'.format(
                          'Normalized ' if normalize else ''),
                      ratio_title='A / B',
-                     ratio_range=ratio_range,
+                     ratio_limits=ratio_range,
                      ratio_line_values=ratio_line_values,
                      logy=logy)
     if normalize:
@@ -63,7 +65,6 @@ def draw_ratio(a, b, field, category,
     with plot.pad('main') as pad:
         # legend
         leg = Legend([a, b],
-                     leftmargin=0.25, topmargin=0.1,
                      margin=0.18, textsize=textsize)
         leg.Draw()
         # draw the category label
