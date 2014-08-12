@@ -13,6 +13,7 @@ from mva.defaults import TARGET_REGION
 from mva.plotting import draw_ratio
 from mva import CACHE_DIR
 from mva.cmd import get_parser
+from mva import log; log = log[__name__]
 from rootpy.plotting import Hist
 from root_numpy import fill_hist
 import os
@@ -32,8 +33,7 @@ pileup_weight = True
 higgs = Higgs(
     2012, mass=125, modes=modes,
     ggf_weight=ggf_weight,
-    pileup_weight=pileup_weight,
-    student='hhskim_BCH')
+    pileup_weight=pileup_weight)
 higgs_nompi = Higgs(
     2012, mass=125, modes=modes,
     ggf_weight=ggf_weight,
@@ -41,6 +41,11 @@ higgs_nompi = Higgs(
     ntuple_path='/cluster/data12/qbuat/ntuples_hh/',
     student='hhskim_nompi',
     suffix='_noMPI.mc12b')
+
+
+for i, _ in enumerate(modes):
+    log.info(higgs.xsec_kfact_effic(i))
+    log.info(higgs_nompi.xsec_kfact_effic(i))
 
 print "default raw number of events", higgs.events(weighted=False)[1].value
 print "No MPI sample raw number of events", higgs_nompi.events(weighted=False)[1].value
@@ -51,13 +56,13 @@ analysis = Analysis(2012)
 UNCERT = {}
 
 for cattype in ('mva_all', 'cuts'):
-    headers = [c.name for c in CATEGORIES[cattype]]
+    headers = ['Category']+[c.name for c in CATEGORIES[cattype]+CATEGORIES['presel']]
     row_nom = ['Nominal']
     row_nompi = ['MPI-off']
     row_diff = ['(MPI off-Nom)/Nom (%)']
     table = []
-    for category in CATEGORIES[cattype]:
-        if cattype == 'mva_all' and not category.analysis_control:
+    for category in CATEGORIES[cattype]+CATEGORIES['presel']:
+        if cattype == 'mva_all' and not category.analysis_control and not category.name=='preselection':
             # get the BDTs
             clf = analysis.get_clf(category, mass=125, load=True, transform=True)
             # get scores

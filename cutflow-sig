@@ -12,5 +12,5 @@ samples = []
 for signal, info in samples_db.SIGNALS['hadhad'][args.year % 1e3].items():
     for sample in info['samples']:
         samples.append((sample, sample, sample))
-
-make_cutflow(samples, args)
+        print sample
+#make_cutflow(samples, args)
