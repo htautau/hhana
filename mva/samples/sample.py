@@ -235,7 +235,6 @@ class Sample(object):
                              max_score=max_score,
                              inplace=True)
             return field_hist
-
         self.draw_array(field_hist, category, region,
                         cuts=cuts,
                         weighted=weighted,
@@ -493,7 +492,7 @@ class Sample(object):
                     cuts=cuts, systematic=systematic)
             rec = recfunctions.rec_append_fields(rec,
                 names=clf_name,
-                data=scores[0],
+                data=scores,
                 dtypes='f4')
         return rec
 
@@ -556,7 +555,6 @@ class Sample(object):
                           bootstrap_data=False):
 
         from .data import Data, DataInfo
-
         all_fields = []
         classifiers = []
         for f in field_hist.iterkeys():
@@ -982,7 +980,6 @@ class SystematicsSample(Sample):
                    bootstrap_data=False):
 
         do_systematics = self.systematics and systematics
-
         if scores is None and clf is not None:
             scores = self.scores(
                 clf, category, region, cuts=cuts,
@@ -995,7 +992,7 @@ class SystematicsSample(Sample):
             field_scale=field_scale,
             weight_hist=weight_hist,
             field_weight_hist=field_weight_hist,
-            scores=scores['NOMINAL'] if scores else None,
+            scores=scores['NOMINAL'][0] if scores else None,
             min_score=min_score,
             max_score=max_score,
             systematic='NOMINAL',
@@ -1032,7 +1029,7 @@ class SystematicsSample(Sample):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 field_weight_hist=field_weight_hist,
-                scores=scores[systematic] if scores else None,
+                scores=scores[systematic][0] if scores else None,
                 min_score=min_score,
                 max_score=max_score,
                 systematic=systematic,
@@ -1336,7 +1333,7 @@ class CompositeSample(object):
             for field,hist in field_hist_tot.items():
                 field_hists_temp[field] = hist.Clone()
                 field_hists_temp[field].Reset()
-            s.draw_array( field_hists_temp, category, region, systematics=systematics,**kwargs)
+            s.draw_array(field_hists_temp, category, region, systematics=systematics,**kwargs)
             field_hists_list.append( field_hists_temp )
 
         # -------- Reset the output histograms

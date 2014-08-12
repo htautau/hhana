@@ -87,7 +87,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         cuts=cuts,
         show_ratio=args.show_ratio,
         clf=clf,
-        min_score=0.27317696565527483,
+        min_score=0.07216297946489159,
         #no_data=args.no_data,
         #top_label="Fakes Model: {0}".format(analysis.fakes_region),
         )

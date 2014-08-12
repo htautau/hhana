@@ -85,7 +85,7 @@ class Data(Sample):
             weighted=weighted,
             field_scale=field_scale,
             weight_hist=weight_hist,
-            scores=scores,
+            scores=scores[0] if isinstance(scores, tuple) else scores,
             clf=clf,
             min_score=min_score,
             max_score=max_score,
