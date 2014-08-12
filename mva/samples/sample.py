@@ -493,7 +493,7 @@ class Sample(object):
                     cuts=cuts, systematic=systematic)
             rec = recfunctions.rec_append_fields(rec,
                 names=clf_name,
-                data=scores,
+                data=scores[0],
                 dtypes='f4')
         return rec
 
@@ -573,7 +573,6 @@ class Sample(object):
             classifier = classifiers[0]
         else:
             classifier = None
-
         if isinstance(self, Data) and bootstrap_data:
             log.info("using bootstrapped data")
             analysis = bootstrap_data
