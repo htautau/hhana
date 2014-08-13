@@ -3,8 +3,10 @@
 HHSTUDENT ?= hhskim
 # ntuple production directory
 HHNTUP ?= ntuples/prod_v29/hhskim
+#HHNTUP ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
 # ntuple running directory
 HHNTUP_RUNNING ?= ntuples/running/hhskim
+#HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
 # maximum number of processors to request in PBS
 PBS_PPN_MAX ?= 15
 
@@ -79,7 +81,7 @@ init-data: init-data-11 init-data-12
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_FAKE_TOTAL_UP.root:
 	@test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
 	
-	@for TES_TERM in TES_TRUE_MODELING TES_TRUE_SINGLEPARTICLEINTERPOL TES_TRUE_INSITUINTERPOL TES_FAKE_TOTAL; do \
+	@for TES_TERM in TES_TRUE_MODELING TES_TRUE_SINGLEPARTICLEINTERPOL TES_TRUE_INSITUINTERPOL TES_FAKE_TOTAL TES_TRUE_TOTAL; do \
 		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_UP_1.root ]; then \
 			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
 		fi; \
