@@ -43,6 +43,7 @@ grid-setup.sh
 higgstautau/lephad/external
 lhc*.phys.sfu.ca-*
 ntuples
+ntuples_hh
 panda.cfg
 plots
 submitLarge.sh
