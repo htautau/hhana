@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+"""
+"""
+import os
+import pickle
+from tabulate import tabulate
+
+from mva.analysis import Analysis
+from mva.samples import Data
+from mva.categories import Category_VBF, Category_Boosted
+from mva.defaults import TARGET_REGION
+from mva.plotting import draw_ratio, compare
+from mva.variables import VARIABLES
+from mva import log; log = log[__name__]
+
+# list of fields to plot
+fields = [
+    'tau1_pt',
+    'tau2_pt',
+    'MET_et',
+]
+field_dict = dict([(field, VARIABLES[field]) for field in fields])
+
+
+data_noTES = Data(2012, ntuple_path='/cluster/data12/qbuat/ntuples_hh/data_notes', student='hhskim')
+data = Data(2012, label='8 TeV Data')
+
+log.info(data_noTES.events()[1].value)
+log.info(data.events()[1].value)
+
+
+
+# # # compare data with and without JVF cut
+for category in (Category_VBF, Category_Boosted):
+    data_hists, field_scale = data.get_field_hist(field_dict, category)
+    data_noTES_hists, _ = data_noTES.get_field_hist(field_dict, category)
+    data.draw_array(data_hists, category, TARGET_REGION, field_scale=field_scale)
+    data_noTES.draw_array(data_noTES_hists, category, TARGET_REGION, field_scale=field_scale)
+    for field in field_dict:
+        # draw ratio plot
+        data_hist = data_hists[field]
+        data_noTES_hist = data_noTES_hists[field]
+        plot = draw_ratio(data_hist, data_noTES_hist,
+                          field, category, normalize=False)
+        for fmt in ('eps', 'png'):
+            plot.SaveAs('noTES_compare_{0}_{1}.{2}'.format(category.name, field, fmt))
+
+
+#     compare(data, data_noTES, field_dict,
+#             category, 'data_noTES', 2012,
+#             path='plots/data_noTES')
+

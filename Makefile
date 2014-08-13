@@ -5,8 +5,9 @@ HHSTUDENT ?= hhskim
 HHNTUP ?= ntuples/prod_v29/hhskim
 #HHNTUP ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
 # ntuple running directory
-HHNTUP_RUNNING ?= ntuples/running/hhskim
+#HHNTUP_RUNNING ?= ntuples/running/hhskim
 #HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
+HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/data_test/hhskim
 # maximum number of processors to request in PBS
 PBS_PPN_MAX ?= 15
 
