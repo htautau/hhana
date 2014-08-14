@@ -30,6 +30,7 @@ from statstools.utils import efficiency_cut
 
 SYSTEMATICS = get_systematics(year)
 args.systematics_components = parse_systematics(args.systematics_components)
+systematics = SYSTEMATICS if args.systematics else None
 
 mass_regions = MassRegions(
     low=args.low_mass_cut,
@@ -46,10 +47,10 @@ train_region = mass_regions.train_region
 
 categories = CATEGORIES[args.categories]
 category_names = args.category_names
-target_region = args.target_region
 
 analysis = get_analysis(args)
-
+target_region = analysis.target_region
+region = target_region
 output_suffix = analysis.get_suffix()
 
 cat_defs = [args.categories]
@@ -80,8 +81,6 @@ def plot_bdt(category, workspace_binning=True):
         unblind_bins = 0.5
     if args.unblind:
         suffix += '_unblind'
-
-    systematics=SYSTEMATICS if args.systematics else None
 
     signal_scale=20.
     region = TARGET_REGION
@@ -266,6 +265,116 @@ def plot_bdt(category, workspace_binning=True):
         output_formats=args.output_formats,
         show_ratio=True,
         output_dir=plot_dir('bdt'))
+   
+
+def plot_weighted_mass(category):
+    
+    clf = analysis.get_clf(category, load=True, mass=125, transform=True)
+    
+    scores = analysis.get_scores(
+        clf, category, region,
+        cuts=signal_region,
+        masses=[125],
+        mode='combined',
+        systematics=False,
+        unblind=True)
+
+    bkg_scores = scores.bkg_scores
+    sig_scores = scores.all_sig_scores[125]
+    min_score = scores.min_score
+    max_score = scores.max_score
+    
+    bkg_score_hist = Hist(40, min_score, max_score)
+    hist_scores(bkg_score_hist, bkg_scores)
+    _bkg = bkg_score_hist.Clone()
+    bkg_score_hist /= bkg_score_hist.integral()
+    
+    sig_score_hist = Hist(40, min_score, max_score)
+    hist_scores(sig_score_hist, sig_scores)
+    _sig = sig_score_hist.Clone()
+    sig_score_hist /= sig_score_hist.integral()
+    
+    sob_hist = (1 + _sig / _bkg)
+    _log = math.log
+    for bin in sob_hist.bins(overflow=True):
+        bin.value = _log(bin.value)
+    log.info(str(list(sob_hist.y())))
+
+    ###############################################################
+    log.info("plotting mmc weighted by background BDT distribution")
+    
+    draw_channel_array(
+        analysis,
+        variables.VARIABLES,
+        plots=[MMC_MASS],
+        mass=125,
+        mode='combined',
+        signal_scale=50,
+        category=category,
+        region=region,
+        systematics=systematics,
+        weight_hist=bkg_score_hist,
+        clf=clf,
+        output_suffix="_reweighted_bkg" + clf.output_suffix,
+        cuts=signal_region,
+        output_formats=args.output_formats,
+        unblind=True,
+        output_dir=plot_dir('weighted_mass'))
+
+    ###############################################################
+    log.info("plotting mmc weighted by signal BDT distribution")
+
+    draw_channel_array(
+        analysis,
+        variables.VARIABLES,
+        plots=[MMC_MASS],
+        mass=125,
+        mode='combined',
+        signal_scale=1,
+        category=category,
+        region=region,
+        systematics=systematics,
+        weight_hist=sig_score_hist,
+        clf=clf,
+        output_suffix="_reweighted_sig" + clf.output_suffix,
+        cuts=signal_region,
+        output_formats=args.output_formats,
+        unblind=args.unblind,
+        output_dir=plot_dir('weighted_mass'))
+
+    ###############################################################
+    log.info("plotting mmc weighted by S / B")
+    
+    field_channel, figs = draw_channel_array(
+        analysis,
+        variables.VARIABLES,
+        plots=[MMC_MASS],
+        templates={MMC_MASS: Hist(15, 50, 200)},
+        mass=[125, 150],
+        scale_125=True,
+        mode='combined',
+        signal_linestyles=['dashed', 'dotted'],
+        signal_scale=1,
+        #stacked_signal=False,
+        #signal_colour_map=cm.spring,
+        ylabel='ln(1+S/B) Weighted Events',
+        category=category,
+        region=region,
+        systematics=systematics,
+        weight_hist=sob_hist,
+        clf=clf,
+        output_suffix="_reweighted_sob" + clf.output_suffix,
+        cuts=signal_region,
+        output_formats=args.output_formats,
+        unblind=True,
+        #bootstrap_data=analysis,
+        output_dir=plot_dir('weighted_mass'))
+
+    channel = field_channel[MMC_MASS]
+    with root_open('weighted_mass.root', 'update') as f:
+        for s in channel.samples:
+            s.hist.Write()
+        channel.data.hist.Write()
 
 
 for category in analysis.iter_categories(*cat_defs, names=args.category_names):
@@ -273,10 +382,14 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     if category.analysis_control:
         continue
 
-    for workspace_binning in (True, False):
-        plot_bdt(category, workspace_binning=workspace_binning)
-    continue
+    #for workspace_binning in (True, False):
+    #    plot_bdt(category, workspace_binning=workspace_binning)
+    #continue
 
+    plot_weighted_mass(category)
+    continue
+    
+    """
     ###############################################################
     log.info("plotting mmc")
 
@@ -299,95 +412,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         output_formats=args.output_formats,
         unblind=True,
         ypadding=(0.3, 0))
-
-    ###############################################################
-    log.info("plotting mmc weighted by background BDT distribution")
-
-    bkg_score_hist = Hist(40, -1, 1)
-    hist_scores(bkg_score_hist, bkg_scores)
-    _bkg = bkg_score_hist.Clone()
-    bkg_score_hist /= bkg_score_hist.integral()
-
-    draw_channel_array(
-        analysis,
-        variables.VARIABLES,
-        plots=[MMC_MASS],
-        mass=125,
-        mode='combined',
-        signal_scale=50,
-        category=category,
-        region=region,
-        systematics=systematics,
-        weight_hist=bkg_score_hist,
-        clf=clf,
-        output_suffix="_reweighted_bkg" + clf.output_suffix,
-        cuts=signal_region,
-        output_formats=args.output_formats,
-        unblind=True)
-
-    ###############################################################
-    log.info("plotting mmc weighted by signal BDT distribution")
-
-    sig_score_hist = Hist(40, -1, 1)
-    hist_scores(sig_score_hist, sig_scores)
-    _sig = sig_score_hist.Clone()
-    sig_score_hist /= sig_score_hist.integral()
-
-    draw_channel_array(
-        analysis,
-        variables.VARIABLES,
-        plots=[MMC_MASS],
-        mass=125,
-        mode='combined',
-        signal_scale=1,
-        category=category,
-        region=region,
-        systematics=systematics,
-        weight_hist=sig_score_hist,
-        clf=clf,
-        output_suffix="_reweighted_sig" + clf.output_suffix,
-        cuts=signal_region,
-        output_formats=args.output_formats,
-        unblind=args.unblind)
-
-    ###############################################################
-    log.info("plotting mmc weighted by S / B")
-
-    sob_hist = (1 + _sig / _bkg)
-    _log = math.log
-    for bin in sob_hist.bins(overflow=True):
-        bin.value = _log(bin.value)
-    log.info(str(list(sob_hist.y())))
-
-    field_channel, figs = draw_channel_array(
-        analysis,
-        variables.VARIABLES,
-        plots=[MMC_MASS],
-        templates={MMC_MASS: Hist(15, 50, 200)},
-        mass=[125, 150],
-        scale_125=True,
-        mode='combined',
-        signal_linestyles=['dashed', 'dotted'],
-        signal_scale=1,
-        #stacked_signal=False,
-        #signal_colour_map=cm.spring,
-        ylabel='ln(1+S/B) Weighted Events',
-        category=category,
-        region=region,
-        systematics=systematics,
-        weight_hist=sob_hist,
-        clf=clf,
-        output_suffix="_reweighted_sob" + clf.output_suffix,
-        cuts=signal_region,
-        output_formats=args.output_formats,
-        unblind=True)
-        #bootstrap_data=analysis)
-
-    channel = field_channel[MMC_MASS]
-    with root_open('sob.root', 'update') as f:
-        for s in channel.samples:
-            s.hist.Write()
-        channel.data.hist.Write()
+    """
 
     ############################################################
     # show the MMC below a BDT score that unblinds 30% of signal

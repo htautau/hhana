@@ -76,17 +76,19 @@ class Data(Sample):
         if bootstrap_data:
             scores = None
         elif scores is None and clf is not None:
-            scores = self.scores(
-                clf, category, region, cuts=cuts)
+            scores = self.scores(clf, category, region, cuts=cuts)
         elif isinstance(scores, dict):
             scores = scores['NOMINAL']
+        if isinstance(scores, tuple):
+            # ignore weights
+            scores = scores[0]
         self.draw_array_helper(field_hist, category, region,
             cuts=cuts,
             weighted=weighted,
             field_scale=field_scale,
             weight_hist=weight_hist,
-            scores=scores[0] if isinstance(scores, tuple) else scores,
             clf=clf,
+            scores=scores,
             min_score=min_score,
             max_score=max_score,
             bootstrap_data=bootstrap_data)

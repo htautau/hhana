@@ -490,6 +490,12 @@ class Sample(object):
                 scores, _ = clf.classify(
                     self, category, region,
                     cuts=cuts, systematic=systematic)
+            elif isinstance(scores, dict):
+                # ignore weights
+                scores = scores[systematic][0]
+            elif isinstance(scores, tuple):
+                # ignore weights
+                scores = scores[0]
             rec = recfunctions.rec_append_fields(rec,
                 names=clf_name,
                 data=scores,
@@ -546,8 +552,8 @@ class Sample(object):
                           field_scale=None,
                           weight_hist=None,
                           field_weight_hist=None,
-                          scores=None,
                           clf=None,
+                          scores=None,
                           min_score=None,
                           max_score=None,
                           systematic='NOMINAL',
