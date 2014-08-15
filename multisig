@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     # define the workers
     workers = [SignificanceWorker(file, args.name,
-                                  unblind=args.unblind,
+                                  observed=args.unblind,
                                   profile=args.profile,
                                   overwrite=args.overwrite)
                for file in root_files]

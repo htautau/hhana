@@ -1,28 +1,25 @@
 #!/usr/bin/env python
-
-from mva import save_canvas
-from statstools.plotting import pvalue_plot
-from rootpy.plotting import Canvas, Legend, set_style
-from rootpy.plotting.style.atlas.labels import ATLAS_label
+# python imports
 import pickle
 import os
-import ROOT
 import logging
+# ROOT/rootpy imports
+import ROOT
+from rootpy.plotting import Canvas, Legend, set_style
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+# local imports
+from mva import save_canvas
+from mva.categories import CATEGORIES
+from statstools.plotting import pvalue_plot, parse_name, get_category
 
 log = logging.getLogger(os.path.basename(__file__))
-
 set_style('ATLAS', shape='rect')
 gaus_cdf = ROOT.Math.gaussian_cdf_c
 
-# bdt_path = 'workspaces/hh_nos_nonisol_ebz_mva_fixed'
-single_bdt_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_mva_single_bdt_125_fixed'
-cut_path = 'workspaces/14_07_2014/hh_nos_nonisol_ebz_cuts_fixed/'
-bdt_path = 'workspaces/14_07_2014/hh_nos_nonisol_ebz_mva_fixed/'
-#cut_path = 'workspaces/30_05_2014/hh_nos_nonisol_ebz_cuts_fixed_full_sym_merged_6'
 
 masses = range(100, 155, 5)
 colors = ['black', 'red', 'blue', 'purple', 'darkgreen']
-lines = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash', 'verylongdash']
+lines = ['dashed', 'solid', 'dotted', 'dashdot', 'longdash', 'verylongdash']
 
 
 def get_sigs(path, category, year=None, meas=True, blind=True, profile='0'):
@@ -36,20 +33,20 @@ def get_sigs(path, category, year=None, meas=True, blind=True, profile='0'):
         if blind:
             filename = '{1}{0}.pickle'.format(dirname, 'measurement_' if meas else '')
         else:
-            filename = '{1}{0}_profiled_mu{2}_unblind.pickle'.format(dirname, 'measurement_' if meas else '', profile)
+            filename = '{1}{0}_observed.pickle'.format(dirname, 'measurement_' if meas else '', profile)
         with open(os.path.join(path, dirname, filename), 'r') as pickle_file:
             sig_dict = pickle.load(pickle_file)
             sigs.append(sig_dict['combined'][0])
     return sigs
 
 
-def plot(name, curves, labels):
+def plot(cat, year, curves, labels):
     c = Canvas()
     log.info(labels)
     _, graphs = pvalue_plot(
         masses, curves, pad=c, xtitle='m_{H} [GeV]',
         linestyle=lines, linecolor=colors,
-        yrange=(gaus_cdf(2.5), 50))
+        yrange=(gaus_cdf(3.5), 50))
     for label, graph in zip(labels, graphs):
         graph.title = label
         graph.legendstyle = 'L'
@@ -58,97 +55,63 @@ def plot(name, curves, labels):
         log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
 
 
-    leg = Legend(graphs, leftmargin=0.4,
-                 topmargin=0.1, margin=0.15,
+    leg = Legend(graphs, 
+                 margin=0.15,
                  textsize=20)
     leg.Draw()
+    lat = ROOT.TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()-0.05, cat.label)
+    lat.SetNDC(True)
+    lat.SetTextSize(20)
+    lat.Draw()
     ATLAS_label(0.75, 0.88, text="Internal", sqrts=None, pad=c, sep=0.09)
-    save_canvas(c, 'plots/pvalues', name, formats=('.eps', '.png'))
+    save_canvas(c, 'plots/pvalues', cat.name+'_'+str(year), formats=('.eps', '.png'))
 
-# compare single BDT vs multiple trainings
-#bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
-#single_bdt_combined = map(gaus_cdf, get_sigs(single_bdt_path, 'combination', meas=False))
-#plot('compare_single_multi', [bdt_combined, single_bdt_combined], ['Multi-BDT', '125 GeV BDT'])
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--unblind', action='store_true', default=False)
+    parser.add_argument('--year', default=12, choices=['11', '12'])
+    args = parser.parse_args()
 
-# # overall combination
-# bdt_combined = map(gaus_cdf, get_sigs(bdt_path, 'combination'))
-# cut_combined = map(gaus_cdf, get_sigs(cut_path, 'combination'))
-# plot('comination', [bdt_combined, cut_combined], ['MVA 7+8 TeV', 'CBA 7+8 TeV'])
+    path = 'workspaces/hh_nos_nonisol_ebz_stat_cuts_fixed/'
+    categories = CATEGORIES['cuts']
+    cat_names = []
+    for dir in os.listdir(path):
+        if os.path.isdir(os.path.join(path, dir)):
+            year, cat_name, mass = parse_name('channel_'+dir)
+            log.info('Year: {0}, Cat: {1}, Mass: {2}'.format(year, cat_name, mass))
+            if not cat_name in cat_names:
+                cat_names.append(cat_name)
+    log.info(cat_names)
+    for cat_name in cat_names:
+        if cat_name == 'combination':
+            continue
+        sigs = []
+        exp = get_sigs(
+            path, 
+            cat_name, 
+            year=args.year, 
+            meas=True, 
+            blind=True)
+        sigs.append(exp)
+        if args.unblind:
+            obs = get_sigs(
+                path, 
+                cat_name, 
+                year=args.year, 
+                meas=True, 
+                blind=False)
+            sigs.append(obs)
 
-# # 7TeV combination
-# bdt_combined_11 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=11))
-# cut_combined_11 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=11))
-# plot('comination_11', [bdt_combined_11, cut_combined_11], ['MVA 7 TeV', 'CBA 7 TeV'])
+        pvals = []
+        for sig in sigs:
+            pvals.append(map(gaus_cdf, sig))
+        category = get_category(cat_name, categories)
+        log.info(category)
+        plot(category, args.year, pvals, ['Expected', 'Observed'])
 
 # # 8TeV combination
-bdt_combined_12 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=12))
-cut_combined_12 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12))
-plot('combination_12', [bdt_combined_12, cut_combined_12], ['MVA 8 TeV', 'CBA 8 TeV'])
+# bdt_combined_12 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=12))
+# cut_combined_12 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12))
+# plot('combination_12', [bdt_combined_12, cut_combined_12], ['MVA 8 TeV', 'CBA 8 TeV'])
 
-# # vbf combination
-# bdt_combined_vbf = map(gaus_cdf, get_sigs(bdt_path, 'vbf'))
-# cut_combined_vbf = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf'))
-# plot('comination_vbf', [bdt_combined_vbf, cut_combined_vbf], ['MVA VBF 7+8 TeV', 'CBA VBF 7+8 TeV'])
-
-# # 7TeV vbf
-# bdt_vbf_11 = map(gaus_cdf, get_sigs(bdt_path, 'vbf', year=11))
-# cut_vbf_11 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=11))
-# plot('vbf_11', [bdt_vbf_11, cut_vbf_11], ['MVA VBF 7 TeV', 'CBA VBF 7 TeV'])
-
-# # 8TeV vbf
-bdt_vbf_12 = map(gaus_cdf, get_sigs(bdt_path, 'vbf', year=12))
-cut_vbf_12 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=12))
-plot('vbf_12', [bdt_vbf_12, cut_vbf_12], ['MVA VBF 8 TeV', 'CBA VBF 8 TeV'])
-
-# # boosted combination
-# bdt_combined_boosted = map(gaus_cdf, get_sigs(bdt_path, 'boosted'))
-# cut_combined_boosted = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted'))
-# plot('comination_boosted', [bdt_combined_boosted, cut_combined_boosted], ['MVA Boosted 7+8 TeV', 'CBA Boosted 7+8 TeV'])
-
-# # 7TeV boosted
-# bdt_boosted_11 = map(gaus_cdf, get_sigs(bdt_path, 'boosted', year=11))
-# cut_boosted_11 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=11))
-# plot('boosted_11', [bdt_boosted_11, cut_boosted_11], ['MVA Boosted 7 TeV', 'CBA Boosted 7 TeV'])
-
-# # 8TeV boosted
-bdt_boosted_12 = map(gaus_cdf, get_sigs(bdt_path, 'boosted', year=12))
-cut_boosted_12 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=12))
-plot('boosted_12', [bdt_boosted_12, cut_boosted_12], ['MVA Boosted 8 TeV', 'CBA Boosted 8 TeV'])
-
-# # 7, 8 and total
-# plot('7_8_final_mva', [bdt_combined_11, bdt_combined_12, bdt_combined], ['MVA 7 TeV', 'MVA 8 TeV', 'MVA 7+8 TeV'])
-# plot('7_8_final_cba', [cut_combined_11, cut_combined_12, cut_combined], ['CBA 7 TeV', 'CBA 8 TeV', 'CBA 7+8 TeV'])
-
-# 8 TeV mu=0, mu=1, mu=muhat
-#cut_combined_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='0'))
-#
-#cut_vbf_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf', year=12, blind=False, profile='0'))
-#cut_vbf_lowdr_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_lowdr', year=12, blind=False, profile='0'))
-#cut_vbf_highdr_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_tight', year=12, blind=False, profile='0'))
-#cut_vbf_highdr_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_vbf_highdr_loose', year=12, blind=False, profile='0'))
-#
-#cut_boosted_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted', year=12, blind=False, profile='0'))
-#cut_boosted_tight_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'cuts_boosted_tight', year=12, blind=False, profile='0'))
-
-# cut_boosted_loose_12_mu0 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='0'))
-# cut_boosted_loose_12_mu1 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='1'))
-# cut_boosted_loose_12_muhat = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=False, profile='hat'))
-# cut_boosted_loose_12 = map(gaus_cdf, get_sigs(cut_path, 'combination', year=12, blind=True))
-
-# plot('12_combination',
-#      [cut_boosted_loose_12_mu0,
-#       cut_boosted_loose_12_mu1,
-#       cut_boosted_loose_12_muhat,
-#       cut_boosted_loose_12],
-#      ['CBA Profiled at #mu=0',
-#       'CBA Profiled at #mu=1',
-#       'CBA Profiled at #mu=#mu_{hat}',
-#       'CBA No Profile'])
-
-
-#
-#plot('12_profile_mu0', [cut_combined_12_mu0, cut_vbf_12_mu0, cut_boosted_12_mu0], ['Combined', 'vbf', 'boosted'])
-# plot('12_profile_vbf_mu0', [cut_vbf_12_mu0, cut_vbf_lowdr_12_mu0, cut_vbf_highdr_tight_12_mu0, cut_vbf_highdr_loose_12_mu0],
-#      ['vbf', 'vbf lowdr', 'vbf highdr tight', 'vbf highdr loose'])
-# plot('12_profile_boosted_mu0', [cut_boosted_12_mu0, cut_boosted_tight_12_mu0, cut_boosted_loose_12_mu0],
-#      ['boosted', 'boosted tight', 'boosted loose'])
