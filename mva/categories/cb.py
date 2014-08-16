@@ -76,6 +76,7 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
     # limitbins = [0, 80, 92, 104, 116, 132, 152, INF] - old binning
     # limitbins = [0, 80, 104, 132, INF] - new bining (merging of old)
     limitbins = [0, 70, 100, 125, 150, INF] # - new binning
+    # limitbins = [0, 70, 100, 115, 135, 150, INF] # - new binning (test postfit pval)
     norm_category = Category_Preselection
 
 
@@ -143,6 +144,7 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     # limitbins[2012] = [0, 64, 80, 88, 96, 104, 112, 120, 128, 136, 148, 176, INF] # - new binning (merge of the old)
     # limitbins[2012] = [0, 64, 96, 104, 112, 120, 128, 136, 148, 176, INF] # - alternative new binning (merge of the old)
     limitbins[2012] = [0, 70, 100, 110, 125, 150, 200, INF] # - new binning
+    # limitbins[2012] = [0, 70, 100, 110, 123, 136, 150, 200, INF] # - new binning (test obs pval)
     norm_category = Category_Preselection
 
 

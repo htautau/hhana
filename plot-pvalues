@@ -73,8 +73,10 @@ if __name__ == '__main__':
     parser.add_argument('--year', default=12, choices=['11', '12'])
     args = parser.parse_args()
 
-    path = 'workspaces/hh_nos_nonisol_ebz_stat_cuts_fixed/'
+    # This part need to be updated manually - TODO: implement automatisation
+    path = 'workspaces/hh_nos_nonisol_ebz_stat_cuts_uniformentriesdixed_binning_test_fixed/'
     categories = CATEGORIES['cuts']
+
     cat_names = []
     for dir in os.listdir(path):
         if os.path.isdir(os.path.join(path, dir)):
@@ -85,6 +87,7 @@ if __name__ == '__main__':
     log.info(cat_names)
     for cat_name in cat_names:
         if cat_name == 'combination':
+            # TODO: Fix the combination
             continue
         sigs = []
         exp = get_sigs(

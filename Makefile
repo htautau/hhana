@@ -348,7 +348,7 @@ binning-each-mass:
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
 		#PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
-		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --unblind --years 2012 --categories cuts --masses $${mass}; \
+		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --unblind --years 2012 --categories cuts --masses $${mass} --output-suffix uniformentriesdixed_binning_test; \
 	done
 	#for mass in $$(seq 100 5 150); do \
 	#	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
@@ -428,4 +428,4 @@ fix-mva:
 
 .PHONY: fix-cuts
 fix-cuts:
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_stat_cuts
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_stat_cuts_uniformentriesdixed_binning_test
