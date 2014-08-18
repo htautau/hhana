@@ -805,10 +805,9 @@ class SystematicsSample(Sample):
         else:
             return common + [
                 'TAU_ID_STAT',
-                'TES_TRUE_TOTAL',
-                #'TES_TRUE_INSITUINTERPOL',
-                #'TES_TRUE_SINGLEPARTICLEINTERPOL',
-                #'TES_TRUE_MODELING',
+                'TES_TRUE_INSITUINTERPOL',
+                'TES_TRUE_SINGLEPARTICLEINTERPOL',
+                'TES_TRUE_MODELING',
                 'TES_FAKE_TOTAL',
                 'TRIGGER_STAT_PERIODA',
                 'TRIGGER_STAT_PERIODBD_BARREL',
