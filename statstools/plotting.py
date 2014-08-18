@@ -128,7 +128,7 @@ def get_category(category_name, categories):
             return category
 
 
-def get_binning(category, year, fit_var='mmc'):
+def get_binning(category, year, fit_var='mmc', clf_bins='optimal'):
     if fit_var == 'mmc':
         binning = category.limitbins
         if isinstance(binning, (tuple, list)):
@@ -140,10 +140,13 @@ def get_binning(category, year, fit_var='mmc'):
         binning_cache = os.path.join(
             CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
                 category.name, 125, year % 1000))
-        if os.path.exists(binning_cache):
-            with open(binning_cache) as f:
-                binning = pickle.load(f)
-            return binning
+        if clf_bins == 'optimal':
+            if os.path.exists(binning_cache) and clf_bins == 'optimal':
+                with open(binning_cache) as f:
+                    binning = pickle.load(f)
+                    return binning
+        else:
+            return [-1+2*i/float(clf_bins) for i in xrange(int(clf_bins)+1)]
     # use original binning in WS
     return None
 
