@@ -7,7 +7,7 @@ HHNTUP ?= ntuples/prod_v29/hhskim
 # ntuple running directory
 #HHNTUP_RUNNING ?= ntuples/running/hhskim
 #HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
-HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/data_test/hhskim
+HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/hhskim_notesshift/hhskim
 # maximum number of processors to request in PBS
 PBS_PPN_MAX ?= 15
 
@@ -362,7 +362,7 @@ cuts-sideband-workspace:
 mva-workspaces:
 	@for year in 2012 2011; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125 --output-suffix old_tes; \
 		done; \
 	done
 
@@ -424,8 +424,8 @@ pruning:
 .PHONY: fix-mva
 fix-mva:
 	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva_old_tes
 
 .PHONY: fix-cuts
 fix-cuts:
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_stat_cuts_uniformentriesdixed_binning_test
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_stat_cuts_uniformentriesfixed

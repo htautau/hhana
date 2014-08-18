@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 """
 """
+# python imports
 import os
 import pickle
 from tabulate import tabulate
-
+# ROOT/rootpy imports
+from rootpy.tree import Cut
+# local imports
 from mva.analysis import Analysis
 from mva.samples import Data
 from mva.categories import Category_VBF, Category_Boosted
@@ -22,20 +25,29 @@ fields = [
 field_dict = dict([(field, VARIABLES[field]) for field in fields])
 
 
-data_noTES = Data(2012, ntuple_path='/cluster/data12/qbuat/ntuples_hh/data_notes', student='hhskim')
-data = Data(2012, label='8 TeV Data')
+#data_noTES = Data(2012, label='8 TeV Data')
+data = Data(2012, label='Standard TES')
+data_noTES = Data(2012, ntuple_path='/cluster/data12/qbuat/ntuples_hh/', student='hhskim_notesshift', label='No TES Shift')
 
 log.info(data_noTES.events()[1].value)
 log.info(data.events()[1].value)
 
-
+cuts = Cut('resonance_pt>100000') & Cut('resonance_pt<140000')
 
 # # # compare data with and without JVF cut
 for category in (Category_VBF, Category_Boosted):
     data_hists, field_scale = data.get_field_hist(field_dict, category)
     data_noTES_hists, _ = data_noTES.get_field_hist(field_dict, category)
-    data.draw_array(data_hists, category, TARGET_REGION, field_scale=field_scale)
-    data_noTES.draw_array(data_noTES_hists, category, TARGET_REGION, field_scale=field_scale)
+    data.draw_array(data_hists, 
+                    category, 
+                    TARGET_REGION, 
+                    cuts=cuts,
+                    field_scale=field_scale)
+    data_noTES.draw_array(data_noTES_hists, 
+                          category, 
+                          TARGET_REGION, 
+                          cuts=cuts,
+                          field_scale=field_scale)
     for field in field_dict:
         # draw ratio plot
         data_hist = data_hists[field]

@@ -114,8 +114,8 @@ class Analysis(object):
             self.mu = mu
 
         self.data = samples.Data(year=year,
-            markersize=1.2,
-            linewidth=1)
+                                 markersize=1.2,
+                                 linewidth=1)
 
         self.higgs_125 = samples.Higgs(
             year=year,
