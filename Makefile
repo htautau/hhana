@@ -81,7 +81,6 @@ init-data: init-data-11 init-data-12
 
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_FAKE_TOTAL_UP.root:
 	@test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
-	
 	@for TES_TERM in TES_TRUE_MODELING TES_TRUE_SINGLEPARTICLEINTERPOL TES_TRUE_INSITUINTERPOL TES_FAKE_TOTAL TES_TRUE_TOTAL; do \
 		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_UP_1.root ]; then \
 			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
@@ -94,21 +93,18 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_TES_FAKE_TOTAL_UP.root:
 
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root:
 	@test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
-	
 	@if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_1.root ]; then \
 		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
 	fi
 	@if [ -f $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-IM_1.root ]; then \
 		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-IM_*.root; \
 	fi
-	
 	@if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-UP_1.root ]; then \
 		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-UP_*.root $(HHNTUP_RUNNING)/embed; \
 	fi
 	@if [ -f $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-UP_1.root ]; then \
 		hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-UP.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed12-HH-UP_*.root; \
 	fi
-	
 	@if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN_1.root ]; then \
 		mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-DN_*.root $(HHNTUP_RUNNING)/embed; \
 	fi
@@ -118,7 +114,6 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed12-HH-IM.root:
 
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_TES_TRUE_FINAL_UP.root:
 	@test -d $(HHNTUP_RUNNING)/embed_tes || mkdir $(HHNTUP_RUNNING)/embed_tes
-	
 	@for TES_TERM in TES_TRUE_FINAL TES_FAKE_FINAL; do \
 		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_UP_1.root ]; then \
 			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_$${TES_TERM}_*.root $(HHNTUP_RUNNING)/embed_tes; \
@@ -131,7 +126,6 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim_TES_TRUE_FINAL_UP.root:
 
 $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root:
 	@test -d $(HHNTUP_RUNNING)/embed || mkdir $(HHNTUP_RUNNING)/embed
-	
 	@for syst in im up dn; do \
 		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_1.root ]; then \
 			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
@@ -140,7 +134,6 @@ $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfsim.root:
 			hadd $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}.root $(HHNTUP_RUNNING)/embed/$(HHSTUDENT).embed11-hh-isol-mfs$${syst}_[0-9]*.root; \
 		fi; \
 	done
-	
 	@for syst in no tight; do \
 		if [ -f $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_1.root ]; then \
 			mv $(HHNTUP_RUNNING)/$(HHSTUDENT).embed11-hh-$${syst}isol-mfsim_[0-9]*.root $(HHNTUP_RUNNING)/embed; \
@@ -347,12 +340,9 @@ binning-each-mass:
 .PHONY: cuts-workspaces
 cuts-workspaces:
 	@for mass in $$(seq 100 5 150); do \
-		#PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
-		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --unblind --years 2012 --categories cuts --masses $${mass} --output-suffix uniformentriesdixed_binning_test; \
+		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2012 --categories cuts --masses $${mass}; \
+		# PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
 	done
-	#for mass in $$(seq 100 5 150); do \
-	#	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace cuts --systematics --unblind --years 2011 --categories cuts_2011 --masses $${mass}; \
-	#done
 
 .PHONY: cuts-sideband-workspace
 cuts-sideband-workspace:
@@ -362,9 +352,17 @@ cuts-sideband-workspace:
 mva-workspaces:
 	@for year in 2012 2011; do \
 		for mass in $$(seq 100 5 150); do \
-			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125 --output-suffix old_tes; \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years $${year} --masses $${mass} --clf-mass 125; \
 		done; \
 	done
+
+.PHONY: mva-workspaces-test
+mva-workspaces-test:
+	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years 2012 --masses 125 --clf-mass 125 --output-suffix default; \
+	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years 2012 --masses 125 --clf-mass 125 --clf-bins 10 --output-suffix 10bins; \
+	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years 2012 --masses 125 --clf-mass 125 --clf-bins 20 --output-suffix 20bins; \
+
+
 
 .PHONY: mva-sideband-workspace
 mva-sideband-workspace:
