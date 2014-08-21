@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Create variable plots
+Create rootfile for variable to be put in the
+HSG4 Run2 Paper
 """
 from mva.cmd import get_parser
 
@@ -46,55 +47,22 @@ analysis = get_analysis(args)
 
 output_suffix = analysis.get_suffix()
 
-cat_defs = [args.categories]
-if args.categories != 'presel':
-    cat_defs.append(args.controls)
+cat_defs = [args.categories, args.controls]
 
 for category in analysis.iter_categories(*cat_defs, names=args.category_names):
 
     is_control = category.analysis_control
 
     cuts = Cut(args.plot_cut)
-
-    if args.plot_expr is not None:
-        VARS = {
-            tuple(args.plot_expr.split(',')): {
-                'title': args.plot_name,
-                'range': (args.plot_min, args.plot_max),
-                'bins': args.plot_bins,
-                'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
+    if is_control:
+        clf = None
+        VARS = {'dEta_tau1_tau2': VARIABLES['dEta_tau1_tau2']}
     else:
-        VARS = VARIABLES
-        VARS.update(YEAR_VARIABLES[args.year])
-
-    clf = None
-    if not is_control:
         clf = analysis.get_clf(category, load=True, transform=True)
-    # figs = draw_channel_array(
-    #     analysis,
-    #     vars=VARS,
-    #     mass=125,
-    #     mode='combined',
-    #     signal_scale=(
-    #         50 if is_control or 'preselection' in category.name else 20),
-    #     plot_label=(
-    #         'Signal Region' if not is_control and
-    #         not ('preselection' in category.name) else None),
-    #     category=category,
-    #     region=target_region,
-    #     #systematics_components=args.systematics_components,
-    #     output_formats=args.output_formats,
-    #     weighted=not args.no_weight,
-    #     plots=args.plots,
-    #     output_suffix=output_suffix,
-    #     unblind=args.unblind,  # or is_control,
-    #     cuts=cuts,
-    #     show_ratio=args.show_ratio,
-    #     #clf=clf,
-    #     #min_score=0.5924344731341187,
-    #     #no_data=args.no_data,
-    #     #top_label="Fakes Model: {0}".format(analysis.fakes_region),
-    #     )
+        VARS = {}
+        for feature in category.features:
+            VARS[feature] = VARIABLES[feature]
+
     field_scale = {}
     for var, var_info in VARS.items():
         field_scale[var] = var_info.get('scale', 1)
