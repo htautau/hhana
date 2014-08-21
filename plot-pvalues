@@ -10,6 +10,7 @@ from rootpy.plotting.style.atlas.labels import ATLAS_label
 # local imports
 from mva import save_canvas
 from mva.categories import CATEGORIES
+from mva.categories.base import CategoryMeta
 from statstools.plotting import pvalue_plot, parse_name, get_category
 
 log = logging.getLogger(os.path.basename(__file__))
@@ -40,7 +41,7 @@ def get_sigs(path, category, year=None, meas=True, blind=True, profile='0'):
     return sigs
 
 
-def plot(cat, year, curves, labels):
+def plot(cat_name, cat_label, year, curves, labels):
     c = Canvas()
     log.info(labels)
     _, graphs = pvalue_plot(
@@ -59,12 +60,12 @@ def plot(cat, year, curves, labels):
                  margin=0.15,
                  textsize=20)
     leg.Draw()
-    lat = ROOT.TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()-0.05, cat.label)
+    lat = ROOT.TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()-0.05, cat_label)
     lat.SetNDC(True)
     lat.SetTextSize(20)
     lat.Draw()
     ATLAS_label(0.75, 0.88, text="Internal", sqrts=None, pad=c, sep=0.09)
-    save_canvas(c, 'plots/pvalues', cat.name+'_'+str(year), formats=('.eps', '.png'))
+    save_canvas(c, 'plots/pvalues', cat_name+'_'+str(year), formats=('.eps', '.png'))
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # This part need to be updated manually - TODO: implement automatisation
-    path = 'workspaces/hh_nos_nonisol_ebz_stat_cuts_uniformentriesdixed_binning_test_fixed/'
+    path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed/'
     categories = CATEGORIES['cuts']
 
     cat_names = []
@@ -86,9 +87,6 @@ if __name__ == '__main__':
                 cat_names.append(cat_name)
     log.info(cat_names)
     for cat_name in cat_names:
-        if cat_name == 'combination':
-            # TODO: Fix the combination
-            continue
         sigs = []
         exp = get_sigs(
             path, 
@@ -110,8 +108,11 @@ if __name__ == '__main__':
         for sig in sigs:
             pvals.append(map(gaus_cdf, sig))
         category = get_category(cat_name, categories)
-        log.info(category)
-        plot(category, args.year, pvals, ['Expected', 'Observed'])
+        if isinstance(category, CategoryMeta):
+            plot(category.name, category.label, args.year, pvals, ['Expected', 'Observed'])
+        else:
+            plot(cat_name, cat_name, args.year, pvals, ['Expected', 'Observed'])
+
 
 # # 8TeV combination
 # bdt_combined_12 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=12))

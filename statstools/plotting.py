@@ -125,8 +125,9 @@ def blind_graph(graph, window, replace=0):
 def get_category(category_name, categories):
     for category in categories:
         if category.name == category_name:
+            break
             return category
-
+    return None
 
 def get_binning(category, year, fit_var='mmc', clf_bins='optimal'):
     if fit_var == 'mmc':

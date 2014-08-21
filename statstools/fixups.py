@@ -171,3 +171,11 @@ def fix_measurement(meas,
         process_measurement(meas,
             prune_samples=True,
             prune_samples_threshold=1e-6)
+
+    # RUN2 TRIGGER STUDIES
+    # #rescale QCD fake
+    # process_measurement(
+    #     meas,
+    #     rescale_np_names=['ATLAS_ANA_HH_2012_QCD'],
+    #     rescale_np_samples=['Fakes'],
+    #     rescale_np_factor=2.0)
