@@ -8,6 +8,7 @@ args = get_parser(actions=False).parse_args()
 year = args.year
 
 # rootpy imports
+from rootpy.io import root_open
 from rootpy.tree import Cut
 import rootpy.plotting.utils as rootpy_utils
 
@@ -16,7 +17,7 @@ from mva.plotting import draw_channel_array, uncertainty_band
 from mva.systematics import get_systematics, parse_systematics
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
-from mva.variables import VARIABLES, YEAR_VARIABLES
+from mva.variables import VARIABLES, YEAR_VARIABLES, get_label
 from mva.analysis import get_analysis
 from mva import log
 
@@ -66,8 +67,10 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         VARS = VARIABLES
         VARS.update(YEAR_VARIABLES[args.year])
 
-    clf = analysis.get_clf(category, load=True, transform=True)
-    fields, figs = draw_channel_array(
+    clf = None
+    if not is_control:
+        clf = analysis.get_clf(category, load=True, transform=True)
+    figs = draw_channel_array(
         analysis,
         vars=VARS,
         mass=125,
@@ -92,42 +95,3 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         #no_data=args.no_data,
         #top_label="Fakes Model: {0}".format(analysis.fakes_region),
         )
-    for _, channel in fields.items():
-        
-        data_hist = channel.data.hist
-        systematics_terms = {}
-        model_hists = []
-        for sample in channel.samples:
-            log.info(sample.name)
-            nominal_hist = sample.hist
-            nominal_hist.name = sample.name
-            log.info(nominal_hist)
-            _systematics = {}
-            for sys_name, osys, hsys in sample.iter_sys():
-                systematics_terms[sys_name] = (
-                    sys_name + '_UP',
-                    sys_name + '_DOWN')
-                if hsys is not None:
-                    # include only overallsys component
-                    norm, shape = split_norm_shape(hsys, nominal_hist)
-                    if osys is not None:
-                        osys.low *= norm.low
-                        osys.high *= norm.high
-                    else:
-                        osys = norm
-                _systematics[sys_name + '_DOWN'] = nominal_hist * osys.low
-                _systematics[sys_name + '_UP'] = nominal_hist * osys.high
-                log.debug("sample: {0} overallsys: {1} high: {2} low: {3}".format(
-                    sample.name, sys_name, osys.high, osys.low))
-            nominal_hist.systematics = _systematics
-            model_hists.append(nominal_hist)
-        for hist in model_hists:
-            log.info(hist.Integral())
-        total_model , high, low = uncertainty_band(model_hists, systematics_terms)
-        error_band = rootpy_utils.get_band(total_model-low, 
-                                           total_model+high, 
-                                           middle_hist=total_model) 
-        log.info(error_band)
-        log.info(total_model.Integral())
-        log.info(high.Integral())
-        log.info(low.Integral())

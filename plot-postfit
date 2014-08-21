@@ -304,6 +304,8 @@ if __name__ == '__main__':
                 # not found
                 log.warning("skipping category: {0}".format(category_name))
                 continue
+            if category_name == 'rest':
+                continue
             binning = get_binning(category, year, fit_var=args.fit_var, clf_bins=args.clf_bins)
             if category_name != 'rest' and not args.unblind:
                 unblind = get_blinding(category, year, fit_var=args.fit_var)

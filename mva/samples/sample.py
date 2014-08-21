@@ -553,7 +553,6 @@ class Sample(object):
                           systematic='NOMINAL',
                           scale=1.,
                           bootstrap_data=False):
-
         from .data import Data, DataInfo
         all_fields = []
         classifiers = []
@@ -618,7 +617,8 @@ class Sample(object):
                 fields=all_fields, cuts=cuts,
                 include_weight=True,
                 clf=classifier,
-                scores=scores,
+                #scores=scores,
+                scores=scores[0] if isinstance(scores, tuple) else scores,
                 systematic=systematic)
             if scores is None and 'classifier' in rec.dtype.names:
                 scores = rec['classifier']
@@ -992,7 +992,7 @@ class SystematicsSample(Sample):
             field_scale=field_scale,
             weight_hist=weight_hist,
             field_weight_hist=field_weight_hist,
-            # scores=scores['NOMINAL'][0] if scores else None,
+            #scores=scores['NOMINAL'][0] if scores else None,
             scores=scores['NOMINAL'] if scores else None,
             min_score=min_score,
             max_score=max_score,
@@ -1030,7 +1030,7 @@ class SystematicsSample(Sample):
                 field_scale=field_scale,
                 weight_hist=weight_hist,
                 field_weight_hist=field_weight_hist,
-                # scores=scores[systematic][0] if scores else None,
+                #scores=scores[systematic][0] if scores else None,
                 scores=scores[systematic] if scores else None,
                 min_score=min_score,
                 max_score=max_score,

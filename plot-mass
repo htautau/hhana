@@ -39,9 +39,6 @@ def plot_mass(ztt, higgs, category):
     ztt.xaxis.SetNdivisions(507, True)
     higgs.Draw('same')
     leg = Legend(2, pad=plot,
-                 leftmargin=0.03,
-                 rightmargin=0.3,
-                 topmargin=0.17,
                  entryheight=0.04,
                  margin=0.2,
                  textsize=22 )
@@ -83,9 +80,6 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     higgs_mmc.Draw('same')
     higgs_col.Draw('same')
     leg_mmc = Legend(2, pad=plot,
-                     leftmargin=0.03,
-                     rightmargin=0.5,
-                     topmargin=0.17,
                      entryheight=0.04,
                      margin=0.2,
                      textsize=22 )
@@ -94,9 +88,6 @@ def plot_mmc_col_masses(ztt_mmc, higgs_mmc, ztt_col, higgs_col, category):
     leg_mmc.SetHeader('MMC')
 
     leg_col = Legend(2, pad=plot,
-                     leftmargin=0.45,
-                     rightmargin=0.1,
-                     topmargin=0.17,
                      entryheight=0.04,
                      margin=0.2,
                      textsize=22 )
@@ -244,9 +235,6 @@ def plot_resolution(year):
          snap=False)
     leg = Legend(len(categories),
                  pad=plot,
-                 leftmargin=0.03,
-                 rightmargin=0.3,
-                 topmargin=0.09,
                  entryheight=0.04,
                  margin=0.2,
                  textsize=22 )

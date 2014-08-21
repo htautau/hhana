@@ -24,7 +24,7 @@ import pickle
 # begin configuration
 modes = [
     'gg',
-    'VBF',
+    #'VBF',
 ]
 ggf_weight = True
 pileup_weight = True
@@ -42,10 +42,18 @@ higgs_nompi = Higgs(
     student='hhskim_nompi',
     suffix='_noMPI.mc12b')
 
+higgs_herwigps = Higgs(
+    2012, mass=125, modes=modes,
+    ggf_weight=ggf_weight,
+    pileup_weight=pileup_weight,
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_herwigps/')
+
+
 
 for i, _ in enumerate(modes):
     log.info(higgs.xsec_kfact_effic(i))
     log.info(higgs_nompi.xsec_kfact_effic(i))
+    log.info(higgs_herwigps.xsec_kfact_effic(i))
 
 print "default raw number of events", higgs.events(weighted=False)[1].value
 print "No MPI sample raw number of events", higgs_nompi.events(weighted=False)[1].value
@@ -101,36 +109,3 @@ for cattype in ('mva_all', 'cuts'):
 
     print tabulate(table, headers=headers)
     
-#         print "[N(r5470, fail tight BCH-cut) - N(default, fail tight BCH-cut)] / N(default, no cuts)"
-#         diff = (higgs_bch.events(category, TARGET_REGION, cuts=FAIL_BCH_TIGHT[bch_category])[1].value -
-#                 higgs.events(category, TARGET_REGION, cuts=FAIL_BCH_TIGHT[bch_category])[1].value) / higgs.events(category, TARGET_REGION)[1].value
-#         print category.name, diff 
-#         print
-
-#         UNCERT[category.name] = abs(diff)
-        
-#         bch = higgs_bch.events(category, TARGET_REGION)[1].value
-#         bch_fail = higgs_bch.events(category,
-#             TARGET_REGION, cuts=FAIL_BCH_TIGHT[bch_category])[1].value
-        
-#         default = higgs.events(category, TARGET_REGION)[1].value
-#         default_fail = higgs.events(category,
-#             TARGET_REGION, cuts=FAIL_BCH_TIGHT[bch_category])[1].value
-
-#         print "BCH-fixed sample events: ", bch
-#         print "BCH-fixed sample events failing tight: ", bch_fail
-        
-#         print "default sample events: ", default
-#         print "default sample events failing tight: ", default_fail
-
-#         print "N(r5470, fail tight BCH-cut) / N(r5470, no cuts)", bch_fail / bch
-#         print "N(default, fail tight BCH-cut) / N(default, no cuts)", default_fail / default
-
-#         print '-' * 20
-
-# # with open(os.path.join(CACHE_DIR, 'bch_cleaning.cache'), 'w') as file:
-# #     pickle.dump(UNCERT, file)
-
-# for name in sorted(UNCERT.keys()):
-#     value = UNCERT[name]
-#     print "{0}: {1:.2f}%".format(name, abs(value * 100))

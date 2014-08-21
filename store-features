@@ -1,0 +1,148 @@
+#!/usr/bin/env python
+"""
+Create variable plots
+"""
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+year = args.year
+
+# rootpy imports
+from rootpy.io import root_open
+from rootpy.tree import Cut
+import rootpy.plotting.utils as rootpy_utils
+
+# local imports
+from mva.plotting import draw_channel_array, uncertainty_band
+from mva.systematics import get_systematics, parse_systematics
+from mva.categories import CATEGORIES
+from mva.massregions import MassRegions
+from mva.variables import VARIABLES, YEAR_VARIABLES, get_label
+from mva.analysis import get_analysis
+from mva import log
+
+SYSTEMATICS = get_systematics(year)
+args.systematics_components = parse_systematics(args.systematics_components)
+
+mass_regions = MassRegions(
+    low=args.low_mass_cut,
+    high=args.high_mass_cut,
+    high_sideband_in_control=args.high_sideband_in_control,
+    mass_window_signal_region=False,
+    #args.no_mmc,
+    # not enough events to only train in signal region
+    train_signal_region=False)
+
+control_region = mass_regions.control_region
+signal_region = mass_regions.signal_region
+#signal_region = control_region # for creating control workspaces
+train_region = mass_regions.train_region
+
+categories = CATEGORIES[args.categories]
+category_names = args.category_names
+target_region = args.target_region
+
+analysis = get_analysis(args)
+
+output_suffix = analysis.get_suffix()
+
+cat_defs = [args.categories]
+if args.categories != 'presel':
+    cat_defs.append(args.controls)
+
+for category in analysis.iter_categories(*cat_defs, names=args.category_names):
+
+    is_control = category.analysis_control
+
+    cuts = Cut(args.plot_cut)
+
+    if args.plot_expr is not None:
+        VARS = {
+            tuple(args.plot_expr.split(',')): {
+                'title': args.plot_name,
+                'range': (args.plot_min, args.plot_max),
+                'bins': args.plot_bins,
+                'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
+    else:
+        VARS = VARIABLES
+        VARS.update(YEAR_VARIABLES[args.year])
+
+    clf = None
+    if not is_control:
+        clf = analysis.get_clf(category, load=True, transform=True)
+    # figs = draw_channel_array(
+    #     analysis,
+    #     vars=VARS,
+    #     mass=125,
+    #     mode='combined',
+    #     signal_scale=(
+    #         50 if is_control or 'preselection' in category.name else 20),
+    #     plot_label=(
+    #         'Signal Region' if not is_control and
+    #         not ('preselection' in category.name) else None),
+    #     category=category,
+    #     region=target_region,
+    #     #systematics_components=args.systematics_components,
+    #     output_formats=args.output_formats,
+    #     weighted=not args.no_weight,
+    #     plots=args.plots,
+    #     output_suffix=output_suffix,
+    #     unblind=args.unblind,  # or is_control,
+    #     cuts=cuts,
+    #     show_ratio=args.show_ratio,
+    #     #clf=clf,
+    #     #min_score=0.5924344731341187,
+    #     #no_data=args.no_data,
+    #     #top_label="Fakes Model: {0}".format(analysis.fakes_region),
+    #     )
+    field_scale = {}
+    for var, var_info in VARS.items():
+        field_scale[var] = var_info.get('scale', 1)
+    fields = analysis.get_channel_array(
+        VARS, category, target_region, cuts=cuts, 
+        clf=clf, field_scale=field_scale, systematics=args.systematics)
+        
+    for field, channel in fields.items():
+        log.info(channel.name)
+        data_hist = channel.data.hist
+        data_hist.name = 'Data'
+        data_hist.title = get_label(field)
+        systematics_terms = {}
+        model_hists = []
+        for sample in channel.samples:
+            nominal_hist = sample.hist
+            nominal_hist.name = sample.name
+            nominal_hist.title = get_label(field)
+            _systematics = {}
+            for sys_name, osys, hsys in sample.iter_sys():
+                systematics_terms[sys_name] = (
+                    sys_name + '_UP',
+                    sys_name + '_DOWN')
+                if hsys is not None:
+                    # include only overallsys component
+                    norm, shape = split_norm_shape(hsys, nominal_hist)
+                    if osys is not None:
+                        osys.low *= norm.low
+                        osys.high *= norm.high
+                    else:
+                        osys = norm
+                _systematics[sys_name + '_DOWN'] = nominal_hist * osys.low
+                _systematics[sys_name + '_UP'] = nominal_hist * osys.high
+                log.debug("sample: {0} overallsys: {1} high: {2} low: {3}".format(
+                    sample.name, sys_name, osys.high, osys.low))
+            nominal_hist.systematics = _systematics
+            model_hists.append(nominal_hist)
+        total_model , high, low = uncertainty_band(model_hists, systematics_terms)
+        total_model.name = 'TotalError'
+        total_model.title = VARIABLES[field]['root']
+
+        error_band = rootpy_utils.get_band(total_model-low, 
+                                           total_model+high, 
+                                           middle_hist=total_model) 
+        for i in total_model.bins_range(overflow=True):
+            total_model.error = max(error_band.yerr(i))
+        with root_open('{0}.root'.format(channel.name), 'recreate') as fout:
+            data_hist.Write()
+            for hist in model_hists:
+                hist.Write()
+            total_model.Write()
