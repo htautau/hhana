@@ -125,7 +125,6 @@ def blind_graph(graph, window, replace=0):
 def get_category(category_name, categories):
     for category in categories:
         if category.name == category_name:
-            break
             return category
     return None
 

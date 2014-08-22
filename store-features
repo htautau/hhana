@@ -12,6 +12,7 @@ log = logging.getLogger(os.path.basename(__file__))
 from rootpy.io import root_open
 from rootpy.tree import Cut
 import rootpy.plotting.utils as rootpy_utils
+from rootpy.stats.histfactory import split_norm_shape
 
 # local imports
 from mva.cmd import get_parser
@@ -61,6 +62,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         field_scale[var] = var_info.get('scale', 1)
     fields = analysis.get_channel_array(
         VARS, category, target_region, cuts=cuts, 
+        mode='workspace',
         clf=clf, field_scale=field_scale, systematics=args.systematics)
         
     if not is_control:
