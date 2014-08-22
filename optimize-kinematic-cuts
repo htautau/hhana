@@ -1,25 +1,24 @@
 #!/usr/bin/env python
+# python imports
 import os
 import logging
-import multiprocessing
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 import time
-
+# ROOT/rootpy imports
 from rootpy import ROOT
-from rootpy.plotting import Graph, Canvas, Hist, Legend
-from rootpy.stats.histfactory import (
-    Data, Sample, Channel, make_measurement, make_workspace)
+from rootpy.stats import histfactory 
+from rootpy.plotting import Canvas, Legend
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 
-from mva import CONST_PARAMS, CACHE_DIR
+#local imports
+from mva import CONST_PARAMS, POI, CACHE_DIR
 from mva.categories import Category_VBF, Category_Boosted
-from mva.samples import QCD, Ztautau
 from mva.analysis import Analysis
-from mva.defaults import TARGET_REGION
+from mva.workspace import mva_workspace
 
 from statstools.fixups import fix_measurement
-from statstools import get_significance_workspace
-from statstools.jobs import run_pool
+from statstools import significance
+from statstools.parallel import map_pool
 from statstools.plotting import pvalue_plot
 
 log = logging.getLogger(os.path.basename(__file__))
@@ -30,7 +29,7 @@ class SigProcess(Process):
         super(SigProcess, self).__init__()
         self.args = args
         self.kwargs = kwargs
-        self.result = multiprocessing.Queue()
+        self.result = Queue()
     
     @property
     def output(self):
@@ -39,71 +38,31 @@ class SigProcess(Process):
     def run(self):
         self.result.put(get_sig(*self.args, **self.kwargs))
 
-def map_pool(process, args, n_jobs=-1, **kwargs):
-    procs = [process(*arg, **kwargs) for arg in args]
-    run_pool(procs, n_jobs=n_jobs)
-    return [p.output for p in procs]
+def get_workspace(
+    analysis, category,
+    mass=125, cuts=None):
+    sr, _ = mva_workspace(
+        analysis, 'mva', [mass],
+        clf_mass=125, cuts=cuts)
+    channel = sr[mass][category.name]
+    log.info('Consider channel {0}'.format(channel))
+    measurement = histfactory.make_measurement(
+        'MVA', [channel],
+        POI=POI, const_params=CONST_PARAMS)
+    log.info('Measurement {0} ready to be fixed'.format(measurement))
+    # fix_measurement(measurement)
+    # log.info('fixed !') 
+    return histfactory.make_workspace(measurement, silence=False)
 
-def get_workspace(scores, binning,
-                  category,
-                  mass=125,
-                  systematics=False):
-
-    hist_template = Hist(binning)
-    background = []
-    for sample, scores_dict in scores.bkg_scores:
-        background.append(sample.get_histfactory_sample(
-            hist_template, None, category, TARGET_REGION, scores=scores_dict,
-            systematics=systematics))
-    signal = []
-    for sample, scores_dict in scores.all_sig_scores[mass]:
-        signal.append(sample.get_histfactory_sample(
-            hist_template, None, category, TARGET_REGION, scores=scores_dict,
-            systematics=systematics))
-    # TODO: why is the clone needed?
-    data_hist = sum([b.hist.Clone(shallow=True) for b in background])
-    data_hist.name = 'Data'
-    data = Data('Data', data_hist)
-    channel = Channel(category.name, signal + background, data)
-    measurement = make_measurement(
-        'MVA', channel,
-        POI='SigXsecOverSM',
-        const_params=CONST_PARAMS)
-    fix_measurement(measurement)
-    return make_workspace(measurement, silence=True)
-
-
-def get_sig(category,
-            cuts,
-            mass=125,
-            systematics=False):
-
-    analysis = Analysis(2012,
-                        systematics=systematics,
-                        qcd_workspace_norm=False,
-                        ztt_workspace_norm=False,
-                        qcd_shape_systematic=False)
-    analysis.normalize(category)
-    clf = analysis.get_clf(
-        Category_VBF, 
-        load=True, 
-        mass=mass, 
-        transform=True)
-        
-    scores = analysis.get_scores(
-        clf, category, TARGET_REGION, 
-        mode='workspace', cuts=cuts,
-        masses=[mass], systematics=systematics)
-
-
-    binning = clf.binning(analysis.year, overflow=1E5)
-    ws = get_workspace(scores, binning,
-                       category,
-                       mass=mass,
-                       systematics=systematics)
-    hist = get_significance_workspace(ws)
-    sig = hist[2].value
-    # handle nan
+def get_sig(category, cuts, mass=125):
+    analysis = Analysis(2012, qcd_shape_systematic=False)
+    get_workspace(
+        analysis, category,
+        mass=mass, cuts=cuts)
+    log.info(ws)
+    sig, _, _ = significance(ws)
+    log.info(sig)
+    # -- handle nan
     return 0 if sig != sig else sig
 
 if __name__ == '__main__':
@@ -111,76 +70,83 @@ if __name__ == '__main__':
     # pip install --user tabulate
     from tabulate import tabulate
     from rootpy.extern.argparse import ArgumentParser
-
+    from rootpy.tree import Cut
     parser = ArgumentParser()
-    parser.add_argument('--year', type=int, choices=[2011, 2012], default=2012)
     parser.add_argument('--categories', nargs='*')
     parser.add_argument('--systematics', action='store_true', default=False)
     parser.add_argument('--mass', type=int, default=125, choices=range(100, 155, 5))
     parser.add_argument('--procs', type=int, default=-1)
 
     args = parser.parse_args()
-    year = args.year
     mass = args.mass
 
-    lead_tau_cuts = range(35, 75, 2)
+    #lead_tau_cuts = range(35, 75, 2)
+    lead_tau_cuts = [35]
     sublead_tau_cuts = range(25, 65, 2)
     lead_jet_cuts = range(50, 90, 2)
     sublead_jet_cuts = range(30, 70, 2)
+    dr_taus_cuts = [1.4+0.1*i for i in range(0, 11)]
 
     cuts_l = ['tau1_pt > {0}'.format(cut_gev*1e3) for cut_gev in lead_tau_cuts]
     cuts_sl = ['tau2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_tau_cuts]
     cuts_j_l = ['jet1_pt > {0}'.format(cut_gev*1e3) for cut_gev in lead_jet_cuts]
     cuts_j_sl = ['jet2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_jet_cuts]
+    cuts_dr = ['dR_tau1_tau2 < {0}'.format(cut) for cut in dr_taus_cuts]
 
+    cuts_baseline_run2 = Cut('tau1_pt>40000 && tau2_pt>30000 && jet1_pt>30000')
     sigs_t_l = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_l], 
-                        mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
-    sigs_t_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_sl], 
-                         mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+                        mass=args.mass, n_jobs=args.procs)
+    # sigs_t_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_sl], 
+    #                      mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
 
-    sigs_j_l = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_j_l], 
-                        mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
-    sigs_j_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_j_sl], 
-                         mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+    # sigs_j_l = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_j_l], 
+    #                     mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+    # sigs_j_sl = map_pool(SigProcess, [(Category_VBF, cut) for cut in cuts_j_sl], 
+    #                      mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+    # sigs_dr = map_pool(SigProcess, [(Category_VBF, cut_base_run2&cut) for cut in cuts_dr],
+    #                    mass=args.mass, systematics=args.systematics, n_jobs=args.procs)
+
     
     log.info(sigs_t_l)
-    log.info(sigs_t_sl)
-    log.info(sigs_j_l)
-    log.info(sigs_j_sl)
+    # log.info(sigs_t_sl)
+    # log.info(sigs_j_l)
+    # log.info(sigs_j_sl)
 
     pvals_t_l  = [gaussian_cdf_c(sig) for sig in sigs_t_l]
-    pvals_t_sl = [gaussian_cdf_c(sig) for sig in sigs_t_sl]
-    pvals_j_l  = [gaussian_cdf_c(sig) for sig in sigs_j_l]
-    pvals_j_sl = [gaussian_cdf_c(sig) for sig in sigs_j_sl]
+    # pvals_t_sl = [gaussian_cdf_c(sig) for sig in sigs_t_sl]
+    # pvals_j_l  = [gaussian_cdf_c(sig) for sig in sigs_j_l]
+    # pvals_j_sl = [gaussian_cdf_c(sig) for sig in sigs_j_sl]
+    # pvals_dr   = [gaussian_cdf_c(sig) for sig in sigs_dr]
 
-    log.info(pvals_t_l)
-    log.info(pvals_t_sl)
-    log.info(pvals_j_l)
-    log.info(pvals_j_sl)
+    # log.info(pvals_t_l)
+    # log.info(pvals_t_sl)
+    # log.info(pvals_j_l)
+    # log.info(pvals_j_sl)
+    # log.info(pvals_dr)
 
 
-    thres = range(0, 20)
-    c = Canvas()
-    _, graphs = pvalue_plot(thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
-                            pad=c, xtitle='threshold step', 
-                            yrange=(gaussian_cdf_c(2.5), 50),
-                            linecolor = ['blue', 'red', 'green', 'purple'])
-    labels = []
-    labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
-    labels.append('scan p_{T}(#tau_{2}): 25 - 65 GeV (2 GeV)')
-    labels.append('scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)') 
-    labels.append('scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)') 
+    # thres = range(0, 20)
+    # c = Canvas()
+    # _, graphs = pvalue_plot(thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
+    #                         pad=c, xtitle='threshold step', 
+    #                         yrange=(gaussian_cdf_c(2.5), 50),
+    #                         linecolor = ['blue', 'red', 'green', 'purple'])
+    # labels = []
+    # labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
+    # labels.append('scan p_{T}(#tau_{2}): 25 - 65 GeV (2 GeV)')
+    # labels.append('scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)') 
+    # labels.append('scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)') 
 
-    for graph, label in zip (graphs, labels):
-        graph.title = label
-        graph.legendstyle = 'L'
+    # for graph, label in zip (graphs, labels):
+    #     graph.title = label
+    #     graph.legendstyle = 'L'
 
-    leg = Legend(graphs, 
-                 leftmargin=0.1, 
-                 rightmargin=0.5, 
-                 header=Category_VBF.label, 
-                 textsize=20)
-    leg.Draw('same')
-    ATLAS_label(0.2, 0.88, text="Internal", sqrts=8, pad=c, sep=0.12)
+    # leg = Legend(graphs, 
+    #              leftmargin=0.1, 
+    #              rightmargin=0.5, 
+    #              header=Category_VBF.label, 
+    #              textsize=20)
+    # leg.Draw('same')
+    # ATLAS_label(0.2, 0.88, text="Internal", sqrts=8, pad=c, sep=0.12)
 
-    c.SaveAs('toto.png')
+    # c.SaveAs('toto.png')

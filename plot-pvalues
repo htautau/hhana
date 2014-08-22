@@ -75,6 +75,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # This part need to be updated manually - TODO: implement automatisation
+    #path = 'workspaces/14_08_2014/hh_nos_nonisol_ebz_cuts_fixed/'
     path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed/'
     categories = CATEGORIES['cuts']
 
