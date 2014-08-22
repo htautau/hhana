@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # Step1: Retrieve NP scans of the combined WS
     graphs = {}
 
-    combined_np_path = get_pickle_path(args.path, 'hh_12_combination_{0}'.format(args.mass))
+    combined_np_path = get_pickle_path(args.path, 'hh_combination_{0}'.format(args.mass))
     print combined_np_path
     if not os.path.exists(combined_np_path):
         raise RuntimeError('Need the combineds WS scans to run !')

@@ -102,6 +102,8 @@ if __name__ == '__main__':
     category = Category_VBF
 
 
+    cuts_baseline_run2 = 'tau1_pt>40000 && tau2_pt>30000 && jet1_pt>30000'
+
     lead_tau_cuts = range(35, 75, 2)
     sublead_tau_cuts = range(25, 65, 2)
     lead_jet_cuts = range(50, 90, 2)
@@ -112,31 +114,31 @@ if __name__ == '__main__':
     cuts_sl = ['tau2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_tau_cuts]
     cuts_j_l = ['jet1_pt > {0}'.format(cut_gev*1e3) for cut_gev in lead_jet_cuts]
     cuts_j_sl = ['jet2_pt > {0}'.format(cut_gev*1e3) for cut_gev in sublead_jet_cuts]
-    cuts_dr = ['dR_tau1_tau2 < {0}'.format(cut) for cut in dr_taus_cuts]
+    cuts_dr = [cuts_baseline_run2+'&& dR_tau1_tau2 < {0}'.format(cut) for cut in dr_taus_cuts]
 
-    cuts_baseline_run2 = Cut('tau1_pt>40000 && tau2_pt>30000 && jet1_pt>30000')
 
     # get_sig(analysis, clf, category, 'tau1_pt>50000')
 
-    sigs_t_l = map_pool(
-        FuncWorker, [(get_sig, category, cut) for cut in cuts_l], 
-        n_jobs=args.jobs)
-
-    sigs_t_sl = map_pool(
-        FuncWorker, [(get_sig, category, cut) for cut in cuts_sl], 
-        n_jobs=args.jobs)
-
-    sigs_j_l = map_pool(
-        FuncWorker, [(get_sig, category, cut) for cut in cuts_j_l], 
-        n_jobs=args.jobs)
-
-    sigs_j_sl = map_pool(
-        FuncWorker, [(get_sig, category, cut) for cut in cuts_j_sl], 
-        n_jobs=args.jobs)
-
     sigs_dr = map_pool(
-        FuncWorker, [(get_sig, category, cut_baseline_run3&cut) for cut in cuts_dr],
+        FuncWorker, [(get_sig, category, cut) for cut in cuts_dr],
         n_jobs=args.jobs)
+
+    sigs_t_l = map_pool(
+        FuncWorker, [(get_sig, category, cut) for cut in cuts_l+cuts_sl+cuts_j_l+cuts_j_sl], 
+        n_jobs=args.jobs)
+
+    # sigs_t_sl = map_pool(
+    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_sl], 
+    #     n_jobs=args.jobs)
+
+    # sigs_j_l = map_pool(
+    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_j_l], 
+    #     n_jobs=args.jobs)
+
+    # sigs_j_sl = map_pool(
+    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_j_sl], 
+    #     n_jobs=args.jobs)
+
 
     
     log.info(sigs_t_l)
