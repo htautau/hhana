@@ -108,6 +108,12 @@ if __name__ == '__main__':
             FuncWorker, [(get_sig, cat, cut) for cut in cuts_dr],
             n_jobs=args.jobs)
 
+    pvals_dr = {}
+    log.info(dr_taus_cuts)
+    for name, sigs in sigs_dr.items():
+        log.info('{0}: {1}'.format(name,sigs))
+        pvals_dr[name] = [gaussian_cdf_c(sig) for sig in sigs]
+
     # sigs_t_l = map_pool(
     #     FuncWorker, [(get_sig, category, cut) for cut in cuts_l], 
     #     n_jobs=args.jobs)
@@ -124,17 +130,6 @@ if __name__ == '__main__':
     #     FuncWorker, [(get_sig, category, cut) for cut in cuts_j_sl], 
     #     n_jobs=args.jobs)
 
-
-    
-    # log.info(sigs_t_l)
-    # log.info(sigs_t_sl)
-    # log.info(sigs_j_l)
-    # log.info(sigs_j_sl)
-    pvals_dr = {}
-    log.info(dr_taus_cuts)
-    for name, sigs in sigs_dr.items():
-        log.info('{0}: {1}'.format(name,sigs))
-        pvals_dr[name] = [gaussian_cdf_c(sig) for sig in sigs]
 
     # pvals_t_l  = [gaussian_cdf_c(sig) for sig in sigs_t_l]
     # pvals_t_sl = [gaussian_cdf_c(sig) for sig in sigs_t_sl]
@@ -177,7 +172,7 @@ if __name__ == '__main__':
     _, graphs = pvalue_plot(
         dr_taus_cuts, [pvals_dr['boosted'], pvals_dr['vbf']], 
         pad=c1, xtitle='Upper dR cut value', 
-        yrange=(gaussian_cdf_c(2.5), 50), linecolor = ['red', 'blue'])
+        yrange=(gaussian_cdf_c(2.5), 50), linecolor = ['blue', 'red'])
 
     labels = []
     labels.append(Category_Boosted.label)
@@ -188,8 +183,8 @@ if __name__ == '__main__':
         graph.legendstyle = 'L'
 
     leg = Legend(
-        graphs, x=0.1, textsize=20,
-        header='Scan dR(#tau_{1}, #tau_{2}) cut: {0} #rightarrow {1}'.format(dr_taus_cuts[0], dr_taus_cuts[-1]))
+        graphs, x=0.4, y=0.1, textsize=20,
+        header='Scan dR(#tau_{{1}}, #tau_{{2}}) cut: {0} #rightarrow {1}'.format(dr_taus_cuts[0], dr_taus_cuts[-1]))
     leg.Draw('same')
     ATLAS_label(
         0.2, 0.88, text="Internal", 
