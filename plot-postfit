@@ -15,7 +15,7 @@ from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
 from rootpy.extern.tabulartext import PrettyTable
-from ROOT import TLatex, TGraphAsymmErrors, TH1 
+from ROOT import TGraphAsymmErrors 
 
 # local imports
 from mva import ATLAS_LABEL, MMC_MASS
@@ -269,6 +269,7 @@ if __name__ == '__main__':
     parser.add_argument('file')
     parser.add_argument('--name', default='combined')
     parser.add_argument('--fit-var', default='bdt', choices=['bdt', 'mmc'])
+    parser.add_argument('--clf-bins', default='optimal')
     parser.add_argument('--force-fit', action='store_true', default=False)
     parser.add_argument('--unblind', action='store_true', default=False)
     parser.add_argument('--jobs', default=-1)
@@ -303,7 +304,9 @@ if __name__ == '__main__':
                 # not found
                 log.warning("skipping category: {0}".format(category_name))
                 continue
-            binning = get_binning(category, year, fit_var=args.fit_var)
+            if category_name == 'rest':
+                continue
+            binning = get_binning(category, year, fit_var=args.fit_var, clf_bins=args.clf_bins)
             if category_name != 'rest' and not args.unblind:
                 unblind = get_blinding(category, year, fit_var=args.fit_var)
                 log.info('Blinding region: {0}'.format(unblind))

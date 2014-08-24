@@ -6,6 +6,7 @@ from rootpy.io import root_open
 from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.utils.path import mkdir_p
 from rootpy.extern.argparse import ArgumentParser
+from statstools.asimov import make_asimov_data
 from root_numpy import matrix
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +20,7 @@ if hasattr(logging, 'captureWarnings'):
 
 parser = ArgumentParser()
 parser.add_argument('--name', default='combined')
+parser.add_argument('--unblind', action='store_true', default=False)
 parser.add_argument('file')
 args = parser.parse_args()
 
@@ -71,7 +73,11 @@ if not os.path.exists(output):
 rfile = root_open(args.file)
 ws = rfile[args.name]
 # unconditional fit
-minim = ws.fit(print_level=-1)
+if not args.unblind:
+    data = make_asimov_data(ws)
+    minim = ws.fit(print_level=-1, data=data)
+else:
+    minim = ws.fit(print_level=-1)
 result = minim.save()
 plot_norms(result, path=output)
 
@@ -108,6 +114,7 @@ def make_colormap(seq, name='CustomMap'):
 
 
 names = [shorten_name(p.name) for p in result.final_params]
+log.info(names)
 corr = matrix(result.correlation_matrix)
 # compress by removing rows and cols that have low sums
 abs_corr = np.abs(np.asarray(corr))
@@ -129,6 +136,9 @@ plot_corrcoef_matrix(
     fontsize=7, cmap='jet',
     cmap_text=make_colormap(['white', 0.33, 'black', 0.66, 'white']),
     grid=True, axes=ax)
-filename = os.path.join(output, 'correlations.png')
+if not args.unblind:
+    filename = os.path.join(output, 'correlations_expected.png')
+else:
+    filename = os.path.join(output, 'correlations.png')
 log.info("writing {0}".format(filename))
 plt.savefig(filename, bbox_inches='tight', dpi=300)

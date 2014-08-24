@@ -33,9 +33,10 @@ from matplotlib import pyplot as plt
 
 # local imports
 from mva import log, variables, samples, MMC_MASS, plot_dir
-from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
-                           draw_channel_array, draw_channel,
-                           correlations, hist_scores )
+from mva.plotting import draw_channel_array
+# from mva.plotting import ( draw_scatter, draw_samples_array, draw_2d_hist,
+#                            draw_channel_array, draw_channel,
+#                            correlations, hist_scores )
 from mva.samples import Higgs, Data
 from mva.utils import make_multipage_pdf, braindump
 from mva.systematics import ( get_systematics, iter_systematics,
@@ -85,8 +86,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         score_cuts = [-1.0, 0.0, 0.5, 0.9, 0.95, 0.987]
 
         override_vars = [
-             'averageIntPerXing',
-            'mmc0_mass',
+            'averageIntPerXing',
+            'mmc1_mass',
             'dEta_jets',
             'dR_tau1_tau2',
             'jet1_pt',
@@ -97,10 +98,10 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
             #'jet2_phi',
             'tau1_pt',
             'tau1_eta',
-            'tau1_phi',
+            #'tau1_phi',
             'tau2_pt',
             'tau2_eta',
-            'tau2_phi',
+            #'tau2_phi',
         ]
 
         if args.plot_expr is not None:

@@ -63,6 +63,11 @@ def process_measurement(m,
                         symmetrize_partial=False,
                         asymmetry_threshold = 1,
 
+                        rescale_np_names=None,
+                        rescale_np_channels=None,
+                        rescale_np_samples=None,
+                        rescale_np_factor=1,
+
                         smooth_histosys=False,
                         smooth_histosys_iterations=1,
                         smooth_histosys_samples=None,
@@ -348,6 +353,17 @@ def process_measurement(m,
                                 log.info("symmetrized OverallSys `{0}` in sample `{1}`".format(
                                     np.name, s.name))
 
+        # Rescale NP overalsys amplitude
+        if rescale_np_names and matched(c.name, rescale_np_channels):
+            for s in c.samples:
+                if not matched(s.name, rescale_np_samples):
+                    continue
+                for np in s.overall_sys:
+                    if matched(np.name, rescale_np_names, ignore_case=True):
+                        rescale_overallsys(np, nominal=1, scale_factor=rescale_np_factor)
+                        log.info("RESCALE OverallSys `{0}` in sample `{1}` by {2}".format(
+                                np.name, s.name, rescale_np_factor))
+
         # zero out negatives
         if zero_negs:
             for s in c.samples:
@@ -525,6 +541,18 @@ def symmetrize_overallsys(np, nominal=1., partial=False):
         return True
     return False
 
+def rescale_overallsys(np, nominal=1., scale_factor=1.):
+    """
+    Rescale the amplitude of a np
+    -----------------------------
+    """
+    up = np.high - nominal
+    dn = np.low - nominal
+    up *= scale_factor
+    dn *= scale_factor
+    np.high = nominal + up
+    np.low = nominal - dn
+    return True
 
 def shape_chi2_test(nom, up, down, threshold):
     """

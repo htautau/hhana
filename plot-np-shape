@@ -2,6 +2,7 @@
 
 # python imports
 import os
+import logging
 
 # ROOT/rootpy imports
 from rootpy import ROOT
@@ -16,6 +17,8 @@ from statstools.fixups import find_measurements
 from statstools import log; log = log['plot-np-shape']
 from mva.plotting.templates import RatioPlot
 from mva import save_canvas
+
+log = logging.getLogger(os.path.basename(__file__))
 
 parser = ArgumentParser()
 parser.add_argument('--logy', action='store_true', default=False)
@@ -118,9 +121,13 @@ def draw_ratio(nom, sys_var,
 
     with plot.pad('main') as pad:
         # legend
+<<<<<<< HEAD
         leg = Legend([nom, up, do], 0, 0.19,
+=======
+        leg = Legend([nom, up, do],
+>>>>>>> 3916691962e4db4936ae7ffdda3101d4979ef4c7
                      entrysep=0.01, entryheight=0.05,
-                     margin=0.27, textsize=textsize)
+                     margin=0.35, textsize=textsize)
         leg.Draw()
         # draw the category label
         label = ROOT.TLatex(

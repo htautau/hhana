@@ -12,7 +12,7 @@ from rootpy import asrootpy
 # from higgstautau.pbs import qsub
 
 # ---> local imports
-from statstools.jobs import run_pool
+from statstools.parallel import run_pool
 from statstools.nuisance import NuisParScan
 from mva import log; log=log[__name__]
 
