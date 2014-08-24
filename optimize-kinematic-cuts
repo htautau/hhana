@@ -102,91 +102,92 @@ if __name__ == '__main__':
 
     # get_sig(category, cuts_dr[2])
 
-    sigs_dr = {}
-    for cat in (Category_VBF, Category_Boosted):
-        sigs_dr[cat.name] = map_pool(
-            FuncWorker, [(get_sig, cat, cut) for cut in cuts_dr],
-            n_jobs=args.jobs)
+    # sigs_dr = {}
+    # for cat in (Category_VBF, Category_Boosted):
+    #     sigs_dr[cat.name] = map_pool(
+    #         FuncWorker, [(get_sig, cat, cut) for cut in cuts_dr],
+    #         n_jobs=args.jobs)
 
-    pvals_dr = {}
-    log.info(dr_taus_cuts)
-    for name, sigs in sigs_dr.items():
-        log.info('{0}: {1}'.format(name,sigs))
-        pvals_dr[name] = [gaussian_cdf_c(sig) for sig in sigs]
+    # pvals_dr = {}
+    # log.info(dr_taus_cuts)
+    # for name, sigs in sigs_dr.items():
+    #     log.info('{0}: {1}'.format(name,sigs))
+    #     pvals_dr[name] = [gaussian_cdf_c(sig) for sig in sigs]
 
-    # sigs_t_l = map_pool(
-    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_l], 
-    #     n_jobs=args.jobs)
+    sigs_t_l = map_pool(
+        FuncWorker, [(get_sig, category, cut) for cut in cuts_l], 
+        n_jobs=args.jobs)
 
-    # sigs_t_sl = map_pool(
-    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_sl], 
-    #     n_jobs=args.jobs)
+    sigs_t_sl = map_pool(
+        FuncWorker, [(get_sig, category, cut) for cut in cuts_sl], 
+        n_jobs=args.jobs)
 
-    # sigs_j_l = map_pool(
-    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_j_l], 
-    #     n_jobs=args.jobs)
+    sigs_j_l = map_pool(
+        FuncWorker, [(get_sig, category, cut) for cut in cuts_j_l], 
+        n_jobs=args.jobs)
 
-    # sigs_j_sl = map_pool(
-    #     FuncWorker, [(get_sig, category, cut) for cut in cuts_j_sl], 
-    #     n_jobs=args.jobs)
-
-
-    # pvals_t_l  = [gaussian_cdf_c(sig) for sig in sigs_t_l]
-    # pvals_t_sl = [gaussian_cdf_c(sig) for sig in sigs_t_sl]
-    # pvals_j_l  = [gaussian_cdf_c(sig) for sig in sigs_j_l]
-    # pvals_j_sl = [gaussian_cdf_c(sig) for sig in sigs_j_sl]
+    sigs_j_sl = map_pool(
+        FuncWorker, [(get_sig, category, cut) for cut in cuts_j_sl], 
+        n_jobs=args.jobs)
 
 
-    # # ==================================================
-    # # pvalue plot for pT(tau) and pT(jet) cut variations
-    # thres = range(0, 20)
-    # c = Canvas()
-    # _, graphs = pvalue_plot(
-    #     thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
-    #     pad=c, xtitle='threshold step', 
-    #     yrange=(gaussian_cdf_c(2.5), 50),
-    #     linecolor = ['blue', 'red', 'green', 'purple'])
+    pvals_t_l  = [gaussian_cdf_c(sig) for sig in sigs_t_l]
+    pvals_t_sl = [gaussian_cdf_c(sig) for sig in sigs_t_sl]
+    pvals_j_l  = [gaussian_cdf_c(sig) for sig in sigs_j_l]
+    pvals_j_sl = [gaussian_cdf_c(sig) for sig in sigs_j_sl]
 
-    # labels = []
-    # labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
-    # labels.append('scan p_{T}(#tau_{2}): 25 - 65 GeV (2 GeV)')
-    # labels.append('scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)') 
-    # labels.append('scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)') 
 
-    # for graph, label in zip(graphs, labels):
-    #     graph.title = label
-    #     graph.legendstyle = 'L'
-
-    # leg = Legend(
-    #     graphs, header=category.label, 
-    #     textsize=20)
-    # leg.Draw('same')
-    # ATLAS_label(
-    #     0.2, 0.88, text="Internal", 
-    #     sqrts=8, pad=c, sep=0.12)
-    # c.SaveAs('optimize-pt-cuts.png')
-
-    # ==========================================
-    # pvalue plot for dR_tau1_tau2 cut variation
-    c1 = Canvas()
+    # ==================================================
+    # pvalue plot for pT(tau) and pT(jet) cut variations
+    thres = range(0, 20)
+    c = Canvas()
     _, graphs = pvalue_plot(
-        dr_taus_cuts, [pvals_dr['boosted'], pvals_dr['vbf']], 
-        pad=c1, xtitle='Upper dR cut value', 
-        yrange=(gaussian_cdf_c(2.5), 50), linecolor = ['blue', 'red'])
+        thres, [pvals_t_l, pvals_t_sl, pvals_j_l, pvals_j_sl], 
+        pad=c, xtitle='threshold step', 
+        yrange=(gaussian_cdf_c(2.5), 50),
+        linecolor = ['blue', 'red', 'green', 'purple'])
 
     labels = []
-    labels.append(Category_Boosted.label)
-    labels.append(Category_VBF.label)
+    labels.append('scan p_{T}(#tau_{1}): 35 - 75 GeV (2 GeV)')
+    labels.append('scan p_{T}(#tau_{2}): 25 - 65 GeV (2 GeV)')
+    labels.append('scan p_{T}(j_{1}): 50 - 90 GeV (2 GeV)') 
+    labels.append('scan p_{T}(j_{2}): 30 - 70 GeV (2 GeV)') 
 
     for graph, label in zip(graphs, labels):
         graph.title = label
         graph.legendstyle = 'L'
 
     leg = Legend(
-        graphs, x=0.4, y=0.1, textsize=20,
-        header='Scan dR(#tau_{{1}}, #tau_{{2}}) cut: {0} #rightarrow {1}'.format(dr_taus_cuts[0], dr_taus_cuts[-1]))
+        graphs, header=category.label, 
+        textsize=20)
     leg.Draw('same')
     ATLAS_label(
         0.2, 0.88, text="Internal", 
-        sqrts=8, pad=c1, sep=0.12)
-    c1.SaveAs('optimize-dr_taus-cuts.png')
+        sqrts=8, pad=c, sep=0.12)
+    c.SaveAs('optimize-pt-cuts.png')
+
+
+    # # ==========================================
+    # # pvalue plot for dR_tau1_tau2 cut variation
+    # c1 = Canvas()
+    # _, graphs = pvalue_plot(
+    #     dr_taus_cuts, [pvals_dr['boosted'], pvals_dr['vbf']], 
+    #     pad=c1, xtitle='Upper dR cut value', 
+    #     yrange=(gaussian_cdf_c(2.5), 50), linecolor = ['blue', 'red'])
+
+    # labels = []
+    # labels.append(Category_Boosted.label)
+    # labels.append(Category_VBF.label)
+
+    # for graph, label in zip(graphs, labels):
+    #     graph.title = label
+    #     graph.legendstyle = 'L'
+
+    # leg = Legend(
+    #     graphs, x=0.4, y=0.1, textsize=20,
+    #     header='Scan dR(#tau_{{1}}, #tau_{{2}}) cut: {0} #rightarrow {1}'.format(dr_taus_cuts[0], dr_taus_cuts[-1]))
+    # leg.Draw('same')
+    # ATLAS_label(
+    #     0.2, 0.88, text="Internal", 
+    #     sqrts=8, pad=c1, sep=0.12)
+    # c1.SaveAs('optimize-dr_taus-cuts.png')
