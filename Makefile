@@ -3,11 +3,8 @@
 HHSTUDENT ?= hhskim
 # ntuple production directory
 HHNTUP ?= ntuples/prod_v29/hhskim
-#HHNTUP ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
 # ntuple running directory
 HHNTUP_RUNNING ?= ntuples_hh/running/hhskim
-#HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/hhskim_tes_true_total
-#HHNTUP_RUNNING ?= /cluster/data12/qbuat/ntuples_hh/hhskim_notesshift/hhskim
 # maximum number of processors to request in PBS
 PBS_PPN_MAX ?= 15
 
@@ -264,6 +261,8 @@ norms:
 		done; \
 		nohup ./norm --fakes-region SS_NTRK --target-region OS_NTRK --year $${year} & \
 		nohup ./norm --no-embedding --fakes-region SS_NTRK --target-region OS_NTRK --year $${year} & \
+		nohup ./norm --fakes-region SS --target-region OS --year $${year} & \
+		nohup ./norm --no-embedding --fakes-region SS --target-region OS --year $${year} & \
 	done
 
 .PHONY: model-plots
@@ -356,8 +355,8 @@ mva-workspaces:
 		done; \
 	done
 
-.PHONY: mva-workspaces-test
-mva-workspaces-test:
+.PHONY: mva-workspaces-binning-test
+mva-workspaces-binning-test:
 	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years 2012 --masses 125 --clf-mass 125 --output-suffix default; \
 	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years 2012 --masses 125 --clf-mass 125 --clf-bins 10 --output-suffix 10bins; \
 	PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace mva --systematics --unblind --years 2012 --masses 125 --clf-mass 125 --clf-bins 20 --output-suffix 20bins; \
@@ -422,8 +421,8 @@ pruning:
 .PHONY: fix-mva
 fix-mva:
 	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva_old_tes
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva
 
 .PHONY: fix-cuts
 fix-cuts:
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_stat_cuts_uniformentriesfixed
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_cuts
