@@ -21,12 +21,12 @@ FILES = {}
 TEMPFILE = TemporaryFile()
 
 
-def get_file(student=DEFAULT_STUDENT, hdf=False, suffix=''):
+def get_file(ntuple_path=NTUPLE_PATH, student=DEFAULT_STUDENT, hdf=False, suffix=''):
     ext = '.h5' if hdf else '.root'
     filename = student + ext
     if filename in FILES:
         return FILES[filename]
-    file_path = os.path.join(NTUPLE_PATH, student + suffix, filename)
+    file_path = os.path.join(ntuple_path, student + suffix, filename)
     log.info("opening {0} ...".format(file_path))
     if hdf:
         student_file = tables.open_file(file_path)#, driver="H5FD_CORE")

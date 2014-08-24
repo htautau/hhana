@@ -26,7 +26,7 @@ from higgstautau import samples as samples_db
 # local imports
 from . import log; log = log[__name__]
 from .. import variables
-from .. import DEFAULT_STUDENT, ETC_DIR, CACHE_DIR
+from .. import NTUPLE_PATH, DEFAULT_STUDENT, ETC_DIR, CACHE_DIR
 from ..utils import print_hist, ravel_hist, uniform_hist
 from ..classify import histogram_scores, Classifier
 from ..regions import REGIONS
@@ -105,6 +105,7 @@ class Sample(object):
         return []
 
     def __init__(self, year, scale=1., cuts=None,
+                 ntuple_path=NTUPLE_PATH,
                  student=DEFAULT_STUDENT,
                  trigger=True,
                  name='Sample',
@@ -120,6 +121,7 @@ class Sample(object):
             self._cuts = Cut()
         else:
             self._cuts = cuts
+        self.ntuple_path = ntuple_path
         self.student = student
         self.name = name
         self.label = label
@@ -233,7 +235,6 @@ class Sample(object):
                              max_score=max_score,
                              inplace=True)
             return field_hist
-
         self.draw_array(field_hist, category, region,
                         cuts=cuts,
                         weighted=weighted,
@@ -552,9 +553,7 @@ class Sample(object):
                           systematic='NOMINAL',
                           scale=1.,
                           bootstrap_data=False):
-
         from .data import Data, DataInfo
-
         all_fields = []
         classifiers = []
         for f in field_hist.iterkeys():
@@ -571,7 +570,6 @@ class Sample(object):
             classifier = classifiers[0]
         else:
             classifier = None
-
         if isinstance(self, Data) and bootstrap_data:
             log.info("using bootstrapped data")
             analysis = bootstrap_data
@@ -619,7 +617,8 @@ class Sample(object):
                 fields=all_fields, cuts=cuts,
                 include_weight=True,
                 clf=classifier,
-                scores=scores,
+                #scores=scores,
+                scores=scores[0] if isinstance(scores, tuple) else scores,
                 systematic=systematic)
             if scores is None and 'classifier' in rec.dtype.names:
                 scores = rec['classifier']
@@ -888,8 +887,8 @@ class SystematicsSample(Sample):
         self.systematics = systematics
         self.tau_id_sf = tau_id_sf
         self.norms = {}
-        rfile = get_file(self.student)
-        h5file = get_file(self.student, hdf=True)
+        rfile = get_file(self.ntuple_path, self.student)
+        h5file = get_file(self.ntuple_path, self.student, hdf=True)
 
         from .ztautau import Embedded_Ztautau
 
@@ -981,7 +980,6 @@ class SystematicsSample(Sample):
                    bootstrap_data=False):
 
         do_systematics = self.systematics and systematics
-
         if scores is None and clf is not None:
             scores = self.scores(
                 clf, category, region, cuts=cuts,
@@ -1335,7 +1333,7 @@ class CompositeSample(object):
             for field,hist in field_hist_tot.items():
                 field_hists_temp[field] = hist.Clone()
                 field_hists_temp[field].Reset()
-            s.draw_array( field_hists_temp, category, region, systematics=systematics,**kwargs)
+            s.draw_array(field_hists_temp, category, region, systematics=systematics,**kwargs)
             field_hists_list.append( field_hists_temp )
 
         # -------- Reset the output histograms

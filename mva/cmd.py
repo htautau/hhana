@@ -54,7 +54,7 @@ def general_parser(parser=None, multi_years=False, multi_categories=False):
             help='suffix to add to any output files or plots')
     parser.add_argument('--systematics-components', default=None,
             help='only include the following systematics in plots Example: '
-                 'TES_TRUE_UP,QCD_SHAPE_UP')
+                 'TES_TRUE_INSITU_UP,QCD_SHAPE_UP')
     return parser
 
 

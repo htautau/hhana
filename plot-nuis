@@ -48,8 +48,7 @@ def plot_nuis(name, graphs, outdir):
          xlimits=(-3, 3), ylimits=(-1, 10))
     for graph in graphs:
         graph.legendstyle = 'L'
-    leg = Legend(graphs, leftmargin=0.1, margin=0.15,
-                 topmargin=0.1, textsize=15)
+    leg = Legend(graphs, x=0.30, y=0.01, textsize=15)
     leg.Draw()
     ATLAS_label(0.68, 0.88, text="Internal", sqrts=None, pad=c, sep=0.12)
     c.SaveAs(os.path.join(outdir, '{0}.png'.format(name)))
@@ -85,11 +84,10 @@ if __name__ == '__main__':
         categories = CATEGORIES['mva_all']
     else:
         categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
-
     # Step1: Retrieve NP scans of the combined WS
     graphs = {}
 
-    combined_np_path = get_pickle_path(args.path, 'hh_12_combination_{0}'.format(args.mass))
+    combined_np_path = get_pickle_path(args.path, 'hh_combination_{0}'.format(args.mass))
     print combined_np_path
     if not os.path.exists(combined_np_path):
         raise RuntimeError('Need the combineds WS scans to run !')
@@ -119,11 +117,12 @@ if __name__ == '__main__':
                 else:
                     continue
                 _, cat_name, _ = parse_name('channel_'+dir)
-
-                log.info('{0} - {1}'.format(dir, year))
+                
+                log.info('{0} - {1} - {2}'.format(dir, year, cat_name))
                 #year = get_year(dir)
                 if year is None:
                     continue
+
                 cat = get_category(cat_name, categories)
                 if cat is None:
                     continue

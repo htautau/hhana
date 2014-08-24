@@ -56,7 +56,7 @@ class Data(Sample):
             year=year, scale=1.,
             name=name, label=label,
             **kwargs)
-        h5file = get_file(self.student, hdf=True)
+        h5file = get_file(self.ntuple_path, self.student, hdf=True)
         dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
@@ -85,7 +85,7 @@ class Data(Sample):
             weighted=weighted,
             field_scale=field_scale,
             weight_hist=weight_hist,
-            scores=scores,
+            scores=scores[0] if isinstance(scores, tuple) else scores,
             clf=clf,
             min_score=min_score,
             max_score=max_score,

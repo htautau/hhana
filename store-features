@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+"""
+Create rootfile for variable to be put in the
+HSG4 Run2 Paper
+"""
+# python imports
+import logging
+import os
+log = logging.getLogger(os.path.basename(__file__))
+
+# rootpy imports
+from rootpy.io import root_open
+from rootpy.tree import Cut
+import rootpy.plotting.utils as rootpy_utils
+from rootpy.stats.histfactory import split_norm_shape
+
+# local imports
+from mva.cmd import get_parser
+from mva.plotting import uncertainty_band
+from mva.systematics import get_systematics, parse_systematics
+from mva.massregions import MassRegions
+from mva.variables import VARIABLES, get_label
+from mva.analysis import get_analysis
+from mva import log
+
+args = get_parser(actions=False).parse_args()
+year = args.year
+
+SYSTEMATICS = get_systematics(year)
+args.systematics_components = parse_systematics(args.systematics_components)
+
+mass_regions = MassRegions(
+    low=args.low_mass_cut,
+    high=args.high_mass_cut,
+    high_sideband_in_control=args.high_sideband_in_control)
+
+control_region = mass_regions.control_region
+
+category_names = args.category_names
+target_region = args.target_region
+
+analysis = get_analysis(args)
+cat_defs = [args.categories, args.controls]
+
+for category in analysis.iter_categories(*cat_defs, names=args.category_names):
+
+    is_control = category.analysis_control
+
+    cuts = Cut(args.plot_cut)
+    control_region = cuts & control_region
+    if is_control:
+        clf = None
+        VARS = {'dEta_tau1_tau2': VARIABLES['dEta_tau1_tau2']}
+    else:
+        clf = analysis.get_clf(category, load=True, transform=True)
+        VARS = {}
+        for feature in category.features:
+            VARS[feature] = VARIABLES[feature]
+
+    field_scale = {}
+    for var, var_info in VARS.items():
+        field_scale[var] = var_info.get('scale', 1)
+    fields = analysis.get_channel_array(
+        VARS, category, target_region, cuts=cuts, 
+        mode='workspace',
+        clf=clf, field_scale=field_scale, systematics=args.systematics)
+        
+    if not is_control:
+        _, clf_channel = analysis.clf_channels(
+            clf, category, target_region, cuts=control_region, 
+            mass=125, mode='workspace', systematics=args.systematics,
+            unblind=True, no_signal_fixes=True)
+        log.info(clf_channel)
+        fields['clf'] = clf_channel     
+
+    for field, channel in fields.items():
+        title = 'BDT Score' if field=='clf' else get_label(field)
+        data_hist = channel.data.hist
+        data_hist.name = 'Data'
+        data_hist.title = title
+        systematics_terms = {}
+        model_hists = []
+        for sample in channel.samples:
+            nominal_hist = sample.hist
+            nominal_hist.name = sample.name
+            nominal_hist.title = title
+            _systematics = {}
+            for sys_name, osys, hsys in sample.iter_sys():
+                systematics_terms[sys_name] = (
+                    sys_name + '_UP',
+                    sys_name + '_DOWN')
+                if hsys is not None:
+                    # include only overallsys component
+                    norm, shape = split_norm_shape(hsys, nominal_hist)
+                    if osys is not None:
+                        osys.low *= norm.low
+                        osys.high *= norm.high
+                    else:
+                        osys = norm
+                _systematics[sys_name + '_DOWN'] = nominal_hist * osys.low
+                _systematics[sys_name + '_UP'] = nominal_hist * osys.high
+                log.debug("sample: {0} overallsys: {1} high: {2} low: {3}".format(
+                    sample.name, sys_name, osys.high, osys.low))
+            nominal_hist.systematics = _systematics
+            model_hists.append(nominal_hist)
+        total_model , high, low = uncertainty_band(model_hists, systematics_terms)
+        total_model.name = 'TotalError'
+        total_model.title = title
+
+        error_band = rootpy_utils.get_band(total_model-low, 
+                                           total_model+high, middle_hist=total_model) 
+        for i in total_model.bins_range(overflow=True):
+            total_model.error = max(error_band.yerr(i))
+        with root_open('{0}.root'.format(channel.name), 'recreate') as fout:
+            log.info('Store histograms from {0}'.format(channel.name))
+            data_hist.Write()
+            for hist in model_hists:
+                hist.Write()
+            total_model.Write()

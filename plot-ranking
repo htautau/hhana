@@ -194,6 +194,7 @@ def plot_ranking(name, file, outdir,
     mu_legend.Draw()
     theta_legend = Legend(
         (pulls, pulls_1sigma), pad=pad1,
+        x=0.05, y=0.80,
         entryheight=0.018,
         margin=0.1)
     theta_legend.position_pixels = (left_pixels, 20, c.width, 100)

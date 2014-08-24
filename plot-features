@@ -8,16 +8,18 @@ args = get_parser(actions=False).parse_args()
 year = args.year
 
 # rootpy imports
+from rootpy.io import root_open
 from rootpy.tree import Cut
+import rootpy.plotting.utils as rootpy_utils
 
 # local imports
-from mva.plotting import draw_channel_array
+from mva.plotting import draw_channel_array, uncertainty_band
 from mva.systematics import get_systematics, parse_systematics
 from mva.categories import CATEGORIES
 from mva.massregions import MassRegions
-from mva.variables import VARIABLES, YEAR_VARIABLES
+from mva.variables import VARIABLES, YEAR_VARIABLES, get_label
 from mva.analysis import get_analysis
-
+from mva import log
 
 SYSTEMATICS = get_systematics(year)
 args.systematics_components = parse_systematics(args.systematics_components)
@@ -65,6 +67,9 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         VARS = VARIABLES
         VARS.update(YEAR_VARIABLES[args.year])
 
+    clf = None
+    if not is_control:
+        clf = analysis.get_clf(category, load=True, transform=True)
     figs = draw_channel_array(
         analysis,
         vars=VARS,
@@ -85,6 +90,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         unblind=args.unblind,  # or is_control,
         cuts=cuts,
         show_ratio=args.show_ratio,
-        no_data=args.no_data,
+        #clf=clf,
+        #min_score=0.5924344731341187,
+        #no_data=args.no_data,
         #top_label="Fakes Model: {0}".format(analysis.fakes_region),
         )

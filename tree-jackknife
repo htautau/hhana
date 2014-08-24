@@ -60,6 +60,11 @@ def get_records(analysis, category,
 
 
 if __name__ == '__main__':
+    # rootpy imports
+    from rootpy.extern.argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--clf-bins', default='optimal')
+    args = parser.parse_args()
     # local imports
     from mva.analysis import Analysis
     from mva.categories import CATEGORIES, Category_Preselection
@@ -81,7 +86,24 @@ if __name__ == '__main__':
         clf = analysis.get_clf(
             category, load=True,
             mass=125, transform=True)
-        hist = Hist(clf.binning(analysis.year, overflow=1E5))
+
+        if isinstance(args.clf_bins, basestring):
+            if args.clf_bins == 'optimal':
+                bdt_bins = clf.binning(analysis.year, overflow=1E5) 
+                hist = Hist(bdt_bins)
+            else:
+                scores = analysis.get_scores(clf,
+                                             category,
+                                             analysis.target_region,
+                                             masses=[125],
+                                             systematics=analysis.systematics,
+                                             unblind=True)
+                bdt_binning = int(args.clf_bins), scores.min_score, scores.max_score
+                hist = Hist(int(args.clf_bins), scores.min_score, scores.max_score)
+                log.info('Binning: {0}'.format(bdt_binning))
+        else:
+            bdt_bins = args.clf_bins
+            hist = Hist(bdt_bins)
         rec = get_records(analysis, category,
                           'BDT_raw', 'BDT',
                           hist, 'MVA', clf)
@@ -138,6 +160,6 @@ if __name__ == '__main__':
         jointype='leftouter', usemask=False,
         defaults=defaults)
 
-    with root_open('hh_jackknife.root', 'recreate') as out:
+    with root_open('hh_jackknife_binning_{0}.root'.format(args.clf_bins), 'recreate') as out:
         outtree = array2tree(combined_rec, name='datatree') 
         outtree.Write()

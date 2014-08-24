@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+"""
+Compare the signal sample with and without
+the Multiple Perturbative Parton-Parton Interaction (MPI)
+http://skands.web.cern.ch/skands/slides/oregon-skands.pdf
+"""
+from tabulate import tabulate
+
+from mva.analysis import Analysis
+from mva.samples import Higgs
+from mva.categories import CATEGORIES
+from mva.defaults import TARGET_REGION
+from mva.plotting import draw_ratio
+from mva import CACHE_DIR
+from mva.cmd import get_parser
+from mva import log; log = log[__name__]
+from rootpy.plotting import Hist
+from root_numpy import fill_hist
+import os
+import pickle
+
+
+
+# begin configuration
+modes = [
+    'gg',
+    #'VBF',
+]
+ggf_weight = True
+pileup_weight = True
+# end configuration
+
+# higgs = Higgs(
+#     2012, mass=125, modes=modes,
+#     ggf_weight=ggf_weight,
+#     pileup_weight=pileup_weight)
+# higgs_nompi = Higgs(
+#     2012, mass=125, modes=modes,
+#     ggf_weight=ggf_weight,
+#     pileup_weight=pileup_weight,
+#     ntuple_path='/cluster/data12/qbuat/ntuples_hh/',
+#     student='hhskim_nompi',
+#     suffix='_noMPI.mc12b')
+
+higgs_herwigps = Higgs(
+    2012, mass=125, modes=modes,
+    ggf_weight=ggf_weight,
+    pileup_weight=pileup_weight,
+    sample_pattern='PowHegJimmy_ggH{0:d}_Inclusive',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_herwigps',
+    student='hhskim')
+
+
+
+# for i, _ in enumerate(modes):
+#     log.info(higgs.xsec_kfact_effic(i))
+#     log.info(higgs_nompi.xsec_kfact_effic(i))
+#     log.info(higgs_herwigps.xsec_kfact_effic(i))
+
+# print "default raw number of events", higgs.events(weighted=False)[1].value
+# print "No MPI sample raw number of events", higgs_nompi.events(weighted=False)[1].value
+print "Herwig sample raw number of events", higgs_herwigps.events(weighted=False)[1].value
+
+
+# analysis = Analysis(2012)
+
+# UNCERT = {}
+
+# for cattype in ('mva_all', 'cuts'):
+#     headers = ['Category']+[c.name for c in CATEGORIES[cattype]+CATEGORIES['presel']]
+#     row_nom = ['Nominal']
+#     row_nompi = ['MPI-off']
+#     row_diff = ['(MPI off-Nom)/Nom (%)']
+#     table = []
+#     for category in CATEGORIES[cattype]+CATEGORIES['presel']:
+#         if cattype == 'mva_all' and not category.analysis_control and not category.name=='preselection':
+#             # get the BDTs
+#             clf = analysis.get_clf(category, mass=125, load=True, transform=True)
+#             # get scores
+#             scores, weights = higgs.scores(
+#                 clf, category, TARGET_REGION,
+#                 systematics=False)['NOMINAL']
+#             scores_nompi, weights_nompi = higgs_nompi.scores(
+#                 clf, category, TARGET_REGION,
+#                 systematics=False)['NOMINAL']
+#             # get scores range
+#             min_score = min(scores.min(), scores_nompi.min())
+#             max_score = max(scores.max(), scores_nompi.max())
+#             # histograms
+#             hist = Hist(20, min_score - 1E-5, max_score + 1E-5, title='H 125 GeV')
+#             hist_nompi = Hist(20, min_score - 1E-5, max_score + 1E-5, title='H 125 GeV without MPI')
+#             # fill histograms with scores
+#             fill_hist(hist, scores, weights)
+#             fill_hist(hist_nompi, scores_nompi, weights_nompi)
+#             # plot the scores
+#             plot = draw_ratio(hist, hist_nompi, 'BDT Score', category, normalize=False)
+#             for fmt in ('eps', 'png'):
+#                plot.SaveAs('mpi_compare_{0}.{1}'.format(category.name, fmt))
+        
+#         print
+#         print "[N(noMPI, no cuts) - N(default, no cuts)] / N(default, no cuts)"
+#         diff = (higgs_nompi.events(category, TARGET_REGION)[1].value -
+#                 higgs.events(category, TARGET_REGION)[1].value) / higgs.events(category, TARGET_REGION)[1].value
+#         row_nom.append(higgs.events(category, TARGET_REGION)[1].value)
+#         row_nompi.append(higgs_nompi.events(category, TARGET_REGION)[1].value)
+#         row_diff.append(100*diff)
+#         print category.name, diff
+#         print
+#     table.append(row_nom)
+#     table.append(row_nompi)
+#     table.append(row_diff)
+
+#     print tabulate(table, headers=headers)
+    
