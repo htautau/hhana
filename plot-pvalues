@@ -47,7 +47,7 @@ def plot(cat_name, cat_label, year, curves, labels):
     _, graphs = pvalue_plot(
         masses, curves, pad=c, xtitle='m_{H} [GeV]',
         linestyle=lines, linecolor=colors,
-        yrange=(gaus_cdf(3.5), 50))
+        yrange=(gaus_cdf(3.5), 10000))
     for label, graph in zip(labels, graphs):
         graph.title = label
         graph.legendstyle = 'L'
@@ -55,12 +55,11 @@ def plot(cat_name, cat_label, year, curves, labels):
         log.info(['{0:1.1f}'.format(xval) for xval in list(graph.x())])
         log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
 
-
-    leg = Legend(graphs, 
-                 margin=0.15,
-                 textsize=20)
+    leg = Legend(
+        graphs,x=0.45, y=0.01,
+        entrysep=0.001, textsize=17)
     leg.Draw()
-    lat = ROOT.TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()-0.05, cat_label)
+    lat = ROOT.TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()+0.015, cat_label)
     lat.SetNDC(True)
     lat.SetTextSize(20)
     lat.Draw()
@@ -72,6 +71,8 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--unblind', action='store_true', default=False)
     parser.add_argument('--year', default=12, choices=['11', '12'])
+    parser.add_argument('--categories', default='mva', choices=['mva', 'cuts'])
+    parser.add_argument('--category-break-plot', action='store_true', default=False)
     args = parser.parse_args()
 
     # This part need to be updated manually - TODO: implement automatisation
@@ -80,40 +81,44 @@ if __name__ == '__main__':
     categories = CATEGORIES['cuts']
 
     cat_names = []
+
     for dir in os.listdir(path):
         if os.path.isdir(os.path.join(path, dir)):
             year, cat_name, mass = parse_name('channel_'+dir)
             log.info('Year: {0}, Cat: {1}, Mass: {2}'.format(year, cat_name, mass))
             if not cat_name in cat_names:
                 cat_names.append(cat_name)
+
     log.info(cat_names)
+    pvalues_dict = {}
     for cat_name in cat_names:
-        sigs = []
         exp = get_sigs(
-            path, 
-            cat_name, 
-            year=args.year, 
-            meas=True, 
-            blind=True)
-        sigs.append(exp)
+            path, cat_name, year=args.year, 
+            meas=True, blind=True)
         if args.unblind:
             obs = get_sigs(
-                path, 
-                cat_name, 
-                year=args.year, 
-                meas=True, 
-                blind=False)
-            sigs.append(obs)
+                path, cat_name, year=args.year, 
+                meas=True, blind=False)
 
-        pvals = []
-        for sig in sigs:
-            pvals.append(map(gaus_cdf, sig))
+        pvals_exp = map(gaus_cdf, exp)
+        pvals_obs = map(gaus_cdf, obs)
         category = get_category(cat_name, categories)
-        if isinstance(category, CategoryMeta):
-            plot(category.name, category.label, args.year, pvals, ['Expected', 'Observed'])
-        else:
-            plot(cat_name, cat_name, args.year, pvals, ['Expected', 'Observed'])
 
+        if isinstance(category, CategoryMeta):
+            plot(category.name, category.label, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
+            pvalues_dict[category.name] = {'exp':pvals_exp, 'obs':pvals_obs}
+        else:
+            plot(cat_name, cat_name, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
+            pvalues_dict[cat_name] = {'exp':pvals_exp, 'obs':pvals_obs}
+    log.info(pvalues_dict)
+
+    if args.category_break_plot:
+        pvalues = [pvalues_dict['combination']['exp'], pvalues_dict['combination']['obs']]
+        labels = ['Expected', 'Observed']
+        for cat in CATEGORIES[args.categories]:
+            pvalues.append(pvalues_dict[cat.name]['exp'])
+            labels.append('{0} Exp.'.format(cat.label))
+        plot('combination', 'combination', args.year, pvalues, labels)
 
 # # 8TeV combination
 # bdt_combined_12 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=12))
