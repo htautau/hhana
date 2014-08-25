@@ -31,7 +31,7 @@ from statstools.parallel import run_pool
 from statstools.plotting import (get_uncertainty_graph, parse_name,
                                  get_category, get_binning, get_blinding,
                                  get_rebinned_graph, get_rebinned_hist,
-                                 blind_graph)
+                                 blind_graph, make_density)
 
 log = logging.getLogger(os.path.basename(__file__))
 
@@ -75,8 +75,9 @@ def fit_workspace(file_name, ws_name,
         run_pool(workers, n_jobs=n_jobs)
         
 
-def plot_from_frame(file, name, fit_var, category, year,
-                    binning=None, unblind=False, path=None, mu=None):
+def plot_from_frame(
+    file, name, fit_var, category, year,
+    binning=None, unblind=False, path=None, mu=None, density_hist=False):
     ana = Analysis(2012)
     frame = file[name]
     hbkg = file.Get('h_sum_bkg_{0}'.format(frame.GetName()))
@@ -158,6 +159,10 @@ def plot_from_frame(file, name, fit_var, category, year,
     if unblind is True:
         hists.append(hist_signal)
 
+    if density_hist:
+        for hist in hists+[data, graph_bkg]:
+            make_density(hist)
+
     model = HistStack(hists=hists,
                       name='Model_{0}'.format(frame.GetName()))
 
@@ -182,7 +187,6 @@ def plot_from_frame(file, name, fit_var, category, year,
         graph_bkg,
         data,
     ]
-    
     ratio = Graph.divide(data, graph_bkg, 'pois')
     ratio.drawstyle = 'EP'
     
@@ -209,6 +213,8 @@ def plot_from_frame(file, name, fit_var, category, year,
             logy=logy)
         if logy:
             plot_name += '_logy'
+        if density_hist:
+            plot_name += '_density'
         canvas.draw('main', plottables,
                     ypadding=(0.45 if logy else 0.3, 0),
                     logy_crop_value=1e-1)
@@ -229,7 +235,8 @@ def plot_from_frame(file, name, fit_var, category, year,
         
         label_plot(canvas.pad('main'), model[0],
                    xaxis=canvas.axes('ratio')[0],
-                   yaxis=canvas.axes('main')[1], ylabel='Events',
+                   yaxis=canvas.axes('main')[1], 
+                   ylabel='Events/GeV' if density_hist else 'Events',
                    category_label=category.label,
                    data_info=ana.data.info,
                    units='GeV' if fit_var == 'mmc' else None)
@@ -272,6 +279,7 @@ if __name__ == '__main__':
     parser.add_argument('--clf-bins', default='optimal')
     parser.add_argument('--force-fit', action='store_true', default=False)
     parser.add_argument('--unblind', action='store_true', default=False)
+    parser.add_argument('--density', action='store_true', default=False)
     parser.add_argument('--jobs', default=-1)
     args = parser.parse_args()
 
@@ -315,5 +323,6 @@ if __name__ == '__main__':
             plot_from_frame(file, name, args.fit_var,
                             category, year, binning,
                             unblind=unblind,
-                            path=plots, mu=mu)
+                            path=plots, mu=mu,
+                            density_hist=args.density)
     file.Close()

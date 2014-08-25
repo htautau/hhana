@@ -7,6 +7,9 @@ import re
 # root/rootpy imports
 from rootpy import ROOT
 from rootpy.plotting import Canvas, Legend, Hist, Graph
+from rootpy.plotting.hist import _HistBase
+from rootpy.plotting.graph import _Graph1DBase
+
 from rootpy.plotting.shapes import Line
 from rootpy.plotting.utils import draw
 from rootpy.memory import keepalive
@@ -35,6 +38,29 @@ PATTERNS = [
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z_]+)(?P<year>\d+)_(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$'),
 ]
 
+def make_density(hist):
+    """
+    Make a density object (divide content by bin width)
+    hist can be a Histogram or a Graph
+    """
+    if isinstance(hist, _HistBase) and hist.GetDimension()==1:
+        for bin, width in zip(hist.bins(), hist.xwidth()):
+            if width==0:
+                raise RuntimeError('Cannot create density histogram with 0 width bins')
+            bin.value /= width
+            bin.error /= width
+    elif isinstance(hist, _Graph1DBase):
+        for idx in xrange(len(hist)):
+            x, y = hist[idx]
+            xlow, xhigh = hist.xerrl(idx), hist.xerrh(idx)
+            ylow, yhigh = hist.yerrl(idx), hist.yerrh(idx)
+            if (xhigh+xlow)==0:
+                raise RuntimeError('Cannot create density graph with 0 width bins')
+            hist[idx] = (x, y/(xhigh+xlow))
+            hist.SetPointError(idx, xlow, xhigh, ylow/(xhigh+xlow), yhigh/(xhigh+xlow))
+    else:
+        log.warning('Could not make density from object of type {0}'.format(type(hist)))
+        return
 
 def parse_name(name):
     """
