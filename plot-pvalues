@@ -110,7 +110,6 @@ if __name__ == '__main__':
         else:
             plot(cat_name, cat_name, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
             pvalues_dict[cat_name] = {'exp':pvals_exp, 'obs':pvals_obs}
-    log.info(pvalues_dict)
 
     if args.category_break_plot:
         pvalues = [pvalues_dict['combination']['exp'], pvalues_dict['combination']['obs']]
@@ -118,7 +117,7 @@ if __name__ == '__main__':
         for cat in CATEGORIES[args.categories]:
             pvalues.append(pvalues_dict[cat.name]['exp'])
             labels.append('{0} Exp.'.format(cat.label))
-        plot('combination', 'combination', args.year, pvalues, labels)
+        plot('combination_breakdown', '#tau_{had}#tau_{had} combination', args.year, pvalues, labels)
 
 # # 8TeV combination
 # bdt_combined_12 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=12))
