@@ -48,7 +48,8 @@ higgs_herwigps = Higgs(
     pileup_weight=pileup_weight,
     sample_pattern='PowHegJimmy_ggH{0:d}_Inclusive',
     ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_herwigps',
-    student='hhskim')
+    student='hhskim',
+    suffix='mc12a')
 
 
 
