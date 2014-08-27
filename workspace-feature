@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+# local imports
+from mva import cmd, MMC_MASS
+from mva.workspace import write_workspaces, feature_workspace
+from mva.analysis import get_analysis
+
+parser = cmd.analysis_parser(cmd.general_parser())
+args = parser.parse_args()
+
+fields = [
+    'dR_tau1_tau2',
+    'dEta_tau1_tau2',
+    MMC_MASS,
+]
+
+analysis = get_analysis(args)
+for field in fields:
+    signal_regions = {}
+    control_regions = {}
+    sr, cr = feature_workspace(
+        analysis, args.categories, field,
+        mass=int(args.masses),
+        systematics=args.systematics)
+
+    signal_regions[args.year] = sr
+    control_regions[args.year] = cr
+    suffix = analysis.get_suffix(year=False)
+    suffix += '_'+ args.categories
+    suffix += '_'+ str(field)
+    if args.output_suffix:
+        suffix += '_' + args.output_suffix
+
+    path = 'workspaces/hh{0}'.format(suffix.lower())
+    write_workspaces(
+        path, 'hh', signal_regions, 
+        controls=control_regions)

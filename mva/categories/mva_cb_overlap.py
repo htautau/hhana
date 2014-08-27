@@ -1,12 +1,9 @@
 # -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
 # Implement an overlaping category between mva and cut-based analysis
 #
-
 from .common import Category_Preselection
-from .mva import Category_VBF
-from .mva import Category_Boosted
-from .cb import Category_Cuts_VBF
-from .cb import Category_Cuts_Boosted
+from .mva import Category_VBF, Category_Boosted, Category_MVA
+from .cb import Category_Cuts_VBF, Category_Cuts_Boosted, Category_Cuts
 
 # ---> Cut_VBF and MVA (VBF,Boosted,Presel)
 class Category_Cut_VBF_MVA_VBF(Category_Preselection):
@@ -18,7 +15,6 @@ class Category_Cut_VBF_MVA_VBF(Category_Preselection):
     clf_category = Category_VBF
     limitbins = 40
 
-
 class Category_Cut_VBF_MVA_Boosted(Category_Preselection):
     name ='mva_boosted_and_cut_vbf'
     label = '#tau_{had}#tau_{had} mva boosted cb VBF overlap'
@@ -28,14 +24,17 @@ class Category_Cut_VBF_MVA_Boosted(Category_Preselection):
     clf_category = Category_Boosted
     limitbins = 40
 
-
 class Category_Cut_VBF_MVA_Presel(Category_Preselection):
     name ='mva_vbf_and_cut_presel'
     label = '#tau_{had}#tau_{had} mva VBF cb presel overlap'
     cuts = Category_Cuts_VBF.cuts & Category_Cuts_VBF.common_cuts
     norm_category = Category_Preselection
 
-
+class Category_Cut_VBF_Not_MVA(Category_Preselection):
+    name='cut_vbf_and_not_mva'
+    cuts = Category_Cuts_VBF.cuts & Category_Cuts_VBF.common_cuts & -Category_MVA.cuts
+    norm_category = Category_Preselection
+    
 # ---> Cut_Boosted and MVA (VBF,Boosted,Presel)
 class Category_Cut_Boosted_MVA_VBF(Category_Preselection):
     name ='mva_vbf_and_cut_boosted'
@@ -46,7 +45,6 @@ class Category_Cut_Boosted_MVA_VBF(Category_Preselection):
     clf_category = Category_VBF
     limitbins = 40
 
-
 class Category_Cut_Boosted_MVA_Boosted(Category_Preselection):
     name ='mva_boosted_and_cut_boosted'
     label = '#tau_{had}#tau_{had} mva/cb overlap Boosted'
@@ -56,6 +54,10 @@ class Category_Cut_Boosted_MVA_Boosted(Category_Preselection):
     clf_category = Category_Boosted
     limitbins = 40
 
+class Category_Cut_Boosted_Not_MVA(Category_Preselection):
+    name='cut_boosted_and_not_mva'
+    cuts = Category_Cuts_Boosted.cuts & Category_Cuts_Boosted.common_cuts & -Category_MVA.cuts
+    norm_category = Category_Preselection
 
 class Category_Cut_Boosted_MVA_Presel(Category_Preselection):
     name ='mva_presel_and_cut_boosted'
@@ -171,22 +173,33 @@ class Category_MVA_Presel_Not_Cut_Presel (Category_Preselection):
     norm_category = Category_Preselection
 
 
+
 # ---> MVA_VBF and NOT Cut (VBF,Boosted,Presel)
 class Category_MVA_VBF_Not_Cut_VBF    (Category_Preselection):
     name  = 'mva_vbf_and_not_cut_vbf'
     label = ''
     cuts  = - (Category_Cuts_VBF.common_cuts & Category_Cuts_VBF.cuts) & Category_VBF.cuts
     norm_category = Category_Preselection
+    clf_category = Category_VBF
 class Category_MVA_VBF_Not_Cut_Boosted(Category_Preselection):
     name  = 'mva_vbf_and_not_cut_boosted'
     label = ''
     cuts  = - (Category_Cuts_Boosted.common_cuts & Category_Cuts_Boosted.cuts)  & Category_VBF.cuts
     norm_category = Category_Preselection
+    clf_category = Category_VBF
+
 class Category_MVA_VBF_Not_Cut_Presel (Category_Preselection):
     name  = 'mva_vbf_and_not_cut_presel'
     label = ''
     cuts  = - (Category_Preselection.common_cuts) & Category_VBF.cuts
     norm_category = Category_Preselection
+
+class Category_MVA_VBF_Not_Cut(Category_Preselection):
+    name='mva_vbf_and_not_cut'
+    cuts = Category_VBF.cuts & Category_VBF.common_cuts & -Category_Cuts.cuts
+    norm_category = Category_Preselection
+    clf_category = Category_VBF
+
 
 # ---> MVA_Boosted and NOT Cut (VBF,Boosted,Presel)
 class Category_MVA_Boosted_Not_Cut_VBF    (Category_Preselection):
@@ -205,6 +218,11 @@ class Category_MVA_Boosted_Not_Cut_Presel (Category_Preselection):
     cuts  = - (Category_Preselection.common_cuts) & Category_Boosted.cuts
     norm_category = Category_Preselection
 
+class Category_MVA_Boosted_Not_Cut(Category_Preselection):
+    name='mva_boosted_and_not_cut'
+    cuts = Category_Boosted.cuts & Category_Boosted.common_cuts & -Category_Cuts.cuts
+    norm_category = Category_Preselection
+    clf_category = Category_Boosted
 
 # # ---> MVA VBF/Boosted and not preselected by CB
 # class Category_Cuts_VBF_NotMVA_Preselection(Category_Preselection):
