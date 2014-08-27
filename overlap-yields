@@ -60,19 +60,46 @@ for category in analysis.iter_categories(
 
     # get the data record array
     rec = data.merged_records(
+<<<<<<< HEAD
         category, target_region, fields=fields, include_weight=False)
+=======
+        category, target_region, fields=fields, 
+        clf=clf, include_weight=False)
+    if clf:
+        scores, _ = data.scores(
+            clf, category, target_region)
+        cut_score = clf.binning(2012, overflow=1E5)[-2]
+        idx = scores >= cut_score
+        rec = rec[idx]
+    log.info(len(rec))
+    yields_info_cat['data'] = len(rec)
+>>>>>>> minor update
 
     yields_info_cat += [ sample_info('data', len(rec)) ]
     yields_signal = 0.
 
     # Iterate over all the signals+background samples
     for sample in signals+backgrounds:
+<<<<<<< HEAD
         # get the sample record array
         rec_sample = sample.merged_records( category,
                                             target_region,
                                             fields=fields,
                                             include_weight=True )
         yields_info_cat += [ sample_info(sample.name,rec_sample['weight'].sum()) ]
+=======
+        rec_sample = sample.merged_records(
+            category, target_region,
+            fields=fields, clf=clf, include_weight=True)
+        if clf:
+            sample_scores = sample.scores(
+                clf, category, target_region)
+            cut_score = clf.binning(2012, overflow=1E5)[-2]
+            idx = sample_scores['NOMINAL'][0] >= cut_score
+            rec_sample = rec_sample[idx]
+
+        yields_info_cat[sample.name] = rec_sample['weight'].sum()
+>>>>>>> minor update
         if 'Signal' in sample.name:
             yields_signal += rec_sample['weight'].sum()
     yields_info_cat += [ sample_info('Signal_all', yields_signal)]
@@ -80,6 +107,12 @@ for category in analysis.iter_categories(
 
 
 
+<<<<<<< HEAD
+=======
+style = get_style('ATLAS', shape='rect')
+style.SetPadLeftMargin(0.20)
+set_style(style)
+>>>>>>> minor update
 
 for cat in yields_info_master:
     log.info( '=======================================')
