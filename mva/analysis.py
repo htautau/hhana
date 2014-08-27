@@ -251,7 +251,7 @@ class Analysis(object):
                 log.info("=" * 40)
                 log.info("%s category" % category.name)
                 log.info("=" * 40)
-                log.info("Cuts: %s" % self.ztautau.cuts(category, self.target_region))
+                log.debug("Cuts: %s" % self.ztautau.cuts(category, self.target_region))
                 log.info("Weights: %s" % (', '.join(map(str, self.ztautau.weights('NOMINAL')))))
                 self.normalize(category)
                 yield category
