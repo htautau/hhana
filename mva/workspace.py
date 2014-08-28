@@ -1,4 +1,5 @@
 import os
+import math
 
 from rootpy.plotting import Hist, Hist2D
 from rootpy.io import root_open
@@ -10,7 +11,7 @@ from statstools.histfactory import to_uniform_binning, apply_remove_window
 from . import log; log = log[__name__]
 from . import CONST_PARAMS, CACHE_DIR, MMC_MASS, POI
 from .categories import CATEGORIES
-from .variables import VARIABLES
+from .plotting import hist_scores
 
 import pickle
 import os
@@ -264,14 +265,16 @@ def feature_workspace(field, template,
     return channels, []
 
 
-def mass_workspace(analysis, categories, masses,
-                   systematics=False):
-    hist_template = Hist(30, 50, 200, type='D')
+def weighted_mass_workspace(analysis, categories, masses,
+                            systematics=False,
+                            cuts=None):
+    hist_template = Hist(20, 50, 250, type='D')
     channels = {}
     for category in analysis.iter_categories(categories):
         clf = analysis.get_clf(category, load=True, mass=125)
+        clf_bins = clf.binning(analysis.year, overflow=1E5)
         scores = analysis.get_scores(
-            clf, category, target_region,
+            clf, category, analysis.target_region,
             masses=[125], mode='combined',
             systematics=False,
             unblind=True)
@@ -279,7 +282,7 @@ def mass_workspace(analysis, categories, masses,
         sig_scores = scores.all_sig_scores[125]
         min_score = scores.min_score
         max_score = scores.max_score
-        bkg_score_hist = Hist(category.limitbins, min_score, max_score, type='D')
+        bkg_score_hist = Hist(clf_bins, type='D')
         sig_score_hist = bkg_score_hist.Clone()
         hist_scores(bkg_score_hist, bkg_scores)
         _bkg = bkg_score_hist.Clone()
@@ -292,15 +295,14 @@ def mass_workspace(analysis, categories, masses,
         log.info(str(list(sob_hist.y())))
         for mass in masses:
             channel = analysis.get_channel_array(
-                {MMC_MASS: VARIABLES[MMC_MASS]},
-                templates={MMC_MASS: hist_template},
+                {MMC_MASS: hist_template},
                 category=category,
                 region=analysis.target_region,
                 include_signal=True,
                 weight_hist=sob_hist,
                 clf=clf,
+                cuts=cuts,
                 mass=mass,
-                scale_125=False, # CHANGE
                 mode='workspace',
                 systematics=systematics)[MMC_MASS]
             if mass not in channels:

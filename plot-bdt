@@ -270,6 +270,7 @@ def plot_bdt(category, workspace_binning=True):
 def plot_weighted_mass(category):
     
     clf = analysis.get_clf(category, load=True, mass=125, transform=True)
+    clf_bins = clf.binning(analysis.year, overflow=1E5)
     
     scores = analysis.get_scores(
         clf, category, region,
@@ -284,12 +285,20 @@ def plot_weighted_mass(category):
     min_score = scores.min_score
     max_score = scores.max_score
     
-    bkg_score_hist = Hist(40, min_score, max_score)
+    # constant binning
+    #bkg_score_hist = Hist(40, min_score, max_score)
+    # workspace binning
+    bkg_score_hist = Hist(clf_bins)
+
     hist_scores(bkg_score_hist, bkg_scores)
     _bkg = bkg_score_hist.Clone()
     bkg_score_hist /= bkg_score_hist.integral()
     
-    sig_score_hist = Hist(40, min_score, max_score)
+    # constant binning
+    #sig_score_hist = Hist(40, min_score, max_score)
+    # workspace binning
+    sig_score_hist = Hist(clf_bins)
+
     hist_scores(sig_score_hist, sig_scores)
     _sig = sig_score_hist.Clone()
     sig_score_hist /= sig_score_hist.integral()

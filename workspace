@@ -4,13 +4,14 @@ import sys
 from mva import cmd, MMC_MASS
 from mva.samples import Higgs
 from mva.workspace import (
-    write_workspaces, cuts_workspace, mva_workspace, feature_workspace)
+    write_workspaces, cuts_workspace, mva_workspace,
+    feature_workspace, weighted_mass_workspace)
 from mva.analysis import get_analysis
 from mva.massregions import MassRegions
 
 parser = cmd.analysis_parser(cmd.general_parser(
     multi_years=True, multi_categories=True))
-parser.add_argument('type', choices=('mva', 'cuts', 'var'), default='mva')
+parser.add_argument('type', choices=('mva', 'cuts', 'var', 'weighted-mass'), default='mva')
 parser.add_argument('--clf-mass', type=int, default=None)
 parser.add_argument('--clf-bins', default='optimal')
 parser.add_argument('--clf-swap', default=False, action='store_true')
@@ -24,6 +25,13 @@ if args.masses == 'all':
 else:
     args.masses = map(int, args.masses.split(','))
 
+cuts = None
+if args.sideband:
+    massregions = MassRegions()
+    cuts = massregions.control_region
+    # always unblind in the mass sideband
+    args.unblind = True
+
 params = {}
 if args.type == 'mva':
     workspace_func = mva_workspace
@@ -35,6 +43,8 @@ elif args.type == 'cuts':
     workspace_func = cuts_workspace
     params['sideband'] = args.sideband
     params['unblind'] = args.unblind
+elif args.type == 'weighted-mass':
+    workspace_func = weighted_mass_workspace
 else:
     params['field'] = args.field
     bins, low, high = map(float, args.binning.split(','))
@@ -47,13 +57,6 @@ if len(categories) == 1 and len(years) > 1:
     categories = categories * len(years)
 elif len(categories) != len(years):
     sys.exit("specify the same number of category definitions as years")
-
-cuts = None
-if args.sideband:
-    massregions = MassRegions()
-    cuts = massregions.control_region
-    # always unblind in the mass sideband
-    args.unblind = True
 
 signal_regions = {}
 control_regions = {}
@@ -69,7 +72,10 @@ for year, year_categories in zip(years, categories):
     control_regions[year] = cr
 
 suffix = analysis.get_suffix(year=False)
-suffix += '_' + args.type
+if args.type == 'var':
+    suffix += '_' + args.field
+else:
+    suffix += '_' + args.type
 if args.sideband:
     suffix += '_sideband'
 if args.output_suffix:
