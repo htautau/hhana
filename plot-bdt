@@ -299,7 +299,8 @@ def plot_weighted_mass(category):
     for bin in sob_hist.bins(overflow=True):
         bin.value = _log(bin.value)
     log.info(str(list(sob_hist.y())))
-
+    
+    """
     ###############################################################
     log.info("plotting mmc weighted by background BDT distribution")
     
@@ -319,6 +320,7 @@ def plot_weighted_mass(category):
         cuts=signal_region,
         output_formats=args.output_formats,
         unblind=True,
+        poisson_errors=False,
         output_dir=plot_dir('weighted_mass'))
 
     ###############################################################
@@ -340,7 +342,9 @@ def plot_weighted_mass(category):
         cuts=signal_region,
         output_formats=args.output_formats,
         unblind=args.unblind,
+        poisson_errors=False,
         output_dir=plot_dir('weighted_mass'))
+    """
 
     ###############################################################
     log.info("plotting mmc weighted by S / B")
@@ -350,14 +354,18 @@ def plot_weighted_mass(category):
         variables.VARIABLES,
         plots=[MMC_MASS],
         templates={MMC_MASS: Hist(15, 50, 200)},
-        mass=[125, 150],
-        scale_125=True,
+        mass=125,
+        #mass=[125, 150],
+        #scale_125=True,
         mode='combined',
         signal_linestyles=['dashed', 'dotted'],
         signal_scale=1,
-        #stacked_signal=False,
+        stack_signal=False,
+        signal_on_top=True,
         #signal_colour_map=cm.spring,
+        separate_legends=True,
         ylabel='ln(1+S/B) Weighted Events',
+        ypadding=(0.2, 0),
         category=category,
         region=region,
         systematics=systematics,
@@ -367,6 +375,7 @@ def plot_weighted_mass(category):
         cuts=signal_region,
         output_formats=args.output_formats,
         unblind=True,
+        poisson_errors=False,
         #bootstrap_data=analysis,
         output_dir=plot_dir('weighted_mass'))
 

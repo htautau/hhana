@@ -151,7 +151,8 @@ def draw(name,
          arrow_values=None,
          overflow=True,
          show_pvalue=False,
-         top_label=None):
+         top_label=None,
+         poisson_errors=True):
 
     if model is None and data is None and signal is None:
         # insufficient input
@@ -301,11 +302,17 @@ def draw(name,
             for bin in data.bins():
                 if (low < bin.x.high <= high or low <= bin.x.low < high):
                     data[bin.idx] = (0., 0.)
-        # convert data to TGraphAsymmErrors with Poisson errors
-        data_poisson = data.poisson_errors()
-        data_poisson.markersize = 1.2
-        data_poisson.drawstyle = 'PZ'
-        objects.append(data_poisson)
+
+        if poisson_errors:
+            # convert data to TGraphAsymmErrors with Poisson errors
+            data_poisson = data.poisson_errors()
+            data_poisson.markersize = 1.2
+            data_poisson.drawstyle = 'PZ'
+            objects.append(data_poisson)
+        else:
+            # Gaussian errors
+            data.drawstyle = 'E0'
+            objects.append(data)
 
         # draw ratio plot
         if model is not None and show_ratio:
@@ -394,13 +401,7 @@ def draw(name,
         fig.cd('main')
         right_legend = Legend(len(signal) + 1 if signal is not None else 1,
             pad=fig.pad('main'),
-            anchor='upper right',
-            reference='upper right',
-            x=0.05, y=0.15,
-            margin=0.35,
-            textsize=textsize,
-            entrysep=0.02,
-            entryheight=0.04)
+            **legend_params('right', textsize))
         right_legend.AddEntry(data, style='lep')
         if signal is not None:
             for s in reversed(scaled_signal):
@@ -412,13 +413,7 @@ def draw(name,
                 n_entries += 1
             model_legend = Legend(n_entries,
                 pad=fig.pad('main'),
-                anchor='upper left',
-                reference='upper left',
-                x=0.05, y=0.15,
-                margin=0.35,
-                textsize=textsize,
-                entrysep=0.02,
-                entryheight=0.04)
+                **legend_params('left', textsize))
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
             if systematics:
