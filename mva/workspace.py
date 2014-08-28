@@ -10,6 +10,7 @@ from statstools.histfactory import to_uniform_binning, apply_remove_window
 from . import log; log = log[__name__]
 from . import CONST_PARAMS, CACHE_DIR, MMC_MASS, POI
 from .categories import CATEGORIES
+from .variables import VARIABLES
 
 import pickle
 import os

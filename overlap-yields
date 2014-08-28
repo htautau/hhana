@@ -1,68 +1,72 @@
 #!/usr/bin/env python
-
-# -- Create by Quentin Buat quentin(dot)buat(at)cern(dot)ch
-# create an ntuple containing trees for data events in the overlap between cutbased and mva
-# with classifier scores
-# and event weights
-from array import array
-from mva.cmd import get_parser
-
-# args = get_parser(actions=False).parse_args()
-args = get_parser(actions=False).parse_args()
-
-from mva.analysis import get_analysis
-from mva.plotting import draw_channel_array
-from mva.variables import VARIABLES,WEIGHTS
-from mva import log
-
-analysis = get_analysis(args)
-output_suffix = analysis.get_suffix()
-
-
+# python imports
+import logging
+import os
+# ROOT/rootpy imports
+from rootpy.plotting import Hist2D, Canvas
+from rootpy.plotting.style import get_style, set_style
 from rootpy.io import root_open
-from rootpy.tree import Cut
-from rootpy.plotting import Hist,Canvas
-from rootpy.interactive import wait
+from ROOT import TLatex
+# local imports
+from mva import cmd
+from mva.analysis import get_analysis
+from mva.categories import CATEGORIES
 
-import ROOT
-ROOT.gROOT.SetBatch(0)
+log = logging.getLogger(os.path.basename(__file__))
 
-import numpy as np
-from numpy.lib import recfunctions
-from root_numpy import array2tree
-
-
-fields = [ 'RunNumber','EventNumber','mmc1_mass','weight']
+parser = cmd.analysis_parser(cmd.general_parser())
+parser.add_argument('--clf-last-bin', action='store_true', default=False)
+args = parser.parse_args()
+analysis = get_analysis(args)
 
 target_region = args.target_region
 data    = analysis.data
 signals = analysis.signals
 backgrounds = analysis.backgrounds
+categories = 'overlap_yields'
+fields = ['RunNumber','EventNumber','mmc1_mass','weight']
 
-yields_info_master = {}
+def yields_map(yields_dict, sample_name):
+    hmap = Hist2D(3, 0, 2, 3, 0, 2)
+    hmap.SetBinContent(1, 1, 0.)
+    hmap.SetBinContent(1, 2, yields_dict['mva_boosted_and_not_cut'][sample_name])
+    hmap.SetBinContent(1, 3, yields_dict['mva_vbf_and_not_cut'][sample_name])
+    hmap.SetBinContent(2, 1, yields_dict['cut_boosted_and_not_mva'][sample_name])
+    hmap.SetBinContent(2, 2, yields_dict['mva_boosted_and_cut_boosted'][sample_name])
+    hmap.SetBinContent(2, 3, yields_dict['mva_vbf_and_cut_boosted'][sample_name])
+    hmap.SetBinContent(3, 1, yields_dict['cut_vbf_and_not_mva'][sample_name])
+    hmap.SetBinContent(3, 2, yields_dict['mva_boosted_and_cut_vbf'][sample_name])
+    hmap.SetBinContent(3, 3, yields_dict['mva_vbf_and_cut_vbf'][sample_name])
 
+    hmap.name = sample_name
+    hmap.xaxis.title = 'CBA category'
+    hmap.yaxis.title = 'MVA category'
+    hmap.xaxis.SetBinLabel(2, 'Boosted')
+    hmap.xaxis.SetBinLabel(3, 'VBF')
+    hmap.yaxis.SetBinLabel(2, 'Boosted')
+    hmap.yaxis.SetBinLabel(3, 'VBF')
+    hmap.SetMarkerSize(3)
 
-# ------------------
-class sample_info:
-    def __init__(self,name,events,color=None):
-        self.name = name
-        self.events = events 
-        self.color  = color
-# loop over the overlap categories (defined in mva/categories/__init__.py)
-for category in analysis.iter_categories(
-        args.categories, args.controls, names=args.category_names):
+    c = Canvas()
+    hmap.Draw('TEXT0colz')
+    lat = TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()+0.015, sample_name)
+    lat.SetNDC(True)
+    lat.SetTextSize(25)
+    lat.Draw()
+    return c, hmap
 
+yields_dict = {}
+for category in analysis.iter_categories(categories):
     if category.analysis_control:
         continue
-    
-    yields_info_cat = []
-    
+    clf = None
+    if hasattr(category, 'clf_category') and args.clf_last_bin:
+        clf = analysis.get_clf(
+            category.clf_category, load=True,
+            mass=125, transform=True)
 
-    # get the data record array
+    yields_info_cat = {}
     rec = data.merged_records(
-<<<<<<< HEAD
-        category, target_region, fields=fields, include_weight=False)
-=======
         category, target_region, fields=fields, 
         clf=clf, include_weight=False)
     if clf:
@@ -73,21 +77,9 @@ for category in analysis.iter_categories(
         rec = rec[idx]
     log.info(len(rec))
     yields_info_cat['data'] = len(rec)
->>>>>>> minor update
 
-    yields_info_cat += [ sample_info('data', len(rec)) ]
     yields_signal = 0.
-
-    # Iterate over all the signals+background samples
     for sample in signals+backgrounds:
-<<<<<<< HEAD
-        # get the sample record array
-        rec_sample = sample.merged_records( category,
-                                            target_region,
-                                            fields=fields,
-                                            include_weight=True )
-        yields_info_cat += [ sample_info(sample.name,rec_sample['weight'].sum()) ]
-=======
         rec_sample = sample.merged_records(
             category, target_region,
             fields=fields, clf=clf, include_weight=True)
@@ -99,28 +91,32 @@ for category in analysis.iter_categories(
             rec_sample = rec_sample[idx]
 
         yields_info_cat[sample.name] = rec_sample['weight'].sum()
->>>>>>> minor update
         if 'Signal' in sample.name:
             yields_signal += rec_sample['weight'].sum()
-    yields_info_cat += [ sample_info('Signal_all', yields_signal)]
-    yields_info_master[category.name] = yields_info_cat
+
+    yields_info_cat['Signal_all'] = yields_signal
+    yields_dict[category.name] = yields_info_cat
 
 
-
-<<<<<<< HEAD
-=======
 style = get_style('ATLAS', shape='rect')
 style.SetPadLeftMargin(0.20)
 set_style(style)
->>>>>>> minor update
 
-for cat in yields_info_master:
-    log.info( '=======================================')
-    log.info( cat + ' category' )
-    log.info( '=======================================')
-    for s_i in yields_info_master[cat]:    
-        log.info( s_i.name+'\t --> \t'+str(s_i.events) )
+log.info(yields_dict)
 
+samples = [
+    'Signal_V_125', 'Signal_gg_125', 'Signal_VBF_125', 'Signal_all',
+    'Ztautau', 'Fakes', 'Others', 'data',
+]
+if args.clf_last_bin:
+    output = 'overlap_last_bdt_bin.root'
+else:
+    output = 'overlap.root'
 
+with root_open(output, 'recreate'):
+    for sample in samples:
+        _, h = yields_map(yields_dict, sample)
+        h.Write()
+        
 
 

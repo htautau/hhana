@@ -24,11 +24,13 @@ higgs = Higgs(
     2012, mass=125, modes=modes,
     ggf_weight=ggf_weight,
     pileup_weight=pileup_weight,
+    ntuple_path='ntuples/prod_v29',
     student='hhskim_BCH')
 higgs_bch = Higgs(
     2012, mass=125, modes=modes,
     ggf_weight=ggf_weight,
     pileup_weight=pileup_weight,
+    ntuple_path='ntuples/prod_v29',
     student='hhskim_BCH',
     suffix='_BCH.mc12b')
 
