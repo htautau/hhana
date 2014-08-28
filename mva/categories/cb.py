@@ -176,10 +176,3 @@ class Category_Cuts_VBF(Category_Preselection):
     label = '#tau_{had}#tau_{had} CB VBF'
     cuts  = Category_Cuts_VBF_HighDR_Loose.cuts | Category_Cuts_VBF_HighDR_Tight.cuts | Category_Cuts_VBF_LowDR.cuts
     norm_category = Category_Preselection
-
-
-class Category_Cuts(Category_Preselection):
-    name = 'cuts'
-    common_cuts = Category_Preselection.common_cuts
-    cuts = (Category_Cuts_VBF.cuts | Category_Cuts_Boosted.cuts)
-    norm_category = Category_Preselection
