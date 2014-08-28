@@ -241,29 +241,27 @@ def cuts_workspace(analysis, categories, masses,
     return channels, []
 
 
-def feature_workspace(analysis, categories, field, 
-                      mass=125,
+def feature_workspace(field, template,
+                      analysis, categories, masses,
                       systematics=False,
                       cuts=None):
     channels = {}
     for category in analysis.iter_categories(categories):
-        hist_dict, _ = analysis.data.get_field_hist(
-            {field: VARIABLES[field]}, category)
-        channel = analysis.get_channel_array(
-            hist_dict,
-            category=category,
-            region=analysis.target_region,
-            cuts=cuts,
-            include_signal=True,
-            mass=mass,
-            mode='workspace',
-            systematics=systematics,
-            uniform=False)[field]
-        if mass not in channels:
-            channels[mass] = {}
-        channels[mass][category.name] = channel
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {field: template},
+                category=category,
+                region=analysis.target_region,
+                cuts=cuts,
+                include_signal=True,
+                mass=mass,
+                mode='workspace',
+                systematics=systematics,
+                uniform=False)[field]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
     return channels, []
-
 
 
 def mass_workspace(analysis, categories, masses,
