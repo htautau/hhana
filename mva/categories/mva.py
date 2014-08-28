@@ -97,9 +97,3 @@ class Category_Rest(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts
     cuts = (- Category_Boosted.cuts) & (- Category_VBF.cuts) & DETA_TAUS
     norm_category = Category_Preselection
-
-class Category_MVA(Category_Preselection):
-    name = 'mva'
-    common_cuts = Category_Preselection.common_cuts
-    cuts = (Category_VBF.cuts | Category_Boosted.cuts)
-    norm_category = Category_Preselection
