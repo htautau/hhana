@@ -21,6 +21,8 @@ import numpy as np
 from rootpy.plotting.contrib import plot_corrcoef_matrix
 from rootpy.plotting import Hist
 
+from root_numpy import fill_hist
+
 
 def correlations(signal, signal_weight,
                  background, background_weight,
@@ -140,7 +142,7 @@ def plot_grid_scores(grid_scores, best_point, params, name,
 def hist_scores(hist, scores, systematic='NOMINAL'):
     for sample, scores_dict in scores:
         scores, weight = scores_dict[systematic]
-        hist.fill_array(scores, weight)
+        fill_hist(hist, scores, weight)
 
 
 def plot_clf(background_scores,
@@ -174,7 +176,7 @@ def plot_clf(background_scores,
     for bkg, scores_dict in background_scores:
         hist = hist_template.Clone(title=bkg.label)
         scores, weight = scores_dict['NOMINAL']
-        hist.fill_array(scores, weight)
+        fill_hist(hist, scores, weight)
         hist.decorate(**bkg.hist_decor)
         hist.systematics = {}
         for sys_term in scores_dict.keys():
@@ -182,7 +184,7 @@ def plot_clf(background_scores,
                 continue
             sys_hist = hist_template.Clone()
             scores, weight = scores_dict[sys_term]
-            sys_hist.fill_array(scores, weight)
+            fill_hist(sys_hist, scores, weight)
             hist.systematics[sys_term] = sys_hist
         bkg_hists.append(hist)
 
@@ -191,7 +193,7 @@ def plot_clf(background_scores,
         for sig, scores_dict in signal_scores:
             sig_hist = hist_template.Clone(title=sig.label)
             scores, weight = scores_dict['NOMINAL']
-            sig_hist.fill_array(scores, weight)
+            fill_hist(sig_hist, scores, weight)
             sig_hist.decorate(**sig.hist_decor)
             sig_hist.systematics = {}
             for sys_term in scores_dict.keys():
@@ -199,7 +201,7 @@ def plot_clf(background_scores,
                     continue
                 sys_hist = hist_template.Clone()
                 scores, weight = scores_dict[sys_term]
-                sys_hist.fill_array(scores, weight)
+                fill_hist(sys_hist, scores, weight)
                 sig_hist.systematics[sys_term] = sys_hist
             sig_hists.append(sig_hist)
     else:
@@ -215,7 +217,7 @@ def plot_clf(background_scores,
                 data_scores = data_scores[data_scores < cut]
         data_hist = hist_template.Clone(title=data.label)
         data_hist.decorate(**data.hist_decor)
-        data_hist.fill_array(data_scores)
+        fill_hist(data_hist, data_scores)
         if unblind >= 1 or unblind is True:
             log.info("Data events: %d" % sum(data_hist))
             log.info("Model events: %f" % sum(sum(bkg_hists)))

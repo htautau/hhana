@@ -718,7 +718,7 @@ class Sample(object):
                 raise TypeError(
                     'histogram dimensionality does not match '
                     'number of fields: %s' % (', '.join(fields)))
-            hist.fill_array(arr, weights=weights)
+            fill_hist(hist, arr, weights)
             if isinstance(self, Data):
                 if hasattr(hist, 'datainfo'):
                     hist.datainfo += self.info
