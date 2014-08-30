@@ -377,6 +377,14 @@ mva-workspaces-multibdt:
 		done; \
 	done
 
+.PHONY: weighted-mass-workspaces
+weighted-mass-workspaces:
+	@for year in 2012 2011; do \
+		for mass in 110 125 150; do \
+			PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace weighted-mass --systematics --years $${year} --masses $${mass}; \
+		done; \
+	done
+
 .PHONY: workspaces
 workspaces: mva-workspaces cuts-workspaces
 

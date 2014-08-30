@@ -20,7 +20,7 @@ from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from rootpy.extern.tabulartext import PrettyTable
 
 # root_numpy imports
-from root_numpy import rec2array
+from root_numpy import rec2array, fill_hist
 
 # local imports
 from . import log; log = log[__name__]
@@ -72,7 +72,7 @@ def histogram_scores(hist_template, scores,
             scores = scores[scores > min_score]
         if max_score is not None:
             scores = scores[scores < max_score]
-        hist.fill_array(scores)
+        fill_hist(hist, scores)
     elif isinstance(scores, tuple):
         # data
         scores, weight = scores
@@ -85,7 +85,7 @@ def histogram_scores(hist_template, scores,
             scores = scores[scores_idx]
             weight = weight[scores_idx]
         assert (weight == 1).all()
-        hist.fill_array(scores)
+        fill_hist(hist, scores)
     elif isinstance(scores, dict):
         # non-data with possible systematics
         # nominal case:
@@ -98,7 +98,7 @@ def histogram_scores(hist_template, scores,
             scores_idx = nom_scores < max_score
             nom_scores = nom_scores[scores_idx]
             nom_weight = nom_weight[scores_idx]
-        hist.fill_array(nom_scores, nom_weight)
+        fill_hist(hist, nom_scores, nom_weight)
         # systematics
         sys_hists = {}
         for sys_term, (sys_scores, sys_weight) in scores.items():
@@ -115,7 +115,7 @@ def histogram_scores(hist_template, scores,
             sys_hist = hist.Clone(
                 name=hist.name + "_" + systematic_name(sys_term))
             sys_hist.Reset()
-            sys_hist.fill_array(sys_scores, sys_weight)
+            fill_hist(sys_hist, sys_scores, sys_weight)
             sys_hists[sys_term] = sys_hist
         hist.systematics = sys_hists
     else:
@@ -133,7 +133,7 @@ def write_score_hists(f, mass, scores_list, hist_template, no_neg_bins=True):
                 suffix = '_' + '_'.join(sys_term)
             hist = hist_template.Clone(
                     name=samp.name + ('_{0}'.format(mass)) + suffix)
-            hist.fill_array(scores, weights)
+            fill_hist(hist, scores, weights)
             if sys_term not in sys_hists:
                 sys_hists[sys_term] = []
             sys_hists[sys_term].append(hist)
