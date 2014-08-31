@@ -1,0 +1,224 @@
+#!/usr/bin/env python
+
+import os
+from rootpy.extern.argparse import ArgumentParser
+from rootpy.plotting import Canvas, Pad, Legend, Hist, Hist2D, Graph, set_style
+from rootpy.plotting.utils import draw, tick_length_pixels
+from rootpy.plotting.style.atlas.labels import ATLAS_label
+from root_numpy import fill_hist
+import ROOT
+from ROOT import TLatex, TLine
+import mva
+import numpy as np
+import pickle
+
+from statstools.plotting import print_np
+
+ROOT.gROOT.SetBatch()
+
+# guide lines
+line = TLine()
+line.SetLineStyle(7)
+line.SetLineWidth(2)
+solid_line = TLine()
+solid_line.SetLineWidth(1)
+
+
+def draw_fit(hist, plot):
+    result = hist.Fit('gaus', 'SNO')
+    gaus_fit = ROOT.TF1("fit", "gaus(0)",
+                        result.Parameter(1) - 3 * result.Parameter(2),
+                        result.Parameter(1) + 3 * result.Parameter(2))
+    gaus_fit.SetParameters(result.Parameter(0),
+                           result.Parameter(1),
+                           result.Parameter(2))
+    gaus_fit.SetLineColor(ROOT.kRed)
+    gaus_fit.Draw('same')
+    gaus_label = ROOT.TLatex(
+        plot.GetLeftMargin() + 0.05, 0.85,
+        "#splitline{{Gaussian Fit:}}{{#mu={0:.2f} #sigma={1:.2f}}}".format(
+            result.Parameter(1),
+            result.Parameter(2)))
+    gaus_label.SetNDC()
+    gaus_label.SetTextFont(43)
+    gaus_label.SetTextSize(22)
+    gaus_label.SetTextColor(ROOT.kRed)
+    gaus_label.Draw()
+    return result.Parameter(1), result.Parameter(2)
+
+
+def draw_param(params, param, name=None, path='.', bins=20, bins2d=20):
+    
+    _name = name
+    if name is None:
+        name = print_np(param)
+    
+    mu_mva = params['MVA'][param]
+    mu_cba = params['CBA'][param]
+    mu_diff = mu_mva - mu_cba
+
+    # get auto ranges
+    mva_mean = np.mean(mu_mva)
+    cba_mean = np.mean(mu_cba)
+    diff_mean = np.mean(mu_diff)
+    mva_std = np.std(mu_mva)
+    cba_std = np.std(mu_cba)
+    diff_std = np.std(mu_diff)
+    mva_low, mva_high = mva_mean - 3 * mva_std, mva_mean + 3 * mva_std
+    cba_low, cba_high = cba_mean - 3 * cba_std, cba_mean + 3 * cba_std
+    diff_low, diff_high = diff_mean - 3 * diff_std, diff_mean + 3 * diff_std
+
+    hist_mva = Hist(bins, mva_low, mva_high, drawstyle='HIST')
+    hist_cba = Hist(bins, cba_low, cba_high, drawstyle='HIST')
+    hist_diff = Hist(bins, diff_low, diff_high, drawstyle='HIST')
+    hist_mva_cba = Hist2D(
+        bins2d, mva_low, mva_high,
+        bins2d, cba_low, cba_high,
+        drawstyle='BOX', color='red',
+        fillstyle='solid')
+
+    fill_hist(hist_mva, mu_mva)
+    fill_hist(hist_cba, mu_cba)
+    fill_hist(hist_mva_cba, np.c_[mu_mva, mu_cba])
+    fill_hist(hist_diff, mu_diff)
+
+    corr = np.corrcoef(mu_mva, mu_cba)
+    rho = corr[0,1]
+    #np.cov(mu_mva, mu_cba)
+    
+    canvas = Canvas()
+    draw(hist_mva, pad=canvas, xtitle='{0}_{{MVA}}'.format(name), ytitle='pseudo-experiments')
+    draw_fit(hist_mva, canvas)
+    canvas.SaveAs(os.path.join(path, '{0}_mva.png'.format(param)))
+
+    canvas = Canvas()
+    draw(hist_cba, pad=canvas, xtitle='{0}_{{CBA}}'.format(name), ytitle='pseudo-experiments')
+    draw_fit(hist_cba, canvas)
+    canvas.SaveAs(os.path.join(path, '{0}_cba.png'.format(param)))
+
+    canvas = Canvas()
+    if _name is None:
+        xtitle = '#Delta {0}(MVA - CBA)'.format(name)
+    else:
+        xtitle = '{0}_{{MVA}} - {0}_{{CBA}}'.format(name)
+    draw(hist_diff, pad=canvas, xtitle=xtitle, ytitle='pseudo-experiments')
+    diff_mean, diff_sigma = draw_fit(hist_diff, canvas)
+    canvas.SaveAs(os.path.join(path, '{0}_diff.png'.format(param)))
+
+    canvas = Canvas()
+    hist_mva_cba.xaxis.title = '{0}_{{MVA}}'.format(name)
+    hist_mva_cba.yaxis.title = '{0}_{{CBA}}'.format(name)
+    hist_mva_cba.Draw()
+    gaus_label = ROOT.TLatex(
+        canvas.GetLeftMargin() + 0.05, 0.85,
+        "#rho={0:.2f}".format(rho))
+    gaus_label.SetNDC()
+    gaus_label.SetTextFont(43)
+    gaus_label.SetTextSize(22)
+    gaus_label.SetTextColor(ROOT.kRed)
+    gaus_label.Draw()
+    canvas.SaveAs(os.path.join(path, '{0}_mva_cba.png'.format(param)))
+
+    return diff_mean, diff_sigma, rho
+
+
+def plot_compatibility(params, file, row_pixels=30, label_pixels=None):
+    if label_pixels is None:
+        label_pixels = min(20, int(row_pixels * 0.6))
+    n_points = len(params)
+    # setup canvas
+    c = Canvas(width=1024, height=300 + (row_pixels + 2) * n_points)
+    c.margin = (0, 0, 0, 0)
+    pad1 = Pad(0, 0, 1, 1)
+    left_pixels = 0.3 * c.width
+    right_pixels = 0.05 * c.width
+    pad1.margin_pixels = (left_pixels, right_pixels, 150, 150)
+    pad1.Draw()
+    # inset for NormFactors
+    #pad2 = Pad(0.63, 0.1, 0.94, 0.22, 0)
+    xaxis, yaxis = pad1.axes(xlimits=(-3, 3), ylimits=(-0.5 - 1, n_points + 1 - 0.5))
+    xaxis.title = '(#theta_{MVA} - #theta_{CBA}) / #delta#theta'
+    tick_length_pixels(pad1, xaxis, yaxis, row_pixels, 0)
+    yaxis.SetLabelOffset(999)
+    # make pull graph
+    pulls = Graph(
+        n_points, drawstyle='P', linewidth=2, markersize=1,
+        legendstyle='LP',
+        title="#Delta#theta and #pm1#sigma uncertainty")
+    pulls_1sigma = pulls.Clone(
+        drawstyle='2', linewidth=0, markersize=0,
+        fillcolor='yellow', fillstyle='solid',
+        legendstyle='F')
+    for i, (np, mean, sigma, rho) in enumerate(params):
+        pulls_1sigma.SetPoint(i, 0, i)
+        pulls_1sigma.SetPointError(i, 1, 1, 0.5, 0.5)
+        pulls.SetPoint(i, mean / sigma, i)
+        pulls.SetPointError(i, 1, 1, 0, 0)
+    nuis_name = TLatex()
+    nuis_name.SetTextAlign(32)
+    nuis_name.SetTextSize(label_pixels)
+    pad1.cd()
+    # mu axis
+    # draw 1sigma pull graph
+    pulls_1sigma.Draw('SAME')
+    # draw guide lines
+    line.DrawLine(1, -0.5 - 1, 1, n_points + 1 - 0.5)
+    line.DrawLine(-1, -0.5 - 1, -1, n_points + 1 - 0.5)
+    line.DrawLine(0, -0.5 - 1, 0, n_points + 1 - 0.5)
+    for i in xrange(n_points):
+        solid_line.DrawLine(-3, i - 0.5, 3, i - 0.5)
+        np = params[i][0]
+        if np == 'SigXsecOverSM':
+            nuis_name.SetTextColor(ROOT.kRed)
+        elif 'norm' in np:
+            nuis_name.SetTextColor(ROOT.kBlue)
+        else:
+            nuis_name.SetTextColor(ROOT.kBlack)
+        nuis_name.DrawLatex(-3.1, i, print_np(np))
+    solid_line.DrawLine(-3, i + 0.5, 3, i + 0.5)
+    pulls.Draw('SAME')
+    ATLAS_label(
+        0.03, 1. - pad1.GetTopMargin() / 2.,
+        text="Internal",
+        sqrts=None, pad=pad1, sep=0.1,
+        textsize=30)
+    theta_legend = Legend(
+        (pulls,), pad=pad1,
+        x=0.05, y=0.80,
+        entryheight=0.018,
+        margin=0.1)
+    theta_legend.position_pixels = (left_pixels, 20, c.width, 100)
+    theta_legend.Draw()
+    c.Modified()
+    c.Update()
+    c.SaveAs(file)
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('--path', default='.')
+    parser.add_argument('--bins', type=int, default=20)
+    parser.add_argument('--bins2d', type=int, default=20)
+    parser.add_argument('file')
+    args = parser.parse_args()
+
+    params = pickle.load(open(args.file, 'r'))
+
+    names = {
+        'SigXsecOverSM': '#hat{#mu}',
+    }
+    
+    # draw all params
+    mva_params = params['MVA'].keys()
+    cba_params = params['CBA']
+    compare_params = []
+    for param in mva_params:
+        if param not in cba_params:
+            continue
+        mu, sigma, rho = draw_param(
+            params, param, name=names.get(param, None),
+            path=args.path, bins=args.bins, bins2d=args.bins2d)
+        compare_params.append((param, mu, sigma, rho))
+
+    # plot compatibility of all params
+    plot_compatibility(compare_params, os.path.join(args.path, 'bootstrap_compatibility.png'))
