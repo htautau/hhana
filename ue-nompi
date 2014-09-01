@@ -10,7 +10,7 @@ import os
 
 from rootpy.tree import Cut
 from higgstautau.datasets import Database
-from mva.analysis import Analysis
+#from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.categories import CATEGORIES
 from mva.defaults import TARGET_REGION
@@ -34,14 +34,14 @@ modes = [
 ]
 pileup_weight = True
 # end configuration
-ana = Analysis(2012)
+# ana = Analysis(2012)
 
 higgs_nompi = Higgs(
     2012, mass=125, modes=modes,
     db=DB,
     ggf_weight=False,
     pileup_weight=pileup_weight,
-    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v34/',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v36/',
     suffix='_noMPI.mc12b')
 
 higgs_herwigps = Higgs(
@@ -51,14 +51,14 @@ higgs_herwigps = Higgs(
     pileup_weight=pileup_weight,
     inclusive_decays=True,
     sample_pattern='PowJim_AUET2CT10_ggH{0:d}_tautauInc',
-    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v34/',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v36/',
     suffix='mc12a')
 
 higgs = Higgs(
     2012, mass=125, modes=modes,
     db=DB,
     ggf_weight=False,
-    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v34/',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v36/',
     pileup_weight=pileup_weight)
 
 
@@ -93,7 +93,7 @@ for cattype in ('mva_all', 'cuts'):
         if 'vbf' in category.name:
             cuts = Cut('num_true_jets_no_overlap>1') & Cut('true_jet1_no_overlap_pt>50000') & Cut('true_jet2_no_overlap_pt>30000')
         elif 'boosted' in category.name:
-            cuts = 'true_resonance_pt>10000'
+            cuts = 'true_resonance_pt>100000'
         else:
             cuts = None
 
