@@ -34,7 +34,7 @@ modes = [
 ]
 pileup_weight = True
 # end configuration
-
+ana = Analysis(2012)
 
 higgs_nompi = Higgs(
     2012, mass=125, modes=modes,
