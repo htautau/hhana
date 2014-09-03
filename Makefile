@@ -184,7 +184,7 @@ ntup-update:
 
 .PHONY: higgs-pt
 higgs-pt:
-	./higgs-pt $(HHNTUP_RUNNING)/hhskim*tautau*.root
+	./higgs-pt $(HHNTUP_RUNNING)/hhskim*tautauhh*.root
 
 .PHONY: $(HHNTUP)/merged_grl_11.xml
 $(HHNTUP)/merged_grl_11.xml:
