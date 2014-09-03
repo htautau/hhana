@@ -5,13 +5,13 @@ from mva import cmd, MMC_MASS
 from mva.samples import Higgs
 from mva.workspace import (
     write_workspaces, cuts_workspace, mva_workspace,
-    feature_workspace, weighted_mass_workspace)
+    feature_workspace, weighted_mass_workspace, weighted_mass_cba_workspace)
 from mva.analysis import get_analysis
 from mva.massregions import MassRegions
 
 parser = cmd.analysis_parser(cmd.general_parser(
     multi_years=True, multi_categories=True))
-parser.add_argument('type', choices=('mva', 'cuts', 'var', 'weighted-mass'), default='mva')
+parser.add_argument('type', choices=('mva', 'cuts', 'var', 'weighted-mass', 'weighted-mass-cba'), default='mva')
 parser.add_argument('--clf-mass', type=int, default=None)
 parser.add_argument('--clf-bins', default='optimal')
 parser.add_argument('--clf-swap', default=False, action='store_true')
@@ -45,6 +45,8 @@ elif args.type == 'cuts':
     params['unblind'] = args.unblind
 elif args.type == 'weighted-mass':
     workspace_func = weighted_mass_workspace
+elif args.type == 'weighted-mass-cba':
+    workspace_func = weighted_mass_cba_workspace
 else:
     params['field'] = args.field
     bins, low, high = map(float, args.binning.split(','))

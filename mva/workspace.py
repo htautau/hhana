@@ -310,6 +310,58 @@ def weighted_mass_workspace(analysis, categories, masses,
             channels[mass][category.name] = channel
     return channels, []
 
+def weighted_mass_cba_workspace(analysis, categories, masses,
+                                systematics=False,
+                                cuts=None):
+    hist_template = Hist(10, 50, 250, type='D')
+    channels = {}
+    for category in analysis.iter_categories(categories):
+        binning = category.limitbins
+        if isinstance(binning, dict):
+            binning = binning[analysis.year]
+        hist_meas_template = Hist(binning, type='D')
+
+        # get MMC histfactory channel used for the measurement
+        channel_meas = analysis.get_channel_array(
+            {MMC_MASS: hist_meas_template},
+            category=category,
+            region=analysis.target_region,
+            include_signal=True,
+            mass=125,
+            mode='workspace',
+            systematics=False)[MMC_MASS]
+        bkg_mass_hist = Hist(binning, type='D') 
+        sig_mass_hist = Hist(binning, type='D')
+        for s in channel_meas.samples:
+            if 'Signal' in s.name:
+                sig_mass_hist.Add(s.hist)
+            else:
+                bkg_mass_hist.Add(s.hist)
+        _bkg = bkg_mass_hist.Clone()
+        _sig = sig_mass_hist.Clone()
+        sob_hist = (1 + _sig / _bkg)
+        _log = math.log
+        for bin in sob_hist.bins(overflow=True):
+            bin.value = _log(bin.value)
+        log.info(str(list(sob_hist.y())))
+
+        # get MMC histfactory channel used for the plot
+        for mass in masses:
+            channel = analysis.get_channel_array(
+                {MMC_MASS: hist_template},
+                category=category,
+                region=analysis.target_region,
+                include_signal=True,
+                weight_hist=sob_hist,
+                clf=None,
+                cuts=cuts,
+                mass=mass,
+                mode='workspace',
+                systematics=systematics)[MMC_MASS]
+            if mass not in channels:
+                channels[mass] = {}
+            channels[mass][category.name] = channel
+    return channels, []
 
 def mass2d_workspace(analysis, categories, masses,
                      systematics=False):
