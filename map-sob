@@ -1,0 +1,215 @@
+#!/usr/bin/env python
+
+# python imports
+import os
+import logging
+import numpy as np
+from numpy.lib import recfunctions
+from math import log10, pow
+
+# ROOT/rootpy/root_numpy imports
+from rootpy.plotting.style import get_style, set_style
+from rootpy.io import root_open
+from rootpy.tree import Cut
+from rootpy.plotting import Hist, Hist2D, Canvas, Graph
+from root_numpy import fill_hist, array2tree, stack
+from ROOT import TLatex
+
+log = logging.getLogger(os.path.basename(__file__))
+
+fields = ['EventNumber', 'RunNumber', 'mmc1_mass']
+fields_names = ['EvtNum', 'RunNum', 'MMC']
+
+def log_binning(xmin, xmax, nbins):
+    xmin_log = log10(xmin)
+    xmax_log = log10(xmax)
+    step = (xmax_log-xmin_log)/(nbins-1)
+    return [pow(10, xmin_log+i*step) for i in xrange(nbins)]
+
+def get_sob_array(rec, field_hist, sob_hist):
+    if len(rec) == 0:
+        return rec
+    indices = fill_hist(field_hist, rec, return_indices=True)
+    return np.take(list(sob_hist.y(overflow=True)), indices)
+
+
+if __name__ == '__main__':
+    # local imports
+    from mva.analysis import Analysis
+    from mva.categories import CATEGORIES, Category_Preselection
+    from mva.defaults import TARGET_REGION
+    from mva.plotting import hist_scores
+    from mva import MMC_MASS
+
+    analysis = Analysis(2012)
+    analysis.normalize(Category_Preselection)
+    
+    log.info('iterate over MVA categories')
+
+    mva_recs = {}
+    for category in CATEGORIES['mva']:
+        clf = analysis.get_clf(
+            category, load=True,
+            mass=125, transform=True)
+        clf_bins = clf.binning(analysis.year, overflow=1E5)
+        
+        scores = analysis.get_scores(
+            clf, category, TARGET_REGION,
+            masses=[125],
+            mode='combined',
+            systematics=False,
+            unblind=True)
+
+        bkg_scores = scores.bkg_scores
+        sig_scores = scores.all_sig_scores[125]
+    
+        bkg_score_hist = Hist(clf_bins)
+        hist_scores(bkg_score_hist, bkg_scores)
+    
+        sig_score_hist = Hist(clf_bins)
+        hist_scores(sig_score_hist, sig_scores)
+
+        sob_score_hist = sig_score_hist/bkg_score_hist
+
+        rec = analysis.data.merged_records(
+            category, analysis.target_region, fields=fields,
+            include_weight=False, clf=clf, clf_name='BDT')
+        rec.dtype.names = fields_names + ['BDT']
+        sob_rec = get_sob_array(rec['BDT'], Hist(clf_bins), sob_score_hist)
+        rec = recfunctions.rec_append_fields(
+            rec, data=[sob_rec], names=['sob_mva'], dtypes=['f4'])
+        mva_recs[category.name] = rec
+
+    cba_recs = []
+    for category in analysis.iter_categories('cuts'):
+        binning = category.limitbins
+        if isinstance(binning, dict):
+            binning = binning[analysis.year]
+        hist_template = Hist(binning, type='D')
+
+        # get MMC histfactory channel
+        channel = analysis.get_channel_array(
+            {MMC_MASS: hist_template},
+            category=category,
+            region=analysis.target_region,
+            include_signal=True,
+            mass=125,
+            mode='workspace',
+            systematics=False)[MMC_MASS]
+        bkg_mass_hist = Hist(binning, type='D') 
+        sig_mass_hist = Hist(binning, type='D')
+        for s in channel.samples:
+            if 'Signal' in s.name:
+                sig_mass_hist.Add(s.hist)
+            else:
+                bkg_mass_hist.Add(s.hist)
+
+        sob_mass_hist = sig_mass_hist / bkg_mass_hist
+        rec = analysis.data.merged_records(
+            category, analysis.target_region, 
+            fields=fields, include_weight=False)
+        rec.dtype.names = fields_names
+        sob_rec = get_sob_array(rec['MMC'], Hist(binning), sob_mass_hist)
+        rec = recfunctions.rec_append_fields(
+            rec, data=[sob_rec], names=['sob_cba'], dtypes=['f4'])
+        cba_recs.append(rec)
+
+    # stack all the records and concatenate array of fields
+    vbf_rec = stack([mva_recs['vbf']]+cba_recs, fields=fields_names)
+    boosted_rec = stack([mva_recs['boosted']]+cba_recs, fields=fields_names)
+    # remove the duplicated events
+    vbf_rec = np.unique(vbf_rec)
+    boosted_rec = np.unique(boosted_rec)
+
+    defaults = {
+        'MMC': -1,
+        'BDT': -999,
+        'sob_mva': -999,
+        'sob_cba':-999}
+
+    boosted_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        boosted_rec, stack(cba_recs, fields=['EvtNum', 'RunNum', 'MMC', 'sob_cba']),
+        jointype='inner', usemask=False,
+        defaults=defaults)
+    boosted_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        boosted_rec, stack([mva_recs['boosted']], fields=['EvtNum', 'RunNum', 'BDT', 'sob_mva']),
+        jointype='inner', usemask=False,
+        defaults=defaults)
+
+
+    vbf_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        vbf_rec, stack(cba_recs, fields=['EvtNum', 'RunNum', 'MMC', 'sob_cba']),
+        jointype='inner', usemask=False,
+        defaults=defaults)
+    vbf_rec = recfunctions.join_by(
+        ['EvtNum', 'RunNum'],
+        vbf_rec, stack([mva_recs['vbf']], fields=['EvtNum', 'RunNum', 'BDT', 'sob_mva']),
+        jointype='inner', usemask=False,
+        defaults=defaults)
+
+    map_sob_boosted = Hist2D(log_binning(0.0001, 1, 20),
+                             log_binning(1e-5, 1, 20))
+    fill_hist(map_sob_boosted, np.c_[boosted_rec['sob_mva'], boosted_rec['sob_cba']])
+
+    graph_sob_boosted = Graph(len(boosted_rec))
+    for i, (x, y) in enumerate(zip(boosted_rec['sob_mva'], boosted_rec['sob_cba'])):
+        graph_sob_boosted.SetPoint(i, x, y)
+
+    graph_sob_boosted.SetMarkerSize(0.5)
+    map_sob_boosted.name = 'boosted'
+    map_sob_boosted.xaxis.title = 'MVA S/B'
+    map_sob_boosted.yaxis.title = 'CBA S/B'
+    
+    log.info(np.unique(boosted_rec['sob_mva']))
+    log.info(np.unique(boosted_rec['sob_cba']))
+    log.info(np.unique(vbf_rec['sob_mva']))
+    log.info(np.unique(vbf_rec['sob_cba']))
+
+
+    style = get_style('ATLAS', shape='square')
+    style.SetPadRightMargin(0.16)
+
+    set_style(style)
+    c = Canvas()
+    c.SetLogx()
+    c.SetLogy()
+    c.SetLogz()
+    map_sob_boosted.Draw('colz')
+    graph_sob_boosted.Draw('sameP')
+    lab = TLatex(c.GetLeftMargin()+0.03,
+                 1-c.GetTopMargin()-0.04, 
+                 '#tau_{had}#tau_{had} Boosted')
+    lab.SetNDC(True)
+    lab.SetTextSize(20)
+    lab.Draw('same')
+    c.SaveAs('toto_boosted.png')
+
+    map_sob_vbf = Hist2D(log_binning(0.001, 10, 20),
+                         log_binning(1e-5, 10, 20))
+    map_sob_vbf.name = 'vbf'
+    map_sob_vbf.xaxis.title = 'MVA S/B'
+    map_sob_vbf.yaxis.title = 'CBA S/B'
+    fill_hist(map_sob_vbf, np.c_[vbf_rec['sob_mva'], vbf_rec['sob_cba']])
+    graph_sob_vbf = Graph(len(vbf_rec))
+    log.info(graph_sob_vbf.GetMarkerSize())
+    for i, (x, y) in enumerate(zip(vbf_rec['sob_mva'], vbf_rec['sob_cba'])):
+        graph_sob_vbf.SetPoint(i, x, y)
+    graph_sob_vbf.SetMarkerSize(0.5)
+
+    c1 = Canvas()
+    c1.SetLogx()
+    c1.SetLogy()
+    c1.SetLogz()
+    map_sob_vbf.Draw('colz')
+    graph_sob_vbf.Draw('sameP')
+    lab1 = TLatex(c1.GetLeftMargin()+0.03,
+                  1-c1.GetTopMargin()-0.04, 
+                  '#tau_{had}#tau_{had} VBF')
+    lab1.SetNDC(True)
+    lab1.SetTextSize(20)
+    lab1.Draw('same')
+    c1.SaveAs('toto_vbf.png')
+

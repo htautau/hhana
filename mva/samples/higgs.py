@@ -65,7 +65,9 @@ class Higgs(MC, Signal):
                  ggf_weight=True,
                  suffix=None,
                  label=None,
+                 inclusive_decays=False,
                  **kwargs):
+        self.inclusive_decays = inclusive_decays
         if masses is None:
             if mass is not None:
                 assert mass in Higgs.MASSES
@@ -279,7 +281,8 @@ class Higgs(MC, Signal):
             Higgs.MODES_DICT[self.modes[isample]][0],
             self.energy,
             xs))
-        xs *= TAUTAUHADHADBR
+        if not self.inclusive_decays:
+            xs *= TAUTAUHADHADBR
         kfact = 1.
         effic = 1.
         return xs, kfact, effic
