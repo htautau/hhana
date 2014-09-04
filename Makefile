@@ -385,6 +385,12 @@ weighted-mass-workspaces:
 		done; \
 	done
 
+.PHONY: weighted-mass-workspaces-cba
+weighted-mass-workspaces-cba:
+	@for mass in 110 125 150; do \
+		PBS_LOG=log PBS_MEM=18gb run-cluster ./workspace weighted-mass-cba --categories cuts --systematics --years 2012 --masses $${mass}; \
+	done
+
 .PHONY: workspaces
 workspaces: mva-workspaces cuts-workspaces
 
