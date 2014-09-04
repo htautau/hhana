@@ -313,7 +313,7 @@ def weighted_mass_workspace(analysis, categories, masses,
 def weighted_mass_cba_workspace(analysis, categories, masses,
                                 systematics=False,
                                 cuts=None):
-    hist_template = Hist(10, 50, 250, type='D')
+    hist_template = Hist(20, 50, 250, type='D')
     channels = {}
     for category in analysis.iter_categories(categories):
         binning = category.limitbins
