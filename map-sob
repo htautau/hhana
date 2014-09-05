@@ -109,6 +109,7 @@ if __name__ == '__main__':
             category, analysis.target_region, 
             fields=fields, include_weight=False)
         rec.dtype.names = fields_names
+        log.info('{0}: {1}'.format(category.name, list(sob_mass_hist.y())))
         sob_rec = get_sob_array(rec['MMC'], Hist(binning), sob_mass_hist)
         rec = recfunctions.rec_append_fields(
             rec, data=[sob_rec], names=['sob_cba'], dtypes=['f4'])
