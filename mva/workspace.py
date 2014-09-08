@@ -6,8 +6,7 @@ from rootpy.io import root_open
 from rootpy.stats import histfactory
 from rootpy.utils.path import mkdir_p
 
-from statstools.histfactory import (
-    to_uniform_binning, apply_remove_window, is_signal)
+from statstools.histfactory import to_uniform_binning, apply_remove_window
 
 from . import log; log = log[__name__]
 from . import CONST_PARAMS, CACHE_DIR, MMC_MASS, POI
@@ -311,44 +310,58 @@ def weighted_mass_workspace(analysis, categories, masses,
             channels[mass][category.name] = channel
     return channels, []
 
-
 def weighted_mass_cba_workspace(analysis, categories, masses,
                                 systematics=False,
                                 cuts=None):
     hist_template = Hist(20, 50, 250, type='D')
     channels = {}
     for category in analysis.iter_categories(categories):
+        binning = category.limitbins
+        if isinstance(binning, dict):
+            binning = binning[analysis.year]
+        hist_meas_template = Hist(binning, type='D')
+
+        # get MMC histfactory channel used for the measurement
+        channel_meas = analysis.get_channel_array(
+            {MMC_MASS: hist_meas_template},
+            category=category,
+            region=analysis.target_region,
+            include_signal=True,
+            mass=125,
+            mode='workspace',
+            systematics=False)[MMC_MASS]
+        bkg_mass_hist = Hist(binning, type='D') 
+        sig_mass_hist = Hist(binning, type='D')
+        for s in channel_meas.samples:
+            if 'Signal' in s.name:
+                sig_mass_hist.Add(s.hist)
+            else:
+                bkg_mass_hist.Add(s.hist)
+        _bkg = bkg_mass_hist.Clone()
+        _sig = sig_mass_hist.Clone()
+        sob_hist = (1 + _sig / _bkg)
+        _log = math.log
+        for bin in sob_hist.bins(overflow=True):
+            bin.value = _log(bin.value)
+        log.info(str(list(sob_hist.y())))
+
+        # get MMC histfactory channel used for the plot
         for mass in masses:
             channel = analysis.get_channel_array(
                 {MMC_MASS: hist_template},
                 category=category,
                 region=analysis.target_region,
                 include_signal=True,
+                weight_hist=sob_hist,
+                clf=None,
                 cuts=cuts,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics)[MMC_MASS]
-            # weight by s / b
-            total_s = hist_template.Clone()
-            total_s.Reset()
-            total_b = total_s.Clone()
-            for sample in channel.samples:
-                if is_signal(sample):
-                    total_s += sample.hist
-                else:
-                    total_b += sample.hist
-            sob = total_s.integral() / total_b.integral()
-            channel.data.hist *= sob
-            for sample in channel.samples:
-                sample.hist *= sob
-                for hsys in sample.histo_sys:
-                    hsys.high *= sob
-                    hsys.low *= sob
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel
     return channels, []
-
 
 def mass2d_workspace(analysis, categories, masses,
                      systematics=False):

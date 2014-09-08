@@ -439,4 +439,4 @@ fix-mva:
 
 .PHONY: fix-cuts
 fix-cuts:
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_cuts
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_cuts
