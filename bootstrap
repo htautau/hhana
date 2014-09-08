@@ -1,0 +1,208 @@
+#!/usr/bin/env python
+
+import numpy as np
+from rootpy.io import root_open
+from rootpy.stats.histfactory import make_workspace, measurements_from_xml
+from rootpy.utils.path import mkdir_p
+from root_numpy import root2array, fill_hist
+from statstools.parallel import run_pool
+from multiprocessing import Process
+
+
+MVA = {
+    'rest': ('deta_raw', 4),
+    'vbf': ('BDT', 6),
+    'boosted': ('BDT', 5),
+}
+
+CBA = {
+    'cuts_vbf_lowdr': ('MMC', 7),
+    'cuts_vbf_highdr_tight': ('MMC', 9),
+    'cuts_vbf_highdr_loose': ('MMC', 8),
+    'cuts_boosted_tight': ('MMC', 6),
+    'cuts_boosted_loose': ('MMC', 5)
+}
+
+ANA = {'MVA': MVA, 'CBA': CBA}
+
+
+def get_measurement(path):
+    meas = measurements_from_xml(
+        path,
+        cd_parent=True,
+        collect_histograms=True,
+        silence=True)[0]
+    return meas
+
+
+def replace_data(meas, data_array, ana_type):
+    cat_defs = ANA[ana_type]
+    for channel in meas.channels:
+        for name, (field, cat_idx) in cat_defs.items():
+            if name in channel.name:
+                break
+        else:
+            raise RuntimeError("unkown category: {0}".format(channel.name))
+        hist = channel.data.hist.Clone(shallow=True)
+        print "{0} initial integral: {1}".format(channel.name, hist.integral())
+        hist.Reset()
+        fill_hist(hist, data_array[field][
+            (data_array['Is{0}'.format(ana_type)] == 1) &
+            (data_array['cat{0}'.format(ana_type)] == cat_idx)])
+        channel.data.hist = hist
+        print "{0} final integral: {1}".format(channel.name, hist.integral())
+
+
+class BootstrapWorker(Process):
+    
+    def __init__(self, output_file, mva_xml, cba_xml, data_file, seed=None):
+        self.output_file = output_file
+        self.mva_xml = mva_xml
+        self.cba_xml = cba_xml
+        self.data_file = data_file
+        self.seed = seed
+        super(BootstrapWorker, self).__init__()
+
+    def run(self):
+        np.random.seed(self.seed)
+
+        # read in the HistFactory Measurements
+        mva_meas = get_measurement(self.mva_xml)
+        cba_meas = get_measurement(self.cba_xml)
+
+        # convert the ROOT jackknife tree into a NumPy array 
+        data_array = root2array(self.data_file, 'datatree')
+        
+        # bootstrap the data (resample with replacement)
+        sample_idx = np.random.choice(len(data_array), size=len(data_array), replace=True)
+        data_array = data_array[sample_idx]
+        # That's all folks!
+
+        # replace measurement data histograms with bootstrapped data
+        replace_data(mva_meas, data_array, 'MVA')
+        replace_data(cba_meas, data_array, 'CBA')
+
+        # make the workspaces
+        mva_ws = make_workspace(mva_meas, name='MVA', silence=True)
+        cba_ws = make_workspace(cba_meas, name='CBA', silence=True)
+
+        # fit the workspaces
+        mva_result = mva_ws.fit(print_level=-1).save()
+        cba_result = cba_ws.fit(print_level=-1).save()
+        
+        # save the fit results
+        with root_open(self.output_file, 'recreate'):
+            mva_result.Write('MVA')
+            cba_result.Write('CBA')
+        
+        # print to screen for debugging purposes...
+        # check that the bootstraps are producing different mu values
+        mva_mu = mva_result.final_params.find('SigXsecOverSM').value
+        cba_mu = cba_result.final_params.find('SigXsecOverSM').value
+        print mva_mu, cba_mu
+
+
+class JackknifeWorker(Process):
+    
+    def __init__(self, output_file, mva_xml, cba_xml, data_file, chunks, index):
+        self.output_file = output_file
+        self.mva_xml = mva_xml
+        self.cba_xml = cba_xml
+        self.data_file = data_file
+        self.chunks = chunks
+        self.index = index
+        super(JackknifeWorker, self).__init__()
+
+    def run(self):
+        # make permutation consistent
+        np.random.seed(1)
+
+        # read in the HistFactory Measurements
+        mva_meas = get_measurement(self.mva_xml)
+        cba_meas = get_measurement(self.cba_xml)
+
+        # convert the ROOT jackknife tree into a NumPy array 
+        data_array = root2array(self.data_file, 'datatree')
+        
+        # random permutation of the data
+        data_array = data_array[np.random.permutation(len(data_array))]
+
+        # split data into chunks
+        data_chunks = np.array_split(data_array, self.chunks)
+
+        # remove index'th chunk from data
+        data_chunks = np.delete(data_chunks, self.index)
+
+        # recombine chunks
+        data_array = np.hstack(data_chunks)
+
+        # replace measurement data histograms with bootstrapped data
+        replace_data(mva_meas, data_array, 'MVA')
+        replace_data(cba_meas, data_array, 'CBA')
+
+        # make the workspaces
+        mva_ws = make_workspace(mva_meas, name='MVA', silence=True)
+        cba_ws = make_workspace(cba_meas, name='CBA', silence=True)
+
+        # fit the workspaces
+        mva_result = mva_ws.fit(print_level=-1).save()
+        cba_result = cba_ws.fit(print_level=-1).save()
+        
+        # save the fit results
+        with root_open(self.output_file, 'recreate'):
+            mva_result.Write('MVA')
+            cba_result.Write('CBA')
+        
+        # print to screen for debugging purposes...
+        # check that the bootstraps are producing different mu values
+        mva_mu = mva_result.final_params.find('SigXsecOverSM').value
+        cba_mu = cba_result.final_params.find('SigXsecOverSM').value
+        print mva_mu, cba_mu
+
+
+if __name__ == '__main__':
+
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('-n', '--num-bootstraps', type=int, default=100)
+    parser.add_argument('-j', '--njobs', type=int, default=-1)
+    parser.add_argument('-o', '--output', default='bootstrap_output')
+    parser.add_argument('data_file')
+    parser.add_argument('mva_xml')
+    parser.add_argument('cba_xml')
+    args = parser.parse_args()
+
+    mkdir_p(args.output)
+    
+    """
+    # bootstrap method
+    workers = [
+        BootstrapWorker(
+            output_file='{0}/bootstrap_{1:d}.root'.format(args.output, idx),
+            mva_xml=args.mva_xml,
+            cba_xml=args.cba_xml,
+            data_file=args.data_file,
+            seed=idx)
+        for idx in xrange(args.num_bootstraps)]
+    
+    # run pool of worker processes in parallel queue
+    run_pool(workers, n_jobs=args.njobs)
+    """
+
+    # jackknife method
+    data_array = root2array(args.data_file, 'datatree')
+    chunksize = 50
+    chunks = len(data_array) / chunksize
+    workers = [
+        JackknifeWorker(
+            output_file='{0}/jackknife_{1:d}.root'.format(args.output, index),
+            mva_xml=args.mva_xml,
+            cba_xml=args.cba_xml,
+            data_file=args.data_file,
+            chunks=chunks,
+            index=index)
+        for index in xrange(chunks)]
+    
+    # run pool of worker processes in parallel queue
+    run_pool(workers, n_jobs=args.njobs)
