@@ -36,11 +36,13 @@ def density_channel(channel):
 
 
 category = Category_Cuts_VBF_LowDR
-ana = Analysis(2012, use_embedding=False)
+ana = Analysis(2012)#, use_embedding=False)
 ana.normalize(category)
 binning = category.limitbins[ana.year]
 binning[-1] = 250
 template = Hist(binning)
+
+print ana.ztautau.events(category, ana.target_region, weighted=False, cuts='{1} <= {0} < {2}'.format(MMC_MASS, binning[-3], binning[-2]))[1].value
 
 # before kylefix
 

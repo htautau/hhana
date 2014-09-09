@@ -335,7 +335,7 @@ class Sample(object):
                         up_term = terms[0]
                         hist_up = hist.systematics[up_term]
                         # use nominal hist for "down" side
-                        hist_down = hist
+                        hist_down = hist.Clone(name=hist.name + '_copy')
                     else:
                         up_term, down_term = terms
                         hist_up = hist.systematics[up_term]
