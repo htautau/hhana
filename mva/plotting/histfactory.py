@@ -22,7 +22,7 @@ def draw_channel(channel, fit=None, no_data=False,
     signal_hists = []
     systematics_terms = {}
     for sample in channel.samples:
-        nominal_hist = sample.hist
+        nominal_hist = sample.hist.Clone(shallow=True)
         _systematics = {}
         for sys_name, osys, hsys in sample.iter_sys():
             systematics_terms[sys_name] = (

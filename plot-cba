@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+
+from mva import MMC_MASS, log
+from mva.categories import Category_Cuts_VBF_LowDR
+from mva.analysis import Analysis
+from mva.plotting import draw_channel
+from rootpy.plotting import Hist
+from mva.variables import get_label, get_units
+from statstools.histfactory import matched, apply_fill_empties, is_signal
+import ROOT
+
+
+def kylefix_channel(channel):
+    for s in channel.samples:
+        if not matched(s.name, ['Fakes', 'Ztautau']):
+            continue
+        if not is_signal(s):
+            log.info("applying fill_empties on sample `{0}`".format(
+                        s.name))
+            apply_fill_empties(s.hist, inplace=True)
+
+
+def density(h):
+    # get min width
+    widths = list(h.xwidth())
+    min_width = min(widths)
+    for bin, width in zip(h.bins(), widths):
+        bin.value *= min_width / width
+        bin.error *= min_width / width
+
+
+def density_channel(channel):
+    density(channel.data.hist)
+    for s in channel.samples:
+        density(s.hist)
+
+
+category = Category_Cuts_VBF_LowDR
+ana = Analysis(2012, use_embedding=False)
+ana.normalize(category)
+binning = category.limitbins[ana.year]
+binning[-1] = 250
+template = Hist(binning)
+
+# before kylefix
+
+channel = ana.get_channel(template, MMC_MASS, category, ana.target_region,
+                          mass=125, mode='combined', no_signal_fixes=True)
+
+# print s / b
+total_s = template.Clone()
+total_s.Reset()
+total_b = total_s.Clone()
+for sample in channel.samples:
+    if is_signal(sample):
+        total_s += sample.hist
+    else:
+        total_b += sample.hist
+
+for sbin, bbin in zip(total_s.bins(), total_b.bins()):
+    print sbin.value / bbin.value
+
+draw_channel(channel, category=category, data_info=str(ana.data.info), signal_on_top=True, output_dir='.',
+             output_name='{0}_{1}{2}'.format(category.name, MMC_MASS, ana.get_suffix()),
+             name=get_label(MMC_MASS, units=False), units=get_units(MMC_MASS),
+             overflow=False)
+
+# divide by min bin width / this bin width
+density_channel(channel)
+draw_channel(channel, category=category, data_info=str(ana.data.info), signal_on_top=True, output_dir='.',
+             output_name='{0}_{1}{2}_density'.format(category.name, MMC_MASS, ana.get_suffix()),
+             name=get_label(MMC_MASS, units=False), units=get_units(MMC_MASS),
+             overflow=False)
+
+# after kylefix
+channel = ana.get_channel(template, MMC_MASS, category, ana.target_region,
+                          mass=125, mode='combined', no_signal_fixes=True)
+kylefix_channel(channel)
+
+# print s / b
+print "==="
+total_s = template.Clone()
+total_s.Reset()
+total_b = total_s.Clone()
+for sample in channel.samples:
+    if is_signal(sample):
+        total_s += sample.hist
+    else:
+        total_b += sample.hist
+
+for sbin, bbin in zip(total_s.bins(), total_b.bins()):
+    print sbin.value / bbin.value
+
+draw_channel(channel, category=category, data_info=str(ana.data.info), signal_on_top=True, output_dir='.',
+             output_name='{0}_{1}{2}_kylefix'.format(category.name, MMC_MASS, ana.get_suffix()),
+             name=get_label(MMC_MASS, units=False), units=get_units(MMC_MASS),
+             overflow=False)
+
+# divide by min bin width / this bin width
+density_channel(channel)
+
+draw_channel(channel, category=category, data_info=str(ana.data.info), signal_on_top=True, output_dir='.',
+             output_name='{0}_{1}{2}_kylefix_density'.format(category.name, MMC_MASS, ana.get_suffix()),
+             name=get_label(MMC_MASS, units=False), units=get_units(MMC_MASS),
+             overflow=False)

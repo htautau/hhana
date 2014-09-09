@@ -328,7 +328,7 @@ def weighted_mass_cba_workspace(analysis, categories, masses,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics)[MMC_MASS]
-            # weight by s / b
+            # weight by ln(1 + s / b)
             total_s = hist_template.Clone()
             total_s.Reset()
             total_b = total_s.Clone()
@@ -337,13 +337,13 @@ def weighted_mass_cba_workspace(analysis, categories, masses,
                     total_s += sample.hist
                 else:
                     total_b += sample.hist
-            sob = total_s.integral() / total_b.integral()
-            channel.data.hist *= sob
+            sob = math.log(1 + total_s.integral() / total_b.integral())
+            channel.data.hist = channel.data.hist * sob
             for sample in channel.samples:
-                sample.hist *= sob
+                sample.hist = sample.hist * sob
                 for hsys in sample.histo_sys:
-                    hsys.high *= sob
-                    hsys.low *= sob
+                    hsys.high = hsys.high * sob
+                    hsys.low = hsys.low * sob
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel

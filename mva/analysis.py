@@ -287,7 +287,8 @@ class Analysis(object):
                     min_score=None,
                     max_score=None,
                     systematics=True,
-                    no_signal_fixes=False):
+                    no_signal_fixes=False,
+                    weighted=True):
 
         # TODO: implement blinding
         log.info("constructing channels")
@@ -314,7 +315,8 @@ class Analysis(object):
                 max_score=max_score,
                 suffix=suffix if not isinstance(s, Higgs) else None,
                 no_signal_fixes=no_signal_fixes,
-                systematics=systematics)
+                systematics=systematics,
+                weighted=weighted)
             histfactory_samples.append(sample)
 
         # create channel for this mass point

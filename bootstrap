@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
     # jackknife method
     data_array = root2array(args.data_file, 'datatree')
-    chunksize = 50
+    chunksize = 16
     chunks = len(data_array) / chunksize
     workers = [
         JackknifeWorker(
