@@ -70,7 +70,7 @@ def draw_ratio(a, b, field, category,
     with plot.pad('main') as pad:
         # legend
         leg = Legend([a, b],
-                     margin=0.18, textsize=textsize)
+                     margin=0.35, textsize=textsize)
         leg.Draw()
         # draw the category label
         label = ROOT.TLatex(
@@ -106,9 +106,11 @@ def draw_ratio(a, b, field, category,
             optional_label.Draw()
         if ATLAS_LABEL.lower() == 'internal':
             x = 0.67
+            y = 1-pad.GetTopMargin()+0.005
         else:
             x = (1. - pad.GetRightMargin() - 0.03) - len(ATLAS_LABEL) * 0.025
-        ATLAS_label(x, 0.87,
+            y = 1-pad.GetTopMargin()+0.01
+        ATLAS_label(x, y,
                     sep=0.132, pad=pad, sqrts=None,
                     text=ATLAS_LABEL,
                     textsize=textsize)

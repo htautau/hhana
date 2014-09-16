@@ -21,10 +21,10 @@ FILES = {}
 TEMPFILE = TemporaryFile()
 
 
-def get_file(ntuple_path=NTUPLE_PATH, student=DEFAULT_STUDENT, hdf=False, suffix=''):
+def get_file(ntuple_path=NTUPLE_PATH, student=DEFAULT_STUDENT, hdf=False, suffix='', force_reopen=False):
     ext = '.h5' if hdf else '.root'
     filename = student + ext
-    if filename in FILES:
+    if filename in FILES and not force_reopen:
         return FILES[filename]
     file_path = os.path.join(ntuple_path, student + suffix, filename)
     log.info("opening {0} ...".format(file_path))

@@ -4,144 +4,160 @@ Compare the signal sample with and without
 the Multiple Perturbative Parton-Parton Interaction (MPI)
 http://skands.web.cern.ch/skands/slides/oregon-skands.pdf
 """
+# python imports
 from tabulate import tabulate
 from argparse import ArgumentParser
 import os
-
+import logging
+# ROOT/rootpy imports
 from rootpy.tree import Cut
+from rootpy.plotting import Hist
+from root_numpy import fill_hist
+# local imports
 from higgstautau.datasets import Database
 #from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.categories import CATEGORIES
 from mva.defaults import TARGET_REGION
 from mva.plotting import draw_ratio
-from mva import CACHE_DIR
-from mva.cmd import get_parser
-from mva import log; log = log[__name__]
-from rootpy.plotting import Hist
-from root_numpy import fill_hist
+from mva.variables import VARIABLES
+from mva import CACHE_DIR, MMC_MASS
+
+log = logging.getLogger(os.path.basename(__file__))
 
 parser = ArgumentParser()
 parser.add_argument('--no-truth-cuts', action='store_true', default=False)
+parser.add_argument('--mode', default='gg', choices=('gg', 'VBF'))
+parser.add_argument('--categories', default='mva', choices=('mva', 'cuts'))
 args = parser.parse_args()
 
 DB = Database('datasets_ue_studies')
+mode = args.mode
+cattype = args.categories
 
 # begin configuration
 modes = [
-    'gg',
-    #'VBF',
+    mode,
 ]
-pileup_weight = True
-# end configuration
-# ana = Analysis(2012)
 
+fields = [
+    MMC_MASS,
+]
+vars = {}
+for field in fields:
+    vars[field] = VARIABLES[field]
+
+pileup_weight = True
+
+# --------  SAMPLES
+higgs_nompi_truth = Higgs(
+    2012, mass=125, modes=modes,
+    db=DB, ggf_weight=False,
+    student='hhskim_truth',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v41/',
+    suffix='_noMPI.mc12b')
 higgs_nompi = Higgs(
     2012, mass=125, modes=modes,
     db=DB,
     ggf_weight=False,
     pileup_weight=pileup_weight,
-    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v36/',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/',
     suffix='_noMPI.mc12b')
 
+# HACK HACK HACK
+# This is an inclusive sample
+# but since there is no reco cuts 
+# it can be considered as a hadhad sample
+# for the purpose of truth level studies
+higgs_herwigps_truth = Higgs(
+    2012, mass=125, modes=modes,
+    db=DB, ggf_weight=False,
+    inclusive_decays=False,
+    student='hhskim_truth',
+    sample_pattern='PowJim_AUET2CT10_'+mode+'H{0:d}_tautauInc',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v41/',
+    suffix='mc12a' if mode=='gg' else 'mc12b')
 higgs_herwigps = Higgs(
     2012, mass=125, modes=modes,
     db=DB,
     ggf_weight=False,
     pileup_weight=pileup_weight,
     inclusive_decays=True,
-    sample_pattern='PowJim_AUET2CT10_ggH{0:d}_tautauInc',
-    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v36/',
-    suffix='mc12a')
+    sample_pattern='PowJim_AUET2CT10_'+mode+'H{0:d}_tautauInc',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/',
+    suffix='mc12a' if mode=='gg' else 'mc12b')
 
-higgs = Higgs(
+higgs_truth = Higgs(
     2012, mass=125, modes=modes,
-    db=DB,
+    db=DB, ggf_weight=False,
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v41/',
+    student='hhskim_truth')
+higgs = Higgs(
+    2012, mass=125, modes=modes, db=DB,
     ggf_weight=False,
-    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v36/',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/',
     pileup_weight=pileup_weight)
 
+yields = {}
+for category in CATEGORIES[cattype]:
+    if hasattr(category, 'cuts_truth'):
+        cuts = category.cuts_truth
+    else: 
+        raise RuntimeError('Category {0} has no attribute cuts_truth'.format(category.name))
+    if args.no_truth_cuts:
+        cuts = None
+    log.info((category.name, cuts))
+    log.info('evaluate truth level yields')
+    yield_truth_default = higgs_truth.events(weighted=True, cuts=cuts)[1].value
+    yield_truth_herwig = higgs_herwigps_truth.events(weighted=True, cuts=cuts)[1].value
+    yield_truth_nompi = higgs_nompi_truth.events(weighted=True, cuts=cuts)[1].value
+    yields[category.name+'_truth'] = {'default': yield_truth_default, 'herwig':yield_truth_herwig, 'nompi':yield_truth_nompi}
 
-for i, _ in enumerate(modes):
-    log.info(higgs.xsec_kfact_effic(i))
-    log.info(higgs_nompi.xsec_kfact_effic(i))
-    log.info(higgs_herwigps.xsec_kfact_effic(i))
+    field_hist_template, field_scale = higgs.get_field_hist(vars, category)
+    field_hist_default = higgs.get_hist_array(
+        field_hist_template, category, TARGET_REGION, field_scale=field_scale)
+    field_hist_herwig = higgs_herwigps.get_hist_array(
+        field_hist_template, category, TARGET_REGION, field_scale=field_scale)
+    for field, var in vars.items():
+        field_hist_default[field].title = 'default'
+        field_hist_herwig[field].title = 'herwig ps'
+        plot = draw_ratio(
+            field_hist_default[field], field_hist_herwig[field],
+            field, category, normalize=True)
+        for fmt in ('eps', 'png'):
+            plot.SaveAs('herwig_compare_mode_{0}_cat_{1}_{2}.{3}'.format(mode, category.name, field, fmt))
+    yield_nompi = higgs_nompi.events(category, TARGET_REGION, cuts=cuts)[1].value
+    yield_default = higgs.events(category, TARGET_REGION, cuts=cuts)[1].value
+    yield_herwig = higgs_herwigps.events(category, TARGET_REGION, cuts=cuts)[1].value
+    yields[category.name] = {'default': yield_default, 'herwig':yield_herwig, 'nompi':yield_nompi}
 
-# print "default raw number of events", higgs.events(weighted=False)[1].value
-# print "No MPI sample raw number of events", higgs_nompi.events(weighted=False)[1].value
+log.info(yields)
+
+table = []
+headers = ["Category"]+[cat.name for cat in CATEGORIES[cattype]]
+row_p = ["Pythia (%)"]
+row_h = ["herwig (%)"]
+row_ph = ["P/H"]
+row_n = ["no-mpi"]
+for cat in CATEGORIES[cattype]:
+    p = yields[cat.name]['default'] / yields['{0}_truth'.format(cat.name)]['default'] * 100
+    h = yields[cat.name]['herwig'] / yields['{0}_truth'.format(cat.name)]['herwig'] * 100
+    row_p.append(p)
+    row_h.append(h)
+    row_ph.append(p/h)
+    row_n.append(yields[cat.name]['nompi'] / yields['{0}_truth'.format(cat.name)]['nompi'] * 100)
+table.append(row_p)
+table.append(row_h)
+table.append(row_ph)
+table.append(row_n)
+
+print tabulate(table, headers=headers)
 print "Standard sample raw number of events", higgs.events(weighted=False)[1].value
 print "No MPI sample raw number of events", higgs_nompi.events(weighted=False)[1].value
 print "Herwig sample raw number of events", higgs_herwigps.events(weighted=False)[1].value
-
 print "Stand. sample weighted number of events", higgs.events(weighted=True)[1].value
 print "No MPI sample weighted number of events", higgs_nompi.events(weighted=True)[1].value
 print "Herwig sample weighted number of events", higgs_herwigps.events(weighted=True)[1].value
 
 
 
-UNCERT = {}
-
-for cattype in ('mva_all', 'cuts'):
-    headers = ['Category']+[c.name for c in CATEGORIES[cattype]+CATEGORIES['presel']]
-    row_nom = ['Nominal']
-    row_nompi = ['MPI-off']
-    row_herwig = ['Herwig PS']
-    row_diff_mpi = ['(MPI off-Nom)/Nom (%)']
-    row_diff_herwig = ['(Herwig PS-Nom)/Nom (%)']
-    table = []
-    for category in CATEGORIES[cattype]+CATEGORIES['presel']:
-        if 'vbf' in category.name:
-            cuts = Cut('num_true_jets_no_overlap>1') & Cut('true_jet1_no_overlap_pt>50000') & Cut('true_jet2_no_overlap_pt>30000')
-        elif 'boosted' in category.name:
-            cuts = 'true_resonance_pt>100000'
-        else:
-            cuts = None
-
-        if args.no_truth_cuts:
-            cuts = None
-
-        log.info((category.name, cuts))
-        # if cattype == 'mva_all' and not category.analysis_control and not category.name=='preselection':
-        #     # get the BDTs
-        #     clf = analysis.get_clf(
-        #         category, mass=125, 
-        #         load=True, transform=True)
-        #     # get scores
-        #     scores, weights = higgs.scores(
-        #         clf, category, TARGET_REGION, cuts=cuts,
-        #         systematics=False)['NOMINAL']
-        #     scores_nompi, weights_nompi = higgs_nompi.scores(
-        #         clf, category, TARGET_REGION, cuts=cuts,
-        #         systematics=False)['NOMINAL']
-        #     # get scores range
-        #     min_score = min(scores.min(), scores_nompi.min())
-        #     max_score = max(scores.max(), scores_nompi.max())
-        #     # histograms
-        #     hist = Hist(20, min_score - 1E-5, max_score + 1E-5, title='H 125 GeV')
-        #     hist_nompi = Hist(20, min_score - 1E-5, max_score + 1E-5, title='H 125 GeV without MPI')
-        #     # fill histograms with scores
-        #     fill_hist(hist, scores, weights)
-        #     fill_hist(hist_nompi, scores_nompi, weights_nompi)
-        #     # plot the scores
-        #     plot = draw_ratio(hist, hist_nompi, 'BDT Score', category, normalize=False)
-        #     for fmt in ('eps', 'png'):
-        #        plot.SaveAs('mpi_compare_{0}.{1}'.format(category.name, fmt))
-        
-        yield_nompi = higgs_nompi.events(category, TARGET_REGION, cuts=cuts)[1].value
-        yield_default = higgs.events(category, TARGET_REGION, cuts=cuts)[1].value
-        yield_herwigps = higgs_herwigps.events(category, TARGET_REGION, cuts=cuts)[1].value
-        diff_mpi = (yield_nompi - yield_default) / yield_default * 100
-        diff_herwigps  = (yield_herwigps - yield_default) / yield_default * 100
-        row_nom.append(yield_default)
-        row_nompi.append(yield_nompi)
-        row_herwig.append(yield_herwigps)
-        row_diff_mpi.append(diff_mpi)
-        row_diff_herwig.append(diff_herwigps)
-    table.append(row_nom)
-    table.append(row_nompi)
-    table.append(row_herwig)
-    table.append(row_diff_mpi)
-    table.append(row_diff_herwig)
-
-    print tabulate(table, headers=headers)
-    

@@ -107,6 +107,7 @@ class Sample(object):
     def __init__(self, year, scale=1., cuts=None,
                  ntuple_path=NTUPLE_PATH,
                  student=DEFAULT_STUDENT,
+                 force_reopen=False,
                  trigger=True,
                  name='Sample',
                  label='Sample',
@@ -123,6 +124,7 @@ class Sample(object):
             self._cuts = cuts
         self.ntuple_path = ntuple_path
         self.student = student
+        self.force_reopen = force_reopen
         self.name = name
         self.label = label
         self.hist_decor = hist_decor
@@ -893,8 +895,8 @@ class SystematicsSample(Sample):
         self.systematics = systematics
         self.tau_id_sf = tau_id_sf
         self.norms = {}
-        rfile = get_file(self.ntuple_path, self.student)
-        h5file = get_file(self.ntuple_path, self.student, hdf=True)
+        rfile = get_file(self.ntuple_path, self.student, force_reopen=self.force_reopen)
+        h5file = get_file(self.ntuple_path, self.student, hdf=True, force_reopen=self.force_reopen)
 
         from .ztautau import Embedded_Ztautau
 

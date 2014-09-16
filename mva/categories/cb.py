@@ -3,7 +3,7 @@ from rootpy.tree import Cut
 from .common import (
     Category_Preselection,
     CUTS_2J, CUTS_VBF, CUTS_BOOSTED)
-
+from .truth import CUTS_TRUE_VBF_CUTBASED, CUTS_TRUE_BOOSTED
 # Documentation:
 # https://cds.cern.ch/record/1629891/files/ATL-COM-PHYS-2013-1558.pdf
 
@@ -55,10 +55,14 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
         CUTS_VBF_CUTBASED
         & Cut('dR_tau1_tau2 < 1.5')
         & Cut('resonance_pt > 140000'))
+    cuts_truth = (
+        CUTS_TRUE_VBF_CUTBASED
+        & Cut('true_resonance_pt>140000'))
     limitbins = {}
     limitbins[2011] = [0, 64, 80, 92, 104, 116, 132, INF]
     # limitbins[2012] = [0, 64, 80, 92, 104, 116, 132, 176, INF] 
     limitbins[2012] = [0, 60, 80, 100, 120, 150, INF] # - new binning
+    #limitbins[2012] = [0, 60, 80, 100, 120, 180, INF] # - new binning
     norm_category = Category_Preselection
 
 
@@ -73,6 +77,11 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
+    cuts_truth = (
+        CUTS_TRUE_VBF_CUTBASED
+        & Cut('true_resonance_pt<140000')
+        & Cut('true_mass_jet1_jet2_no_overlap > (-250000 * true_dEta_jet1_jet2_no_overlap> + 1550000)'))
+    
     # limitbins = [0, 80, 92, 104, 116, 132, 152, INF] - old binning
     # limitbins = [0, 80, 104, 132, INF] - new bining (merging of old)
     limitbins = [0, 70, 100, 125, 150, INF] # - new binning
@@ -91,6 +100,10 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
         CUTS_VBF_CUTBASED
         & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
         & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)'))
+    cuts_truth = (
+        CUTS_TRUE_VBF_CUTBASED
+        & Cut('true_resonance_pt<140000')
+        & Cut('true_mass_jet1_jet2_no_overlap < (-250000 * true_dEta_jet1_jet2_no_overlap> + 1550000)'))
     # limitbins = [0, 64, 80, 92, 104, 116, 132, 152, 176, INF] - old binning
     # limitbins = [0, 64, 80, 92, 104, 116, 152, INF] - new binning (merging of old)
     limitbins = [0, 50, 70, 85, 100, 120, 150, INF] # - new binning
@@ -119,6 +132,9 @@ class Category_Cuts_Boosted_Tight(Category_Preselection):
     jk_number = 6
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 < 1.5') & Cut('resonance_pt>140000')))
+    cuts_truth = (
+        CUTS_TRUE_BOOSTED
+        & Cut('true_resonance_pt>140000'))
     limitbins = {}
     # limitbins[2011] = [0,64,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128,132,140,INF] - old binning
     limitbins[2011] = [0, 64, 72, 80, 88, 96, 104, 112, 120, 128, 140, 156, 176, INF]
@@ -137,6 +153,9 @@ class Category_Cuts_Boosted_Loose(Category_Preselection):
     jk_number = 5
     cuts = ((- CUTS_VBF_CUTBASED) & CUTS_BOOSTED_CUTBASED
             & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt<140000')))
+    cuts_truth = (
+        CUTS_TRUE_BOOSTED
+        & Cut('true_resonance_pt<140000'))
     limitbins = {}
     # limitbins[2011] = [0,80,84,88,92,96,100,104,108,112,116,120,124,128,132,136,140,156,200,INF] - old binning
     limitbins[2011] = [0, 80, 88 ,96 ,104 ,112 ,120 ,128, 140, 156, INF]
