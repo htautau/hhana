@@ -1,38 +1,33 @@
 #!/usr/bin/env python
 """
-Compare the signal sample with and without
-the Multiple Perturbative Parton-Parton Interaction (MPI)
-http://skands.web.cern.ch/skands/slides/oregon-skands.pdf
 """
 # python imports
-from tabulate import tabulate
-from argparse import ArgumentParser
 import os
 import logging
 import numpy as np
 from numpy.lib import recfunctions
 # ROOT/rootpy/root_numpy imports
 from rootpy.io import root_open
-from rootpy.tree import Cut
 from rootpy.plotting import Hist
 from root_numpy import fill_hist, array2tree, stack
 # local imports
-from higgstautau.datasets import Database
-#from mva.analysis import Analysis
-from mva.samples import Higgs
-from mva.categories import CATEGORIES
-from mva.defaults import TARGET_REGION
-from mva.plotting import draw_ratio
-from mva.variables import VARIABLES
-from mva import CACHE_DIR, MMC_MASS
+from mva import MMC_MASS
 
 log = logging.getLogger(os.path.basename(__file__))
 
-parser = ArgumentParser()
-
-
-fields = ['EventNumber', 'RunNumber', 'mmc1_mass']
-fields_names = ['EvtNum', 'RunNum', 'MMC_raw', 'weight']
+fields = [
+    'EventNumber', 'RunNumber', MMC_MASS, 
+    'mcevent_pdf_x1_0', 'mcevent_pdf_x2_0', 
+    'mcevent_pdf_id1_0', 'mcevent_pdf_id2_0',
+    'mcevent_pdf_scale_0', 'true_resonance_pt', 'mc_weight'
+]
+fields_names = [
+    'EvtNum', 'RunNum', 'MMC_raw',     
+    'pdf_x1', 'pdf_x2', 
+    'pdf_id1', 'pdf_id2',
+    'pdf_scale', 'true_resonance_pt', 'mc_weight',
+    'weight'
+]
 
 def binned_rec(rec, hist):
     """
@@ -53,6 +48,7 @@ def get_records(sample, category, target_region,
     rec = sample.merged_records(
         category, target_region, fields=fields,
         include_weight=True, clf=clf, clf_name='BDT_raw')
+    log.info(rec.dtype.names)
     # rename fields
     if clf is not None:
         rec.dtype.names = fields_names + ['BDT_raw']
@@ -82,35 +78,49 @@ if __name__ == '__main__':
     parser.add_argument('--categories', default='mva', choices=('mva', 'cuts'))
     args = parser.parse_args()
     # local imports
+    from higgstautau.datasets import Database
     from mva.analysis import Analysis
     from mva.categories import CATEGORIES, Category_Preselection
+    from mva.samples import Higgs
 
     analysis = Analysis(2012)
     analysis.normalize(Category_Preselection)
     
+    DB = Database('datasets_theory')
     higgs_th = Higgs(
-        2012, mass=125, mode=args.mode,
+        2012, mass=125, mode=args.mode, db=DB,
         ggf_weight=False,
         force_reopen=True,
-        ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/')
+        sample_pattern='McAtNloJim_ggH125_tautauInc' if args.mode=='gg' else None,
+        ntuple_path='/cluster/data01/qbuat/ntuples_hh_copy/hhskim_theory/prod_v34/',
+        suffix='mc12a' if args.mode=='gg' else None)
 
     recs = []
     for category in CATEGORIES[args.categories]:
-        clf = analysis.get_clf(
-            category, load=True,
-            mass=125, transform=True)
-
-        bdt_bins = clf.binning(analysis.year, overflow=1E5) 
-        hist = Hist(bdt_bins)
-        rec = get_records(higgs_th, category, analysis.target_region,
-                          'BDT_raw', 'BDT',
-                          hist, 'MVA', clf)
+        if args.categories=='mva':
+            clf = analysis.get_clf(
+                category, load=True,
+                mass=125, transform=True)
+            bins = clf.binning(analysis.year, overflow=1E5) 
+            hist = Hist(bins)
+            rec = get_records(higgs_th, category, analysis.target_region,
+                              'BDT_raw', 'BDT',
+                              hist, 'MVA', clf)
+        else:
+            clf = None
+            bins = category.limitbins
+            if isinstance(bins, dict):
+                bins = category.limitbins[analysis.year]
+            hist = Hist(bins)
+            rec = get_records(higgs_th, category, analysis.target_region,
+                              'MMC_raw', 'MMC',
+                              hist, 'CBA')
         log.info(rec.dtype.names)
         log.info(type(rec.dtype.names))
-        mva_recs.append(rec)
+        recs.append(rec)
 
-    combined_rec = stack(mva_recs, fields=list(rec.dtype.names)) 
+    combined_rec = stack(recs, fields=list(rec.dtype.names)) 
 
-    with root_open('hh_signal.root', 'recreate') as out:
+    with root_open('hh_signal_mode_{0}_{1}.root'.format(args.mode, args.categories), 'recreate') as out:
         outtree = array2tree(combined_rec, name='higgs') 
         outtree.Write()

@@ -16,6 +16,7 @@ from root_numpy import fill_hist
 # local imports
 from higgstautau.datasets import Database
 #from mva.analysis import Analysis
+from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.categories import CATEGORIES
 from mva.defaults import TARGET_REGION
@@ -30,6 +31,8 @@ parser.add_argument('--no-truth-cuts', action='store_true', default=False)
 parser.add_argument('--mode', default='gg', choices=('gg', 'VBF'))
 parser.add_argument('--categories', default='mva', choices=('mva', 'cuts'))
 args = parser.parse_args()
+
+analysis = Analysis(2012)
 
 DB = Database('datasets_ue_studies')
 mode = args.mode
@@ -55,14 +58,16 @@ higgs_nompi_truth = Higgs(
     db=DB, ggf_weight=False,
     student='hhskim_truth',
     ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v41/',
-    suffix='_noMPI.mc12b')
+    suffix='_noMPI.mc12b',
+    force_reopen=True)
 higgs_nompi = Higgs(
     2012, mass=125, modes=modes,
     db=DB,
     ggf_weight=False,
     pileup_weight=pileup_weight,
     ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/',
-    suffix='_noMPI.mc12b')
+    suffix='_noMPI.mc12b',
+    force_reopen=True)
 
 # HACK HACK HACK
 # This is an inclusive sample
@@ -85,7 +90,8 @@ higgs_herwigps = Higgs(
     inclusive_decays=True,
     sample_pattern='PowJim_AUET2CT10_'+mode+'H{0:d}_tautauInc',
     ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/',
-    suffix='mc12a' if mode=='gg' else 'mc12b')
+    suffix='mc12a' if mode=='gg' else 'mc12b',
+    force_reopen=True)
 
 higgs_truth = Higgs(
     2012, mass=125, modes=modes,
@@ -98,6 +104,7 @@ higgs = Higgs(
     ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v40/',
     pileup_weight=pileup_weight)
 
+
 yields = {}
 for category in CATEGORIES[cattype]:
     if hasattr(category, 'cuts_truth'):
@@ -106,6 +113,7 @@ for category in CATEGORIES[cattype]:
         raise RuntimeError('Category {0} has no attribute cuts_truth'.format(category.name))
     if args.no_truth_cuts:
         cuts = None
+    log.info((category.name, category.cuts))
     log.info((category.name, cuts))
     log.info('evaluate truth level yields')
     yield_truth_default = higgs_truth.events(weighted=True, cuts=cuts)[1].value
@@ -126,6 +134,33 @@ for category in CATEGORIES[cattype]:
             field, category, normalize=True)
         for fmt in ('eps', 'png'):
             plot.SaveAs('herwig_compare_mode_{0}_cat_{1}_{2}.{3}'.format(mode, category.name, field, fmt))
+
+        if cattype == 'mva':
+            # get the BDTs
+            clf = analysis.get_clf(category, mass=125, load=True, transform=True)
+            # get scores
+            scores, weights = higgs.scores(
+                clf, category, TARGET_REGION,
+                systematics=False)['NOMINAL']
+            scores_herwig, weights_herwig = higgs_herwigps.scores(
+                clf, category, TARGET_REGION,
+                systematics=False)['NOMINAL']
+            # get scores range
+            min_score = min(scores.min(), scores_herwig.min())
+            max_score = max(scores.max(), scores_herwig.max())
+            # histograms
+            hist = Hist(20, min_score - 1E-5, max_score + 1E-5, title='default')
+            hist_herwig = Hist(20, min_score - 1E-5, max_score + 1E-5, title='herwig ps')
+            # fill histograms with scores
+            fill_hist(hist, scores, weights)
+            fill_hist(hist_herwig, scores_herwig, weights_herwig)
+            # plot the scores
+            plot = draw_ratio(hist, hist_herwig, 'BDT Score', category, normalize=True)
+            for fmt in ('eps', 'png'):
+                plot.SaveAs('herwig_compare_mode_{0}_cat_{1}_{2}.{3}'.format(mode, category.name, 'bdt', fmt))
+
+
+
     yield_nompi = higgs_nompi.events(category, TARGET_REGION, cuts=cuts)[1].value
     yield_default = higgs.events(category, TARGET_REGION, cuts=cuts)[1].value
     yield_herwig = higgs_herwigps.events(category, TARGET_REGION, cuts=cuts)[1].value

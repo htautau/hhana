@@ -79,8 +79,8 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
         & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
     cuts_truth = (
         CUTS_TRUE_VBF_CUTBASED
-        & Cut('true_resonance_pt<140000')
-        & Cut('true_mass_jet1_jet2_no_overlap > (-250000 * true_dEta_jet1_jet2_no_overlap> + 1550000)'))
+        & Cut('true_resonance_pt<140000'))
+        & Cut('true_mass_jet1_jet2_no_overlap > (-250000 * true_dEta_jet1_jet2_no_overlap + 1550000)'))
     
     # limitbins = [0, 80, 92, 104, 116, 132, 152, INF] - old binning
     # limitbins = [0, 80, 104, 132, INF] - new bining (merging of old)
@@ -102,8 +102,8 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
         & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)'))
     cuts_truth = (
         CUTS_TRUE_VBF_CUTBASED
-        & Cut('true_resonance_pt<140000')
-        & Cut('true_mass_jet1_jet2_no_overlap < (-250000 * true_dEta_jet1_jet2_no_overlap> + 1550000)'))
+        & Cut('true_resonance_pt<140000'))
+        & Cut('true_mass_jet1_jet2_no_overlap < (-250000 * true_dEta_jet1_jet2_no_overlap + 1550000)'))
     # limitbins = [0, 64, 80, 92, 104, 116, 132, 152, 176, INF] - old binning
     # limitbins = [0, 64, 80, 92, 104, 116, 152, INF] - new binning (merging of old)
     limitbins = [0, 50, 70, 85, 100, 120, 150, INF] # - new binning
