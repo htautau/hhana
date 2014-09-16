@@ -45,6 +45,7 @@ modes = [
 
 fields = [
     MMC_MASS,
+    'tau1_BDTJetScore'
 ]
 vars = {}
 for field in fields:
@@ -126,6 +127,8 @@ for category in CATEGORIES[cattype]:
         field_hist_template, category, TARGET_REGION, field_scale=field_scale)
     field_hist_herwig = higgs_herwigps.get_hist_array(
         field_hist_template, category, TARGET_REGION, field_scale=field_scale)
+    field_hist_truth_default = higgs_truth.get_hist_array(
+
     for field, var in vars.items():
         field_hist_default[field].title = 'default'
         field_hist_herwig[field].title = 'herwig ps'
