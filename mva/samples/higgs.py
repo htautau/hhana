@@ -1,6 +1,6 @@
 # stdlib imports
 import os
-
+import pickle
 # rootpy imports
 from rootpy.io import root_open
 from rootpy.stats import histfactory
@@ -236,12 +236,19 @@ class Higgs(MC, Signal):
 
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
         # underlying event uncertainty in the VBF category
-        if 'vbf' in category.name.lower():
+        # if 'vbf' in category.name.lower():
+        #     if mode == 'gg':
+        #         sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
+        #     elif mode == 'VBF':
+        #         sample.AddOverallSys('ATLAS_UE_qq', 0.94, 1.06)
+        with open(os.path.join(CACHE_DIR, 'ps_uncertainty.cache')) as ue_uncert_file:
+            UE_UNCERT = pickle.load(ue_uncert_file)
             if mode == 'gg':
-                sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
+                ue_uncert = UE_UNCERT[mode][category.name]
+                sample.AddOverallSys('ATLAS_UE_gg', 1 - ue_uncert, 1 + ue_uncert)
             elif mode == 'VBF':
-                sample.AddOverallSys('ATLAS_UE_qq', 0.94, 1.06)
-
+                ue_uncert = UE_UNCERT[mode][category.name]
+                sample.AddOverallSys('ATLAS_UE_qq', 1 - ue_uncert, 1 + ue_uncert)
         # pdf uncertainty
         if mode == 'gg':
             if energy == 8:
