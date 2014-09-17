@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+from mva.samples.higgs import InclusiveHiggs
+from mva.analysis import Analysis
+from mva.categories import CATEGORIES, Category_VBF, Category_Boosted
+from mva.plotting.utils import legend_params, label_plot
+from rootpy.plotting import Hist, Canvas, Legend, HistStack
+from rootpy.plotting.utils import draw
+from rootpy.io import root_open
+from root_numpy import fill_hist, array2tree
+from numpy.lib import recfunctions
+import numpy as np
+
+UNKNOWN, TAUTAU, WW, ZZ, BB = range(5)
+CHANNELS = [
+    ('#tau#tau', 1, 'red'),
+    ('WW', 2, 'blue'),
+    ('ZZ', 3, 'green'),
+    ('bb', 4, 'purple'),
+]
+
+ana = Analysis(2012)
+higgs = InclusiveHiggs()
+
+# sanity
+#print higgs.events(cuts='higgs_decay_channel=={0}'.format(UNKNOWN))[1].value
+#print higgs.events()[1].value
+
+for category in CATEGORIES['mva']:
+    clf = ana.get_clf(category, load=True)
+    canvas = Canvas()
+    hists = []
+    for label, idx, color in CHANNELS:
+        hist = Hist(10, -1, 1, color=color, drawstyle='hist E0',
+            fillstyle='solid', markersize=0, legendstyle='F',
+            title='#font[52]{H}(125)#rightarrow' + label)
+        scores, weights = higgs.scores(clf, category, ana.target_region,
+            cuts='higgs_decay_channel=={0}'.format(idx))['NOMINAL']
+        fill_hist(hist, scores, weights)
+        hists.append(hist)
+    stack = HistStack(hists[::-1])
+    axes, _ = draw(stack, pad=canvas, ytitle='Events', xtitle='BDT score', xdivisions=507)
+    label_plot(canvas, hists[0], xaxis=axes[0], yaxis=axes[1],
+               category_label=category.label, data_info=str(ana.data.info))
+    leg = Legend(hists, pad=canvas, **legend_params('left', 22))
+    leg.Draw()
+    canvas.SaveAs('overlap_{0}.png'.format(category.name))
+
+
+# make output trees for HSG7
+modes = [
+    ('ggf', 189140),
+    ('vbf', 189141),
+    ('wh', 189142),
+    ('zh', 189143),
+    ('tth', 189144),
+]
+
+categories = [
+    (Category_VBF, 301),
+    (Category_Boosted, 302),
+]
+
+for mode, id in modes:
+    higgs = InclusiveHiggs(mode=mode)
+    output = root_open('hadhad_{0}.root'.format(id), 'recreate')
+    recs = []
+    for cat, id in categories:
+        rec = higgs.merged_records(cat, ana.target_region, fields=['EventNumber'], include_weight=False)
+        idrec = np.empty(len(rec), dtype=int)
+        idrec.fill(id)
+        rec = recfunctions.rec_append_fields(rec, data=idrec, names='Category')
+        recs.append(rec)
+    rec = np.hstack(recs)
+    tree = array2tree(rec, name='physics')
+    tree.Write()
+    output.Close()

@@ -317,6 +317,12 @@ def weighted_mass_cba_workspace(analysis, categories, masses,
                                 cuts=None):
     hist_template = Hist(20, 50, 250, type='D')
     channels = {}
+
+    def scaled(hist, factor):
+        new_hist = hist * factor
+        new_hist.name = hist.name + '_scaled'
+        return new_hist
+
     for category in analysis.iter_categories(categories):
         for mass in masses:
             channel = analysis.get_channel_array(
@@ -328,7 +334,7 @@ def weighted_mass_cba_workspace(analysis, categories, masses,
                 mass=mass,
                 mode='workspace',
                 systematics=systematics)[MMC_MASS]
-            # weight by s / b
+            # weight by ln(1 + s / b)
             total_s = hist_template.Clone()
             total_s.Reset()
             total_b = total_s.Clone()
@@ -337,13 +343,13 @@ def weighted_mass_cba_workspace(analysis, categories, masses,
                     total_s += sample.hist
                 else:
                     total_b += sample.hist
-            sob = total_s.integral() / total_b.integral()
-            channel.data.hist *= sob
+            sob = math.log(1 + total_s.integral() / total_b.integral())
+            channel.data.hist = scaled(channel.data.hist, sob)
             for sample in channel.samples:
-                sample.hist *= sob
+                sample.hist = scaled(sample.hist, sob)
                 for hsys in sample.histo_sys:
-                    hsys.high *= sob
-                    hsys.low *= sob
+                    hsys.high = scaled(hsys.high, sob)
+                    hsys.low = scaled(hsys.low, sob)
             if mass not in channels:
                 channels[mass] = {}
             channels[mass][category.name] = channel

@@ -297,3 +297,50 @@ class Higgs(MC, Signal):
         kfact = 1.
         effic = 1.
         return xs, kfact, effic
+
+
+class InclusiveHiggs(MC, Signal):
+    # for overlap study
+    SAMPLES = {
+        'ggf': 'PowPyth8_AU2CT10_ggH125p5_inclusive.mc12b',
+        'vbf': 'PowPyth8_AU2CT10_VBFH125p5_inclusive.mc12b',
+        'zh': 'Pyth8_AU2CTEQ6L1_ZH125p5_inclusive.mc12b',
+        'wh': 'Pyth8_AU2CTEQ6L1_WH125p5_inclusive.mc12b',
+        'tth': 'Pyth8_AU2CTEQ6L1_ttH125p5_inclusive.mc12b',
+    }
+
+    def __init__(self, mode=None, **kwargs):
+        self.energy = 8
+        if mode is not None:
+            self.modes = [mode]
+            self.masses = [125]
+            self.samples = [self.SAMPLES[mode]]
+        else:
+            self.masses = [125] * 5
+            self.modes = ['ggf', 'vbf', 'zh', 'wh', 'tth']
+            self.samples = [
+                'PowPyth8_AU2CT10_ggH125p5_inclusive.mc12b',
+                'PowPyth8_AU2CT10_VBFH125p5_inclusive.mc12b',
+                'Pyth8_AU2CTEQ6L1_ZH125p5_inclusive.mc12b',
+                'Pyth8_AU2CTEQ6L1_WH125p5_inclusive.mc12b',
+                'Pyth8_AU2CTEQ6L1_ttH125p5_inclusive.mc12b',
+            ]
+        super(InclusiveHiggs, self).__init__(
+            year=2012, name='Signal', label='Signal',
+            ntuple_path='ntuples/prod_v29',
+            student='hhskim_overlap',
+            **kwargs)
+
+    def xsec_kfact_effic(self, isample):
+        # use yellowhiggs for cross sections
+        xs, _ = yellowhiggs.xs(
+            self.energy, self.masses[isample], self.modes[isample])
+        log.debug("{0} {1} {2} {3} {4}".format(
+            self.samples[isample],
+            self.masses[isample],
+            self.modes[isample],
+            self.energy,
+            xs))
+        kfact = 1.
+        effic = 1.
+        return xs, kfact, effic

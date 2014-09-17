@@ -707,13 +707,16 @@ def apply_rebin(hist, bins, axis=0):
     return new_hist
 
 
-def apply_fill_empties(hist):
+def apply_fill_empties(hist, inplace=False):
     """
     Return a clone of the input histogram where the empty bins have been filled
     with the average weight and the errors of these bins set to sqrt(<w^2>).
     If no bins were altered, then return the original histogram
     """
-    fixed_hist = hist.Clone(name=hist.name + '_fill_empties', shallow=True)
+    if inplace:
+        fixed_hist = hist
+    else:
+        fixed_hist = hist.Clone(name=hist.name + '_fill_empties', shallow=True)
 
     # value
     avWeightBin = hist.GetSumOfWeights() / hist.GetEntries()
