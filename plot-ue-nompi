@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+"""
+Compare the signal sample with and without
+the Multiple Perturbative Parton-Parton Interaction (MPI)
+http://skands.web.cern.ch/skands/slides/oregon-skands.pdf
+"""
+# python imports
+from tabulate import tabulate
+from argparse import ArgumentParser
+import os
+import logging
+# ROOT/rootpy imports
+from rootpy.tree import Cut
+from rootpy.plotting import Hist
+from root_numpy import fill_hist
+# local imports
+from higgstautau.datasets import Database
+#from mva.analysis import Analysis
+from mva.samples import Higgs
+from mva import MMC_MASS
+from mva.categories import Category_Boosted
+from mva.plotting import draw_ratio
+from mva.variables import VARIABLES
+
+log = logging.getLogger(os.path.basename(__file__))
+
+parser = ArgumentParser()
+parser.add_argument('--no-truth-cuts', action='store_true', default=False)
+parser.add_argument('--mode', default='gg', choices=('gg', 'VBF'))
+args = parser.parse_args()
+
+DB = Database('datasets_ue_studies')
+mode = args.mode
+
+# begin configuration
+modes = [
+    mode,
+]
+fields = [
+    'tau1_BDTJetScore',
+    'tau2_BDTJetScore',
+]
+
+vars = {}
+for field in fields:
+    vars[field] = VARIABLES[field]
+
+# --------  SAMPLES
+higgs_nompi_truth = Higgs(
+    2012, mass=125, modes=modes,
+    db=DB, ggf_weight=False,
+    student='hhskim_truth',
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v41/',
+    suffix='_noMPI.mc12b',
+    force_reopen=True)
+
+higgs_truth = Higgs(
+    2012, mass=125, modes=modes,
+    db=DB, ggf_weight=False,
+    ntuple_path='/cluster/data12/qbuat/ntuples_hh/hhskim_ue/prod_v41/',
+    student='hhskim_truth')
+
+field_hist_template, field_scale = higgs_truth.get_field_hist(vars, Category_Boosted)
+print field_hist_template, field_scale
+
+rec_nom = higgs_truth.merged_records(fields=fields)
+rec_nompi = higgs_nompi_truth.merged_records(fields=fields)
+log.info(rec_nom.dtype.names)
+
+for field, hist in field_hist_template.items():
+    hist_nom = hist.Clone()
+    hist_nompi = hist.Clone()
+    fill_hist(hist_nom, rec_nom[field], rec_nom['weight'])
+    fill_hist(hist_nompi, rec_nompi[field], rec_nompi['weight'])
+    hist_nom.title = 'default'
+    hist_nompi.title = 'No MPI'
+    plot = draw_ratio(
+        hist_nom, hist_nompi, field, None, normalize=True, ratio_range=(0.8, 1.2))
+    for fmt in ('eps', 'png'):
+        plot.SaveAs('nompi_compare_mode_{0}_{1}.{2}'.format(mode, field, fmt))
+

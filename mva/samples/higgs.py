@@ -10,9 +10,8 @@ import yellowhiggs
 
 # local imports
 from . import log
-from .. import ETC_DIR
+from .. import ETC_DIR, CACHE_DIR
 from .sample import MC, Signal
-
 
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 
@@ -241,14 +240,16 @@ class Higgs(MC, Signal):
         #         sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
         #     elif mode == 'VBF':
         #         sample.AddOverallSys('ATLAS_UE_qq', 0.94, 1.06)
-        with open(os.path.join(CACHE_DIR, 'ps_uncertainty.cache')) as ue_uncert_file:
+        with open(os.path.join(CACHE_DIR, 'ps_signal_uncertainty.cache')) as ue_uncert_file:
             UE_UNCERT = pickle.load(ue_uncert_file)
             if mode == 'gg':
-                ue_uncert = UE_UNCERT[mode][category.name]
-                sample.AddOverallSys('ATLAS_UE_gg', 1 - ue_uncert, 1 + ue_uncert)
+                if category.name in UE_UNCERT[mode].keys():
+                    ue_uncert = UE_UNCERT[mode][category.name]
+                    sample.AddOverallSys('ATLAS_UE_gg', 1 - ue_uncert, 1 + ue_uncert)
             elif mode == 'VBF':
-                ue_uncert = UE_UNCERT[mode][category.name]
-                sample.AddOverallSys('ATLAS_UE_qq', 1 - ue_uncert, 1 + ue_uncert)
+                if category.name in UE_UNCERT[mode].keys():
+                    ue_uncert = UE_UNCERT[mode][category.name]
+                    sample.AddOverallSys('ATLAS_UE_qq', 1 - ue_uncert, 1 + ue_uncert)
         # pdf uncertainty
         if mode == 'gg':
             if energy == 8:
@@ -263,7 +264,7 @@ class Higgs(MC, Signal):
 
         #EWK NLO CORRECTION FOR VBF ONLY
         if mode == 'VBF':
-            sample.AddOverall('NLO_EW_Higgs', 0.98, 1.02)
+            sample.AddOverallSys('NLO_EW_Higgs', 0.98, 1.02)
         # QCDscale_ggH3in MVA only UPDATE THIS!!!
         #if mode == 'gg' and category.name == 'vbf':
         #    up = self.QCDscale_ggH3in_file.up_fit
