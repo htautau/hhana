@@ -75,8 +75,8 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
     linestyle = 'verylongdash'
     cuts = (
         CUTS_VBF_CUTBASED
-        & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000')
-        & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)')))
+        & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
+        & Cut('mass_jet1_jet2 > (-250000 * dEta_jets + 1550000)'))
     cuts_truth = (
         CUTS_TRUE_VBF_CUTBASED
         & Cut('true_resonance_pt<140000')
@@ -98,8 +98,8 @@ class Category_Cuts_VBF_HighDR_Loose(Category_Preselection):
     jk_number = 8
     cuts = (
         CUTS_VBF_CUTBASED
-        & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000')
-        & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)')))
+        & (Cut('dR_tau1_tau2 > 1.5') | Cut('resonance_pt < 140000'))
+        & Cut('mass_jet1_jet2 < (-250000 * dEta_jets + 1550000)'))
     cuts_truth = (
         CUTS_TRUE_VBF_CUTBASED
         & Cut('true_resonance_pt<140000')
