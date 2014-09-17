@@ -15,18 +15,18 @@ UNCERT['VBF'] = {}
 UNCERT['gg']['vbf'] = 0.01
 UNCERT['gg']['boosted'] = 0.01
 UNCERT['gg']['cuts_vbf_lowdr'] = 0.006
-UNCERT['gg']['cuts_vbf_highdr_tight'] = 0.47 
-UNCERT['gg']['cuts_vbf_highdr_loose'] = 0.14
-UNCERT['gg']['cuts_boosted_tight'] = 0.09 
-UNCERT['gg']['cuts_boosted_loose'] = 0.02 
+UNCERT['gg']['cuts_vbf_highdr_tight'] = 0.45 
+UNCERT['gg']['cuts_vbf_highdr_loose'] = 0.17
+UNCERT['gg']['cuts_boosted_tight'] = 0.01 
+UNCERT['gg']['cuts_boosted_loose'] = 0.16 
 
 UNCERT['VBF']['vbf'] = 0.08
 UNCERT['VBF']['boosted'] = 0.05
 UNCERT['VBF']['cuts_vbf_lowdr'] = 0.11
 UNCERT['VBF']['cuts_vbf_highdr_tight'] = 0.08
-UNCERT['VBF']['cuts_vbf_highdr_loose'] = 0.07
+UNCERT['VBF']['cuts_vbf_highdr_loose'] = 0.03
 UNCERT['VBF']['cuts_boosted_tight'] = 0.09
-UNCERT['VBF']['cuts_boosted_loose'] = 0.03 
+UNCERT['VBF']['cuts_boosted_loose'] = 0.02
 
 if __name__ == '__main__':
 
