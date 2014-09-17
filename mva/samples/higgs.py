@@ -1,7 +1,7 @@
 # stdlib imports
 import os
 import pickle
-D# rootpy imports
+# rootpy imports
 from rootpy.io import root_open
 from rootpy.stats import histfactory
 
