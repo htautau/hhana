@@ -73,13 +73,14 @@ def draw_ratio(a, b, field, category,
                      margin=0.35, textsize=textsize)
         leg.Draw()
         # draw the category label
-        label = ROOT.TLatex(
-            pad.GetLeftMargin() + 0.04, 0.87,
-            category.label)
-        label.SetNDC()
-        label.SetTextFont(43)
-        label.SetTextSize(textsize)
-        label.Draw()
+        if category is not None:
+            label = ROOT.TLatex(
+                pad.GetLeftMargin() + 0.04, 0.87,
+                category.label)
+            label.SetNDC()
+            label.SetTextFont(43)
+            label.SetTextSize(textsize)
+            label.Draw()
         # show p-value and chi^2
         pvalue = a.Chi2Test(b, 'WW')
         pvalue_label = ROOT.TLatex(

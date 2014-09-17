@@ -770,6 +770,34 @@ class Sample(object):
             fill_hist(hist, np.ones(len(rec)))
         return hist
 
+    def events_root(self, category=None, region=None, cuts=None, hist=None,
+                    weighted=True, scale=1.):
+        """
+        QUICK FIX.
+        DO NOT USE UNLESS YOU KNOW WHAT YOU'RE DOING
+        """
+        rfile = get_file(self.ntuple_path, self.student, force_reopen=self.force_reopen)
+        if hist is None:
+            hist = Hist(1, -100, 100)
+        for ds in self.datasets:
+            treename = ds.name
+            treename = treename.replace('.', '_')
+            tree = rfile[treename]
+            events = ds.events['NOMINAL']
+            weight = LUMI[self.year] * scale * ds.xs * ds.kfact * ds.effic / events
+            selection =  (self.cuts(category, region) & cuts)
+            if weighted:
+                weight_branches = self.weights()
+                selection *= Cut(str(weight * scale))
+                selection *= Cut('*'.join(weight_branches))
+            log.debug("requesing number of events from %s using cuts: %s"
+                % (tree.GetName(), selection))
+            tree.Draw('1', selection, hist=hist)
+        return hist
+
+
+
+
 
 class Signal(object):
     # mixin

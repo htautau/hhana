@@ -117,9 +117,9 @@ for category in CATEGORIES[cattype]:
     log.info((category.name, category.cuts))
     log.info((category.name, cuts))
     log.info('evaluate truth level yields')
-    yield_truth_default = higgs_truth.events(weighted=True, cuts=cuts)[1].value
-    yield_truth_herwig = higgs_herwigps_truth.events(weighted=True, cuts=cuts)[1].value
-    yield_truth_nompi = higgs_nompi_truth.events(weighted=True, cuts=cuts)[1].value
+    yield_truth_default = higgs_truth.events_root(weighted=True, cuts=cuts)[1].value
+    yield_truth_herwig = higgs_herwigps_truth.events_root(weighted=True, cuts=cuts)[1].value
+    yield_truth_nompi = higgs_nompi_truth.events_root(weighted=True, cuts=cuts)[1].value
     yields[category.name+'_truth'] = {'default': yield_truth_default, 'herwig':yield_truth_herwig, 'nompi':yield_truth_nompi}
 
     field_hist_template, field_scale = higgs.get_field_hist(vars, category)
@@ -127,7 +127,7 @@ for category in CATEGORIES[cattype]:
         field_hist_template, category, TARGET_REGION, field_scale=field_scale)
     field_hist_herwig = higgs_herwigps.get_hist_array(
         field_hist_template, category, TARGET_REGION, field_scale=field_scale)
-    field_hist_truth_default = higgs_truth.get_hist_array(
+    # field_hist_truth_default = higgs_truth.g
 
     for field, var in vars.items():
         field_hist_default[field].title = 'default'
@@ -164,9 +164,9 @@ for category in CATEGORIES[cattype]:
 
 
 
-    yield_nompi = higgs_nompi.events(category, TARGET_REGION, cuts=cuts)[1].value
-    yield_default = higgs.events(category, TARGET_REGION, cuts=cuts)[1].value
-    yield_herwig = higgs_herwigps.events(category, TARGET_REGION, cuts=cuts)[1].value
+    yield_nompi = higgs_nompi.events_root(category, TARGET_REGION, cuts=cuts)[1].value
+    yield_default = higgs.events_root(category, TARGET_REGION, cuts=cuts)[1].value
+    yield_herwig = higgs_herwigps.events_root(category, TARGET_REGION, cuts=cuts)[1].value
     yields[category.name] = {'default': yield_default, 'herwig':yield_herwig, 'nompi':yield_nompi}
 
 log.info(yields)
