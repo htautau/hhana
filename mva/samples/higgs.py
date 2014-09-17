@@ -1,7 +1,7 @@
 # stdlib imports
 import os
 import pickle
-# rootpy imports
+D# rootpy imports
 from rootpy.io import root_open
 from rootpy.stats import histfactory
 
@@ -10,11 +10,10 @@ import yellowhiggs
 
 # local imports
 from . import log
-from .. import ETC_DIR, CACHE_DIR
+from .. import ETC_DIR, CACHE_DIR, DAT_DIR
 from .sample import MC, Signal
 
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
-
 
 class Higgs(MC, Signal):
     MASSES = range(100, 155, 5)
@@ -36,23 +35,81 @@ class Higgs(MC, Signal):
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
     # TODO: UPDATE
     QCD_SCALE = map(lambda token: token.strip().split(), '''\
-    QCDscale_qqH     VBF    rest             1.020/0.980
-    QCDscale_qqH     VBF    boosted          1.014/0.986
-    QCDscale_qqH     VBF    VBF              1.020/0.980
-    QCDscale_VH      VH     rest             1.01/0.99
-    QCDscale_VH      VH     boosted          1.041/0.960
-    QCDscale_VH      VH     VBF              1.01/0.99
-    QCDscale_ggH     ggH    rest             1.23/0.81
-    QCDscale_ggH1in  ggH    rest             0.92/1.09
-    QCDscale_ggH1in  ggH    boosted          1.32/0.76
-    QCDscale_ggH2in  ggH    boosted          0.90/1.11
-    QCDscale_ggH2in  ggH    VBF              1.24/0.81'''.split('\n'))
+    QCDscale_qqH     VBF    rest                   1.020/0.980
+    QCDscale_qqH     VBF    boosted                1.014/0.986
+    QCDscale_qqH     VBF    vbf                    1.020/0.980
+    QCDscale_qqH     VBF    cuts_boosted_tight     1.014/0.986
+    QCDscale_qqH     VBF    cuts_boosted_loose     1.014/0.986
+    QCDscale_qqH     VBF    cuts_vbf_highdr_tight  1.020/0.980
+    QCDscale_qqH     VBF    cuts_vbf_highdr_loose  1.020/0.980
+    QCDscale_qqH     VBF    cuts_vbf_lowdr         1.020/0.980
+    QCDscale_VH      VH     rest                   1.01/0.99
+    QCDscale_VH      VH     boosted                1.041/0.960
+    QCDscale_VH      VH     vbf                    1.01/0.99
+    QCDscale_VH      VH     cuts_boosted_tight     1.041/0.960
+    QCDscale_VH      VH     cuts_boosted_loose     1.041/0.960
+    QCDscale_VH      VH     cuts_vbf_highdr_tight  1.01/0.99
+    QCDscale_VH      VH     cuts_vbf_highdr_loose  1.01/0.99
+    QCDscale_VH      VH     cuts_vbf_lowdr         1.01/0.99
+    QCDscale_ggH     ggH    rest                   1.23/0.81
+    QCDscale_ggH1in  ggH    rest                   0.92/1.09
+    QCDscale_ggH1in  ggH    boosted                1.32/0.76
+    QCDscale_ggH1in  ggH    cuts_boosted_tight     1.28/0.78
+    QCDscale_ggH1in  ggH    cuts_boosted_loose     1.28/0.78
+    QCDscale_ggH2in  ggH    boosted                0.93/1.08
+    QCDscale_ggH2in  ggH    vbf                    1.26/0.80
+    QCDscale_ggH2in  ggH    cuts_boosted_tight     0.96/1.05
+    QCDscale_ggH2in  ggH    cuts_boosted_loose     0.97/1.03
+    QCDscale_ggH2in  ggH    cuts_vbf_highdr_tight  1.26/0.79
+    QCDscale_ggH2in  ggH    cuts_vbf_highdr_loose  1.26/0.79
+    QCDscale_ggH2in  ggH    cuts_vbf_lowdr         1.25/0.80'''.split('\n'))
+
+    UE_UNCERT = map(lambda token: token.strip().split(), '''\
+    ATLAS_UE_qq  VBF      vbf                      1.080/0.920
+    ATLAS_UE_qq  VBF      boosted                  1.050/0.950
+    ATLAS_UE_qq  VBF      cuts_vbf_lowdr           1.110/0.890
+    ATLAS_UE_qq  VBF      cuts_vbf_highdr_tight    1.080/0.920
+    ATLAS_UE_qq  VBF      cuts_vbf_highdr_loose    1.030/0.970
+    ATLAS_UE_qq  VBF      cuts_boosted_tight       1.090/0.910
+    ATLAS_UE_qq  VBF      cuts_boosted_loose       1.020/0.980
+    ATLAS_UE_gg  ggH      vbf                      1.010/0.990
+    ATLAS_UE_gg  ggH      boosted                  1.010/0.990
+    ATLAS_UE_gg  ggH      cuts_vbf_lowdr           1.006/0.994
+    ATLAS_UE_gg  ggH      cuts_vbf_highdr_tight    1.450/0.550
+    ATLAS_UE_gg  ggH      cuts_vbf_highdr_loose    1.170/0.830
+    ATLAS_UE_gg  ggH      cuts_boosted_tight       1.010/0.990
+    ATLAS_UE_gg  ggH      cuts_boosted_loose       1.160/0.840'''.split('\n'))
+
+    PDF_ACCEPT_NORM_UNCERT = map(lambda token: token.strip().split(), '''\
+    pdf_Higgs_qq_ACCEPT  VBF      vbf                      1.012/0.988
+    pdf_Higgs_qq_ACCEPT  VBF      boosted                  1.010/0.990
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_lowdr           1.014/0.986
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_highdr_tight    1.010/0.990
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_highdr_loose    1.015/0.985
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_boosted_tight       1.033/0.967
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_boosted_loose       1.010/0.990
+    pdf_Higgs_gg_ACCEPT  ggH      vbf                      1.054/0.946
+    pdf_Higgs_gg_ACCEPT  ggH      boosted                  1.059/0.941
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_lowdr           1.047/0.953
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_highdr_tight    1.052/0.948
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_highdr_loose    1.054/0.946
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_boosted_tight       1.062/0.938
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_boosted_loose       1.056/0.944'''.split('\n'))
+
+    PDF_ACCEPT_SHAPE_UNCERT = map(lambda token: token.strip().split(), '''\
+    pdf_Higgs_qq_ACCEPT  VBF  vbf      h_VBF_vbf_{0}TeV_Up/h_VBF_vbf_{0}TeV_Down
+    pdf_Higgs_qq_ACCEPT  VBF  boosted  h_VBF_boosted_{0}TeV_Up/h_VBF_boosted_{0}TeV_Down
+    pdf_Higgs_qq_ACCEPT  ggH  vbf      h_gg_vbf_{0}TeV_Up/h_gg_vbf_{0}TeV_Down
+    pdf_Higgs_qq_ACCEPT  ggH  boosted  h_gg_boosted_{0}TeV_Up/h_gg_boosted_{0}TeV_Down'''.split('\n'))
+
 
     #GEN_QMASS = map(lambda token: token.strip().split(), '''\
     #Gen_Qmass_ggH    ggH    VBF              1.19/0.81
     #Gen_Qmass_ggH    ggH    boosted          1.24/0.76
     #Gen_Qmass_ggH    ggH    rest             1.04/0.96'''.split('\n'))
 
+    PDF_ACCEPT_file = root_open(
+        os.path.join(DAT_DIR, 'ShapeUnc_PDF_hh.root'), 'read')
     #QCDscale_ggH3in_file = root_open(
     #    os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
     NORM_BY_THEORY = True
@@ -190,15 +247,38 @@ class Higgs(MC, Signal):
         mode = self.modes[0]
 
         if mode in ('Z', 'W'):
-            _qcd_scale_mode = 'VH'
+            _uncert_mode = 'VH'
         else:
-            _qcd_scale_mode = self.MODES_WORKSPACE[mode]
+            _uncert_mode = self.MODES_WORKSPACE[mode]
 
         # QCD_SCALE
         for qcd_scale_term, qcd_scale_mode, qcd_scale_category, values in self.QCD_SCALE:
-            if qcd_scale_mode == _qcd_scale_mode and qcd_scale_category.lower() in category.name.lower():
+            if qcd_scale_mode == _uncert_mode and qcd_scale_category == category.name:
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(qcd_scale_term, low, high)
+
+        # UE UNCERTAINTY
+        for ue_term, ue_mode, ue_category, values in self.UE_UNCERT:
+            if ue_mode == _uncert_mode and ue_category == category.name:
+                high, low = map(float, values.split('/'))
+                sample.AddOverallSys(ue_term, low, high)
+
+        # PDF ACCEPTANCE UNCERTAINTY (OverallSys)
+        for pdf_term, pdf_mode, pdf_category, values in self.PDF_ACCEPT_NORM_UNCERT:
+            if pdf_mode == _uncert_mode and pdf_category == category.name:
+                high, low = map(float, values.split('/'))
+                sample.AddOverallSys(pdf_term, low, high)
+
+        # PDF ACCEPTANCE UNCERTAINTY (HistoSys)
+        for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
+            if pdf_mode == _uncert_mode and pdf_category == category.name:
+                high_name, low_name = hist_names.format(energy).split('/')
+                high, low = PDF_ACCEPT_file[high_name], PDF_ACCEPT_file[low_name]
+                high = high*sample.hist
+                low = low*sample.hist
+                histsys = histfactory.HistoSys(
+                    pdf_term, low=low, high=high)
+                sample.AddHistoSys(histsys)
 
         # GEN_QMASS
         #for qmass_term, qmass_mode, qmass_category, values in self.GEN_QMASS:
@@ -234,22 +314,6 @@ class Higgs(MC, Signal):
             1., 0., 200., True)
 
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
-        # underlying event uncertainty in the VBF category
-        # if 'vbf' in category.name.lower():
-        #     if mode == 'gg':
-        #         sample.AddOverallSys('ATLAS_UE_gg', 0.7, 1.3)
-        #     elif mode == 'VBF':
-        #         sample.AddOverallSys('ATLAS_UE_qq', 0.94, 1.06)
-        with open(os.path.join(CACHE_DIR, 'ps_signal_uncertainty.cache')) as ue_uncert_file:
-            UE_UNCERT = pickle.load(ue_uncert_file)
-            if mode == 'gg':
-                if category.name in UE_UNCERT[mode].keys():
-                    ue_uncert = UE_UNCERT[mode][category.name]
-                    sample.AddOverallSys('ATLAS_UE_gg', 1 - ue_uncert, 1 + ue_uncert)
-            elif mode == 'VBF':
-                if category.name in UE_UNCERT[mode].keys():
-                    ue_uncert = UE_UNCERT[mode][category.name]
-                    sample.AddOverallSys('ATLAS_UE_qq', 1 - ue_uncert, 1 + ue_uncert)
         # pdf uncertainty
         if mode == 'gg':
             if energy == 8:
@@ -265,6 +329,7 @@ class Higgs(MC, Signal):
         #EWK NLO CORRECTION FOR VBF ONLY
         if mode == 'VBF':
             sample.AddOverallSys('NLO_EW_Higgs', 0.98, 1.02)
+
         # QCDscale_ggH3in MVA only UPDATE THIS!!!
         #if mode == 'gg' and category.name == 'vbf':
         #    up = self.QCDscale_ggH3in_file.up_fit
