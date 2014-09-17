@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+"""
+"""
+# python imports
+import os
+import logging
+import numpy as np
+from numpy.lib import recfunctions
+# ROOT/rootpy/root_numpy imports
+from rootpy.io import root_open
+from rootpy.plotting import Hist
+from root_numpy import fill_hist, array2tree, stack
+# local imports
+from mva import MMC_MASS
+
+log = logging.getLogger(os.path.basename(__file__))
+
+fields = [
+    'EventNumber', 'RunNumber', MMC_MASS, 
+    'mcevent_pdf_x1_0', 'mcevent_pdf_x2_0', 
+    'mcevent_pdf_id1_0', 'mcevent_pdf_id2_0',
+    'mcevent_pdf_scale_0', 'true_resonance_pt', 'mc_weight'
+]
+fields_names = [
+    'EvtNum', 'RunNum', 'MMC_raw',     
+    'pdf_x1', 'pdf_x2', 
+    'pdf_id1', 'pdf_id2',
+    'pdf_scale', 'true_resonance_pt', 'mc_weight',
+    'weight'
+]
+
+def binned_rec(rec, hist):
+    """
+    Transform a 1D array of values into
+    a 1D array of histogram bins centers
+    """
+    if len(rec) == 0:
+        return rec
+    indices = fill_hist(hist, rec, return_indices=True)
+    uni_hist = hist.uniform_binned()
+    return np.take(list(uni_hist.x(overflow=True)), indices)
+
+
+def get_records(sample, category, target_region,
+                binned_field, binned_field_name, hist,
+                category_type, clf=None):
+    # get the record array
+    rec = sample.merged_records(
+        category, target_region, fields=fields,
+        include_weight=True, clf=clf, clf_name='BDT_raw')
+    log.info(rec.dtype.names)
+    # rename fields
+    if clf is not None:
+        rec.dtype.names = fields_names + ['BDT_raw']
+    else:
+        rec.dtype.names = fields_names
+    # rebin field of interest
+    binned_array = binned_rec(rec[binned_field], hist)
+    # category index
+    index_array = np.empty(len(rec), dtype=int)
+    index_array.fill(category.jk_number)
+    # category type
+    type_array = np.ones(len(rec), dtype=int)
+    # merge fields
+    rec = recfunctions.rec_append_fields(
+        rec, data=[binned_array, index_array, type_array],
+        names=[binned_field_name, 
+               'cat{0}'.format(category_type),
+               'Is{0}'.format(category_type)],
+        dtypes=['f4', 'i4', 'i4'])
+    return rec
+
+if __name__ == '__main__':
+    # rootpy imports
+    from rootpy.extern.argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--mode', default='gg', choices=('gg', 'VBF'))
+    parser.add_argument('--categories', default='mva', choices=('mva', 'cuts'))
+    args = parser.parse_args()
+    # local imports
+    from higgstautau.datasets import Database
+    from mva.analysis import Analysis
+    from mva.categories import CATEGORIES, Category_Preselection
+    from mva.samples import Higgs
+
+    analysis = Analysis(2012)
+    analysis.normalize(Category_Preselection)
+    
+    DB = Database('datasets_theory')
+    higgs_th = Higgs(
+        2012, mass=125, mode=args.mode, db=DB,
+        ggf_weight=False,
+        force_reopen=True,
+        sample_pattern='McAtNloJim_ggH125_tautauInc' if args.mode=='gg' else None,
+        ntuple_path='/cluster/data01/qbuat/ntuples_hh_copy/hhskim_theory/prod_v34/',
+        suffix='mc12a' if args.mode=='gg' else None)
+
+    recs = []
+    for category in CATEGORIES[args.categories]:
+        if args.categories=='mva':
+            clf = analysis.get_clf(
+                category, load=True,
+                mass=125, transform=True)
+            bins = clf.binning(analysis.year, overflow=1E5) 
+            hist = Hist(bins)
+            rec = get_records(higgs_th, category, analysis.target_region,
+                              'BDT_raw', 'BDT',
+                              hist, 'MVA', clf)
+        else:
+            clf = None
+            bins = category.limitbins
+            if isinstance(bins, dict):
+                bins = category.limitbins[analysis.year]
+            hist = Hist(bins)
+            rec = get_records(higgs_th, category, analysis.target_region,
+                              'MMC_raw', 'MMC',
+                              hist, 'CBA')
+        log.info(rec.dtype.names)
+        log.info(type(rec.dtype.names))
+        recs.append(rec)
+
+    combined_rec = stack(recs, fields=list(rec.dtype.names)) 
+
+    with root_open('hh_signal_mode_{0}_{1}.root'.format(args.mode, args.categories), 'recreate') as out:
+        outtree = array2tree(combined_rec, name='higgs') 
+        outtree.Write()

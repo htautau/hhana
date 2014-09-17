@@ -6,6 +6,7 @@ from .common import (
     CUTS_VBF, CUTS_VBF_CR,
     CUTS_BOOSTED, CUTS_BOOSTED_CR,
     DETA_TAUS)
+from .truth import CUTS_TRUE_VBF, CUTS_TRUE_BOOSTED
 from .features import features_vbf, features_boosted
 
 
@@ -39,6 +40,7 @@ class Category_VBF(Category_Preselection):
         CUTS_VBF
         & Cut('dEta_jets > 2.0')
         )
+    cuts_truth = CUTS_TRUE_VBF
     features = features_vbf
     # train with only VBF mode
     signal_train_modes = ['VBF']
@@ -81,6 +83,7 @@ class Category_Boosted(Category_Preselection):
         & CUTS_BOOSTED
         #& Cut(MET_CENTRALITY.format(pi / 6))
         )
+    cuts_truth = CUTS_TRUE_BOOSTED
     features = features_boosted
     # train with all modes (inherited from Category in base.py)
     #signal_train_modes =

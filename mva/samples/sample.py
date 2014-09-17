@@ -107,6 +107,7 @@ class Sample(object):
     def __init__(self, year, scale=1., cuts=None,
                  ntuple_path=NTUPLE_PATH,
                  student=DEFAULT_STUDENT,
+                 force_reopen=False,
                  trigger=True,
                  name='Sample',
                  label='Sample',
@@ -123,6 +124,7 @@ class Sample(object):
             self._cuts = cuts
         self.ntuple_path = ntuple_path
         self.student = student
+        self.force_reopen = force_reopen
         self.name = name
         self.label = label
         self.hist_decor = hist_decor
@@ -768,6 +770,34 @@ class Sample(object):
             fill_hist(hist, np.ones(len(rec)))
         return hist
 
+    def events_root(self, category=None, region=None, cuts=None, hist=None,
+                    weighted=True, scale=1.):
+        """
+        QUICK FIX.
+        DO NOT USE UNLESS YOU KNOW WHAT YOU'RE DOING
+        """
+        rfile = get_file(self.ntuple_path, self.student, force_reopen=self.force_reopen)
+        if hist is None:
+            hist = Hist(1, -100, 100)
+        for ds in self.datasets:
+            treename = ds.name
+            treename = treename.replace('.', '_')
+            tree = rfile[treename]
+            events = ds.events['NOMINAL']
+            weight = LUMI[self.year] * scale * ds.xs * ds.kfact * ds.effic / events
+            selection =  (self.cuts(category, region) & cuts)
+            if weighted:
+                weight_branches = self.weights()
+                selection *= Cut(str(weight * scale))
+                selection *= Cut('*'.join(weight_branches))
+            log.debug("requesing number of events from %s using cuts: %s"
+                % (tree.GetName(), selection))
+            tree.Draw('1', selection, hist=hist)
+        return hist
+
+
+
+
 
 class Signal(object):
     # mixin
@@ -893,8 +923,8 @@ class SystematicsSample(Sample):
         self.systematics = systematics
         self.tau_id_sf = tau_id_sf
         self.norms = {}
-        rfile = get_file(self.ntuple_path, self.student)
-        h5file = get_file(self.ntuple_path, self.student, hdf=True)
+        rfile = get_file(self.ntuple_path, self.student, force_reopen=self.force_reopen)
+        h5file = get_file(self.ntuple_path, self.student, hdf=True, force_reopen=self.force_reopen)
 
         from .ztautau import Embedded_Ztautau
 
