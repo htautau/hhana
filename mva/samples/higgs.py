@@ -261,6 +261,9 @@ class Higgs(MC, Signal):
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
 
+        #EWK NLO CORRECTION FOR VBF ONLY
+        if mode == 'VBF':
+            sample.AddOverall('NLO_EW_Higgs', 0.98, 1.02)
         # QCDscale_ggH3in MVA only UPDATE THIS!!!
         #if mode == 'gg' and category.name == 'vbf':
         #    up = self.QCDscale_ggH3in_file.up_fit
