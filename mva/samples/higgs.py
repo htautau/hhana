@@ -281,7 +281,7 @@ class Higgs(MC, Signal):
         for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
             if pdf_mode == _uncert_mode and pdf_category == category.name:
                 high_name, low_name = hist_names.format(energy).split('/')
-                high, low = PDF_ACCEPT_file[high_name], PDF_ACCEPT_file[low_name]
+                high, low = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
                 high = high*sample.hist
                 low = low*sample.hist
                 histsys = histfactory.HistoSys(
