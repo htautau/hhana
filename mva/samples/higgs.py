@@ -269,6 +269,14 @@ class Higgs(MC, Signal):
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(pdf_term, low, high)
 
+        if self.year == 2011:
+            energy = 7
+        elif self.year == 2012:
+            energy = 8
+        else:
+            raise ValueError(
+                "collision energy is unknown for year {0:d}".format(self.year))
+
         # PDF ACCEPTANCE UNCERTAINTY (HistoSys)
         for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
             if pdf_mode == _uncert_mode and pdf_category == category.name:
@@ -293,14 +301,6 @@ class Higgs(MC, Signal):
 
         # <NormFactor Name="mu_BR_tautau" Val="1" Low="0" High="200" />
         sample.AddNormFactor('mu_BR_tautau', 1., 0., 200., True)
-
-        if self.year == 2011:
-            energy = 7
-        elif self.year == 2012:
-            energy = 8
-        else:
-            raise ValueError(
-                "collision energy is unknown for year {0:d}".format(self.year))
 
         #mu_XS[energy]_[mode]
         #_, (xs_up, xs_down) = yellowhiggs.xs(
