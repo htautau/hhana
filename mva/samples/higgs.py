@@ -38,63 +38,66 @@ class Higgs(MC, Signal):
     QCDscale_qqH     VBF    rest                   1.020/0.980
     QCDscale_qqH     VBF    boosted                1.014/0.986
     QCDscale_qqH     VBF    vbf                    1.020/0.980
-    QCDscale_qqH     VBF    cuts_boosted_tight     1.014/0.986
-    QCDscale_qqH     VBF    cuts_boosted_loose     1.014/0.986
+    QCDscale_qqH     VBF    cuts_boosted_tight     1.020/0.980
+    QCDscale_qqH     VBF    cuts_boosted_loose     1.020/0.980
     QCDscale_qqH     VBF    cuts_vbf_highdr_tight  1.020/0.980
     QCDscale_qqH     VBF    cuts_vbf_highdr_loose  1.020/0.980
     QCDscale_qqH     VBF    cuts_vbf_lowdr         1.020/0.980
-    QCDscale_VH      VH     rest                   1.01/0.99
+    QCDscale_VH      VH     rest                   1.010/0.990
     QCDscale_VH      VH     boosted                1.041/0.960
-    QCDscale_VH      VH     vbf                    1.01/0.99
-    QCDscale_VH      VH     cuts_boosted_tight     1.041/0.960
-    QCDscale_VH      VH     cuts_boosted_loose     1.041/0.960
-    QCDscale_VH      VH     cuts_vbf_highdr_tight  1.01/0.99
-    QCDscale_VH      VH     cuts_vbf_highdr_loose  1.01/0.99
-    QCDscale_VH      VH     cuts_vbf_lowdr         1.01/0.99
-    QCDscale_ggH     ggH    rest                   1.23/0.81
-    QCDscale_ggH1in  ggH    rest                   0.92/1.09
-    QCDscale_ggH1in  ggH    boosted                1.32/0.76
-    QCDscale_ggH1in  ggH    cuts_boosted_tight     1.28/0.78
-    QCDscale_ggH1in  ggH    cuts_boosted_loose     1.28/0.78
-    QCDscale_ggH2in  ggH    boosted                0.93/1.08
-    QCDscale_ggH2in  ggH    vbf                    1.26/0.80
-    QCDscale_ggH2in  ggH    cuts_boosted_tight     0.96/1.05
-    QCDscale_ggH2in  ggH    cuts_boosted_loose     0.97/1.03
-    QCDscale_ggH2in  ggH    cuts_vbf_highdr_tight  1.26/0.79
-    QCDscale_ggH2in  ggH    cuts_vbf_highdr_loose  1.26/0.79
-    QCDscale_ggH2in  ggH    cuts_vbf_lowdr         1.25/0.80'''.split('\n'))
+    QCDscale_VH      VH     vbf                    1.010/0.990
+    QCDscale_VH      VH     cuts_boosted_tight     1.040/0.960
+    QCDscale_VH      VH     cuts_boosted_loose     1.040/0.960
+    QCDscale_ggH     ggH    rest                   1.070/0.930
+    QCDscale_ggH1in  ggH    boosted                1.320/0.760
+    QCDscale_ggH1in  ggH    cuts_boosted_tight     1.280/0.780
+    QCDscale_ggH1in  ggH    cuts_boosted_loose     1.280/0.780
+    QCDscale_ggH2in  ggH    boosted                0.930/1.080
+    QCDscale_ggH2in  ggH    vbf                    1.260/0.800
+    QCDscale_ggH2in  ggH    cuts_boosted_tight     0.960/1.050
+    QCDscale_ggH2in  ggH    cuts_boosted_loose     0.970/1.030
+    QCDscale_ggH2in  ggH    cuts_vbf_highdr_tight  1.260/0.790
+    QCDscale_ggH2in  ggH    cuts_vbf_highdr_loose  1.260/0.790
+    QCDscale_ggH2in  ggH    cuts_vbf_lowdr         1.250/0.800'''.split('\n'))
 
     UE_UNCERT = map(lambda token: token.strip().split(), '''\
     ATLAS_UE_qq  VBF      vbf                      1.080/0.920
     ATLAS_UE_qq  VBF      boosted                  1.050/0.950
     ATLAS_UE_qq  VBF      cuts_vbf_lowdr           1.110/0.890
     ATLAS_UE_qq  VBF      cuts_vbf_highdr_tight    1.080/0.920
-    ATLAS_UE_qq  VBF      cuts_vbf_highdr_loose    1.030/0.970
+    ATLAS_UE_qq  VBF      cuts_vbf_highdr_loose    1.070/0.930
     ATLAS_UE_qq  VBF      cuts_boosted_tight       1.090/0.910
     ATLAS_UE_qq  VBF      cuts_boosted_loose       1.020/0.980
     ATLAS_UE_gg  ggH      vbf                      1.010/0.990
-    ATLAS_UE_gg  ggH      boosted                  1.010/0.990
-    ATLAS_UE_gg  ggH      cuts_vbf_lowdr           1.006/0.994
-    ATLAS_UE_gg  ggH      cuts_vbf_highdr_tight    1.450/0.550
-    ATLAS_UE_gg  ggH      cuts_vbf_highdr_loose    1.170/0.830
+    ATLAS_UE_gg  ggH      boosted                  1.060/0.940
+    ATLAS_UE_gg  ggH      cuts_vbf_lowdr           0.990/1.010
+    ATLAS_UE_gg  ggH      cuts_vbf_highdr_tight    0.530/1.470
+    ATLAS_UE_gg  ggH      cuts_vbf_highdr_loose    1.140/0.860
     ATLAS_UE_gg  ggH      cuts_boosted_tight       1.010/0.990
     ATLAS_UE_gg  ggH      cuts_boosted_loose       1.160/0.840'''.split('\n'))
 
     PDF_ACCEPT_NORM_UNCERT = map(lambda token: token.strip().split(), '''\
-    pdf_Higgs_qq_ACCEPT  VBF      vbf                      1.012/0.988
+    pdf_Higgs_qq_ACCEPT  VBF      vbf                      1.010/0.990
     pdf_Higgs_qq_ACCEPT  VBF      boosted                  1.010/0.990
-    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_lowdr           1.014/0.986
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_lowdr           1.010/0.990
     pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_highdr_tight    1.010/0.990
-    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_highdr_loose    1.015/0.985
-    pdf_Higgs_qq_ACCEPT  VBF      cuts_boosted_tight       1.033/0.967
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_vbf_highdr_loose    1.020/0.980
+    pdf_Higgs_qq_ACCEPT  VBF      cuts_boosted_tight       1.030/0.970
     pdf_Higgs_qq_ACCEPT  VBF      cuts_boosted_loose       1.010/0.990
-    pdf_Higgs_gg_ACCEPT  ggH      vbf                      1.054/0.946
-    pdf_Higgs_gg_ACCEPT  ggH      boosted                  1.059/0.941
-    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_lowdr           1.047/0.953
-    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_highdr_tight    1.052/0.948
-    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_highdr_loose    1.054/0.946
-    pdf_Higgs_gg_ACCEPT  ggH      cuts_boosted_tight       1.062/0.938
-    pdf_Higgs_gg_ACCEPT  ggH      cuts_boosted_loose       1.056/0.944'''.split('\n'))
+    pdf_Higgs_qq_ACCEPT  VH       vbf                      1.010/0.990
+    pdf_Higgs_qq_ACCEPT  VH       boosted                  1.010/0.990
+    pdf_Higgs_qq_ACCEPT  VH       cuts_vbf_lowdr           1.010/0.990
+    pdf_Higgs_qq_ACCEPT  VH       cuts_vbf_highdr_tight    1.010/0.990
+    pdf_Higgs_qq_ACCEPT  VH       cuts_vbf_highdr_loose    1.020/0.980
+    pdf_Higgs_qq_ACCEPT  VH       cuts_boosted_tight       1.030/0.970
+    pdf_Higgs_qq_ACCEPT  VH       cuts_boosted_loose       1.010/0.990
+    pdf_Higgs_gg_ACCEPT  ggH      vbf                      1.050/0.950
+    pdf_Higgs_gg_ACCEPT  ggH      boosted                  1.060/0.940
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_lowdr           1.050/0.950
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_highdr_tight    1.050/0.950
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_vbf_highdr_loose    1.050/0.950
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_boosted_tight       1.060/0.940
+    pdf_Higgs_gg_ACCEPT  ggH      cuts_boosted_loose       1.060/0.940'''.split('\n'))
 
     PDF_ACCEPT_SHAPE_UNCERT = map(lambda token: token.strip().split(), '''\
     pdf_Higgs_qq_ACCEPT  VBF  vbf      h_VBF_vbf_{0}TeV_Up/h_VBF_vbf_{0}TeV_Down
