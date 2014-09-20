@@ -12,6 +12,7 @@ import os
 import shutil
 from rootpy.io import root_open
 from rootpy.tree import TreeModel, FloatCol
+from rootpy.plotting import Hist
 import numpy as np
 from root_numpy import array2tree
 import logging
@@ -39,7 +40,8 @@ with root_open(uncert_data) as dat:
     UNCERT.SetDirectory(0)
 
 with root_open(vbf_data) as dat:
-    VBF_WEIGHT = dat.h1_histo_ratio_rebin
+    # make histogram extrapolation-safe
+    VBF_WEIGHT = Hist(dat.h1_histo_ratio_rebin[:18])
     VBF_WEIGHT.SetDirectory(0)
 
 
@@ -108,6 +110,9 @@ class Job(Process):
         energy = 8 if 'mc12' in name else 7
         with root_open(output, 'UPDATE') as file:
             tree = file.tau
+            if 'vbf_weight' in tree:
+                log.info("weights already exist in {0} ...".format(output))
+                return
             if '_ggH' in name:
                 log.info("adding {0} TeV ggF weights to {1} ...".format(
                     energy, output))
