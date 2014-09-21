@@ -122,6 +122,7 @@ class Higgs(MC, Signal):
                  mass=None, masses=None,
                  sample_pattern=None, # i.e. PowhegJimmy_AUET2CT10_ggH{0:d}_tautauInclusive
                  ggf_weight=True,
+                 vbf_weight=True,
                  suffix=None,
                  label=None,
                  inclusive_decays=False,
@@ -213,6 +214,8 @@ class Higgs(MC, Signal):
 
         self.ggf_weight = ggf_weight
         self.ggf_weight_field = 'ggf_weight'
+        self.vbf_weight = vbf_weight
+        self.vbf_weight_field = 'vbf_weight'
         super(Higgs, self).__init__(
             year=year, label=label, name=name, **kwargs)
 
@@ -226,9 +229,9 @@ class Higgs(MC, Signal):
     def weight_fields(self):
         fields = super(Higgs, self).weight_fields()
         if self.ggf_weight:
-            return fields + [
-                self.ggf_weight_field,
-            ]
+            fields.append(self.ggf_weight_field)
+        if self.vbf_weight:
+            fields.append(self.vbf_weight_field)
         return fields
 
     def histfactory(self, sample, category, systematics=False):
