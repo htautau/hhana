@@ -152,6 +152,7 @@ def get_category(category_name, categories):
             return category
     return None
 
+
 def get_binning(category, year, fit_var='mmc', clf_bins='optimal'):
     if fit_var == 'mmc':
         binning = category.limitbins
@@ -161,6 +162,7 @@ def get_binning(category, year, fit_var='mmc', clf_bins='optimal'):
         binning[year][-1] = 250
         return binning[year]
     if fit_var == 'bdt':
+        from mva import CACHE_DIR
         binning_cache = os.path.join(
             CACHE_DIR, 'binning/binning_{0}_{1}_{2}.pickle'.format(
                 category.name, 125, year % 1000))
