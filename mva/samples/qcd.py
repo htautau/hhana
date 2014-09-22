@@ -202,6 +202,8 @@ class QCD(Sample, Background):
                     h.systematics[sys_term] = qcd_hist
                 else:
                     h.systematics[sys_term] += qcd_hist
+        # hack: no rec or weights
+        return None, None
 
     def scores(self, clf, category, region,
                cuts=None,
