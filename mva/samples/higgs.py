@@ -16,9 +16,12 @@ import yellowhiggs
 # local imports
 from . import log
 from .. import ETC_DIR, CACHE_DIR, DAT_DIR
+from ..utils import uniform_hist
 from .sample import MC, Signal
 
+
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
+
 
 class Higgs(MC, Signal):
     MASSES = range(100, 155, 5)
@@ -242,7 +245,8 @@ class Higgs(MC, Signal):
         return fields
 
     def histfactory(self, sample, category, systematics=False,
-                    rec=None, weights=None, mva=False):
+                    rec=None, weights=None, mva=False,
+                    uniform=False, nominal=None):
         if not systematics:
             return
         if len(self.modes) != 1:
@@ -377,14 +381,18 @@ class Higgs(MC, Signal):
             weight_up *= weights
             weight_dn *= weights
 
-            nom = sample.hist
-            up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
+            sample_nom = sample.hist
+            up_hist = nominal.clone(shallow=True, name=sample_nom.name + '_QCDscale_ggH3in_UP')
             up_hist.Reset()
-            dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
+            dn_hist = nominal.clone(shallow=True, name=sample_nom.name + '_QCDscale_ggH3in_DOWN')
             dn_hist.Reset()
 
             fill_hist(up_hist, scores, weight_up)
             fill_hist(dn_hist, scores, weight_dn)
+
+            if uniform:
+                up_hist = uniform_hist(up_hist)
+                dn_hist = uniform_hist(dn_hist)
 
             shape = histfactory.HistoSys('QCDscale_ggH3in',
                 low=dn_hist,

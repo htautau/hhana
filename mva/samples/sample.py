@@ -318,7 +318,6 @@ class Sample(object):
         field_samples = {}
         for field, hist in field_hist.items():
             sample = sample_cls(self.name)
-            # copy of unaltered nominal hist required by QCD shape
             nominal_hist = hist.Clone()
             if ravel:
                 # convert to 1D if 2D (also handles systematics if present)
@@ -414,8 +413,11 @@ class Sample(object):
             if hasattr(self, 'histfactory') and not (
                     isinstance(self, Signal) and no_signal_fixes):
                 # perform sample-specific items
-                self.histfactory(sample, category, systematics=do_systematics,
-                                 rec=rec, weights=weights, mva=mva)
+                self.histfactory(sample, category,
+                                 systematics=do_systematics,
+                                 rec=rec, weights=weights,
+                                 mva=mva, uniform=uniform,
+                                 nominal=nominal_hist)
             field_samples[field] = sample
         return field_samples
 
