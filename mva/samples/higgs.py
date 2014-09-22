@@ -295,6 +295,8 @@ class Higgs(MC, Signal):
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(pdf_term, low, high)
 
+        sample_nom = sample.hist
+
         # PDF ACCEPTANCE UNCERTAINTY (HistoSys) ONLY FOR MVA
         if mva:
             for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
@@ -305,9 +307,8 @@ class Higgs(MC, Signal):
                         log.warning("skipping pdf acceptance shape systematic "
                                     "since histograms are not compatible")
                         continue
-                    nom = sample.hist
-                    high = nom.Clone(shallow=True, name=nom.name + '_{0}_UP'.format(pdf_term))
-                    low = nom.Clone(shallow=True, name=nom.name + '_{0}_DOWN'.format(pdf_term))
+                    high = sample_nom.Clone(shallow=True, name=sample_nom.name + '_{0}_UP'.format(pdf_term))
+                    low = sample_nom.Clone(shallow=True, name=sample_nom.name + '_{0}_DOWN'.format(pdf_term))
                     high *= high_shape
                     low *= low_shape
                     histsys = histfactory.HistoSys(
@@ -381,7 +382,6 @@ class Higgs(MC, Signal):
             weight_up *= weights
             weight_dn *= weights
 
-            sample_nom = sample.hist
             up_hist = nominal.clone(shallow=True, name=sample_nom.name + '_QCDscale_ggH3in_UP')
             up_hist.Reset()
             dn_hist = nominal.clone(shallow=True, name=sample_nom.name + '_QCDscale_ggH3in_DOWN')
@@ -397,7 +397,7 @@ class Higgs(MC, Signal):
             shape = histfactory.HistoSys('QCDscale_ggH3in',
                 low=dn_hist,
                 high=up_hist)
-            norm, shape = histfactory.split_norm_shape(shape, nom)
+            norm, shape = histfactory.split_norm_shape(shape, sample_nom)
             sample.AddHistoSys(shape)
 
     def xsec_kfact_effic(self, isample):
