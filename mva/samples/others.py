@@ -28,7 +28,7 @@ class Others(MC, Background):
         self.matched = kwargs.pop('matched', True)
         super(Others, self).__init__(*args, **kwargs)
 
-    def histfactory(self, sample, category, systematics=False):
+    def histfactory(self, sample, category, systematics=False, **kwargs):
         if not systematics:
             return
         # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
