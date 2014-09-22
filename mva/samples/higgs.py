@@ -296,13 +296,16 @@ class Higgs(MC, Signal):
             for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
                 if pdf_mode == _uncert_mode and pdf_category == category.name:
                     high_name, low_name = hist_names.format(energy).split('/')
-                    high, low = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
-                    if len(high) != len(sample.hist):
+                    high_shape, low_shape = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
+                    if len(high_shape) != len(sample.hist):
                         log.warning("skipping pdf acceptance shape systematic "
                                     "since histograms are not compatible")
                         continue
-                    high = high * sample.hist
-                    low = low * sample.hist
+                    nom = sample.hist
+                    high = nom.Clone(shallow=True, name=nom.name + '_{0}_UP'.format(pdf_term))
+                    low = nom.Clone(shallow=True, name=nom.name + '_{0}_DOWN'.format(pdf_term))
+                    high *= high_shape
+                    low *= low_shape
                     histsys = histfactory.HistoSys(
                         pdf_term, low=low, high=high)
                     sample.AddHistoSys(histsys)
