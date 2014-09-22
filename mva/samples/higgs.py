@@ -110,8 +110,8 @@ class Higgs(MC, Signal):
     PDF_ACCEPT_SHAPE_UNCERT = map(lambda token: token.strip().split(), '''\
     pdf_Higgs_qq_ACCEPT  VBF  vbf      h_VBF_vbf_{0}TeV_Up/h_VBF_vbf_{0}TeV_Down
     pdf_Higgs_qq_ACCEPT  VBF  boosted  h_VBF_boosted_{0}TeV_Up/h_VBF_boosted_{0}TeV_Down
-    pdf_Higgs_qq_ACCEPT  ggH  vbf      h_gg_vbf_{0}TeV_Up/h_gg_vbf_{0}TeV_Down
-    pdf_Higgs_qq_ACCEPT  ggH  boosted  h_gg_boosted_{0}TeV_Up/h_gg_boosted_{0}TeV_Down'''.split('\n'))
+    pdf_Higgs_gg_ACCEPT  ggH  vbf      h_gg_vbf_{0}TeV_Up/h_gg_vbf_{0}TeV_Down
+    pdf_Higgs_gg_ACCEPT  ggH  boosted  h_gg_boosted_{0}TeV_Up/h_gg_boosted_{0}TeV_Down'''.split('\n'))
 
     PDF_ACCEPT_file = root_open(
         os.path.join(DAT_DIR, 'ShapeUnc_PDF_hh.root'), 'read')
