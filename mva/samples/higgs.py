@@ -110,19 +110,12 @@ class Higgs(MC, Signal):
     PDF_ACCEPT_SHAPE_UNCERT = map(lambda token: token.strip().split(), '''\
     pdf_Higgs_qq_ACCEPT  VBF  vbf      h_VBF_vbf_{0}TeV_Up/h_VBF_vbf_{0}TeV_Down
     pdf_Higgs_qq_ACCEPT  VBF  boosted  h_VBF_boosted_{0}TeV_Up/h_VBF_boosted_{0}TeV_Down
-    pdf_Higgs_qq_ACCEPT  ggH  vbf      h_gg_vbf_{0}TeV_Up/h_gg_vbf_{0}TeV_Down
-    pdf_Higgs_qq_ACCEPT  ggH  boosted  h_gg_boosted_{0}TeV_Up/h_gg_boosted_{0}TeV_Down'''.split('\n'))
-
-
-    #GEN_QMASS = map(lambda token: token.strip().split(), '''\
-    #Gen_Qmass_ggH    ggH    VBF              1.19/0.81
-    #Gen_Qmass_ggH    ggH    boosted          1.24/0.76
-    #Gen_Qmass_ggH    ggH    rest             1.04/0.96'''.split('\n'))
+    pdf_Higgs_gg_ACCEPT  ggH  vbf      h_gg_vbf_{0}TeV_Up/h_gg_vbf_{0}TeV_Down
+    pdf_Higgs_gg_ACCEPT  ggH  boosted  h_gg_boosted_{0}TeV_Up/h_gg_boosted_{0}TeV_Down'''.split('\n'))
 
     PDF_ACCEPT_file = root_open(
         os.path.join(DAT_DIR, 'ShapeUnc_PDF_hh.root'), 'read')
-    #QCDscale_ggH3in_file = root_open(
-    #    os.path.join(ETC_DIR, 'QCDscale_ggH3in.root'), 'read')
+
     NORM_BY_THEORY = True
 
     def __init__(self, year,
