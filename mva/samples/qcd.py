@@ -379,7 +379,7 @@ class QCD(Sample, Background):
                 suffix=(suffix or '') + '_{0}'.format(model),
                 field_scale=field_scale,
                 weight_hist=weight_hist,
-                weighted=weighted)
+                weighted=weighted)[0]
             model_events[model] = self.events(
                 Category_Preselection, None)[1].value
         # restore previous shape model
