@@ -17,7 +17,7 @@ from .. import DAT_DIR
 class Ztautau(Background):
     NORM_BY_THEORY = False
 
-    def histfactory(self, sample, category, systematics=False):
+    def histfactory(self, sample, category, systematics=False, **kwargs):
         # isolation systematic
         sample.AddOverallSys(
             'ATLAS_ANA_HH_{0:d}_Isolation'.format(self.year),

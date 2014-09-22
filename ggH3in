@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+"""
+Following:
+https://twiki.cern.ch/twiki/pub/AtlasProtected/HSG4UncertaintiesForPaper/Shape3JUnc.C
+"""
+from math import pi, sqrt
+
+from mva.analysis import Analysis
+from mva.samples import Higgs
+from mva.categories import Category_VBF
+from mva.defaults import TARGET_REGION
+from mva.plotting.utils import legend_params, category_lumi_atlas
+from mva import save_canvas
+
+from rootpy.plotting import Hist, Canvas, Legend
+from rootpy.plotting.utils import draw
+from rootpy.io import root_open
+
+from root_numpy import fill_hist
+import numpy as np
+
+
+Rel_Error_2j = 0.215
+Error_exc = 0.08613046469238815 # Abs error on the exclusive xsec
+xsec_exc = 0.114866523583739 # Exclusive Xsec 
+Error_3j = sqrt(Error_exc**2 - (Rel_Error_2j*xsec_exc)**2)
+rel_error = Error_3j / xsec_exc
+
+output = root_open('dat/QCDscale_ggH3in.root', 'RECREATE')
+
+for year in 2011, 2012:
+    ana = Analysis(year=year)
+    clf = ana.get_clf(Category_VBF, load=True)
+    bins = clf.binning(year)
+    for mass in Higgs.MASSES:
+        higgs = Higgs(year=year, mode='gg', mass=mass)
+        rec = higgs.merged_records(Category_VBF, TARGET_REGION)
+        scores, weights = higgs.scores(clf, Category_VBF, TARGET_REGION)['NOMINAL']
+        dphi = rec['true_dphi_jj_higgs_no_overlap']
+       
+        idx_2j = ((pi - dphi) < 0.2) & (dphi >= 0)
+        idx_3j = ((pi - dphi) >= 0.2) & (dphi >= 0)
+
+        # get normalization factor
+        dphi_2j = weights[idx_2j].sum()
+        dphi_3j = weights[idx_3j].sum()
+
+        weight_up = np.ones(len(weights))
+        weight_dn = np.ones(len(weights))
+        
+        weight_up[idx_2j] -= (dphi_3j / dphi_2j) * rel_error
+        weight_dn[idx_2j] += (dphi_3j / dphi_2j) * rel_error
+
+        weight_up[idx_3j] += rel_error
+        weight_dn[idx_3j] -= rel_error
+
+        weight_up *= weights
+        weight_dn *= weights
+
+        hist_nom = Hist(bins, drawstyle='hist', color='red', linewidth=2,
+                        legendstyle='L', title='Nominal m_{{H}} = {0} GeV'.format(mass))
+        hist_up = hist_nom.Clone(linestyle='dashed', title='+1#sigma QCDscale_ggH3in')
+        hist_dn = hist_nom.Clone(linestyle='dotted', title='-1#sigma QCDscale_ggH3in')
+
+        fill_hist(hist_nom, scores, weights)
+        fill_hist(hist_up, scores, weight_up)
+        fill_hist(hist_dn, scores, weight_dn)
+
+        canvas = Canvas()
+        draw([hist_nom, hist_up, hist_dn], pad=canvas, xtitle='BDT score', ytitle='Events',
+             xdivisions=507, ypadding=(0.35, 0)) 
+        leg = Legend([hist_nom, hist_up, hist_dn], pad=canvas, **legend_params('left', 22))
+        leg.Draw()
+        category_lumi_atlas(canvas, data_info=str(ana.data.info), category_label=Category_VBF.label)
+        save_canvas(canvas, 'plots/ggH3in', 'ggH3in_{0}_{1}'.format(mass, year % 1000), ('eps', 'png'))

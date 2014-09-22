@@ -1,9 +1,14 @@
 # stdlib imports
 import os
 import pickle
+from math import pi, sqrt
+
+import numpy as np
+
 # rootpy imports
 from rootpy.io import root_open
 from rootpy.stats import histfactory
+from root_numpy import fill_hist
 
 # Higgs cross sections and branching ratios
 import yellowhiggs
@@ -216,6 +221,8 @@ class Higgs(MC, Signal):
         self.ggf_weight_field = 'ggf_weight'
         self.vbf_weight = vbf_weight
         self.vbf_weight_field = 'vbf_weight'
+        # use separate signal files by default
+        kwargs.setdefault('student', 'hhskim_signal')
         super(Higgs, self).__init__(
             year=year, label=label, name=name, **kwargs)
 
@@ -234,7 +241,8 @@ class Higgs(MC, Signal):
             fields.append(self.vbf_weight_field)
         return fields
 
-    def histfactory(self, sample, category, systematics=False):
+    def histfactory(self, sample, category, systematics=False,
+                    rec=None, weights=None, mva=False):
         if not systematics:
             return
         if len(self.modes) != 1:
@@ -257,6 +265,14 @@ class Higgs(MC, Signal):
         else:
             _uncert_mode = self.MODES_WORKSPACE[mode]
 
+        if self.year == 2011:
+            energy = 7
+        elif self.year == 2012:
+            energy = 8
+        else:
+            raise ValueError(
+                "collision energy is unknown for year {0:d}".format(self.year))
+
         # QCD_SCALE
         for qcd_scale_term, qcd_scale_mode, qcd_scale_category, values in self.QCD_SCALE:
             if qcd_scale_mode == _uncert_mode and qcd_scale_category == category.name:
@@ -275,30 +291,21 @@ class Higgs(MC, Signal):
                 high, low = map(float, values.split('/'))
                 sample.AddOverallSys(pdf_term, low, high)
 
-        if self.year == 2011:
-            energy = 7
-        elif self.year == 2012:
-            energy = 8
-        else:
-            raise ValueError(
-                "collision energy is unknown for year {0:d}".format(self.year))
-
-        # PDF ACCEPTANCE UNCERTAINTY (HistoSys)
-        for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
-            if pdf_mode == _uncert_mode and pdf_category == category.name:
-                high_name, low_name = hist_names.format(energy).split('/')
-                high, low = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
-                high = high*sample.hist
-                low = low*sample.hist
-                histsys = histfactory.HistoSys(
-                    pdf_term, low=low, high=high)
-                sample.AddHistoSys(histsys)
-
-        # GEN_QMASS
-        #for qmass_term, qmass_mode, qmass_category, values in self.GEN_QMASS:
-        #    if qmass_mode == _qcd_scale_mode and qmass_category.lower() in category.name.lower():
-        #        high, low = map(float, values.split('/'))
-        #        sample.AddOverallSys(qmass_term, low, high)
+        # PDF ACCEPTANCE UNCERTAINTY (HistoSys) ONLY FOR MVA
+        if mva:
+            for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
+                if pdf_mode == _uncert_mode and pdf_category == category.name:
+                    high_name, low_name = hist_names.format(energy).split('/')
+                    high, low = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
+                    if len(high) != len(sample.hist):
+                        log.warning("skipping pdf acceptance shape systematic "
+                                    "since histograms are not compatible")
+                        continue
+                    high = high * sample.hist
+                    low = low * sample.hist
+                    histsys = histfactory.HistoSys(
+                        pdf_term, low=low, high=high)
+                    sample.AddHistoSys(histsys)
 
         # BR_tautau
         _, (br_up, br_down) = yellowhiggs.br(
@@ -332,24 +339,55 @@ class Higgs(MC, Signal):
             else: # 7 TeV
                 sample.AddOverallSys('pdf_Higgs_qq', 0.98, 1.03)
 
-        #EWK NLO CORRECTION FOR VBF ONLY
+        # EWK NLO CORRECTION FOR VBF ONLY
         if mode == 'VBF':
             sample.AddOverallSys('NLO_EW_Higgs', 0.98, 1.02)
 
-        # QCDscale_ggH3in MVA only UPDATE THIS!!!
-        #if mode == 'gg' and category.name == 'vbf':
-        #    up = self.QCDscale_ggH3in_file.up_fit
-        #    dn = self.QCDscale_ggH3in_file.dn_fit
-        #    nom = sample.hist
-        #    up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
-        #    dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
-        #    up_hist *= up
-        #    dn_hist *= dn
-        #    shape = histfactory.HistoSys('QCDscale_ggH3in',
-        #        low=dn_hist,
-        #        high=up_hist)
-        #    norm, shape = histfactory.split_norm_shape(shape, nom)
-        #    sample.AddHistoSys(shape)
+        # QCDscale_ggH3in HistoSys ONLY FOR MVA
+        # also see ggH3in script
+        if mva and mode == 'gg' and category.name == 'vbf':
+            Rel_Error_2j = 0.215
+            Error_exc = 0.08613046469238815 # Abs error on the exclusive xsec
+            xsec_exc = 0.114866523583739 # Exclusive Xsec
+            Error_3j = sqrt(Error_exc**2 - (Rel_Error_2j*xsec_exc)**2)
+            rel_error = Error_3j / xsec_exc
+
+            dphi = rec['true_dphi_jj_higgs_no_overlap']
+            scores = rec['classifier']
+
+            idx_2j = ((pi - dphi) < 0.2) & (dphi >= 0)
+            idx_3j = ((pi - dphi) >= 0.2) & (dphi >= 0)
+
+            # get normalization factor
+            dphi_2j = weights[idx_2j].sum()
+            dphi_3j = weights[idx_3j].sum()
+
+            weight_up = np.ones(len(weights))
+            weight_dn = np.ones(len(weights))
+
+            weight_up[idx_2j] -= (dphi_3j / dphi_2j) * rel_error
+            weight_dn[idx_2j] += (dphi_3j / dphi_2j) * rel_error
+
+            weight_up[idx_3j] += rel_error
+            weight_dn[idx_3j] -= rel_error
+
+            weight_up *= weights
+            weight_dn *= weights
+
+            nom = sample.hist
+            up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
+            up_hist.Reset()
+            dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
+            dn_hist.Reset()
+
+            fill_hist(up_hist, scores, weight_up)
+            fill_hist(dn_hist, scores, weight_dn)
+
+            shape = histfactory.HistoSys('QCDscale_ggH3in',
+                low=dn_hist,
+                high=up_hist)
+            norm, shape = histfactory.split_norm_shape(shape, nom)
+            sample.AddHistoSys(shape)
 
     def xsec_kfact_effic(self, isample):
         # use yellowhiggs for cross sections

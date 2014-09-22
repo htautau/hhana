@@ -237,20 +237,21 @@ class Sample(object):
                              max_score=max_score,
                              inplace=True)
             return field_hist
-        self.draw_array(field_hist, category, region,
-                        cuts=cuts,
-                        weighted=weighted,
-                        field_scale=field_scale,
-                        weight_hist=weight_hist,
-                        clf=clf,
-                        scores=scores,
-                        min_score=min_score,
-                        max_score=max_score,
-                        systematics=do_systematics,
-                        systematics_components=systematics_components,
-                        bootstrap_data=bootstrap_data)
+        rec, weights = self.draw_array(
+            field_hist, category, region,
+            cuts=cuts,
+            weighted=weighted,
+            field_scale=field_scale,
+            weight_hist=weight_hist,
+            clf=clf,
+            scores=scores,
+            min_score=min_score,
+            max_score=max_score,
+            systematics=do_systematics,
+            systematics_components=systematics_components,
+            bootstrap_data=bootstrap_data)
 
-        return field_hist
+        return field_hist, rec, weights
 
     def get_histfactory_sample(self, hist_template, expr_or_clf,
                                category, region, **kwargs):
@@ -274,13 +275,14 @@ class Sample(object):
                                      no_signal_fixes=False,
                                      bootstrap_data=False,
                                      ravel=True,
-                                     uniform=False):
+                                     uniform=False,
+                                     mva=False):
 
         from .data import Data
         from .qcd import QCD
         from .others import Others
         log.info("creating histfactory samples for {0}".format(self.name))
-        field_hist = self.get_hist_array(
+        field_hist, rec, weights = self.get_hist_array(
             field_hist_template,
             category, region,
             cuts=cuts,
@@ -412,7 +414,8 @@ class Sample(object):
             if hasattr(self, 'histfactory') and not (
                     isinstance(self, Signal) and no_signal_fixes):
                 # perform sample-specific items
-                self.histfactory(sample, category, systematics=do_systematics)
+                self.histfactory(sample, category, systematics=do_systematics,
+                                 rec=rec, weights=weights, mva=mva)
             field_samples[field] = sample
         return field_samples
 
@@ -571,6 +574,10 @@ class Sample(object):
                 classifiers.append(f)
             elif f is not None:
                 all_fields.extend(list(f))
+        # hack
+        if isinstance(self, Signal) and len(self.modes) == 1 and self.modes[0] == 'gg':
+            # for ggH3in systematic
+            all_fields.append('true_dphi_jj_higgs_no_overlap')
         if len(classifiers) > 1:
             raise RuntimeError(
                 "more than one classifier in fields is not supported")
@@ -727,6 +734,13 @@ class Sample(object):
                 else:
                     hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
 
+        if scores is not None and 'classifier' not in rec.dtype.names:
+            rec = recfunctions.rec_append_fields(rec,
+                names='classifier',
+                data=scores,
+                dtypes='f4')
+        return rec, weights
+
     def events(self, category=None, region=None,
                cuts=None, systematic='NOMINAL', hist=None,
                weighted=True, scale=1.):
@@ -794,9 +808,6 @@ class Sample(object):
                 % (tree.GetName(), selection))
             tree.Draw('1', selection, hist=hist)
         return hist
-
-
-
 
 
 class Signal(object):
@@ -1022,7 +1033,7 @@ class SystematicsSample(Sample):
                 systematics=systematics,
                 systematics_components=systematics_components)
 
-        self.draw_array_helper(field_hist, category, region,
+        rec, weights = self.draw_array_helper(field_hist, category, region,
             cuts=cuts,
             weighted=weighted,
             field_scale=field_scale,
@@ -1035,7 +1046,7 @@ class SystematicsSample(Sample):
             scale=scale)
 
         if not do_systematics:
-            return
+            return rec, weights
 
         all_sys_hists = {}
 
@@ -1070,6 +1081,8 @@ class SystematicsSample(Sample):
                 max_score=max_score,
                 systematic=systematic,
                 scale=scale)
+
+        return rec, weights
 
     def scores(self, clf, category, region,
                cuts=None, scores_dict=None,
