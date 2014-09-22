@@ -16,9 +16,12 @@ import yellowhiggs
 # local imports
 from . import log
 from .. import ETC_DIR, CACHE_DIR, DAT_DIR
+from ..utils import uniform_hist
 from .sample import MC, Signal
 
+
 TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
+
 
 class Higgs(MC, Signal):
     MASSES = range(100, 155, 5)
@@ -242,7 +245,8 @@ class Higgs(MC, Signal):
         return fields
 
     def histfactory(self, sample, category, systematics=False,
-                    rec=None, weights=None, mva=False):
+                    rec=None, weights=None, mva=False,
+                    uniform=False, nominal=None):
         if not systematics:
             return
         if len(self.modes) != 1:
@@ -296,13 +300,16 @@ class Higgs(MC, Signal):
             for pdf_term, pdf_mode, pdf_category, hist_names in self.PDF_ACCEPT_SHAPE_UNCERT:
                 if pdf_mode == _uncert_mode and pdf_category == category.name:
                     high_name, low_name = hist_names.format(energy).split('/')
-                    high, low = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
-                    if len(high) != len(sample.hist):
+                    high_shape, low_shape = self.PDF_ACCEPT_file[high_name], self.PDF_ACCEPT_file[low_name]
+                    if len(high_shape) != len(sample.hist):
                         log.warning("skipping pdf acceptance shape systematic "
                                     "since histograms are not compatible")
                         continue
-                    high = high * sample.hist
-                    low = low * sample.hist
+                    nom = sample.hist
+                    high = nom.Clone(shallow=True, name=nom.name + '_{0}_UP'.format(pdf_term))
+                    low = nom.Clone(shallow=True, name=nom.name + '_{0}_DOWN'.format(pdf_term))
+                    high *= high_shape
+                    low *= low_shape
                     histsys = histfactory.HistoSys(
                         pdf_term, low=low, high=high)
                     sample.AddHistoSys(histsys)
@@ -374,14 +381,18 @@ class Higgs(MC, Signal):
             weight_up *= weights
             weight_dn *= weights
 
-            nom = sample.hist
-            up_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_UP')
+            sample_nom = sample.hist
+            up_hist = nominal.clone(shallow=True, name=sample_nom.name + '_QCDscale_ggH3in_UP')
             up_hist.Reset()
-            dn_hist = nom.clone(shallow=True, name=nom.name + '_QCDscale_ggH3in_DOWN')
+            dn_hist = nominal.clone(shallow=True, name=sample_nom.name + '_QCDscale_ggH3in_DOWN')
             dn_hist.Reset()
 
             fill_hist(up_hist, scores, weight_up)
             fill_hist(dn_hist, scores, weight_dn)
+
+            if uniform:
+                up_hist = uniform_hist(up_hist)
+                dn_hist = uniform_hist(dn_hist)
 
             shape = histfactory.HistoSys('QCDscale_ggH3in',
                 low=dn_hist,
