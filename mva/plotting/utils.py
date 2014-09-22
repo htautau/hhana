@@ -18,31 +18,9 @@ def set_colors(hists, colors='jet'):
             h.SetColor(color)
 
 
-def label_plot(pad, template, xaxis, yaxis,
-               ylabel='Events', xlabel=None,
-               units=None, data_info=None,
-               category_label=None,
-               atlas_label=None,
-               extra_label=None,
-               extra_label_position='left',
-               textsize=22):
-
-    # set the axis labels
-    binw = list(template.xwidth())
-    binwidths = list(set(['%.2g' % w for w in binw]))
-    if units is not None:
-        if xlabel is not None:
-            xlabel = '%s [%s]' % (xlabel, units)
-        if ylabel and len(binwidths) == 1 and binwidths[0] != '1':
-            # constant width bins
-            ylabel = '%s / %s %s' % (ylabel, binwidths[0], units)
-    elif ylabel and len(binwidths) == 1 and binwidths[0] != '1':
-        ylabel = '%s / %s' % (ylabel, binwidths[0])
-
-    if ylabel:
-        yaxis.SetTitle(ylabel)
-    if xlabel:
-        xaxis.SetTitle(xlabel)
+def category_lumi_atlas(pad, category_label=None,
+                        data_info=None, atlas_label=None,
+                        textsize=22):
 
     left, right, bottom, top = pad.margin_pixels
     height = float(pad.height_pixels)
@@ -83,6 +61,40 @@ def label_plot(pad, template, xaxis, yaxis,
                     sep=0.132, pad=pad, sqrts=None,
                     text=label,
                     textsize=textsize)
+    pad.Update()
+    pad.Modified()
+
+
+def label_plot(pad, template, xaxis, yaxis,
+               ylabel='Events', xlabel=None,
+               units=None, data_info=None,
+               category_label=None,
+               atlas_label=None,
+               extra_label=None,
+               extra_label_position='left',
+               textsize=22):
+
+    # set the axis labels
+    binw = list(template.xwidth())
+    binwidths = list(set(['%.2g' % w for w in binw]))
+    if units is not None:
+        if xlabel is not None:
+            xlabel = '%s [%s]' % (xlabel, units)
+        if ylabel and len(binwidths) == 1 and binwidths[0] != '1':
+            # constant width bins
+            ylabel = '%s / %s %s' % (ylabel, binwidths[0], units)
+    elif ylabel and len(binwidths) == 1 and binwidths[0] != '1':
+        ylabel = '%s / %s' % (ylabel, binwidths[0])
+
+    if ylabel:
+        yaxis.SetTitle(ylabel)
+    if xlabel:
+        xaxis.SetTitle(xlabel)
+
+    left, right, bottom, top = pad.margin_pixels
+    height = float(pad.height_pixels)
+
+    category_lumi_atlas(pad, category_label, data_info, atlas_label)
 
     # draw the extra label
     if extra_label is not None:

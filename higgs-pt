@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 """
+References
+----------
 https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HiggsCrossSection
 https://dgillber.web.cern.ch/dgillber/Higgs_pT_reweigh/
 https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HiggsPTReWeighting
+https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HSG4UncertaintiesForPaper
 """
 import sys
 import os
 import shutil
 from rootpy.io import root_open
 from rootpy.tree import TreeModel, FloatCol
+from rootpy.plotting import Hist
 import numpy as np
 from root_numpy import array2tree
 import logging
@@ -20,6 +24,7 @@ log = logging.getLogger('higgs-pt')
 HERE = os.path.dirname(os.path.abspath(__file__))
 data = os.path.join(HERE, 'dat/HRes_HpT_weights.root')
 uncert_data = os.path.join(HERE, 'dat/HRes_HpT_uncert.root')
+vbf_data = os.path.join(HERE, 'dat/HAWK_Over_Pythia_Rebin.root')
 
 WEIGHT = {}
 with root_open(data) as dat:
@@ -33,6 +38,59 @@ with root_open(data) as dat:
 with root_open(uncert_data) as dat:
     UNCERT = dat.HRes_upper_envelope
     UNCERT.SetDirectory(0)
+
+with root_open(vbf_data) as dat:
+    # make histogram extrapolation-safe
+    VBF_WEIGHT = Hist(dat.h1_histo_ratio_rebin[:18])
+    VBF_WEIGHT.SetDirectory(0)
+
+
+class Model(TreeModel):
+    ggf_weight = FloatCol()
+    ggf_weight_high = FloatCol()
+    ggf_weight_low = FloatCol()
+    vbf_weight = FloatCol()
+    # flat 2% uncertainty on the VBF weight added directly in workspaces
+
+
+def add_ggf_weights(tree, energy):
+    tree.create_buffer()
+    tree.set_buffer(Model(), create_branches=True)
+    branches = [tree.GetBranch(b) for b in [
+        'ggf_weight', 'ggf_weight_high', 'ggf_weight_low', 'vbf_weight']]
+    weights_01, weights_2 = WEIGHT[energy]
+    for event in tree:
+        # MeV -> GeV
+        pt = tree.true_resonance_pt / 1E3
+        if tree.num_true_jets_no_overlap < 2:
+            weight = weights_01.Interpolate(pt)
+        else:
+            weight = weights_2.Interpolate(pt)
+        uncert = UNCERT.Interpolate(pt)
+        tree.ggf_weight = weight
+        tree.ggf_weight_high = weight * uncert
+        tree.ggf_weight_low = weight * (2 - uncert)
+        tree.vbf_weight = 1.
+        for branch in branches:
+            branch.Fill()
+    tree.SetEntries(-1)
+
+
+def add_vbf_weights(tree):
+    tree.create_buffer()
+    tree.set_buffer(Model(), create_branches=True)
+    branches = [tree.GetBranch(b) for b in [
+        'ggf_weight', 'ggf_weight_high', 'ggf_weight_low', 'vbf_weight']]
+    for event in tree:
+        # MeV -> GeV
+        pt = tree.true_resonance_pt / 1E3
+        tree.ggf_weight = 1.
+        tree.ggf_weight_high = 1.
+        tree.ggf_weight_low = 1.
+        tree.vbf_weight = VBF_WEIGHT.Interpolate(pt)
+        for branch in branches:
+            branch.Fill()
+    tree.SetEntries(-1)
 
 
 class Job(Process):
@@ -52,47 +110,27 @@ class Job(Process):
         energy = 8 if 'mc12' in name else 7
         with root_open(output, 'UPDATE') as file:
             tree = file.tau
+            if 'vbf_weight' in tree:
+                log.info("weights already exist in {0} ...".format(output))
+                return
             if '_ggH' in name:
-                log.info("adding {0} TeV weights to {1} ...".format(
+                log.info("adding {0} TeV ggF weights to {1} ...".format(
                     energy, output))
-                add_weights(tree, energy)
+                add_ggf_weights(tree, energy)
+            elif '_VBFH' in name:
+                # same weights for 7 and 8 TeV 
+                log.info("adding VBF weights to {0} ...".format(output))
+                add_vbf_weights(tree)
             else:
                 log.info("adding unit weights to {0} ...".format(output))
                 array = np.array(np.ones(len(tree)), 
                                  dtype=np.dtype([
                                      ('ggf_weight', 'float32'),
                                      ('ggf_weight_high', 'float32'),
-                                     ('ggf_weight_low', 'float32')]))
+                                     ('ggf_weight_low', 'float32'),
+                                     ('vbf_weight', 'float32')]))
                 array2tree(array, tree=tree)
             tree.Write(tree.name, ROOT.TObject.kOverwrite)
-
-
-def add_weights(tree, energy):
-    tree.create_buffer()
-
-    class Model(TreeModel):
-        ggf_weight = FloatCol()
-        ggf_weight_high = FloatCol()
-        ggf_weight_low = FloatCol()
-
-    tree.set_buffer(Model(), create_branches=True)
-    branches = [tree.GetBranch(b) for b in [
-        'ggf_weight', 'ggf_weight_high', 'ggf_weight_low']]
-    weights_01, weights_2 = WEIGHT[energy]
-    for event in tree:
-        # MeV -> GeV
-        pt = tree.true_resonance_pt / 1E3
-        if tree.num_true_jets_no_overlap < 2:
-            weight = weights_01.Interpolate(pt)
-        else:
-            weight = weights_2.Interpolate(pt)
-        uncert = UNCERT.Interpolate(pt)
-        tree.ggf_weight = weight
-        tree.ggf_weight_high = weight * uncert
-        tree.ggf_weight_low = weight * (2 - uncert)
-        for branch in branches:
-            branch.Fill()
-    tree.SetEntries(-1)
 
 
 if __name__ == '__main__':

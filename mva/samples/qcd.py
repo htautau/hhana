@@ -21,7 +21,7 @@ class QCD(Sample, Background):
     def systematics_components(self):
         return []
 
-    def histfactory(self, sample, category, systematics=True):
+    def histfactory(self, sample, category, systematics=True, **kwargs):
         if self.workspace_norm is False:
             return
         if self.workspace_norm is not None:

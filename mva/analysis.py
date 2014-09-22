@@ -536,7 +536,8 @@ class Analysis(object):
                      unblind=False,
                      hybrid_data=False,
                      no_signal_fixes=False,
-                     uniform=False):
+                     uniform=False,
+                     mva=False):
         """
         Return a HistFactory Channel for each mass hypothesis
         """
@@ -576,7 +577,8 @@ class Analysis(object):
                 category, region,
                 cuts=cuts, scores=scores,
                 systematics=systematics,
-                uniform=uniform)
+                uniform=uniform,
+                mva=mva)
             bkg_samples.append(sample)
 
         data_sample = None
@@ -615,7 +617,8 @@ class Analysis(object):
                 cuts=cuts, scores=scores,
                 no_signal_fixes=no_signal_fixes,
                 systematics=systematics,
-                uniform=uniform)
+                uniform=uniform,
+                mva=mva)
             sig_samples.append(sample)
 
         # replace data in blind bins with signal + background

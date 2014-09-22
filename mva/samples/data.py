@@ -82,7 +82,7 @@ class Data(Sample):
         if isinstance(scores, tuple):
             # ignore weights
             scores = scores[0]
-        self.draw_array_helper(field_hist, category, region,
+        return self.draw_array_helper(field_hist, category, region,
             cuts=cuts,
             weighted=weighted,
             field_scale=field_scale,

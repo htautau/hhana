@@ -186,7 +186,7 @@ def mva_workspace(analysis, categories, masses,
                 cuts=cuts,
                 unblind=unblind or 2,
                 hybrid_data=not unblind,
-                uniform=True)
+                uniform=True, mva=True)
             if mass not in mass_category_channel:
                 mass_category_channel[mass] = {}
             mass_category_channel[mass][category.name] = channel
