@@ -24,10 +24,12 @@ lines = ['dashed', 'solid', 'dotted', 'dashdot', 'longdash', 'verylongdash']
 
 
 def get_sigs(path, category, year=None, meas=True, blind=True, profile='0'):
+    log.info(category)
+    log.info(year)
     if year is None:
         dir_pattern = 'hh_{0}_{{0}}'.format(category)
     else:
-        dir_pattern = 'hh_{0}_{1}_{{0}}'.format(year % 1000, category)
+        dir_pattern = 'hh_{0}_{1}_{{0}}'.format(year, category)
     sigs = []
     for mass in masses:
         dirname = dir_pattern.format(mass)
@@ -70,14 +72,14 @@ if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--unblind', action='store_true', default=False)
-    parser.add_argument('--year', default=12, choices=['11', '12'])
-    parser.add_argument('--categories', default='mva', choices=['mva', 'cuts'])
+    parser.add_argument('--year', default=12, choices=[11, 12], type=int)
+    parser.add_argument('--categories', default='cuts', choices=['mva', 'cuts'])
     parser.add_argument('--category-break-plot', action='store_true', default=False)
     args = parser.parse_args()
 
     # This part need to be updated manually - TODO: implement automatisation
     #path = 'workspaces/14_08_2014/hh_nos_nonisol_ebz_cuts_fixed/'
-    path = 'workspaces/hh_nos_nonisol_ebz_cuts_fixed/'
+    path = 'workspaces/paper_first_draft/hh_nos_nonisol_ebz_cuts_fixed/'
     categories = CATEGORIES['cuts']
 
     cat_names = []
@@ -92,6 +94,10 @@ if __name__ == '__main__':
     log.info(cat_names)
     pvalues_dict = {}
     for cat_name in cat_names:
+        if cat_name=='cuts_vbf':
+            continue
+        elif cat_name=='cuts_boosted':
+            continue
         exp = get_sigs(
             path, cat_name, year=args.year, 
             meas=True, blind=True)
@@ -107,7 +113,7 @@ if __name__ == '__main__':
         if isinstance(category, CategoryMeta):
             plot(category.name, category.label, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
             pvalues_dict[category.name] = {'exp':pvals_exp, 'obs':pvals_obs}
-        else:
+        elif cat_name == 'combination':
             plot(cat_name, cat_name, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
             pvalues_dict[cat_name] = {'exp':pvals_exp, 'obs':pvals_obs}
 
