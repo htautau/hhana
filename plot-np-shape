@@ -121,11 +121,7 @@ def draw_ratio(nom, sys_var,
 
     with plot.pad('main') as pad:
         # legend
-<<<<<<< HEAD
         leg = Legend([nom, up, do], 0, 0.19,
-=======
-        leg = Legend([nom, up, do],
->>>>>>> 3916691962e4db4936ae7ffdda3101d4979ef4c7
                      entrysep=0.01, entryheight=0.05,
                      margin=0.35, textsize=textsize)
         leg.Draw()
