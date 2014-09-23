@@ -44,12 +44,18 @@ if __name__ == '__main__':
     if 'scans_fit' in args.actions:
         setup = cluster.get_setup(os.path.join(os.path.dirname(cluster.__file__),
                                                'setup.noel.sfu.txt'))
+        log_path = os.getenv('PBS_LOG', None)
         for par in nuispar_list:
             cmd_args = ['npscan', '%s'%args.file, '--nuis %s'%par, '--name %s'%args.name, '--jobs %d'%args.jobs]
             cmd = ' '.join(cmd_args)
             name = cmd.replace(" ", "_")
             cmd = "cd %s && %s && %s" % (os.getcwd(), setup, cmd)
-            qsub(cmd, name=name, ppn=args.jobs, dry_run=not args.submit)
+            qsub(cmd,
+                 name=name, 
+                 ppn=args.jobs, 
+                 stdout_path=log_path,
+                 stderr_path=log_path,
+                 dry_run=not args.submit)
 
     # ------------------------------------
     if 'merge' in args.actions:
