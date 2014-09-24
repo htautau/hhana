@@ -2,20 +2,18 @@
 
 from mva.cutflow import get_parser, make_cutflow
 
-
 parser = get_parser()
 args = parser.parse_args()
 
 from higgstautau import samples as samples_db
 
 samples = []
-
 for background, info in samples_db.BACKGROUNDS['hadhad'][args.year % 1e3].items():
     for sample in info['samples']:
-        print sample
-        sample_info = samples_db.SAMPLES[sample]
-        latex = sample_info['latex']
-        name = sample_info['name']
+        latex = info['latex']
+        name = info['name']
         samples.append((latex, name, sample))
-        
 make_cutflow(samples, args)
+
+
+
