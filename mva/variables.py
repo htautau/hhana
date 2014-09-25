@@ -263,7 +263,7 @@ VARIABLES = {
         'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
         'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
         'filename': 'tau_pt_ratio',
-        'binning': (20, 0, 5),
+        'binning': (16, 1, 5),
     },
     'tau1_pt': {
         'title': r'$\tau_{1} p_{T}$',
@@ -538,8 +538,8 @@ VARIABLES = {
         'filename': 'dEta_jets',
         'cuts': 'dEta_jets > 0', # ignore default value in plot
         'binning': {
-            'VBF': (15, 0, 7.5),
-            None: (15, 0, 7.5)},
+            'VBF': (10, 2, 7),
+            None: (14, 0, 7)},
         'cats': ['2J', 'VBF', 'PRESELECTION']
     },
     'eta_product_jets': {

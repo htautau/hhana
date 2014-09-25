@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-Create rootfile for variable to be put in the
-HSG4 Run2 Paper
+Save plot histograms in a ROOT file for the HSG4 Run 1 paper.
+The files produced by this script are inputs to the scripts here:
+svn+ssh://svn.cern.ch/reps/atlasphys/Physics/Higgs/HSG4/FullDataset_7and8TeV_tautau/plotting_macros_paper
 """
 # python imports
 import logging
@@ -103,7 +104,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
                     sample.name, sys_name, osys.high, osys.low))
             nominal_hist.systematics = _systematics
             model_hists.append(nominal_hist)
-        total_model , high, low = uncertainty_band(model_hists, systematics_terms)
+        total_model, high, low = uncertainty_band(model_hists, systematics_terms)
         total_model.name = 'TotalError'
         total_model.title = title
 
