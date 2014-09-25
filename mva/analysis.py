@@ -530,6 +530,7 @@ class Analysis(object):
                      category, region,
                      cuts=None,
                      bins=10,
+                     limits=None,
                      mass=None,
                      mode=None,
                      systematics=True,
@@ -557,7 +558,11 @@ class Analysis(object):
         max_score = scores_obj.max_score
 
         if isinstance(bins, int):
-            binning = Hist(bins, min_score, max_score, type='D')
+            if limits is not None:
+                low, high = limits
+                binning = Hist(bins, low, high, type='D')
+            else:
+                binning = Hist(bins, min_score, max_score, type='D')
         else: # iterable
             if bins[0] > min_score:
                 log.warning("min score is less than first edge "

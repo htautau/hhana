@@ -3,6 +3,7 @@
 from rootpy.extern.argparse import ArgumentParser
 
 parser = ArgumentParser()
+parser.add_argument('--name', default='combined')
 parser.add_argument('--refit', action='store_true', default=False)
 parser.add_argument('--injection', type=float, default=1.)
 parser.add_argument('--injection-test', action='store_true', default=False)
@@ -32,7 +33,7 @@ profiles = (False, 0, 1, 'hat')
 kwargs = []
 for profile in profiles:
     kwargs.extend(
-        [dict(file=file, workspace_name='combined',
+        [dict(file=file, workspace_name=args.name,
               profile=profile, 
               injection=args.injection,
               injection_test=args.injection_test,
@@ -40,7 +41,7 @@ for profile in profiles:
             for file in files])
 if args.unblind:
     kwargs.extend(
-        [dict(file=file, workspace_name='combined',
+        [dict(file=file, workspace_name=args.name,
               observed=True, refit=args.refit)
             for file in files])
 

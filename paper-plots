@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-Create rootfile for variable to be put in the
-HSG4 Run2 Paper
+Save plot histograms in a ROOT file for the HSG4 Run 1 paper.
+The files produced by this script are inputs to the scripts here:
+svn+ssh://svn.cern.ch/reps/atlasphys/Physics/Higgs/HSG4/FullDataset_7and8TeV_tautau/plotting_macros_paper
 """
 # python imports
 import logging
@@ -13,6 +14,7 @@ from rootpy.io import root_open
 from rootpy.tree import Cut
 import rootpy.plotting.utils as rootpy_utils
 from rootpy.stats.histfactory import split_norm_shape
+from rootpy.utils.path import mkdir_p
 
 # local imports
 from mva.cmd import get_parser
@@ -25,6 +27,9 @@ from mva import log
 
 args = get_parser(actions=False).parse_args()
 year = args.year
+
+# output directory
+mkdir_p('plots_for_paper')
 
 SYSTEMATICS = get_systematics(year)
 args.systematics_components = parse_systematics(args.systematics_components)
@@ -68,6 +73,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     if not is_control:
         _, clf_channel = analysis.clf_channels(
             clf, category, target_region, cuts=control_region, 
+            bins=10, limits=(-1, 1),
             mass=125, mode='workspace', systematics=args.systematics,
             unblind=True, no_signal_fixes=True)
         log.info(clf_channel)
@@ -103,7 +109,7 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
                     sample.name, sys_name, osys.high, osys.low))
             nominal_hist.systematics = _systematics
             model_hists.append(nominal_hist)
-        total_model , high, low = uncertainty_band(model_hists, systematics_terms)
+        total_model, high, low = uncertainty_band(model_hists, systematics_terms)
         total_model.name = 'TotalError'
         total_model.title = title
 
@@ -111,8 +117,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
                                            total_model+high, middle_hist=total_model) 
         for i in total_model.bins_range(overflow=True):
             total_model.error = max(error_band.yerr(i))
-        with root_open('{0}.root'.format(channel.name), 'recreate') as fout:
-            log.info('Store histograms from {0}'.format(channel.name))
+        with root_open('plots_for_paper/{0}.root'.format(channel.name), 'recreate') as fout:
+            log.info('saving {0} histograms'.format(channel.name))
             data_hist.Write()
             for hist in model_hists:
                 hist.Write()
