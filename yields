@@ -2,7 +2,8 @@
 
 from mva.analysis import Analysis
 from mva.categories import Category_Preselection, Category_Rest, Category_Boosted, Category_VBF
-from mva.samples import Higgs
+from mva.samples import Higgs, Others
+from mva.samples.others import Top, Diboson, EWK
 from tabulate import tabulate
 
 categories = (
@@ -15,8 +16,12 @@ for year in (2011, 2012):
     ana = Analysis(year=year)
     ana.normalize(Category_Preselection)
     higgs = Higgs(year=year, mass=125)
+    top = Top(year=year)
+    diboson = Diboson(year=year)
+    ewk = EWK(year=year)
     table = []
-    for sample in (ana.ztautau, ana.qcd, higgs):
+    for sample in (ana.ztautau, ana.qcd, ana.others,
+                   top, diboson, ewk, higgs):
         row = [sample.name]
         for category in categories:
             events = sample.events(category, ana.target_region)
