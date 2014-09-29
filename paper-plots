@@ -18,7 +18,7 @@ from rootpy.utils.path import mkdir_p
 
 # local imports
 from mva.cmd import get_parser
-from mva.plotting.draw import uncertainty_band
+from mva.plotting import uncertainty_band
 from mva.systematics import get_systematics, parse_systematics
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, get_label
