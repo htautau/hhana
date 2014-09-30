@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import pickle
+from mva.plotting.classify import plot_grid_scores
+from rootpy.extern.argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--name', default='clf')
+parser.add_argument('--clf', required=True)
+parser.add_argument('--grid', required=True)
+args = parser.parse_args()
+
+clf = pickle.load(open(args.clf))
+grid_scores = pickle.load(open(args.grid))
+
+best_point = {
+    'base_estimator__min_fraction_leaf': clf.base_estimator.min_fraction_leaf,
+    'n_estimators': clf.n_estimators
+}
+
+params = {
+    'base_estimator__min_fraction_leaf': 'leaf fraction',
+    'n_estimators': 'trees'
+}
+
+plot_grid_scores(
+    grid_scores,
+    best_point=best_point,
+    params=params,
+    name=args.name,
+    path='.')

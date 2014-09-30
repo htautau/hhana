@@ -51,7 +51,8 @@ def plot_grid_scores(grid_scores, best_point, params, name,
                      label_all_ticks=False,
                      n_ticks=10,
                      title=None,
-                     format='png'):
+                     format='png',
+                     path=PLOTS_DIR):
 
     param_names = sorted(grid_scores[0][0].keys())
     param_values = dict([(pname, []) for pname in param_names])
@@ -134,7 +135,7 @@ def plot_grid_scores(grid_scores, best_point, params, name,
 
     plt.colorbar(img, fraction=.06, pad=0.03)
     plt.axis("tight")
-    plt.savefig(os.path.join(PLOTS_DIR, "grid_scores_%s.%s") % (
+    plt.savefig(os.path.join(path, "grid_scores_%s.%s") % (
         name, format), bbox_inches='tight')
     plt.clf()
 
