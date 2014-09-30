@@ -38,8 +38,8 @@ class MultipleCanvas(Canvas):
 
 def draw_ratio(nom, sys_var,
                textsize=18,
-               ratio_range=(0,2),
-               ratio_line_values=[0.5,1,1.5],
+               ratio_range=(-4, 4),
+               ratio_line_values=[-2, 0, 2],
                sys_name='syst',
                sample_name=None,
                category_name=None,
@@ -90,6 +90,11 @@ def draw_ratio(nom, sys_var,
         ratio_do = nom.Clone()
         ratio_do[:] = (0, 0)
     
+    ratio_limit = max([abs(r) for r in 
+                       list(ratio_up.y())+list(ratio_do.y())])
+    # add 10% extra space for plotting
+    ratio_limit_pad = ratio_limit + 0.1 * ratio_limit 
+
     ratio_up.drawstyle = 'hist'
     ratio_up.color = 'red'
     ratio_do.drawstyle = 'hist'
@@ -110,8 +115,8 @@ def draw_ratio(nom, sys_var,
     plot = RatioPlot(xtitle='Observable',
                      ytitle='Events',
                      logy=logy,
-                     ratio_line_values=(0,),
-                     ratio_limits=(-1, 1),
+                     ratio_line_values=(-ratio_limit, 0, ratio_limit),
+                     ratio_limits=(-ratio_limit_pad, ratio_limit_pad),
                      ratio_title='Rel. Variation',
                      prune_ratio_ticks=True, ratio_margin=22, offset=-72)
 
@@ -174,6 +179,19 @@ def draw_ratio(nom, sys_var,
             optional_label.SetTextFont(43)
             optional_label.SetTextSize(textsize)
             optional_label.Draw()
+
+    with plot.pad('ratio') as pad:
+        # print the abs(max variation)
+        label = ROOT.TLatex(
+            1 - pad.GetRightMargin() + 0.01, 1,
+            # 1 + pad.GetRightMargin(), pad.GetTopMargin(),
+            '{0:.2f}'.format(ratio_limit))
+        label.SetNDC(True)
+        label.SetTextAngle(-90)
+        label.SetTextFont(43)
+        label.SetTextSize(textsize)
+        label.Draw()
+
     return plot
 
 
