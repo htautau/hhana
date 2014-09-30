@@ -8,8 +8,9 @@ import logging
 from rootpy.tree import Cut
 from rootpy.plotting import Canvas, Legend
 # local imports
-from mva.samples import Higgs
-from mva.categories import Category_VBF, Category_Boosted
+from mva.samples import Higgs, Embedded_Ztautau
+from mva.samples.others import Top
+from mva.categories import Category_VBF, Category_Boosted, Category_Preselection, Category_Preselection_NO_MET_CENTRALITY
 from mva.defaults import TARGET_REGION
 from mva.variables import VARIABLES
 from mva.plotting.templates import SimplePlot
@@ -30,8 +31,8 @@ def plot(hist_vbf, hist_boosted):
     hist_vbf /= hist_vbf.integral()
     hist_boosted /= hist_boosted.integral()
     c = SimplePlot(xtitle=hist_vbf.xaxis.title, ytitle='Arbitrary Unit')
-    c.draw('main', [vbf_hist, boosted_hist])
-    leg = Legend([vbf_hist, boosted_hist],
+    c.draw('main', [hist_vbf, hist_boosted])
+    leg = Legend([hist_vbf, hist_boosted],
                  textsize=15)
     leg.Draw('same')
     return c
@@ -41,32 +42,58 @@ if __name__=='__main__':
     fields = [
         'dR_tau1_tau2',
         'dEta_tau1_tau2',
+        'resonance_pt',
         'tau1_pt',
         'tau2_pt',
+        'jet1_pt',
+        'jet2_pt',
+        'dPhi_min_tau_MET',
         ]
     
     field_dict = dict([(field, VARIABLES[field]) for field in fields])
     cuts = None
     
-    higgs = Higgs(2012)
+    #     higgs = Higgs(2012)
+    ztautau = Embedded_Ztautau(2012)
+    top = Top(2012)
     
-    vbf_hists, field_scale = higgs.get_field_hist(field_dict, Category_VBF)
-    boosted_hists, _ = higgs.get_field_hist(field_dict, Category_Boosted)
+    ztautau_hists, field_scale = ztautau.get_field_hist(field_dict, Category_Preselection)
+    top_hists, _ = top.get_field_hist(field_dict, Category_Preselection)
+    #     vbf_hists, field_scale = higgs.get_field_hist(field_dict, Category_VBF)
+    #     boosted_hists, _ = higgs.get_field_hist(field_dict, Category_Boosted)
     
-    higgs.draw_array(
-        vbf_hists, Category_VBF, TARGET_REGION, 
+    ztautau.draw_array(
+        ztautau_hists, Category_Preselection_NO_MET_CENTRALITY, TARGET_REGION,
         cuts=cuts, field_scale=field_scale)
-    higgs.draw_array(
-        boosted_hists, Category_Boosted, TARGET_REGION, 
+    top.draw_array(
+        top_hists, Category_Preselection_NO_MET_CENTRALITY, TARGET_REGION,
         cuts=cuts, field_scale=field_scale)
     
-    for field in field_dict:
-        vbf_hist = vbf_hists[field]
-        boosted_hist = boosted_hists[field]
-        vbf_hist.title = Category_VBF.label
-        boosted_hist.title = Category_Boosted.label
-        vbf_hist.xaxis.title = VARIABLES[field]['root']
-        boosted_hist.xaxis.title = VARIABLES[field]['root']
-        pl = plot(vbf_hist, boosted_hist)
-        pl.SaveAs('compare_higgs_{0}.png'.format(field))
+        
+    #     higgs.draw_array(
+    #         vbf_hists, Category_VBF, TARGET_REGION, 
+    #         cuts=cuts, field_scale=field_scale)
+    #     higgs.draw_array(
+    #         boosted_hists, Category_Boosted, TARGET_REGION, 
+    #         cuts=cuts, field_scale=field_scale)
+    
+#     for field in field_dict:
+#         vbf_hist = vbf_hists[field]
+#         boosted_hist = boosted_hists[field]
+#         vbf_hist.title = Category_VBF.label
+#         boosted_hist.title = Category_Boosted.label
+#         vbf_hist.xaxis.title = VARIABLES[field]['root']
+#         boosted_hist.xaxis.title = VARIABLES[field]['root']
+#         pl = plot(vbf_hist, boosted_hist)
+#         pl.SaveAs('compare_higgs_{0}.png'.format(field))
 
+
+    for field in field_dict:
+        ztautau_hist = ztautau_hists[field]
+        top_hist = top_hists[field]
+        ztautau_hist.title = 'Z#rightarrow#tau#tau'
+        top_hist.title = 'Top'
+        ztautau_hist.xaxis.title = VARIABLES[field]['root']
+        top_hist.xaxis.title = VARIABLES[field]['root']
+        pl = plot(ztautau_hist, top_hist)
+        pl.SaveAs('compare_top_ztautau_{0}.png'.format(field))

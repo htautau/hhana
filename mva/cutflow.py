@@ -71,11 +71,11 @@ def make_cutflow_table(samples, args):
                         filters = [cutflow.GetXaxis().GetBinLabel(j + 1) for j in xrange(len(cutflow))]
 
                     # scale MC by lumi and xsec
-                    if ds.datatype != datasets.DATA and not args.no_weight:
+                    if ds.datatype != datasets.DATA and ds.datatype != datasets.EMBED and not args.no_weight:
                         lumi = LUMI[args.year]
-                        events = cutflow[0]
+                        events = cutflow[1].value
                         xsec, kfact, effic = ds.xsec_kfact_effic
-                        weight = 1E3 * lumi * xsec * ds.xsec_factor / (effic * events)
+                        weight = 1E3 * lumi * xsec * kfact / (effic * events)
                         if args.verbose:
                             print '-' * 30
                             print ds.name
@@ -94,9 +94,9 @@ def make_cutflow_table(samples, args):
                     else:
                         total_cutflow += cutflow
         if args.errors:
-            cutflow_table[i] = list(zip(total_cutflow, total_cutflow.yerrh()))
+            cutflow_table[i] = list(zip(total_cutflow.y(), total_cutflow.yerrh()))
         else:
-            cutflow_table[i] = list(total_cutflow)
+            cutflow_table[i] = list(total_cutflow.y())
         used_samples.append((latex_name, text_name, sample))
         i += 1
 

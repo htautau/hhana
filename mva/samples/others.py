@@ -9,16 +9,47 @@ class EWK(MC, Background):
     NO_KYLEFIX = True
     NORM_BY_THEORY = True
 
+    def __init__(self, *args, **kwargs):
+        self.matched = kwargs.pop('matched', True)
+        super(EWK, self).__init__(*args, **kwargs)
+
+    def cuts(self, *args, **kwargs):
+        cut = super(EWK, self).cuts(*args, **kwargs)
+        if self.matched:
+            # require that at least one tau matches truth
+            cut &= Cut('tau1_matched || tau2_matched')
+        return cut
+
 
 class Top(MC, Background):
     NO_KYLEFIX = True
     NORM_BY_THEORY = True
 
+    def __init__(self, *args, **kwargs):
+        self.matched = kwargs.pop('matched', True)
+        super(Top, self).__init__(*args, **kwargs)
+
+    def cuts(self, *args, **kwargs):
+        cut = super(Top, self).cuts(*args, **kwargs)
+        if self.matched:
+            # require that at least one tau matches truth
+            cut &= Cut('tau1_matched || tau2_matched')
+        return cut
 
 class Diboson(MC, Background):
     NO_KYLEFIX = True
     NORM_BY_THEORY = True
 
+    def __init__(self, *args, **kwargs):
+        self.matched = kwargs.pop('matched', True)
+        super(Diboson, self).__init__(*args, **kwargs)
+
+    def cuts(self, *args, **kwargs):
+        cut = super(Diboson, self).cuts(*args, **kwargs)
+        if self.matched:
+            # require that at least one tau matches truth
+            cut &= Cut('tau1_matched || tau2_matched')
+        return cut
 
 class Others(MC, Background):
     NO_KYLEFIX = True

@@ -78,16 +78,18 @@ if __name__ == '__main__':
     parser.add_argument('path')
     parser.add_argument('--mass', default='125')
     parser.add_argument('--ana', default='mva', choices=['mva', 'cba'])
+    parser.add_argument('--reference-workspace', default='hh_combination',
+                        choices=['hh_combination', 'hh_12_combination'])
     args = parser.parse_args()
     
     if args.ana == 'mva':
         categories = CATEGORIES['mva_all']
     else:
-        categories = CATEGORIES['cuts'] + CATEGORIES['cuts_2011']
+        categories = CATEGORIES['cuts']
     # Step1: Retrieve NP scans of the combined WS
     graphs = {}
 
-    combined_np_path = get_pickle_path(args.path, 'hh_combination_{0}'.format(args.mass))
+    combined_np_path = get_pickle_path(args.path, args.reference_workspace+'_{0}'.format(args.mass))
     print combined_np_path
     if not os.path.exists(combined_np_path):
         raise RuntimeError('Need the combineds WS scans to run !')
@@ -140,7 +142,8 @@ if __name__ == '__main__':
                                            linestyle=cat.linestyle,
                                            name='{0}_{1}'.format(dir, nuis),
                                            title='{0}: {1}'.format(year, cat.label))
-                        graphs[nuis].append(graph)
+                        if nuis in graphs.keys():
+                            graphs[nuis].append(graph)
                         
     # Step 3: Draw the NPS scans
     plots = os.path.join(args.path,
