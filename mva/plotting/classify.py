@@ -147,25 +147,22 @@ def plot_grid_scores(grid_scores, best_point, params, name,
     #ax.set_frame_on(False)
     #ax.xaxis.set_ticks_position('none')
     #ax.yaxis.set_ticks_position('none')
-    """
-    plt.annotate("AUC = {0:.3f}\n\# Trees = {1:d}\nFraction = {2:.3f}".format(
-                                scores[row][col],
-                                best_point[param_names[1]],
-                                best_point[param_names[0]]),
-                             xy=(col, row), xytext=(100, 150),
-                             textcoords='offset points',
-                             ha='left', va='bottom',
-                             bbox=dict(pad=20, facecolor='none', edgecolor='none'),
-                             arrowprops=dict(
-                                facecolor='black',
-                                arrowstyle="->"))
-    """
+    ax.text(0.1, 0.9,
+            "{0} Category\nBest AUC = {1:.3f}\n\# Trees = {2:d}\nFraction = {3:.3f}".format(
+                name,
+                scores.max(),
+                best_point[param_names[1]],
+                best_point[param_names[0]]),
+            ha='left', va='top',
+            transform=ax.transAxes,
+            bbox=dict(pad=10, facecolor='none', edgecolor='none'))
 
     if title:
         plt.suptitle(title)
 
     plt.axis("tight")
-    plt.savefig(os.path.join(path, "grid_scores_{0}.{1}".format(name, format)),
+    plt.savefig(os.path.join(path, "grid_scores_{0}.{1}".format(
+                    name.lower(), format)),
                 bbox_inches='tight')
     plt.clf()
 
