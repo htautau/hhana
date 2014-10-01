@@ -19,8 +19,8 @@ best_point = {
 }
 
 params = {
-    'base_estimator__min_fraction_leaf': 'leaf fraction',
-    'n_estimators': 'trees'
+    'base_estimator__min_fraction_leaf': 'Minimum Leaf Fraction',
+    'n_estimators': 'Number of Trees'
 }
 
 plot_grid_scores(
