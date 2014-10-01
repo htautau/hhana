@@ -139,9 +139,9 @@ def plot_grid_scores(grid_scores, best_point, params, name,
         #for label in xlabels:
         #    label.set_rotation(45)
 
-    ax.set_xlabel(params[param_names[1]], fontsize=22,
+    ax.set_xlabel(params[param_names[1]],
                   position=(1., 0.), ha='right')
-    ax.set_ylabel(params[param_names[0]], fontsize=22,
+    ax.set_ylabel(params[param_names[0]],
                   position=(0., 1.), ha='right')
 
     #ax.set_frame_on(False)

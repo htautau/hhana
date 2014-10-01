@@ -3,6 +3,11 @@
 import pickle
 from mva.plotting.classify import plot_grid_scores
 from rootpy.extern.argparse import ArgumentParser
+import matplotlib as mpl
+
+#mpl.rcParams['axes.labelsize'] = 18
+#mpl.rcParams['axes.titlesize'] = 18
+#mpl.rcParams['font.size'] = 18
 
 parser = ArgumentParser()
 parser.add_argument('--name', default='clf')
