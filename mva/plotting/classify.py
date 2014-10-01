@@ -148,7 +148,7 @@ def plot_grid_scores(grid_scores, best_point, params, name,
     #ax.xaxis.set_ticks_position('none')
     #ax.yaxis.set_ticks_position('none')
     ax.text(0.1, 0.9,
-            "{0} Category\nBest AUC = {1:.3f}\n\# Trees = {2:d}\nFraction = {3:.3f}".format(
+            "{0} Category\nBest AUC = {1:.3f}\nTrees = {2:d}\nFraction = {3:.3f}".format(
                 name,
                 scores.max(),
                 best_point[param_names[1]],

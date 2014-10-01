@@ -8,6 +8,7 @@ parser = ArgumentParser()
 parser.add_argument('--name', default='clf')
 parser.add_argument('--clf', required=True)
 parser.add_argument('--grid', required=True)
+parser.add_argument('--format', default='png')
 args = parser.parse_args()
 
 clf = pickle.load(open(args.clf))
@@ -28,4 +29,5 @@ plot_grid_scores(
     best_point=best_point,
     params=params,
     name=args.name,
-    path='.')
+    path='.',
+    format=args.format)
