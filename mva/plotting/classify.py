@@ -12,7 +12,7 @@ from statstools.utils import efficiency_cut, significance
 # matplotlib imports
 from matplotlib import cm
 from matplotlib import pyplot as plt
-from matplotlib.ticker import MaxNLocator, FuncFormatter
+from matplotlib.ticker import MaxNLocator, FuncFormatter, IndexLocator
 
 # numpy imports
 import numpy as np
@@ -77,6 +77,8 @@ def plot_grid_scores(grid_scores, best_point, params, name,
     fig = plt.figure(figsize=(6, 6), dpi=100)
     ax = plt.axes([.15, .15, .95, .75])
     ax.autoscale(enable=False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
     #cmap = cm.get_cmap('Blues_r', 100)
     #cmap = cm.get_cmap('gist_heat', 100)
     #cmap = cm.get_cmap('gist_earth', 100)
@@ -93,10 +95,11 @@ def plot_grid_scores(grid_scores, best_point, params, name,
                       vmin=min_score - score_range/4., vmax=max_score)
     cb = plt.colorbar(img, fraction=.06, pad=0.03, format='%.3f')
     cb.set_label('AUC')
+
     # label best point
-    x = param_values[param_names[0]].index(best_point[param_names[0]])
-    y = param_values[param_names[1]].index(best_point[param_names[1]])
-    ax.plot([x], [y], marker='o', markersize=10,
+    y = param_values[param_names[0]].index(best_point[param_names[0]])
+    x = param_values[param_names[1]].index(best_point[param_names[1]])
+    ax.plot([x], [y], marker='o', markersize=10, markeredgewidth=2,
             markerfacecolor='none', markeredgecolor='k')
     ax.set_ylim(extent[2], extent[3])
     ax.set_xlim(extent[0], extent[1])
@@ -117,17 +120,24 @@ def plot_grid_scores(grid_scores, best_point, params, name,
         def leaf_formatter(x, pos):
             if x < 0 or x >= len(leaves):
                 return ''
-            return '%.2f' % leaves[int(x)]
+            return '%.3f' % leaves[int(x)]
 
         ax.xaxis.set_major_formatter(FuncFormatter(tree_formatter))
         ax.yaxis.set_major_formatter(FuncFormatter(leaf_formatter))
-        ax.xaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
-            prune='lower', steps=[1, 2, 5, 10]))
-        ax.yaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
-            steps=[1, 2, 5, 10]))
-        xlabels = ax.get_xticklabels()
-        for label in xlabels:
-            label.set_rotation(45)
+
+        #ax.xaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
+        #    prune='lower', steps=[1, 2, 5, 10]))
+        ax.xaxis.set_major_locator(IndexLocator(20, -1))
+        xticks = ax.xaxis.get_major_ticks()
+        xticks[-1].label1.set_visible(False)
+        #ax.yaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
+        #    steps=[1, 2, 5, 10], prune='lower'))
+        ax.yaxis.set_major_locator(IndexLocator(20, -1))
+        yticks = ax.yaxis.get_major_ticks()
+        yticks[-1].label1.set_visible(False)
+        #xlabels = ax.get_xticklabels()
+        #for label in xlabels:
+        #    label.set_rotation(45)
 
     ax.set_xlabel(params[param_names[1]], fontsize=22,
                   position=(1., 0.), ha='right')
@@ -137,18 +147,8 @@ def plot_grid_scores(grid_scores, best_point, params, name,
     #ax.set_frame_on(False)
     #ax.xaxis.set_ticks_position('none')
     #ax.yaxis.set_ticks_position('none')
-
-
     """
-    for row in range(scores.shape[0]):
-        for col in range(scores.shape[1]):
-            if ((param_values[param_names[0]].index(best_point[param_names[0]]) == row) and
-                (param_values[param_names[1]].index(best_point[param_names[1]]) == col)):
-                decor = dict(weight='bold',
-                             bbox=dict(boxstyle="round,pad=0.5",
-                                       ec='black',
-                                       fill=False))
-                plt.annotate("AUC = {0:.3f}\n\# Trees = {1:d}\nFraction = {2:.3f}".format(
+    plt.annotate("AUC = {0:.3f}\n\# Trees = {1:d}\nFraction = {2:.3f}".format(
                                 scores[row][col],
                                 best_point[param_names[1]],
                                 best_point[param_names[0]]),
@@ -160,6 +160,7 @@ def plot_grid_scores(grid_scores, best_point, params, name,
                                 facecolor='black',
                                 arrowstyle="->"))
     """
+
     if title:
         plt.suptitle(title)
 
