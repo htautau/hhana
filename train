@@ -14,6 +14,7 @@ parser.add_argument('--nfold', type=int, default=10,
 parser.add_argument('--masses', nargs='+', default=['125',])
 parser.add_argument('--suffix', default=None)
 parser.add_argument('--procs', type=int, default=-1)
+parser.add_argument('--dry-run', default=False, action='store_true')
 parser.add_argument('category', choices=('vbf', 'boosted'))
 args = parser.parse_args()
 
@@ -76,4 +77,5 @@ clf.train(signals=signals_train,
           min_fraction=args.min_fraction,
           min_fraction_steps=args.min_fraction_steps,
           cv_nfold=args.nfold,
-          n_jobs=args.procs)
+          n_jobs=args.procs,
+          dry_run=args.dry_run)
