@@ -168,41 +168,38 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--num-bootstraps', type=int, default=100)
     parser.add_argument('-j', '--njobs', type=int, default=-1)
     parser.add_argument('-o', '--output', default='bootstrap_output')
+    parser.add_argument('--jackknife', default=False, action='store_true')
     parser.add_argument('data_file')
     parser.add_argument('mva_xml')
     parser.add_argument('cba_xml')
     args = parser.parse_args()
 
     mkdir_p(args.output)
-    
-    """
-    # bootstrap method
-    workers = [
-        BootstrapWorker(
-            output_file='{0}/bootstrap_{1:d}.root'.format(args.output, idx),
-            mva_xml=args.mva_xml,
-            cba_xml=args.cba_xml,
-            data_file=args.data_file,
-            seed=idx)
-        for idx in xrange(args.num_bootstraps)]
-    
-    # run pool of worker processes in parallel queue
-    run_pool(workers, n_jobs=args.njobs)
-    """
-
-    # jackknife method
-    data_array = root2array(args.data_file, 'datatree')
-    chunksize = 16
-    chunks = len(data_array) / chunksize
-    workers = [
-        JackknifeWorker(
-            output_file='{0}/jackknife_{1:d}.root'.format(args.output, index),
-            mva_xml=args.mva_xml,
-            cba_xml=args.cba_xml,
-            data_file=args.data_file,
-            chunks=chunks,
-            index=index)
-        for index in xrange(chunks)]
+   
+    if args.jackknife:
+        # jackknife method
+        data_array = root2array(args.data_file, 'datatree')
+        chunksize = 16
+        chunks = len(data_array) / chunksize
+        workers = [
+            JackknifeWorker(
+                output_file='{0}/jackknife_{1:d}.root'.format(args.output, index),
+                mva_xml=args.mva_xml,
+                cba_xml=args.cba_xml,
+                data_file=args.data_file,
+                chunks=chunks,
+                index=index)
+            for index in xrange(chunks)]
+    else:
+        # bootstrap method
+        workers = [
+            BootstrapWorker(
+                output_file='{0}/bootstrap_{1:d}.root'.format(args.output, idx),
+                mva_xml=args.mva_xml,
+                cba_xml=args.cba_xml,
+                data_file=args.data_file,
+                seed=idx)
+            for idx in xrange(args.num_bootstraps)]
     
     # run pool of worker processes in parallel queue
     run_pool(workers, n_jobs=args.njobs)
