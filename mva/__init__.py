@@ -3,7 +3,7 @@ import sys
 
 # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/PubComPlotStyle#ATLAS_labels
 # https://twiki.cern.ch/twiki/pub/AtlasProtected/AtlasPolicyDocuments/Physics_Policy.pdf
-ATLAS_LABEL = os.getenv('ATLAS_LABEL', 'Internal').strip().lower().capitalize()
+ATLAS_LABEL = os.getenv('ATLAS_LABEL', 'Internal').strip()
 
 BASE_DIR = os.getenv('HIGGSTAUTAU_MVA_DIR')
 if not BASE_DIR:
