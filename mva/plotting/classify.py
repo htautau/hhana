@@ -12,10 +12,13 @@ from statstools.utils import efficiency_cut, significance
 # matplotlib imports
 from matplotlib import cm
 from matplotlib import pyplot as plt
-from matplotlib.ticker import MaxNLocator, FuncFormatter
+from matplotlib.ticker import MaxNLocator, FuncFormatter, IndexLocator
 
 # numpy imports
 import numpy as np
+import scipy
+from scipy import ndimage
+from scipy.interpolate import griddata
 
 # rootpy imports
 from rootpy.plotting.contrib import plot_corrcoef_matrix
@@ -47,11 +50,11 @@ def correlations(signal, signal_weight,
 
 
 def plot_grid_scores(grid_scores, best_point, params, name,
-                     label_all_bins=False,
                      label_all_ticks=False,
                      n_ticks=10,
                      title=None,
-                     format='png'):
+                     format='png',
+                     path=PLOTS_DIR):
 
     param_names = sorted(grid_scores[0][0].keys())
     param_values = dict([(pname, []) for pname in param_names])
@@ -71,18 +74,41 @@ def plot_grid_scores(grid_scores, best_point, params, name,
             index.append(param_values[pname].index(pvalues[pname]))
         scores.itemset(tuple(index), score)
 
-    fig = plt.figure(figsize=(7, 5), dpi=100)
-    ax = plt.axes([.12, .15, .8, .75])
+    fig = plt.figure(figsize=(6, 6), dpi=100)
+    ax = plt.axes([.15, .15, .95, .75])
+    ax.autoscale(enable=False)
+    ax.xaxis.set_ticks_position('bottom')
+    ax.yaxis.set_ticks_position('left')
+    #cmap = cm.get_cmap('Blues_r', 100)
+    #cmap = cm.get_cmap('gist_heat', 100)
+    #cmap = cm.get_cmap('gist_earth', 100)
     cmap = cm.get_cmap('jet', 100)
-    img = ax.imshow(scores, interpolation="nearest", cmap=cmap,
-            aspect='auto',
-            origin='lower')
+
+    x = np.array(param_values[param_names[1]])
+    y = np.array(param_values[param_names[0]])
+    extent = (min(x), max(x), min(y), max(y))
+    smoothed_scores = ndimage.gaussian_filter(scores, sigma=3)
+    min_score, max_score = smoothed_scores.min(), smoothed_scores.max()
+    score_range = max_score - min_score
+    levels = np.linspace(min_score, max_score, 30)
+    img = ax.contourf(smoothed_scores, levels=levels, cmap=cmap,
+                      vmin=min_score - score_range/4., vmax=max_score)
+    cb = plt.colorbar(img, fraction=.06, pad=0.03, format='%.3f')
+    cb.set_label('AUC')
+
+    # label best point
+    y = param_values[param_names[0]].index(best_point[param_names[0]])
+    x = param_values[param_names[1]].index(best_point[param_names[1]])
+    ax.plot([x], [y], marker='o', markersize=10, markeredgewidth=2,
+            markerfacecolor='none', markeredgecolor='k')
+    ax.set_ylim(extent[2], extent[3])
+    ax.set_xlim(extent[0], extent[1])
 
     if label_all_ticks:
         plt.xticks(range(len(param_values[param_names[1]])),
-                param_values[param_names[1]])
+                   param_values[param_names[1]])
         plt.yticks(range(len(param_values[param_names[0]])),
-                param_values[param_names[0]])
+                   param_values[param_names[0]])
     else:
         trees = param_values[param_names[1]]
         def tree_formatter(x, pos):
@@ -94,48 +120,50 @@ def plot_grid_scores(grid_scores, best_point, params, name,
         def leaf_formatter(x, pos):
             if x < 0 or x >= len(leaves):
                 return ''
-            return '%.2f' % leaves[int(x)]
+            return '%.3f' % leaves[int(x)]
 
         ax.xaxis.set_major_formatter(FuncFormatter(tree_formatter))
         ax.yaxis.set_major_formatter(FuncFormatter(leaf_formatter))
-        ax.xaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
-            prune='lower', steps=[1, 2, 5, 10]))
-        ax.yaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
-            steps=[1, 2, 5, 10]))
-        xlabels = ax.get_xticklabels()
-        for label in xlabels:
-            label.set_rotation(45)
 
-    ax.set_xlabel(params[param_names[1]], fontsize=12,
-            position=(1., 0.), ha='right')
-    ax.set_ylabel(params[param_names[0]], fontsize=12,
-            position=(0., 1.), va='top')
+        #ax.xaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
+        #    prune='lower', steps=[1, 2, 5, 10]))
+        ax.xaxis.set_major_locator(IndexLocator(20, -1))
+        xticks = ax.xaxis.get_major_ticks()
+        xticks[-1].label1.set_visible(False)
+        #ax.yaxis.set_major_locator(MaxNLocator(n_ticks, integer=True,
+        #    steps=[1, 2, 5, 10], prune='lower'))
+        ax.yaxis.set_major_locator(IndexLocator(20, -1))
+        yticks = ax.yaxis.get_major_ticks()
+        yticks[-1].label1.set_visible(False)
+        #xlabels = ax.get_xticklabels()
+        #for label in xlabels:
+        #    label.set_rotation(45)
 
-    ax.set_frame_on(False)
-    ax.xaxis.set_ticks_position('none')
-    ax.yaxis.set_ticks_position('none')
+    ax.set_xlabel(params[param_names[1]],
+                  position=(1., 0.), ha='right')
+    ax.set_ylabel(params[param_names[0]],
+                  position=(0., 1.), ha='right')
 
-    for row in range(scores.shape[0]):
-        for col in range(scores.shape[1]):
-            decor={}
-            if ((param_values[param_names[0]].index(best_point[param_names[0]])
-                 == row) and
-                (param_values[param_names[1]].index(best_point[param_names[1]])
-                 == col)):
-                decor = dict(weight='bold',
-                             bbox=dict(boxstyle="round,pad=0.5",
-                                       ec='black',
-                                       fill=False))
-            if label_all_bins or decor:
-                plt.text(col, row, "%.3f" % (scores[row][col]), ha='center',
-                         va='center', **decor)
+    #ax.set_frame_on(False)
+    #ax.xaxis.set_ticks_position('none')
+    #ax.yaxis.set_ticks_position('none')
+    ax.text(0.1, 0.9,
+            "{0} Category\nBest AUC = {1:.3f}\nTrees = {2:d}\nFraction = {3:.3f}".format(
+                name,
+                scores.max(),
+                best_point[param_names[1]],
+                best_point[param_names[0]]),
+            ha='left', va='top',
+            transform=ax.transAxes,
+            bbox=dict(pad=10, facecolor='none', edgecolor='none'))
+
     if title:
         plt.suptitle(title)
 
-    plt.colorbar(img, fraction=.06, pad=0.03)
     plt.axis("tight")
-    plt.savefig(os.path.join(PLOTS_DIR, "grid_scores_%s.%s") % (
-        name, format), bbox_inches='tight')
+    plt.savefig(os.path.join(path, "grid_scores_{0}.{1}".format(
+                    name.lower(), format)),
+                bbox_inches='tight')
     plt.clf()
 
 

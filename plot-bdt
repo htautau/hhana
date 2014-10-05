@@ -400,12 +400,12 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
     if category.analysis_control:
         continue
 
-    #for workspace_binning in (True, False):
-    #    plot_bdt(category, workspace_binning=workspace_binning)
-    #continue
-
-    plot_weighted_mass(category)
+    for workspace_binning in (True, False):
+        plot_bdt(category, workspace_binning=workspace_binning)
     continue
+
+    #plot_weighted_mass(category)
+    #continue
     
     """
     ###############################################################

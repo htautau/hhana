@@ -440,3 +440,8 @@ fix-mva:
 .PHONY: fix-cuts
 fix-cuts:
 	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_cuts
+
+
+grid-scores:
+	./plot-grid-scores --clf bdts/clf_boosted_125_NONISOL_ebz_12_0.pickle --name Boosted --grid bdts/clf_boosted_125_NONISOL_ebz_12_0_grid_scores.pickle --format eps
+	./plot-grid-scores --clf bdts/clf_vbf_125_NONISOL_ebz_12_0.pickle --name VBF --grid bdts/clf_vbf_125_NONISOL_ebz_12_0_grid_scores.pickle --format eps

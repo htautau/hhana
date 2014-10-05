@@ -447,7 +447,8 @@ class Classifier(object):
               min_fraction=0.001,
               min_fraction_steps=200,
               cv_nfold=10,
-              n_jobs=-1):
+              n_jobs=-1,
+              dry_run=False):
         """
         Determine best BDTs on left and right partitions. Each BDT will then be
         used on the other partition.
@@ -461,7 +462,8 @@ class Classifier(object):
             cuts=cuts,
             partition_key=self.partition_key)
 
-        self.clfs = [None, None]
+        if not dry_run:
+            self.clfs = [None, None]
 
         for partition_idx in range(2):
 
@@ -484,6 +486,9 @@ class Classifier(object):
                 norm_sig_to_bkg=norm_sig_to_bkg,
                 same_size_sig_bkg=same_size_sig_bkg,
                 remove_negative_weights=remove_negative_weights)
+
+            if dry_run:
+                return
 
             log.info("training a new classifier...")
 

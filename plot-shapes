@@ -3,9 +3,7 @@
 import os
 # rootpy/ROOT imports
 from rootpy.extern.argparse import ArgumentParser
-from rootpy.plotting import Hist, Graph, Legend
 from rootpy.utils.path import mkdir_p
-from rootpy.plotting.style.atlas.labels import ATLAS_label
 
 from ROOT import TLatex
 
@@ -16,11 +14,11 @@ from mva.samples import (
 from mva.categories import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis
-from mva.templates import RatioPlot
+from mva.plotting.templates import RatioPlot
 from mva.systematics import iter_systematics
-from mva import save_canvas, log, ATLAS_LABEL
+from mva import save_canvas, log
 from mva.defaults import TARGET_REGION
-from mva.plotting import compare as plotting_compare
+from mva.plotting.compare import compare as plotting_compare
 
 parser = ArgumentParser()
 parser.add_argument('--year', type=int, default=2012, choices=(2011, 2012))
@@ -182,7 +180,6 @@ if not args.shapes or 'higgs_isolation' in args.shapes:
         compare(htt, htt_isol, category, 'higgs_isolation',
                 region_a='OS',
                 region_b='OS_ISOL')
-
 
 if not args.shapes or 'data_isolation' in args.shapes:
     htt = Data(year=args.year, label='Data')
