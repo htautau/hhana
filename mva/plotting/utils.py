@@ -120,12 +120,23 @@ def label_plot(pad, template, xaxis, yaxis,
 
 def legend_params(position, textsize):
     location = 'upper {0}'.format(position)
-    return dict(
-        anchor=location,
-        reference=location,
-        x=20, y=50, width=0.5,
-        pixels=True,
-        margin=0.25,
-        entrysep=2,
-        entryheight=textsize + 4,
-        textsize=textsize)
+    if location == 'upper left':
+        return dict(
+            leftmargin=0.05,
+            rightmargin=0.5,
+            topmargin=0.05,
+            # margin=0.25,
+            entrysep=2,
+            entryheight=textsize + 4,
+            textsize=textsize)
+    elif location == 'upper right':
+        return dict(
+            leftmargin=0.5,
+            rightmargin=0.05,
+            topmargin=0.05,
+            # margin=0.25,
+            # entrysep=2,
+            # entryheight=textsize + 4,
+            textsize=textsize)
+    else:
+        raise RuntimeError('wrong position argument -- legend_params should be updated')
