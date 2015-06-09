@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+import os
+from hhdb.datasets import Database
+
+import re
+import os
+from glob import glob
+from rootpy.io import root_open as ropen
+from rootpy.tree import Tree, TreeChain
+import ROOT
+import logging
+
+
+log = logging.getLogger(os.path.basename(__file__))
+
+
+TREENAME = 'NOMINAL'
+CUTFLOW_NAME = 'cutflow_HSM_lephad_NOMINAL'
+
+def update_merged_file(
+    dataset, outfilename, 
+    treename='NOMINAL', cutflow_name='cutflow_HSM_lephad_NOMINAL'):
+
+    intree = TreeChain(name=TREENAME, files=dataset.files)
+
+    # instantiate the cutflow histo
+    outcutflow = ropen(dataset.files[0])[CUTFLOW_NAME].Clone()
+    outcutflow.Clear()
+    outcutflow.name = dataset.name + '_cutflow'
+    log.info('merging in %s' % outname)
+    with ropen(outname, 'UPDATE') as outfile:
+        outfile.cd()
+        outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
+        outtree.OptimizeBaskets()
+        outtree.SetName(dataset.name)
+        outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
+        for f in dataset.files:
+            with ropen(f, 'READ') as infile:
+                outcutflow += infile[CUTFLOW_NAME]
+        outfile.cd()
+        outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)
+
+
+
+
+
+if __name__ == '__main__':
+
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('-o', '--output', default='output.root')
+    parser.add_argument('--db', default='datasets_lh')
+    parser.add_argument('--reset', action='store_true', default=False)
+
+    args = parser.parse_args()
+
+    DB = Database(args.db)
+    if args.output is not None:
+        outname = args.output
+    else:
+        # this has to be updated
+        outname = '/afs/cern.ch/user/q/qbuat/work/lephad_test_datasets/merged/lhskim.root'
+
+    if args.reset:
+        if os.path.exists(outname):
+            log.warning('Deleting %s' % outname)
+            os.remove(outname)
+
+    for d in DB.keys():
+        dataset = DB[d]
+        if len(dataset.files) == 0:
+            log.warning(dataset)
+            continue
+
+        # when dealing with systematics 
+        # we will loop over different values of 
+        # treename and cutflow_name
+        update_merged_file(
+            dataset, outname, 
+            treename='NOMINAL', 
+            cutflow_name='cutflow_HSM_lephad_NOMINAL')
+

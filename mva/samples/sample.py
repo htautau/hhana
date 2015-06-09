@@ -21,7 +21,7 @@ from rootpy import asrootpy
 from root_numpy import rec2array, stack, fill_hist
 
 # higgstautau imports
-from higgstautau import samples as samples_db
+from hhdb import samples as samples_db
 
 # local imports
 from . import log; log = log[__name__]
@@ -115,8 +115,10 @@ class Sample(object):
         self.year = year
         if year == 2011:
             self.energy = 7
-        else:
+        elif year==2012:
             self.energy = 8
+        else:
+            self.energy = 13
         self.scale = scale
         if cuts is None:
             self._cuts = Cut()
@@ -533,6 +535,9 @@ class Sample(object):
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
+        
+        log.warn("VERY DIRTY HACK - JUST FOR THE FIRST ITERATIONS OF CLARA'S NTUPLES")
+        weight_fields = ['weight_mc']
         return weight_fields
 
     def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
@@ -907,12 +912,12 @@ class SystematicsSample(Sample):
         return {}
 
     def __init__(self, year, db=DB, systematics=False,
-                 tau_id_sf=True, **kwargs):
+                 tau_id_sf=True, channel='hadhad', **kwargs):
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
             sample_info = samples_db.get_sample(
-                'hadhad', year, 'background', sample_key)
+                channel, year, 'background', sample_key)
             kwargs.setdefault('name', sample_info['name'])
             kwargs.setdefault('label', sample_info['root'])
             if 'color' in sample_info and 'color' not in kwargs:
@@ -962,6 +967,9 @@ class SystematicsSample(Sample):
             cutflow_hist = rfile[treename + events_hist_suffix]
             events['NOMINAL'] = cutflow_hist[events_bin].value
             del cutflow_hist
+
+            # since cutflow hist is broken ...
+            events['NOMINAL'] = ds.nevents # len(tables['NOMINAL'])
 
             if self.systematics:
 
@@ -1141,6 +1149,7 @@ class SystematicsSample(Sample):
                      (self.__class__.__name__, systematic_name(systematic)))
         log.debug("using selection: %s" % selection)
         weight_branches = self.weights(systematic)
+        log.debug('weight branches used: %s' % weight_branches)
         if systematic in SYSTEMATICS_BY_WEIGHT:
             systematic = 'NOMINAL'
         recs = []
@@ -1255,7 +1264,7 @@ class MC(SystematicsSample):
 
     def weight_fields(self):
         return super(MC, self).weight_fields() + [
-            'mc_weight',
+            'weight_mc',
             # uncertainty on these are small and are ignored:
             'tau1_fakerate_sf_reco',
             'tau2_fakerate_sf_reco',
@@ -1280,7 +1289,7 @@ class MC(SystematicsSample):
                 'PU_RESCALE': {
                     'UP': ['pileup_weight_high'],
                     'DOWN': ['pileup_weight_low'],
-                    'NOMINAL': ['pileup_weight']},
+                    'NOMINAL': ['weight_pileup']},
                 })
         if self.year == 2011:
             systematics.update({

@@ -104,11 +104,12 @@ VARIABLES = {
     #    'bins': 10,
     #    'range': (0.5, 120.5),
     #},
-    'averageIntPerXing': {
+    'n_avg_int': {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB,BCID}',
-        'filename': 'averageIntPerXing',
-        'binning': (20, 0, 40),
+        'filename': 'n_avg_int',
+        'binning': (40, 0, 40),
+        'integer': True,
     },
     #'actualIntPerXing': {
     #    'title': r'$\langle\mu\rangle|_{LB}(BCID)$',
@@ -150,15 +151,15 @@ VARIABLES = {
         'binning': (7, -.5, 6.5),
         'integer': True,
     },
-    'MET_et': {
+    'met_et': {
         'title': r'$E^{miss}_{T}$',
         'root': '#font[52]{E}^{miss}_{T}',
-        'filename': 'MET',
+        'filename': 'met_et',
         'binning': {
             'PRESELECTION': (13, 15, 80),
             'REST': (13, 15, 80),
             None: (17, 15, 100)},
-        'scale': 0.001,
+        # 'scale': 0.001,
         'units': 'GeV',
     },
     'MET_etx': {
@@ -222,6 +223,19 @@ VARIABLES = {
         'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
+    'dilep_vis_mass': {
+        'title': r'$m^{vis}_{\tau\tau}$',
+        'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
+        'filename': 'dilep_vis_mass',
+        'binning': {
+            'PRESELECTION': (20, 30, 150),
+            'REST': (20, 30, 150),
+            None: (20, 0, 250)},
+        # 'scale': 0.001,
+        'units': 'GeV',
+        'blind': (70, 110),
+    },
+
     'mass_vis_tau1_tau2': {
         'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
@@ -264,6 +278,26 @@ VARIABLES = {
         'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
         'filename': 'tau_pt_ratio',
         'binning': (16, 1, 5),
+    },
+    'tau_pt': {
+        'title': r'$\tau p_{T}$',
+        'root': '#font[152]{#tau} #font[52]{p}_{T}',
+        'filename': 'tau_pt',
+        'binning': {
+            2011: {
+                'PRESELECTION': (10, 35, 90),
+                'REST': (10, 35, 90),
+                None: (10, 35, 160)},
+            2012: {
+                'PRESELECTION': (20, 35, 90),
+                'REST': (20, 35, 90),
+                None: (20, 35, 160)},
+            2014: {
+                'PRESELECTION': (20, 35, 90),
+                'REST': (20, 35, 90),
+                None: (20, 35, 160)}},
+        'scale': 0.001,
+        'units': 'GeV',
     },
     'tau1_pt': {
         'title': r'$\tau_{1} p_{T}$',
@@ -498,35 +532,35 @@ VARIABLES = {
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
-    'jet1_eta': {
-        'title': r'jet$_{1}$ $\eta$',
-        'root': '#font[152]{#eta}(#font[52]{j}1)',
-        'filename': 'jet1_eta',
+    'jet_1_eta': {
+        'title': r'jet$_{2}$ $\eta$',
+        'root': '#font[152]{#eta}(#font[52]{j}2)',
+        'filename': 'jet_1_eta',
         'binning': (20, -5, 5),
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
         'legend': 'left',
     },
-    'jet2_eta': {
-        'title': r'jet$_{2}$ $\eta$',
-        'root': '#font[152]{#eta}(#font[52]{j}2)',
-        'filename': 'jet2_eta',
+    'jet_0_eta': {
+        'title': r'jet$_{1}$ $\eta$',
+        'root': '#font[152]{#eta}(#font[52]{j}1)',
+        'filename': 'jet_0_eta',
         'binning': (20, -5, 5),
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
-    'jet1_pt': {
-        'title': r'jet$_{1}$ $p_{T}$',
-        'root': '#font[52]{p}_{T}(#font[52]{j}1)',
-        'filename': 'jet1_pt',
+    'jet_1_pt': {
+        'title': r'jet$_{2}$ $p_{T}$',
+        'root': '#font[52]{p}_{T}(#font[52]{j}2)',
+        'filename': 'jet_1_pt',
         'binning': (20, 20, 200),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
-    'jet2_pt': {
-        'title': r'jet$_{2}$ $p_{T}$',
-        'root': '#font[52]{p}_{T}(#font[52]{j}2)',
-        'filename': 'jet2_pt',
+    'jet_0_pt': {
+        'title': r'jet$_{0}$ $p_{T}$',
+        'root': '#font[52]{p}_{T}(#font[52]{j}1)',
+        'filename': 'jet_0_pt',
         'binning': (20, 20, 200),
         'scale': 0.001,
         'units': 'GeV',
@@ -584,14 +618,16 @@ VARIABLES = {
 from . import MMC_VERSION
 mmc = MMC_VERSION
 
-VARIABLES['mmc%d_mass' % mmc] = {
+VARIABLES['dilep_mmc_%d_resonance_m' % mmc] = {
     'title': r'$m^{MMC}_{\tau\tau}$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
-    'filename': 'mmc%d_mass' % mmc,
+    'filename': 'dilep_mmc_%d_resonance_m' % mmc,
     'binning': {
         2011: (25, 0, 250),
-        2012: (25, 0, 250)},
+        2012: (25, 0, 250),
+        2014: (25, 0, 250)},
     'units': 'GeV',
+    'scale': 0.001,
     'blind': (100, 150),
 }
 

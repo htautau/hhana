@@ -101,7 +101,7 @@ class RatioPlot(Canvas):
         if ratio_height is None:
             ratio_height = default_height / 4.
 
-        self.height += ratio_height + ratio_margin + offset
+        self.height += int(ratio_height) + ratio_margin + offset
         self.margin = (0, 0, 0, 0)
 
         main_height = default_frame_height + top + ratio_margin / 2. + offset

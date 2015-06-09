@@ -9,15 +9,20 @@ LUMI_UNCERT = {
     2011: 0.018,
     2012: 0.028
 }
-LUMI = {}
-lumi_files = glob(os.path.join(NTUPLE_PATH, DEFAULT_STUDENT, 'lumi_*'))
+LUMI = {
+    2011: 4523.35,
+    2012: 20274.2,
+    2014: 100000
 
-for filename in lumi_files:
-    year = int(filename.split('_')[-1])
-    with open(filename, 'r') as f:
-        lumi = float(f.read())
-        LUMI[year] = lumi
-        log.info("Using lumi of %f for %d" % (lumi, year))
+}
+# lumi_files = glob(os.path.join(NTUPLE_PATH, DEFAULT_STUDENT, 'lumi_*'))
+
+# for filename in lumi_files:
+#     year = int(filename.split('_')[-1])
+#     with open(filename, 'r') as f:
+#         lumi = float(f.read())
+#         LUMI[year] = lumi
+#         log.info("Using lumi of %f for %d" % (lumi, year))
 
 
 def get_lumi_uncert(year):

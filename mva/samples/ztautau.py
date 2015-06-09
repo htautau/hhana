@@ -64,8 +64,9 @@ class MC_Ztautau_DY(MC_Ztautau):
 
 
 class Pythia_Ztautau(MC_Ztautau):
-    def xsec_kfact_effic(self, isample):
-        return 1., 1., 1.
+    pass
+    # def xsec_kfact_effic(self, isample):
+    #     return 1., 1., 1.
 
 
 class Embedded_Ztautau(Ztautau, SystematicsSample):

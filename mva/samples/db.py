@@ -9,7 +9,7 @@ import tables
 from rootpy.io import root_open, TemporaryFile
 
 # higgstautau imports
-from higgstautau import datasets
+from hhdb import datasets
 
 # local imports
 from .. import NTUPLE_PATH, DEFAULT_STUDENT

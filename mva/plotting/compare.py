@@ -3,7 +3,7 @@ from rootpy.plotting.style.atlas.labels import ATLAS_label
 
 import ROOT
 
-from ..variables import VARIABLES
+from ..variables import VARIABLES, get_label
 from .templates import RatioPlot
 from ..defaults import TARGET_REGION
 from .. import ATLAS_LABEL
@@ -27,7 +27,7 @@ def draw_ratio(a, b, field, category,
     - category: analysis category (see categories/*)
     """
     if field in VARIABLES:
-        xtitle = VARIABLES[field]['root']
+        xtitle = get_label(field) #VARIABLES[field]['root']
     else:
         xtitle = field
     plot = RatioPlot(xtitle=xtitle,
@@ -69,8 +69,12 @@ def draw_ratio(a, b, field, category,
     plot.draw('ratio', [ratio_band, ratio])
     with plot.pad('main') as pad:
         # legend
-        leg = Legend([a, b], 0.2, 0.2, 0.45,
-                     margin=0.35, textsize=textsize)
+        leg = Legend([a, b],
+                     leftmargin=0.4,
+                     rightmargin=0.05,
+                     topmargin=0.05,
+                     # 0.2, 0.2, 0.45, margin=0.35, 
+                     textsize=textsize)
         leg.Draw()
         # draw the category label
         if category is not None:
