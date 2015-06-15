@@ -9,14 +9,14 @@ DB = Database('datasets_lh')
 s1 = MC_Ztautau(
     2014, db=DB, 
     channel='lephad', 
-    ntuple_path='/afs/cern.ch/user/q/qbuat/work/lephad_test_datasets', 
+    ntuple_path='/afs/cern.ch/user/q/qbuat/work/public/lephad_test_datasets', 
     student='lhskim',
     trigger=False)
 
 s2 = Pythia_Ztautau(
     2014, db=DB, 
     channel='lephad', 
-    ntuple_path='/afs/cern.ch/user/q/qbuat/work/lephad_test_datasets', 
+    ntuple_path='/afs/cern.ch/user/q/qbuat/work/public/lephad_test_datasets', 
     student='lhskim',
     trigger=False)
 
