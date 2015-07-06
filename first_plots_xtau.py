@@ -4,7 +4,7 @@ from mva.variables import VARIABLES
 from mva.categories.lephad import Category_VBF_lh, Category_Boosted_lh, Category_Preselection_lh
 from mva.plotting import draw_ratio
 
-# load the database
+# Instantiate and load the database
 DB = Database('datasets_lh')
 
 s1 = MC_Ztautau(
