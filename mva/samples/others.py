@@ -74,3 +74,8 @@ class Others(MC, Background):
             # require that at least one tau matches truth
             cut &= Cut('tau1_matched || tau2_matched')
         return cut
+
+
+# INDIVIDUAL SAMPLES
+class MC_Wtaunu(MC, Background):
+    pass
