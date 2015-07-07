@@ -537,7 +537,7 @@ class Sample(object):
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         
         log.warn("VERY DIRTY HACK - JUST FOR THE FIRST ITERATIONS OF CLARA'S NTUPLES")
-        weight_fields = ['weight_mc']
+        weight_fields = ['weight_pileup']
         return weight_fields
 
     def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
@@ -959,7 +959,7 @@ class SystematicsSample(Sample):
                 events_bin = 1
             else:
                 # use mc_weighted second bin
-                events_bin = 2
+                events_bin = 1
             events_hist_suffix = '_cutflow'
 
             tables['NOMINAL'] =  CachedTable.hook(getattr(
@@ -969,7 +969,7 @@ class SystematicsSample(Sample):
             del cutflow_hist
 
             # since cutflow hist is broken ...
-            events['NOMINAL'] = ds.nevents # len(tables['NOMINAL'])
+            # events['NOMINAL'] = ds.nevents # len(tables['NOMINAL'])
 
             if self.systematics:
 
@@ -1185,6 +1185,8 @@ class SystematicsSample(Sample):
                 scale * actual_scale *
                 LUMI[self.year] *
                 ds.xs * ds.kfact * ds.effic / events)
+            log.info(LUMI[self.year])
+            log.info(weight)
             if systematic in self.norms:
                 weight *= self.norms[systematic]
             # read the table with a selection

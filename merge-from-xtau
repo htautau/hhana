@@ -21,8 +21,11 @@ CUTFLOW_NAME = 'cutflow_HSM_lephad_NOMINAL'
 def update_merged_file(
     dataset, outfilename, 
     treename='NOMINAL', cutflow_name='cutflow_HSM_lephad_NOMINAL'):
-
-    intree = TreeChain(name=TREENAME, files=dataset.files)
+    log.info('{0} : {1}'.format(dataset.name, dataset.files))
+    # intree = TreeChain(name=TREENAME, files=dataset.files)
+    intree = ROOT.TChain(treename)
+    for f in dataset.files:
+        intree.Add(f)
 
     # instantiate the cutflow histo
     outcutflow = ropen(dataset.files[0])[CUTFLOW_NAME].Clone()
@@ -33,7 +36,7 @@ def update_merged_file(
         outfile.cd()
         outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
         outtree.OptimizeBaskets()
-        outtree.SetName(dataset.name)
+        outtree.SetName(dataset.name.replace('-', '_'))
         outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
         for f in dataset.files:
             with ropen(f, 'READ') as infile:
@@ -60,7 +63,7 @@ if __name__ == '__main__':
         outname = args.output
     else:
         # this has to be updated
-        outname = '/afs/cern.ch/user/q/qbuat/work/lephad_test_datasets/merged/lhskim.root'
+        outname = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v1_1/merged/lhskim.root'
 
     if args.reset:
         if os.path.exists(outname):

@@ -7,17 +7,17 @@ from mva.plotting import draw_ratio
 # Instantiate and load the database
 DB = Database('datasets_lh')
 
-s1 = MC_Ztautau(
-    2014, db=DB, 
-    channel='lephad', 
-    ntuple_path='/afs/cern.ch/user/q/qbuat/work/public/lephad_test_datasets', 
-    student='lhskim',
-    trigger=False)
+# s1 = MC_Ztautau(
+#     2014, db=DB, 
+#     channel='lephad', 
+#     ntuple_path='/afs/cern.ch/user/q/qbuat/work/public/lephad_test_datasets', 
+#     student='lhskim',
+#     trigger=False)
 
 s2 = Pythia_Ztautau(
-    2014, db=DB, 
+    2015, db=DB, 
     channel='lephad', 
-    ntuple_path='/afs/cern.ch/user/q/qbuat/work/public/lephad_test_datasets', 
+    ntuple_path='/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v1_1', 
     student='lhskim',
     trigger=False)
 
@@ -36,19 +36,19 @@ for f in fields:
     vars[f] =  VARIABLES[f]
 
 
-for cat in (Category_Preselection_lh, Category_VBF_lh, Category_Boosted_lh):
-    a1, b = s1.get_field_hist(vars, cat)
-    s1.draw_array(a1, cat, 'ALL', field_scale=b)
+# for cat in (Category_Preselection_lh, Category_VBF_lh, Category_Boosted_lh):
+#     a1, b = s1.get_field_hist(vars, cat)
+#     s1.draw_array(a1, cat, 'ALL', field_scale=b)
     
-    a2, _ = s2.get_field_hist(vars, cat)
-    s2.draw_array(a2, cat, 'ALL', field_scale=b)
+#     a2, _ = s2.get_field_hist(vars, cat)
+#     s2.draw_array(a2, cat, 'ALL', field_scale=b)
 
-    for field in a1:
-        h1 = a1[field]
-        h1.title = 'Sherpa ' + s1.label
-        h2 = a2[field] 
-        h2.title = 'Pythia ' + s2.label
-        plot = draw_ratio(h1, h2, field, cat, normalize=False)
-        plot.SaveAs('plots/variables/blurp_{0}_{1}.png'.format(field, cat.name))
-        plot_log = draw_ratio(h1, h2, field, cat, normalize=False, logy=True)
-        plot_log.SaveAs('plots/variables/blurp_{0}_{1}_logy.png'.format(field, cat.name))
+#     for field in a1:
+#         h1 = a1[field]
+#         h1.title = 'Sherpa ' + s1.label
+#         h2 = a2[field] 
+#         h2.title = 'Pythia ' + s2.label
+#         plot = draw_ratio(h1, h2, field, cat, normalize=False)
+#         plot.SaveAs('plots/variables/blurp_{0}_{1}.png'.format(field, cat.name))
+#         plot_log = draw_ratio(h1, h2, field, cat, normalize=False, logy=True)
+#         plot_log.SaveAs('plots/variables/blurp_{0}_{1}_logy.png'.format(field, cat.name))
