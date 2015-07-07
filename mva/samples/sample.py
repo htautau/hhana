@@ -536,7 +536,7 @@ class Sample(object):
             weight_fields.remove('tau2_trigger_sf')
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         
-        log.warn("VERY DIRTY HACK - JUST FOR THE FIRST ITERATIONS OF CLARA'S NTUPLES")
+        log.warn("List of weights need an update")
         weight_fields = ['weight_pileup']
         return weight_fields
 
@@ -1185,8 +1185,6 @@ class SystematicsSample(Sample):
                 scale * actual_scale *
                 LUMI[self.year] *
                 ds.xs * ds.kfact * ds.effic / events)
-            log.info(LUMI[self.year])
-            log.info(weight)
             if systematic in self.norms:
                 weight *= self.norms[systematic]
             # read the table with a selection

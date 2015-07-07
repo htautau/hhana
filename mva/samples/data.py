@@ -57,7 +57,9 @@ class Data(Sample):
             name=name, label=label,
             **kwargs)
         h5file = get_file(self.ntuple_path, self.student, hdf=True)
-        dataname = 'data%d_JetTauEtmiss' % (year % 1E3)
+        dataname = 'data{0:1d}_{1}'.format(
+            int(year % 1E3), 
+            'Main' if year == 2015 else 'JetTauEtmiss')
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
 

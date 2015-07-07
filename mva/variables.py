@@ -159,7 +159,7 @@ VARIABLES = {
             'PRESELECTION': (13, 15, 80),
             'REST': (13, 15, 80),
             None: (17, 15, 100)},
-        # 'scale': 0.001,
+        'scale': 0.001,
         'units': 'GeV',
     },
     'MET_etx': {
@@ -223,7 +223,7 @@ VARIABLES = {
         'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
-    'dilep_vis_mass': {
+    'ditau_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'dilep_vis_mass',
@@ -231,7 +231,7 @@ VARIABLES = {
             'PRESELECTION': (20, 30, 150),
             'REST': (20, 30, 150),
             None: (20, 0, 250)},
-        # 'scale': 0.001,
+        'scale': 0.001,
         'units': 'GeV',
         'blind': (70, 110),
     },
@@ -292,7 +292,7 @@ VARIABLES = {
                 'PRESELECTION': (20, 35, 90),
                 'REST': (20, 35, 90),
                 None: (20, 35, 160)},
-            2014: {
+            2015: {
                 'PRESELECTION': (20, 35, 90),
                 'REST': (20, 35, 90),
                 None: (20, 35, 160)}},
@@ -625,7 +625,7 @@ VARIABLES['dilep_mmc_%d_resonance_m' % mmc] = {
     'binning': {
         2011: (25, 0, 250),
         2012: (25, 0, 250),
-        2014: (25, 0, 250)},
+        2015: (25, 0, 250)},
     'units': 'GeV',
     'scale': 0.001,
     'blind': (100, 150),

@@ -258,7 +258,7 @@ def draw(name,
         else:
             objects.extend(scaled_signal)
 
-    if model is not None:
+    if model is not None and systematics is not None:
         # draw uncertainty band
         total_model, high_band_model, low_band_model = uncertainty_band(
             model, systematics) #, systematics_components)
@@ -416,7 +416,7 @@ def draw(name,
                 **legend_params('left', textsize))
             for hist in reversed(model):
                 model_legend.AddEntry(hist, style='F')
-            if systematics:
+            if systematics is not None:
                 model_err_band = error_band_model.Clone()
                 model_err_band.linewidth = 0
                 model_err_band.linecolor = 'white'
@@ -445,12 +445,13 @@ def draw(name,
         if model:
             for hist in reversed(model):
                 legend.AddEntry(hist, style='F')
-            model_err_band = error_band_model.Clone()
-            model_err_band.linewidth = 0
-            model_err_band.linecolor = 'white'
-            model_err_band.fillcolor = '#858585'
-            model_err_band.title = 'Uncert.'
-            legend.AddEntry(model_err_band, style='F')
+            if systematics:
+                model_err_band = error_band_model.Clone()
+                model_err_band.linewidth = 0
+                model_err_band.linecolor = 'white'
+                model_err_band.fillcolor = '#858585'
+                model_err_band.title = 'Uncert.'
+                legend.AddEntry(model_err_band, style='F')
         legends.append(legend)
 
     # draw the objects
