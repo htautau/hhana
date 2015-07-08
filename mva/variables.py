@@ -223,18 +223,6 @@ VARIABLES = {
         'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
-    'ditau_vis_mass': {
-        'title': r'$m^{vis}_{\tau\tau}$',
-        'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'dilep_vis_mass',
-        'binning': {
-            'PRESELECTION': (20, 30, 150),
-            'REST': (20, 30, 150),
-            None: (20, 0, 250)},
-        'scale': 0.001,
-        'units': 'GeV',
-        'blind': (70, 110),
-    },
 
     'ditau_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
@@ -259,14 +247,25 @@ VARIABLES = {
     },
 
     'ditau_mmc_mlm_m': {
-        'title': r'$m^{col}_{\tau\tau}$',
-        'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
+        'title': r'$m^{MMC}_{\tau\tau}$',
+        'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'ditau_mmc_mlm_m',
         'binning': (20, 0, 250),
         'units': 'GeV',
         'scale': 0.001,
         'blind': (100, 150),
     },
+
+
+    'lep_pt':{
+        'title': r'p_T(l)',
+        'root': '#font[52]{p}_{T}(l)',
+        'filename': 'lep_pt',
+        'binning': (20, 20, 120),
+        'scale': 0.001,
+        'units': 'GeV',
+        },
+
    # 'mass_tau1_tau2_jet1': {
    #     'title': r'$m^{vis}_{j\tau\tau}$',
    #     'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',

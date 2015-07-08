@@ -1,3 +1,4 @@
+import ROOT
 from mva.samples import MC_Ztautau, Pythia_Ztautau, Data
 from mva.samples.others import EWK, Top
 from hhdb.datasets import Database
@@ -36,8 +37,6 @@ ewk = EWK(
     trigger=False,
     color='#8A0F0F')
 
-model = [ztautau, top, ewk]
-
 data = Data(
     2015,
     ntuple_path=NTUPLE_PATH, 
@@ -46,35 +45,25 @@ data = Data(
     trigger=False)
 
 
-
-
-# wtaunu = MC_Wtaunu(
-#     2015, db=DB,
-#     channel='lephad',
-#     ntuple_path=NTUPLE_PATH, 
-#     student='lhskim',
-#     trigger=False)
-    
-
-
-
 fields = [
     'jet_0_pt',
     'jet_1_pt',
     'n_avg_int',
     'met_et',
-    # 'dilep_mmc_1_resonance_m',
     'ditau_vis_mass',
+    'ditau_coll_approx_m',
+    'ditau_mmc_mlm_m',
     'tau_pt',
+    'lep_pt',
 ]
 
 vars = {}
 for f in fields:
     vars[f] =  VARIABLES[f]
 
-# categories = [Category_Preselection_lh, Category_VBF_lh, Category_Boosted_lh]
+categories = [Category_Preselection_lh, Category_Boosted_lh]
 
-categories = [Category_Preselection_lh]
+# categories = [Category_VBF_lh]
 for cat in categories:
     a1, b = data.get_field_hist(vars, cat)
     data.draw_array(a1, cat, 'ALL', field_scale=b)
@@ -88,27 +77,16 @@ for cat in categories:
     ewk_h, _ = ewk.get_field_hist(vars, cat)
     ewk.draw_array(ewk_h, cat, 'ALL', field_scale=b)
 
-    # for field in a1:
-    #     h1 = a1[field]
-    #     h2 = a2[field] 
-    #     h1.title = data.label
-    #     h2.title = ztautau.label
-    #     plot = draw_ratio(h1, h2, field, cat, normalize=False)
-    #     plot.SaveAs('plots/variables/blurp_{0}_{1}.png'.format(field, cat.name))
-    #     h1.title = data.label
-    #     h2.title = ztautau.label
-    #     plot_log = draw_ratio(h1, h2, field, cat, normalize=False, logy=True)
-    #     plot_log.SaveAs('plots/variables/blurp_{0}_{1}_logy.png'.format(field, cat.name))
 
     for field in a1:
         # d = a1[field]
-        fig = draw(
+        draw(
             vars[field]['root'],
             cat,
-            data = a1[field],
-            model = [t_h[field], ewk_h[field], z_h[field]],
-            logy=True)
-        
-        fig.SaveAs('toto_{0}_{1}_log.png'.format(field, cat.name))
-
-        del fig
+            data=a1[field],
+            model=[t_h[field], ewk_h[field], z_h[field]],
+            units=vars[field]['units'] if 'units' in vars[field] else None, 
+            logy=True,
+            output_name='toto_{0}_{1}.png'.format(field, cat.name))
+        # HACK: clear the list of canvases
+        ROOT.gROOT.GetListOfCanvases().Clear()
