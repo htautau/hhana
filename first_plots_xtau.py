@@ -8,17 +8,11 @@ from mva.plotting import draw_ratio, draw
 # Instantiate and load the database
 DB = Database('datasets_lh')
 
+
 # Ntuples path
 NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v1_1'
 
 
-ztautau = Pythia_Ztautau(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
-    student='lhskim',
-    trigger=False,
-    color='#00A3FF')
 
 top = Top(
     2015, db=DB, 
@@ -66,11 +60,21 @@ fields = [
     # 'dilep_mmc_1_resonance_m',
     'ditau_vis_mass',
     'tau_pt',
+    'pt_total',
+    'ditau_coll_approx_m',
+    'ditau_mmc_mlm_m'
+    # 'jet_1_pt',
+   #  'n_avg_int',
+   #  'met_et',
+  #  'dilep_mmc_1_resonance_m',
+  #  'dilep_vis_mass',
+  #  'tau_pt',
 ]
 
 vars = {}
 for f in fields:
     vars[f] =  VARIABLES[f]
+
 
 # categories = [Category_Preselection_lh, Category_VBF_lh, Category_Boosted_lh]
 
@@ -78,6 +82,7 @@ categories = [Category_Preselection_lh]
 for cat in categories:
     a1, b = data.get_field_hist(vars, cat)
     data.draw_array(a1, cat, 'ALL', field_scale=b)
+
     
     z_h, _ = ztautau.get_field_hist(vars, cat)
     ztautau.draw_array(z_h, cat, 'ALL', field_scale=b)

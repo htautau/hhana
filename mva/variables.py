@@ -257,6 +257,16 @@ VARIABLES = {
         'scale': 0.001,
         'blind': (100, 150),
     },
+
+    'ditau_mmc_mlm_m': {
+        'title': r'$m^{col}_{\tau\tau}$',
+        'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
+        'filename': 'ditau_mmc_mlm_m',
+        'binning': (20, 0, 250),
+        'units': 'GeV',
+        'scale': 0.001,
+        'blind': (100, 150),
+    },
    # 'mass_tau1_tau2_jet1': {
    #     'title': r'$m^{vis}_{j\tau\tau}$',
    #     'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',
@@ -601,34 +611,34 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
-    'higgspt': {
-        'title': r'$p_{T}^{H}$',
-        'root': '#font[52]{p}_{T}^{H}',
-        'filename': 'higgspt',
-        'binning': {
-            'BOOSTED': (18, 70, 250),
-            'VBF': (25, 0, 250),
-            'REST': (11, 0, 110),
-            None: (20, 0, 200)},
-        'scale': 0.001,
-        'units': 'GeV',
-    },
-    'lepton_eta_centrality': {
-        'title': r'$Lep_{eta}$ Centrality',
-        'root': '#font[52]{Lep}_{eta} #font[152] centrality',
-        'filename': 'ditau_met_centrality',
-        'binning': (30, 0, 1.1),
-        'legend': 'left',
-        },
-    'transversemass': {
-        'title': r'$m^{T}_{\lep\met}$',
-        'root': '#font[52]{m}^{T}_{#font[152]{#lep}#font[152]{#met}}',
-        'filename': 'transversemass',
-        'binning': (30, 0, 150),
-        'units': 'GeV',
-        'scale': 0.001,
-        'blind': (100, 150),
-        },
+ #     'higgspt': {
+  #        'title': r'$p_{T}^{H}$',
+  #        'root': '#font[52]{p}_{T}^{H}',
+   #       'filename': 'higgspt',
+     #     'binning': {
+      #        'BOOSTED': (18, 70, 250),
+       #       'VBF': (25, 0, 250),
+      #        'REST': (11, 0, 110),
+      #        None: (20, 0, 200)},
+      #    'scale': 0.001,
+      #    'units': 'GeV',
+    #  },
+  #   'lepton_eta_centrality': {
+  #       'title': r'$Lep_{eta}$ Centrality',
+  #       'root': '#font[52]{Lep}_{eta} #font[152] centrality',
+  #       'filename': 'ditau_met_centrality',
+  #       'binning': (30, 0, 1.1),
+  #       'legend': 'left',
+  #       },
+  #   'transversemass': {
+  #       'title': r'$m^{T}_{\lep\met}$',
+  #       'root': '#font[52]{m}^{T}_{#font[152]{#lep}#font[152]{#met}}',
+  #       'filename': 'transversemass',
+  #       'binning': (30, 0, 150),
+  #      'units': 'GeV',
+  #       'scale': 0.001,
+ #      'blind': (100, 150),
+ #        },
     }
 
 from . import MMC_VERSION
