@@ -200,6 +200,15 @@ VARIABLES = {
         'legend': 'left',
         'integer': True,
     },
+    'ditau_mt_lep0_met': {
+        'title': r'',
+        'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
+        'filename': 'ditau_met_min_dphi',
+        'binning': (20, 0, 100),
+        'units': 'GeV',
+        'scale': 0.001,
+    },
+
     #'sphericity': {
     #    'title': r'Sphericity',
     #    'root': '#font[52]{Sphericity}',
@@ -307,6 +316,16 @@ VARIABLES = {
                 None: (20, 35, 160)}},
         'scale': 0.001,
         'units': 'GeV',
+   'tau_n_tracks': {
+       'title': r'$\tau$ Number of Tracks',
+       'root': '#font[152]{#tau} #font[52]{Tracks}',
+       'filename': 'tau_n_tracks',
+       'binning': (5, -.5, 4.5),
+   },
+
+
+
+
     },
    # 'tau1_pt': {
    #     'title': r'$\tau_{1} p_{T}$',

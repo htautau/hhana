@@ -10,12 +10,15 @@ IS_VBF = Cut('is_vbf_mva==1')
 IS_BOOSTED = Cut('is_boosted_mva==1')
 BVETO = Cut('is_btagged == 0')
 MET = Cut('met_et > 0')
+#MT_LEP_MET = Cut('ditau_mt_lep0_met > 40000.')
+
 # common preselection cuts
 PRESELECTION = (
     TRIGGER
     & IS_OPPOSITE_SIGN
     & MET 
     & BVETO
+#    & MT_LEP_MET
     )
 
 # VBF category cuts

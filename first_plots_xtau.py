@@ -53,6 +53,7 @@ fields = [
     'ditau_vis_mass',
     'ditau_coll_approx_m',
     'ditau_mmc_mlm_m',
+    'ditau_mt_lep0_met',
     'tau_pt',
     'lep_pt',
 ]
@@ -87,6 +88,6 @@ for cat in categories:
             model=[t_h[field], ewk_h[field], z_h[field]],
             units=vars[field]['units'] if 'units' in vars[field] else None, 
             logy=True,
-            output_name='toto_{0}_{1}.png'.format(field, cat.name))
+            output_name='{0}_{1}.png'.format(field, cat.name))
         # HACK: clear the list of canvases
         ROOT.gROOT.GetListOfCanvases().Clear()
