@@ -537,7 +537,7 @@ class Sample(object):
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         
         log.warn("List of weights need an update")
-        weight_fields = ['weight_pileup']
+        weight_fields = ['weight_pileup', 'weight_mc']
         return weight_fields
 
     def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
@@ -959,8 +959,8 @@ class SystematicsSample(Sample):
                 events_bin = 1
             else:
                 # use mc_weighted second bin
-                events_bin = 1
-            events_hist_suffix = '_cutflow'
+                events_bin = 4
+            events_hist_suffix = '_daod'
 
             tables['NOMINAL'] =  CachedTable.hook(getattr(
                 h5file.root, treename))

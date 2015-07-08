@@ -74,7 +74,7 @@ for f in fields:
 
 # categories = [Category_Preselection_lh, Category_VBF_lh, Category_Boosted_lh]
 
-categories = [Category_Boosted_lh]
+categories = [Category_Preselection_lh]
 for cat in categories:
     a1, b = data.get_field_hist(vars, cat)
     data.draw_array(a1, cat, 'ALL', field_scale=b)
@@ -105,8 +105,8 @@ for cat in categories:
         fig = draw(
             vars[field]['root'],
             cat,
-            data = None,
-            model = [z_h[field], t_h[field], ewk_h[field]],
+            data = a1[field],
+            model = [t_h[field], ewk_h[field], z_h[field]],
             logy=True)
         
         fig.SaveAs('toto_{0}_{1}_log.png'.format(field, cat.name))
