@@ -75,14 +75,15 @@ headers.insert(0, 'sample / category')
 # categories = [Category_VBF_lh]
 table = []
 
-for sample in ( ztautau, top, ewk):
+for sample in ( ztautau, top, ewk, data):
     row = [sample.name]
+    table.append(row)
     for category in categories:
         events = sample.events(category)
         row.append(
             "{0:.1f} +/- {1:.1f}".format(
                 events[1].value, events[1].error))
-        table.append(row)
+       
     
 print tabulate(table, headers=headers)
 print
