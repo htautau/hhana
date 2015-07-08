@@ -1,16 +1,20 @@
 import ROOT
+from mva.analysis import Analysis
 from mva.samples import MC_Ztautau, Pythia_Ztautau, Data
 from mva.samples.others import EWK, Top
 from hhdb.datasets import Database
 from mva.variables import VARIABLES
 from mva.categories.lephad import Category_VBF_lh, Category_Boosted_lh, Category_Preselection_lh
 from mva.plotting import draw_ratio, draw
+from tabulate import tabulate
 
 # Instantiate and load the database
 DB = Database('datasets_lh')
 
 # Ntuples path
 NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v1_1'
+
+
 
 
 ztautau = Pythia_Ztautau(
@@ -45,6 +49,9 @@ data = Data(
     trigger=False)
 
 
+
+
+
 fields = [
     'jet_0_pt',
     'jet_1_pt',
@@ -63,8 +70,24 @@ for f in fields:
     vars[f] =  VARIABLES[f]
 
 categories = [Category_Preselection_lh, Category_Boosted_lh]
-
+headers = [c.name for c in categories]
+headers.insert(0, 'sample / category')
 # categories = [Category_VBF_lh]
+table = []
+
+for sample in ( ztautau, top, ewk):
+    row = [sample.name]
+    for category in categories:
+        events = sample.events(category)
+        row.append(
+            "{0:.1f} +/- {1:.1f}".format(
+                events[1].value, events[1].error))
+        table.append(row)
+    
+print tabulate(table, headers=headers)
+print
+
+
 for cat in categories:
     a1, b = data.get_field_hist(vars, cat)
     data.draw_array(a1, cat, 'ALL', field_scale=b)
