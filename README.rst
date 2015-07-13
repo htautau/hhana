@@ -2,8 +2,8 @@
 
     UNDER CONSTRUCTION
 
-Dependencies
-============
+`Dependencies <dependencies.rst>`__
+===================================
 
 * `dependencies <dependencies.rst>`__
 
