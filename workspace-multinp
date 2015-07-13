@@ -16,7 +16,7 @@ from statstools.utils import get_bestfit_nll_workspace
 from statstools.parallel import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
 from statstools.pulls import NuisancePullScan, MinosError
-from mva import log; log = log['multinp']
+from mva import log; log = log[__file__]
 
 
 if __name__ == '__main__':
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                                'setup.noel.sfu.txt'))
         log_path = os.getenv('PBS_LOG', None)
         for par in nuispar_list:
-            cmd_args = ['npscan', '%s'%args.file, '--nuis %s'%par, '--name %s'%args.name, '--jobs %d'%args.jobs]
+            cmd_args = ['workspace-npscan', '%s'%args.file, '--nuis %s'%par, '--name %s'%args.name, '--jobs %d'%args.jobs]
             cmd = ' '.join(cmd_args)
             name = cmd.replace(" ", "_")
             cmd = "cd %s && %s && %s" % (os.getcwd(), setup, cmd)
