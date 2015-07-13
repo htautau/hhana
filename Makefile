@@ -398,17 +398,17 @@ workspaces: mva-workspaces cuts-workspaces
 combine-mva:
 	@cd workspaces/hh_nos_nonisol_ebz_mva; \
 	for mass in $$(seq 100 5 150); do \
-		combine hh_11_vbf_$${mass} hh_12_vbf_$${mass} --name hh_vbf_$${mass}; \
-		combine hh_11_boosted_$${mass} hh_12_boosted_$${mass} --name hh_boosted_$${mass}; \
-		combine hh_11_combination_$${mass} hh_12_combination_$${mass} --name hh_combination_$${mass}; \
+		workspace-combine hh_11_vbf_$${mass} hh_12_vbf_$${mass} --name hh_vbf_$${mass}; \
+		workspace-combine hh_11_boosted_$${mass} hh_12_boosted_$${mass} --name hh_boosted_$${mass}; \
+		workspace-combine hh_11_combination_$${mass} hh_12_combination_$${mass} --name hh_combination_$${mass}; \
 	done;
 
 .PHONY: combine-cuts
 combine-cuts:
 	@cd workspaces/hh_nos_nonisol_ebz_cuts; \
 	for mass in $$(seq 100 5 150); do \
-		combine hh_12_cuts_boosted_loose_$${mass} hh_12_cuts_boosted_tight_$${mass} --name hh_12_cuts_boosted_$${mass}; \
-		combine hh_12_cuts_vbf_lowdr_$${mass} hh_12_cuts_vbf_highdr_loose_$${mass} hh_12_cuts_vbf_highdr_tight_$${mass} --name hh_12_cuts_vbf_$${mass}; \
+		workspace-combine hh_12_cuts_boosted_loose_$${mass} hh_12_cuts_boosted_tight_$${mass} --name hh_12_cuts_boosted_$${mass}; \
+		workspace-combine hh_12_cuts_vbf_lowdr_$${mass} hh_12_cuts_vbf_highdr_loose_$${mass} hh_12_cuts_vbf_highdr_tight_$${mass} --name hh_12_cuts_vbf_$${mass}; \
 	done;
 
 .PHONY: pruning

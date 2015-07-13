@@ -316,6 +316,7 @@ VARIABLES = {
                 None: (20, 35, 160)}},
         'scale': 0.001,
         'units': 'GeV',
+        },
    'tau_n_tracks': {
        'title': r'$\tau$ Number of Tracks',
        'root': '#font[152]{#tau} #font[52]{Tracks}',
@@ -323,10 +324,6 @@ VARIABLES = {
        'binning': (5, -.5, 4.5),
    },
 
-
-
-
-    },
    # 'tau1_pt': {
    #     'title': r'$\tau_{1} p_{T}$',
    #     'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
