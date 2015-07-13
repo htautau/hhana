@@ -421,13 +421,13 @@ pruning:
 			cp -r ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass} .; \
 			cp ../hh_nos_nonisol_ebz_$${ana}/hh_combination_$${mass}.root .; \
 		done; \
-		fix-workspace --quiet --suffix split_norm_shape hh_combination_[0-9][0-9][0-9]; \
-		fix-workspace --quiet --suffix drop_others_shapes --drop-others-shapes hh_combination_[0-9][0-9][0-9]; \
-		fix-workspace --quiet --suffix drop_others_shapes_prune_norms --drop-others-shapes --prune-norms hh_combination_[0-9][0-9][0-9]; \
+		workspace-fix --quiet --suffix split_norm_shape hh_combination_[0-9][0-9][0-9]; \
+		workspace-fix --quiet --suffix drop_others_shapes --drop-others-shapes hh_combination_[0-9][0-9][0-9]; \
+		workspace-fix --quiet --suffix drop_others_shapes_prune_norms --drop-others-shapes --prune-norms hh_combination_[0-9][0-9][0-9]; \
 		for thresh in 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 0.96 0.97 0.98 0.99 1; do \
-			fix-workspace --quiet --drop-others-shapes --prune-norms --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh} hh_combination_[0-9][0-9][0-9]; \
-			fix-workspace --quiet --drop-others-shapes --prune-norms --symmetrize --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_sym hh_combination_[0-9][0-9][0-9]; \
-			fix-workspace --quiet --drop-others-shapes --prune-norms --symmetrize-partial --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_part_sym hh_combination_[0-9][0-9][0-9]; \
+			workspace-fix --quiet --drop-others-shapes --prune-norms --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh} hh_combination_[0-9][0-9][0-9]; \
+			workspace-fix --quiet --drop-others-shapes --prune-norms --symmetrize --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_sym hh_combination_[0-9][0-9][0-9]; \
+			workspace-fix --quiet --drop-others-shapes --prune-norms --symmetrize-partial --prune-shapes --chi2-thresh $${thresh} --suffix chi2_$${thresh}_part_sym hh_combination_[0-9][0-9][0-9]; \
 		done; \
 		cd ..; \
 	done
@@ -435,11 +435,11 @@ pruning:
 .PHONY: fix-mva
 fix-mva:
 	# IMPORTANT: update pruning chi2 threshold from plots made from pruning routine above
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./workspace-fix --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms workspaces/hh_nos_nonisol_ebz_mva
 
 .PHONY: fix-cuts
 fix-cuts:
-	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_cuts
+	@PBS_LOG=log PBS_PPN=$(PBS_PPN_MAX) run-cluster ./workspace-fix --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 --drop-others-shapes --prune-norms --prune-samples workspaces/hh_nos_nonisol_ebz_cuts
 
 
 grid-scores:

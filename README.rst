@@ -63,8 +63,8 @@ Dependencies
    git clone git://github.com/htautau/hhana.git
 
 
-Data Preparation
-================
+Data Preparation (DEPRECATED)
+=============================
 
 Automatically organize ROOT and log files with::
 
@@ -171,8 +171,8 @@ Fixing Workspaces
 Apply all of the HSG4 workspace fixes with::
 
     cd workspaces
-    fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
-    fix-workspace --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
+    workspace-fix --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_mva
+    workspace-fix --quiet --symmetrize --prune-shapes --chi2-thresh 0.9 hh_nos_nonisol_ebz_cuts
 
 Scan of the nuisance parameters
 -------------------------------
@@ -180,11 +180,11 @@ Scan of the nuisance parameters
 Construct the profile of every nuisance parameter (NP)::
 
     # submit a batch job for each NP. If --submit is omitted simply print the command.
-    multinp scans_fit --submit --file path_to_measurement_file.root
+    workspace-multinp scans_fit --submit --file path_to_measurement_file.root
     # merge all the output in a single file and compute the nominal NLL for normalisation
-    multinp merge --jobs -1 --file path_to_measurement_file.root
+    workspace-multinp merge --jobs -1 --file path_to_measurement_file.root
     # Clean the directory from the individual pickle files (keep only the master)
-    multinp clean --file path_to_measurement_file.root
+    workspace-multinp clean --file path_to_measurement_file.root
 
 Plot the NP profiles with::
 
@@ -208,7 +208,7 @@ Significance
 Compute the expected significance (bkg. only hypothesis) with::
 
     # Walk trough the directory and subdirectory and look for workspaces
-    multisig path_to_directory_containing_workspaces
+    workspace-multisig path_to_directory_containing_workspaces
 
 Postfit plot
 ------------
