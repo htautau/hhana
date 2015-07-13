@@ -2,8 +2,10 @@
 
     UNDER CONSTRUCTION
 
-:ref:`Dependencies`
-===================
+Dependencies
+============
+
+* The list of dependencies is :ref:`dependencies`
 
 * Latest 5.X `ROOT <http://root.cern.ch/drupal/>`_ with PyROOT, RooFit,
   Minuit2, HistFactory enabled.
