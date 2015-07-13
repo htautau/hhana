@@ -5,7 +5,7 @@
 Dependencies
 ============
 
-* `dependencies <dependencies.html>`__
+* `dependencies <dependencies.rst>`__
 
 * Latest 5.X `ROOT <http://root.cern.ch/drupal/>`_ with PyROOT, RooFit,
   Minuit2, HistFactory enabled.
