@@ -659,10 +659,10 @@ VARIABLES = {
 from . import MMC_VERSION
 mmc = MMC_VERSION
 
-VARIABLES['dilep_mmc_%d_resonance_m' % mmc] = {
+VARIABLES['mmc%d_mass' % mmc] = {
     'title': r'$m^{MMC}_{\tau\tau}$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
-    'filename': 'dilep_mmc_%d_resonance_m' % mmc,
+    'filename': 'mmc%d_mass' % mmc,
     'binning': {
         2011: (25, 0, 250),
         2012: (25, 0, 250),

@@ -109,6 +109,7 @@ class Sample(object):
                  student=DEFAULT_STUDENT,
                  force_reopen=False,
                  trigger=True,
+                 channel='hadhad',
                  name='Sample',
                  label='Sample',
                  **hist_decor):
@@ -133,6 +134,7 @@ class Sample(object):
         if 'fillstyle' not in hist_decor:
             self.hist_decor['fillstyle'] = 'solid'
         self.trigger = trigger
+        self.channel = channel
 
     def decorate(self, name=None, label=None, **hist_decor):
         if name is not None:
@@ -959,8 +961,16 @@ class SystematicsSample(Sample):
                 events_bin = 1
             else:
                 # use mc_weighted second bin
-                events_bin = 4
-            events_hist_suffix = '_daod'
+                if year == 2015:
+                    events_bin = 4
+                else:
+                    events_bin = 2
+                    
+            if year == 2015:
+                events_hist_suffix = '_daod'
+            else:
+                events_hist_suffix = '_cutflow'
+                
 
             tables['NOMINAL'] =  CachedTable.hook(getattr(
                 h5file.root, treename))

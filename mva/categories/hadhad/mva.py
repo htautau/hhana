@@ -7,7 +7,7 @@ from .common import (
     CUTS_BOOSTED, CUTS_BOOSTED_CR,
     DETA_TAUS)
 from .truth import CUTS_TRUE_VBF, CUTS_TRUE_BOOSTED
-from .features import features_vbf, features_boosted
+from ..features import features_vbf, features_boosted
 
 
 class Category_VBF_NO_DETAJJ_CUT(Category_Preselection):
