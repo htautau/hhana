@@ -91,7 +91,7 @@ class Embedded_Ztautau(Ztautau, SystematicsSample):
         if self.systematics:
             # normalize ISOL and MFS variations to same as nominal
             # at preselection
-            from ..categories import Category_Preselection
+            from ..categories.hadhad import Category_Preselection
             nps = [
                 ('MFS_UP',),
                 ('MFS_DOWN',),

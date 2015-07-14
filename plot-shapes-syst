@@ -15,7 +15,7 @@ from ROOT import TLatex
 from mva.cmd import get_parser
 from mva import norm_cache 
 from mva.defaults import TARGET_REGION
-from mva.categories import CATEGORIES, Category_Preselection
+from mva.categories.hadhad import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis, get_analysis
 from mva.systematics import iter_systematics, get_systematics

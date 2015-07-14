@@ -8,7 +8,7 @@ from root_numpy import fill_hist
 from mva.samples import Embedded_Ztautau, Data
 from mva.variables import get_binning, get_label, get_scale
 from mva import save_canvas, MMC_MASS
-from mva.categories import Category_Preselection, Category_Boosted
+from mva.categories.hadhad import Category_Preselection, Category_Boosted
 from mva.plotting import set_colors
 import numpy as np
 from itertools import product

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from rootpy.plotting import Hist
 from mva.analysis import Analysis
 from mva.variables import get_label
-from mva.categories import (
+from mva.categories.hadhad import (
     Category_Preselection, Category_Rest,
     Category_Boosted, Category_VBF)
 

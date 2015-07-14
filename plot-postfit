@@ -19,7 +19,7 @@ from ROOT import TGraphAsymmErrors
 
 # local imports
 from mva import ATLAS_LABEL, MMC_MASS
-from mva.categories import CATEGORIES
+from mva.categories.hadhad import CATEGORIES
 from mva.analysis import Analysis
 from mva.plotting.templates import RatioPlot
 from mva.plotting.utils import legend_params, label_plot

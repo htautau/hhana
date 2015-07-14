@@ -1,7 +1,7 @@
 import rootpy
 from rootpy.extern import argparse
 
-from .categories import CATEGORIES
+from .categories.hadhad import CATEGORIES
 from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
 from .variables import VARIABLES
 from .regions import REGIONS

@@ -73,7 +73,7 @@ def make_graph(values, nominal, max_value=8, **kwargs):
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
-    from mva.categories import CATEGORIES
+    from mva.categories.hadhad import CATEGORIES
     parser = ArgumentParser()
     parser.add_argument('path')
     parser.add_argument('--mass', default='125')

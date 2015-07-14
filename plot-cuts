@@ -3,7 +3,7 @@ from mva.cmd import get_parser
 
 args = get_parser(actions=False).parse_args()
 
-from mva.categories import (
+from mva.categories.hadhad import (
     Category_Preselection,
     Category_VBF_NO_DETAJJ_CUT,
     Category_Boosted_NO_PTH_CUT,

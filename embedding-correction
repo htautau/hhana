@@ -2,7 +2,7 @@
 
 from mva.samples import MC_Ztautau
 from mva.defaults import TARGET_REGION
-from mva.categories import Category_Preselection
+from mva.categories.hadhad import Category_Preselection
 from mva import log
 
 from rootpy.io import root_open

@@ -67,7 +67,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # local imports
     from mva.analysis import Analysis
-    from mva.categories import CATEGORIES, Category_Preselection
+    from mva.categories.hadhad import CATEGORIES, Category_Preselection
 
     analysis = Analysis(2012)
     analysis.normalize(Category_Preselection)

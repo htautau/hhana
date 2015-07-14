@@ -3,7 +3,7 @@
 Compare Higgs yields with and without ggF reweighting 
 """
 from mva.samples import Higgs
-from mva.categories import Category_Preselection, Category_Boosted, Category_VBF, Category_Rest
+from mva.categories.hadhad import Category_Preselection, Category_Boosted, Category_VBF, Category_Rest
 
 categories = (Category_Preselection, Category_Boosted, Category_VBF, Category_Rest)
 

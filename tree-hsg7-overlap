@@ -2,7 +2,7 @@
 
 from mva.samples.higgs import InclusiveHiggs
 from mva.analysis import Analysis
-from mva.categories import CATEGORIES, Category_VBF, Category_Boosted
+from mva.categories.hadhad import CATEGORIES, Category_VBF, Category_Boosted
 from mva.plotting.utils import legend_params, label_plot
 from rootpy.plotting import Hist, Canvas, Legend, HistStack
 from rootpy.plotting.utils import draw

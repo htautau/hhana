@@ -17,7 +17,7 @@ from . import log; log = log[__name__]
 from . import norm_cache, CONST_PARAMS
 from . import samples
 from .samples import Higgs
-from .categories import CATEGORIES
+from .categories.hadhad import CATEGORIES
 from .classify import histogram_scores, Classifier
 from .defaults import (
     TRAIN_FAKES_REGION, FAKES_REGION, TARGET_REGION, NORM_FIELD)

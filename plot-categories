@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from mva.categories import (
+from mva.categories.hadhad import (
     Category_Preselection,
     Category_VBF, Category_Boosted,
     Category_Cuts_VBF_Preselection,

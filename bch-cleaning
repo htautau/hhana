@@ -2,7 +2,7 @@
 
 from mva.analysis import Analysis
 from mva.samples import Higgs
-from mva.categories import CATEGORIES
+from mva.hadhad.categories import CATEGORIES
 from mva.defaults import TARGET_REGION
 from mva.plotting import draw_ratio
 from mva import CACHE_DIR

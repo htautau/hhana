@@ -5,7 +5,10 @@ from math import sqrt
 import matplotlib.pyplot as plt
 
 from mva.analysis import Analysis
-from mva.categories import Category_Preselection, Category_Boosted, Category_VBF, Category_Rest
+from mva.categories.hadhad import (Category_Preselection, 
+                                   Category_Boosted, 
+                                   Category_VBF, 
+                                   Category_Rest)
 from mva.samples import Higgs
 from mva.variables import get_binning, get_label, get_scale, get_units, blind_hist
 from mva.defaults import TARGET_REGION

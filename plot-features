@@ -15,7 +15,7 @@ import rootpy.plotting.utils as rootpy_utils
 # local imports
 from mva.plotting import draw_channel_array, uncertainty_band
 from mva.systematics import get_systematics, parse_systematics
-from mva.categories import CATEGORIES
+from mva.categories.hadhad import CATEGORIES
 from mva.massregions import MassRegions
 from mva.variables import VARIABLES, YEAR_VARIABLES, get_label
 from mva.analysis import get_analysis

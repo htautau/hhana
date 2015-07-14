@@ -11,7 +11,7 @@ from ROOT import TLatex
 from mva.samples import (
     Data, QCD, Embedded_Ztautau, MC_Ztautau,
     Pythia_Ztautau, MC_Embedded_Ztautau, Higgs)
-from mva.categories import CATEGORIES, Category_Preselection
+from mva.categories.hadhad import CATEGORIES, Category_Preselection
 from mva.variables import VARIABLES
 from mva.analysis import Analysis
 from mva.plotting.templates import RatioPlot
@@ -31,7 +31,7 @@ parser.add_argument('--categories', default='mva_all',
 parser.add_argument('shapes', nargs='*')
 args = parser.parse_args()
 
-categories = CATEGORIES[args.categories]+[Category_Preselection]
+categories = CATEGORIES[args.categories] + [Category_Preselection]
 
 # list of fields to plot
 fields = [

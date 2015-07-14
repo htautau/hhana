@@ -9,7 +9,7 @@ from rootpy.plotting import Canvas, Legend, set_style
 from rootpy.plotting.style.atlas.labels import ATLAS_label
 # local imports
 from mva import save_canvas
-from mva.categories import CATEGORIES
+from mva.categories.hadhad import CATEGORIES
 from mva.categories.base import CategoryMeta
 from statstools.plotting import pvalue_plot, parse_name, get_category
 

@@ -8,7 +8,7 @@ from rootpy.plotting.style.atlas import ATLAS_label
 from mva.cmd import get_parser
 from mva.analysis import get_analysis
 from mva.samples import Higgs
-from mva.categories import (
+from mva.categories.hadhad import (
     Category_Preselection,
     Category_Cuts_Boosted_Preselection, Category_Cuts_VBF_Preselection,
     Category_VBF, Category_Boosted)

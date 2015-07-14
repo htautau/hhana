@@ -4,8 +4,8 @@ from rootpy.tree import Cut
 from mva.analysis import Analysis
 from mva import MMC_MASS
 from mva.samples import Higgs
-from mva.categories import (Category_Preselection, Category_Rest,
-                            Category_Boosted, Category_VBF)
+from mva.categories.hadhad import (Category_Preselection, Category_Rest,
+                                   Category_Boosted, Category_VBF)
 
 ztt_cr = Cut('70 < {0} < 110'.format(MMC_MASS)) & Cut('resonance_pt > 120000') & Cut('dR_tau1_tau2 < 1.5')
 fmt = '{a[1].value:.3f} +/- {a[1].error:.3f}'

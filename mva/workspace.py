@@ -11,7 +11,7 @@ from statstools.histfactory import (
 
 from . import log; log = log[__name__]
 from . import CONST_PARAMS, CACHE_DIR, MMC_MASS, POI
-from .categories import CATEGORIES
+from .categories.hadhad import CATEGORIES
 from .plotting import hist_scores
 
 import pickle

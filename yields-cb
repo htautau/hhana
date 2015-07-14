@@ -17,19 +17,19 @@ from mva import log
 from mva import norm_cache
 from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
-from mva.categories.mva  import Category_Preselection
-from mva.categories.common import (CUTS_VBF,CUTS_BOOSTED,
-                                   CUTS_2J, DETA_TAUS,
-                                   RESONANCE_PT)
+from mva.categories.hadhad.mva  import Category_Preselection
+from mva.categories.hadhad.common import (CUTS_VBF,CUTS_BOOSTED,
+                                          CUTS_2J, DETA_TAUS,
+                                          RESONANCE_PT)
 
-from mva.categories.cb import DETA_JETS,MASS_JETS,TAUS_CENTR
-from mva.categories.cb import (Category_Cuts_VBF_HighDR_Tight,
-                               Category_Cuts_VBF_HighDR_Loose,
-                               Category_Cuts_VBF_HighDR,
-                               Category_Cuts_VBF_LowDR,
-                               Category_Cuts_VBF)
-from mva.categories.cb import (Category_Cuts_Boosted_Tight,
-                               Category_Cuts_Boosted_Loose)
+from mva.categories.hadhad.cb import DETA_JETS,MASS_JETS,TAUS_CENTR
+from mva.categories.hadhad.cb import (Category_Cuts_VBF_HighDR_Tight,
+                                      Category_Cuts_VBF_HighDR_Loose,
+                                      Category_Cuts_VBF_HighDR,
+                                      Category_Cuts_VBF_LowDR,
+                                      Category_Cuts_VBF)
+from mva.categories.hadhad.cb import (Category_Cuts_Boosted_Tight,
+                                      Category_Cuts_Boosted_Loose)
 from statstools.ufloat import ufloat
 
 analysis = get_analysis(args)

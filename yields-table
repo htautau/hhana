@@ -10,7 +10,7 @@ from rootpy.utils.lock import lock
 from mva import log
 from mva.defaults import TARGET_REGION
 from mva.analysis import get_analysis
-from mva.categories.common import Category_Preselection
+from mva.categories.hadhad import Category_Preselection
 from mva.samples import Data
 from statstools.ufloat import ufloat
 from statstools.jobs import run_pool

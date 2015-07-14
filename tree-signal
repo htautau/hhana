@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # local imports
     from higgstautau.datasets import Database
     from mva.analysis import Analysis
-    from mva.categories import CATEGORIES, Category_Preselection
+    from mva.categories.hadhad import CATEGORIES, Category_Preselection
     from mva.samples import Higgs
 
     analysis = Analysis(2012)

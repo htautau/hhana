@@ -19,7 +19,7 @@ from mva import log, variables, MMC_MASS, plot_dir
 from mva.plotting import draw_channel_array, draw_channel, hist_scores, draw_ratio
 from mva.classify import histogram_scores
 from mva.systematics import get_systematics, parse_systematics
-from mva.categories import CATEGORIES
+from mva.categories.hadhad import CATEGORIES
 from mva.massregions import MassRegions
 from mva.analysis import get_analysis
 from mva.defaults import TARGET_REGION

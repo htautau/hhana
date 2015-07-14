@@ -10,7 +10,7 @@ if os.path.exists(cache):
         yields = pickle.load(cache_file)
 else:
     from mva.analysis import Analysis
-    from mva.categories import CATEGORIES, Category_Preselection
+    from mva.categories.hadhad import CATEGORIES, Category_Preselection
     from mva.samples import Higgs
     
     analysis = Analysis(2012)

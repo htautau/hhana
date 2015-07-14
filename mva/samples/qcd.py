@@ -352,7 +352,7 @@ class QCD(Sample, Background):
         # use preselection as reference in which all models should have the
         # same expected number of QCD events
         # get number of events at preselection for nominal model
-        from ..categories import Category_Preselection
+        from ..categories.hadhad import Category_Preselection
         nominal_events = self.events(Category_Preselection, None)[1].value
 
         field_hist_template = {}

@@ -18,7 +18,7 @@ parser.add_argument('--dry-run', default=False, action='store_true')
 parser.add_argument('category', choices=('vbf', 'boosted'))
 args = parser.parse_args()
 
-from mva.categories import Category_VBF, Category_Boosted
+from mva.categories.hadhad import Category_VBF, Category_Boosted
 from mva.analysis import Analysis
 from mva.samples import Higgs
 from mva.defaults import TRAIN_FAKES_REGION

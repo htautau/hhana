@@ -7,7 +7,7 @@ from math import pi, sqrt
 
 from mva.analysis import Analysis
 from mva.samples import Higgs
-from mva.categories import Category_VBF
+from mva.categories.hadhad import Category_VBF
 from mva.defaults import TARGET_REGION
 from mva.plotting.utils import legend_params, category_lumi_atlas
 from mva import save_canvas

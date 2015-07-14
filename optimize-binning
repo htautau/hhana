@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from mva import CONST_PARAMS, CACHE_DIR
-from mva.categories import Category_VBF, Category_Boosted
+from mva.categories.hadhad import Category_VBF, Category_Boosted
 from mva.samples import QCD, Ztautau
 from mva.analysis import Analysis
 from mva.defaults import TARGET_REGION
