@@ -8,7 +8,7 @@
 Installation on lxplus
 ======================
 
-* To be added.
+* https://twiki.cern.ch/twiki/bin/view/AtlasProtected/HadHadAnalysisFramework
 
 Data Preparation (DEPRECATED)
 =============================
