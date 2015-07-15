@@ -158,7 +158,7 @@ VARIABLES = {
         'binning': {
             'PRESELECTION': (13, 15, 80),
             'REST': (13, 15, 80),
-            None: (17, 15, 100)},
+            None: (15, 0, 80)},
         'scale': 0.001,
         'units': 'GeV',
     },
@@ -313,7 +313,7 @@ VARIABLES = {
             2015: {
                 'PRESELECTION': (20, 35, 90),
                 'REST': (20, 35, 90),
-                None: (20, 35, 160)}},
+                None: (15, 20, 100)}},
         'scale': 0.001,
         'units': 'GeV',
         },
@@ -489,7 +489,7 @@ VARIABLES = {
         'title': r'$\Delta R(\tau,\tau)$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'ditau_dr',
-        'binning': (8, 0.8, 2.4),
+        'binning': (20, 0, 5),
         'ypadding': (0.5, 0),
     },
     'ditau_dphi': {
@@ -577,7 +577,7 @@ VARIABLES = {
         'title': r'jet$_{2}$ $p_{T}$',
         'root': '#font[52]{p}_{T}(#font[52]{j}2)',
         'filename': 'jet_1_pt',
-        'binning': (20, 20, 200),
+        'binning': (15, 20, 200),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
@@ -586,7 +586,7 @@ VARIABLES = {
         'title': r'jet$_{0}$ $p_{T}$',
         'root': '#font[52]{p}_{T}(#font[52]{j}1)',
         'filename': 'jet_0_pt',
-        'binning': (20, 20, 200),
+        'binning': (15, 20, 200),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF']
@@ -638,13 +638,13 @@ VARIABLES = {
       #    'scale': 0.001,
       #    'units': 'GeV',
     #  },
-  #   'lepton_eta_centrality': {
-  #       'title': r'$Lep_{eta}$ Centrality',
-  #       'root': '#font[52]{Lep}_{eta} #font[152] centrality',
-  #       'filename': 'ditau_met_centrality',
-  #       'binning': (30, 0, 1.1),
-  #       'legend': 'left',
-  #       },
+    # 'lepton_eta_centrality': {
+    #    'title': r'$Lep_{eta}$ Centrality',
+    #     'root': '#font[52]{Lep}_{eta} #font[152] centrality',
+    #     'filename': 'lepton_eta_centrality',
+    #     'binning': (30, 0, 1.1),
+    #     'legend': 'left',
+    #     },
   #   'transversemass': {
   #       'title': r'$m^{T}_{\lep\met}$',
   #       'root': '#font[52]{m}^{T}_{#font[152]{#lep}#font[152]{#met}}',

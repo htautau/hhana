@@ -63,6 +63,8 @@ fields = [
     'ditau_mt_lep0_met',
     'tau_pt',
     'lep_pt',
+    'met_et',
+    'ditau_dr'
 ]
 
 vars = {}
@@ -108,10 +110,14 @@ for cat in categories:
         draw(
             vars[field]['root'],
             cat,
-            data=a1[field],
+           # data=a1[field],
+            data=None if a1[field].Integral() == 0 else a1[field],
             model=[t_h[field], ewk_h[field], z_h[field]],
             units=vars[field]['units'] if 'units' in vars[field] else None, 
-            logy=True,
+            logy=False,
             output_name='{0}_{1}.png'.format(field, cat.name))
+
+        #print list(a1[field].y())
+        print a1[field].Integral()
         # HACK: clear the list of canvases
         ROOT.gROOT.GetListOfCanvases().Clear()

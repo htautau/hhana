@@ -18,7 +18,7 @@ PRESELECTION = (
     & IS_OPPOSITE_SIGN
     & MET 
     & BVETO
-#    & MT_LEP_MET
+    & MT_LEP_MET
     )
 
 # VBF category cuts
