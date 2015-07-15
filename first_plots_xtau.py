@@ -1,7 +1,7 @@
 import ROOT
 from mva.analysis import Analysis
 from mva.samples import MC_Ztautau, Pythia_Ztautau, Data
-from mva.samples.others import EWK, Top
+from mva.samples.others import EWK, Top, MC_Wtaunu
 from hhdb.datasets import Database
 from mva.variables import VARIABLES
 from mva.categories.lephad import Category_VBF_lh, Category_Boosted_lh, Category_Preselection_lh
