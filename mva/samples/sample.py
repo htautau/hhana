@@ -532,14 +532,12 @@ class Sample(object):
                 else:
                     weight_fields += variations['NOMINAL']
         # HACK
-        if not self.trigger and 'tau1_trigger_sf' in weight_fields:
+        if self.channel == 'hadhad' and not self.trigger and 'tau1_trigger_sf' in weight_fields:
             log.info("replacing trigger_sf with trigger_eff")
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         
-        log.warn("List of weights need an update")
-        weight_fields = ['weight_pileup', 'weight_mc']
         return weight_fields
 
     def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
@@ -851,6 +849,9 @@ class SystematicsSample(Sample):
             'TAU_ID',
             'TRIGGER',
         ]
+        if self.channel == 'lephad':
+            common.append('LEP_ID')
+        
         # No FAKERATE for embedding since fakes are data
         # so don't include FAKERATE here
         if self.year == 2011:
@@ -875,46 +876,60 @@ class SystematicsSample(Sample):
     def weight_systematics(self):
         systematics = {}
         if self.tau_id_sf:
-            if self.year == 2011:
-                tauid = {
-                    'TAU_ID': {
-                        'UP': [
-                            'tau1_id_sf_high',
-                            'tau2_id_sf_high'],
-                        'DOWN': [
-                            'tau1_id_sf_low',
-                            'tau2_id_sf_low'],
-                        'NOMINAL': [
-                            'tau1_id_sf',
-                            'tau2_id_sf']}
-                    }
-            else:
-                tauid = {
-                    'TAU_ID': {
-                        'STAT_UP': [
-                            'tau1_id_sf_stat_high',
-                            'tau2_id_sf_stat_high'],
-                        'STAT_DOWN': [
-                            'tau1_id_sf_stat_low',
-                            'tau2_id_sf_stat_low'],
-                        'UP': [
-                            'tau1_id_sf_sys_high',
-                            'tau2_id_sf_sys_high'],
-                        'DOWN': [
-                            'tau1_id_sf_sys_low',
-                            'tau2_id_sf_sys_low'],
-                        'NOMINAL': [
-                            'tau1_id_sf',
-                            'tau2_id_sf']},
-                    }
+            if self.channel == 'hadhad':
+                if self.year == 2011:
+                    tauid = {
+                        'TAU_ID': {
+                            'UP': [
+                                'tau1_id_sf_high',
+                                'tau2_id_sf_high'],
+                            'DOWN': [
+                                'tau1_id_sf_low',
+                                'tau2_id_sf_low'],
+                            'NOMINAL': [
+                                'tau1_id_sf',
+                                'tau2_id_sf']}
+                        }
+                else:
+                    tauid = {
+                        'TAU_ID': {
+                            'STAT_UP': [
+                                'tau1_id_sf_stat_high',
+                                'tau2_id_sf_stat_high'],
+                            'STAT_DOWN': [
+                                'tau1_id_sf_stat_low',
+                                'tau2_id_sf_stat_low'],
+                            'UP': [
+                                'tau1_id_sf_sys_high',
+                                'tau2_id_sf_sys_high'],
+                            'DOWN': [
+                                'tau1_id_sf_sys_low',
+                                'tau2_id_sf_sys_low'],
+                            'NOMINAL': [
+                                'tau1_id_sf',
+                                'tau2_id_sf']},
+                        }
+            elif self.channel == 'lephad':
+                if self.year == 2011:
+                    log.error('lephad is not implemented for 2011')
+                    raise RuntimeError
+                elif self.year == 2012:
+                    log.error('lephad is not implemented for 2012')
+                    raise RuntimeError
+                else:
+                    tauid = {
+                        'TAU_ID': {
+                            'NOMINAL': ['tau_jet_bdt_eff_sf'],},
+                        }
             systematics.update(tauid)
+
         return systematics
 
     def cut_systematics(self):
         return {}
 
     def __init__(self, year, db=DB, systematics=False,
-                 tau_id_sf=True, channel='hadhad', **kwargs):
+                 tau_id_sf=True, lep_id_sf=True, channel='hadhad', **kwargs):
 
         if isinstance(self, Background):
             sample_key = self.__class__.__name__.lower()
@@ -936,12 +951,13 @@ class SystematicsSample(Sample):
                 'MC sample %s does not inherit from Signal or Background' %
                 self.__class__.__name__)
 
-        super(SystematicsSample, self).__init__(year=year, **kwargs)
+        super(SystematicsSample, self).__init__(year=year, channel=channel, **kwargs)
 
         self.db = db
         self.datasets = []
         self.systematics = systematics
         self.tau_id_sf = tau_id_sf
+        self.lep_id_sf = lep_id_sf
         self.norms = {}
         rfile = get_file(self.ntuple_path, self.student, force_reopen=self.force_reopen)
         h5file = get_file(self.ntuple_path, self.student, hdf=True, force_reopen=self.force_reopen)
@@ -1222,6 +1238,11 @@ class SystematicsSample(Sample):
                 correction_weights = self.corrections(rec)
                 if correction_weights:
                     weights *= reduce(np.multiply, correction_weights)
+                if self.channel == 'lephad' and self.lep_id_sf:
+                    weights_el = reduce(np.multiply, [rec['lep_isele'], rec['lep_eff_sf_id_tight']])
+                    weights_mu = reduce(np.multiply, [rec['lep_ismu'], rec['lep_eff_sf_id_loose']])
+                    weights *= reduce(np.add, [weights_el, weights_mu])
+                    
                 # drop other weight fields
                 #rec = recfunctions.rec_drop_fields(rec, weight_branches)
                 # add the combined weight
@@ -1276,24 +1297,25 @@ class MC(SystematicsSample):
         return super(MC, self).weight_fields() + [
             'weight_mc',
             # uncertainty on these are small and are ignored:
-            'tau1_fakerate_sf_reco',
-            'tau2_fakerate_sf_reco',
+            # 'tau1_fakerate_sf_reco',
+            # 'tau2_fakerate_sf_reco',
         ]
 
     def weight_systematics(self):
         systematics = super(MC, self).weight_systematics()
-        systematics.update({
-            'FAKERATE': {
-                'UP': [
-                    'tau1_fakerate_sf_high',
-                    'tau2_fakerate_sf_high'],
-                'DOWN': [
-                    'tau1_fakerate_sf_low',
-                    'tau2_fakerate_sf_low'],
-                'NOMINAL': [
-                    'tau1_fakerate_sf',
-                    'tau2_fakerate_sf']},
-            })
+        if self.channel == 'hadhad':
+            systematics.update({
+                    'FAKERATE': {
+                        'UP': [
+                            'tau1_fakerate_sf_high',
+                            'tau2_fakerate_sf_high'],
+                        'DOWN': [
+                            'tau1_fakerate_sf_low',
+                            'tau2_fakerate_sf_low'],
+                        'NOMINAL': [
+                            'tau1_fakerate_sf',
+                            'tau2_fakerate_sf']},
+                    })
         if self.pileup_weight:
             systematics.update({
                 'PU_RESCALE': {
@@ -1301,62 +1323,63 @@ class MC(SystematicsSample):
                     'DOWN': ['pileup_weight_low'],
                     'NOMINAL': ['weight_pileup']},
                 })
-        if self.year == 2011:
-            systematics.update({
-                'TRIGGER': {
-                    'UP': [
-                        'tau1_trigger_sf_high',
-                        'tau2_trigger_sf_high'],
-                    'DOWN': [
-                        'tau1_trigger_sf_low',
-                        'tau2_trigger_sf_low'],
-                    'NOMINAL': [
-                        'tau1_trigger_sf',
-                        'tau2_trigger_sf']}})
-        else:
-            systematics.update({
-                'TRIGGER': {
-                    'UP': [
-                        'tau1_trigger_sf_sys_high',
-                        'tau2_trigger_sf_sys_high'],
-                    'DOWN': [
-                        'tau1_trigger_sf_sys_low',
-                        'tau2_trigger_sf_sys_low'],
-                    'NOMINAL': [
-                        'tau1_trigger_sf',
-                        'tau2_trigger_sf']},
-                'TRIGGER_STAT': {
-                    'PERIODA_UP': [
-                        'tau1_trigger_sf_stat_scale_PeriodA_high',
-                        'tau2_trigger_sf_stat_scale_PeriodA_high'],
-                    'PERIODA_DOWN': [
-                        'tau1_trigger_sf_stat_scale_PeriodA_low',
-                        'tau2_trigger_sf_stat_scale_PeriodA_low'],
-                    'PERIODBD_BARREL_UP': [
-                        'tau1_trigger_sf_stat_scale_PeriodBD_Barrel_high',
-                        'tau2_trigger_sf_stat_scale_PeriodBD_Barrel_high'],
-                    'PERIODBD_BARREL_DOWN': [
-                        'tau1_trigger_sf_stat_scale_PeriodBD_Barrel_low',
-                        'tau2_trigger_sf_stat_scale_PeriodBD_Barrel_low'],
-                    'PERIODBD_ENDCAP_UP': [
-                        'tau1_trigger_sf_stat_scale_PeriodBD_EndCap_high',
-                        'tau2_trigger_sf_stat_scale_PeriodBD_EndCap_high'],
-                    'PERIODBD_ENDCAP_DOWN': [
-                        'tau1_trigger_sf_stat_scale_PeriodBD_EndCap_low',
-                        'tau2_trigger_sf_stat_scale_PeriodBD_EndCap_low'],
-                    'PERIODEM_BARREL_UP': [
-                        'tau1_trigger_sf_stat_scale_PeriodEM_Barrel_high',
-                        'tau2_trigger_sf_stat_scale_PeriodEM_Barrel_high'],
-                    'PERIODEM_BARREL_DOWN': [
-                        'tau1_trigger_sf_stat_scale_PeriodEM_Barrel_low',
-                        'tau2_trigger_sf_stat_scale_PeriodEM_Barrel_low'],
-                    'PERIODEM_ENDCAP_UP': [
-                        'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_high',
-                        'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_high'],
-                    'PERIODEM_ENDCAP_DOWN': [
-                        'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_low',
-                        'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_low'],
-                    'NOMINAL': []}})
+        if self.channel == 'hadhad':
+            if self.year == 2011:
+                systematics.update({
+                        'TRIGGER': {
+                            'UP': [
+                                'tau1_trigger_sf_high',
+                                'tau2_trigger_sf_high'],
+                            'DOWN': [
+                                'tau1_trigger_sf_low',
+                                'tau2_trigger_sf_low'],
+                            'NOMINAL': [
+                                'tau1_trigger_sf',
+                                'tau2_trigger_sf']}})
+            else:
+                systematics.update({
+                        'TRIGGER': {
+                            'UP': [
+                                'tau1_trigger_sf_sys_high',
+                                'tau2_trigger_sf_sys_high'],
+                            'DOWN': [
+                                'tau1_trigger_sf_sys_low',
+                                'tau2_trigger_sf_sys_low'],
+                            'NOMINAL': [
+                                'tau1_trigger_sf',
+                                'tau2_trigger_sf']},
+                        'TRIGGER_STAT': {
+                            'PERIODA_UP': [
+                                'tau1_trigger_sf_stat_scale_PeriodA_high',
+                                'tau2_trigger_sf_stat_scale_PeriodA_high'],
+                            'PERIODA_DOWN': [
+                                'tau1_trigger_sf_stat_scale_PeriodA_low',
+                                'tau2_trigger_sf_stat_scale_PeriodA_low'],
+                            'PERIODBD_BARREL_UP': [
+                                'tau1_trigger_sf_stat_scale_PeriodBD_Barrel_high',
+                                'tau2_trigger_sf_stat_scale_PeriodBD_Barrel_high'],
+                            'PERIODBD_BARREL_DOWN': [
+                                'tau1_trigger_sf_stat_scale_PeriodBD_Barrel_low',
+                                'tau2_trigger_sf_stat_scale_PeriodBD_Barrel_low'],
+                            'PERIODBD_ENDCAP_UP': [
+                                'tau1_trigger_sf_stat_scale_PeriodBD_EndCap_high',
+                                'tau2_trigger_sf_stat_scale_PeriodBD_EndCap_high'],
+                            'PERIODBD_ENDCAP_DOWN': [
+                                'tau1_trigger_sf_stat_scale_PeriodBD_EndCap_low',
+                                'tau2_trigger_sf_stat_scale_PeriodBD_EndCap_low'],
+                            'PERIODEM_BARREL_UP': [
+                                'tau1_trigger_sf_stat_scale_PeriodEM_Barrel_high',
+                                'tau2_trigger_sf_stat_scale_PeriodEM_Barrel_high'],
+                            'PERIODEM_BARREL_DOWN': [
+                                'tau1_trigger_sf_stat_scale_PeriodEM_Barrel_low',
+                                'tau2_trigger_sf_stat_scale_PeriodEM_Barrel_low'],
+                            'PERIODEM_ENDCAP_UP': [
+                                'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_high',
+                                'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_high'],
+                            'PERIODEM_ENDCAP_DOWN': [
+                                'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_low',
+                                'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_low'],
+                            'NOMINAL': []}})
         return systematics
 
 
