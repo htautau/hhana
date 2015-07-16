@@ -577,7 +577,7 @@ VARIABLES = {
         'title': r'jet$_{2}$ $p_{T}$',
         'root': '#font[52]{p}_{T}(#font[52]{j}2)',
         'filename': 'jet_1_pt',
-        'binning': (15, 20, 200),
+        'binning': (10, 15, 80),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
@@ -586,7 +586,7 @@ VARIABLES = {
         'title': r'jet$_{0}$ $p_{T}$',
         'root': '#font[52]{p}_{T}(#font[52]{j}1)',
         'filename': 'jet_0_pt',
-        'binning': (15, 20, 200),
+        'binning': (10, 15, 80),
         'scale': 0.001,
         'units': 'GeV',
         'cats': ['2J', 'VBF']
