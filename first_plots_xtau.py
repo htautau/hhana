@@ -118,6 +118,6 @@ for cat in categories:
             output_name='{0}_{1}.png'.format(field, cat.name))
 
         #print list(a1[field].y())
-        print a1[field].Integral()
+        #print a1[field].Integral()
         # HACK: clear the list of canvases
         ROOT.gROOT.GetListOfCanvases().Clear()
