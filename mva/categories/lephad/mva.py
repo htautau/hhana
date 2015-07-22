@@ -1,8 +1,8 @@
 from math import pi
 from rootpy.tree import Cut
 from .common import (
-    Category_Preselection_lh,
-    CUTS_VBF, CUTS_BOOSTED)
+    Category_Preselection_lh, Category_Preselection_lh_NoBveto,
+    CUTS_VBF, CUTS_BOOSTED, CUTS_WPLUSJETS_CR, CUTS_Ztt_CR, CUTS_top_CR)
 
 class Category_VBF_lh(Category_Preselection_lh):
     name = 'vbf_lh'
@@ -27,4 +27,35 @@ class Category_Boosted_lh(Category_Preselection_lh):
         & CUTS_BOOSTED
         )
 
+class Category_wplusjets_CR_lh(Category_Preselection_lh):
+    name = 'wplusjets_CR_lh'
+    label = 'e#tau_{had} + #mu#tau_{had} '
+    latex = '\\textbf{wplusjets_CR}'
+    color = 'red'
+    linestyle = 'dotted'
+    common_cuts = Category_Preselection_lh.common_cuts
+    cuts = (
+        CUTS_WPLUSJETS_CR
+        )
 
+class Category_Ztautau_CR_lh(Category_Preselection_lh):
+    name = 'Ztautau_CR_lh'
+    label = 'e#tau_{had} + #mu#tau_{had} '
+    latex = '\\textbf{Ztautau_CR}'
+    color = 'red'
+    linestyle = 'dotted'
+    common_cuts = Category_Preselection_lh.common_cuts
+    cuts = (
+        CUTS_Ztt_CR
+        )
+
+class Category_Top_CR_lh(Category_Preselection_lh_NoBveto):
+    name = 'Top_CR_lh'
+    label = 'e#tau_{had} + #mu#tau_{had} '
+    latex = '\\textbf{Top_CR}'
+    color = 'red'
+    linestyle = 'dotted'
+    common_cuts = Category_Preselection_lh_NoBveto.common_cuts
+    cuts = (
+        CUTS_top_CR
+        )
