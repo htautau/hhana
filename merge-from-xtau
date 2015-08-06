@@ -65,6 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', default='output.root')
     parser.add_argument('--db', default='datasets_lh')
     parser.add_argument('--reset', action='store_true', default=False)
+    parser.add_argument('--cutflow', default='cutflow_HSM_lephad_NOMINAL')
     args = parser.parse_args()
 
     DB = Database(args.db)
@@ -91,5 +92,5 @@ if __name__ == '__main__':
         update_merged_file(
             dataset, outname, 
             treename='NOMINAL', 
-            cutflow_name='cutflow_HSM_lephad_NOMINAL')
+            cutflow_name=args.cutflow)
 
