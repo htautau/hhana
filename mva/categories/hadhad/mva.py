@@ -38,7 +38,7 @@ class Category_VBF(Category_Preselection):
     common_cuts = Category_Preselection.common_cuts
     cuts = (
         CUTS_VBF
-        & Cut('dEta_jets > 2.0')
+        # & Cut('dEta_jets > 2.0')
         )
     cuts_truth = CUTS_TRUE_VBF
     features = features_vbf

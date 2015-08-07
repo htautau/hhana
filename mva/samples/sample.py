@@ -536,7 +536,7 @@ class Sample(object):
             log.info("replacing trigger_sf with trigger_eff")
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
-            weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
+            # weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         
         return weight_fields
 
@@ -773,7 +773,7 @@ class Sample(object):
         weighted :
             if True, return the weighted number of events
         hist :
-            if specified, fill this histogram. if not create a new one an
+            if specified, fill his histogram. if not create a new one an
             return it.
         scale :
             if specified, multiply the number of events by the given
@@ -906,8 +906,8 @@ class SystematicsSample(Sample):
                                 'tau1_id_sf_sys_low',
                                 'tau2_id_sf_sys_low'],
                             'NOMINAL': [
-                                'tau1_id_sf',
-                                'tau2_id_sf']},
+                                'tau_0_jet_bdt_eff_sf',
+                                'tau_1_jet_bdt_eff_sf']},
                         }
             elif self.channel == 'lephad':
                 if self.year == 2011:
@@ -977,7 +977,7 @@ class SystematicsSample(Sample):
                 events_bin = 1
             else:
                 # use mc_weighted second bin
-                if year == 2015:
+                if year == 2015 and channel=='lephad':
                     events_bin = 4
                 else:
                     events_bin = 2
@@ -992,6 +992,9 @@ class SystematicsSample(Sample):
                 h5file.root, treename))
             cutflow_hist = rfile[treename + events_hist_suffix]
             events['NOMINAL'] = cutflow_hist[events_bin].value
+            if year == 2015 and channel == 'hadhad':
+                # since cutflow hist is broken ...
+                events['NOMINAL'] = ds.nevents
             del cutflow_hist
 
             # since cutflow hist is broken ...
@@ -1303,7 +1306,7 @@ class MC(SystematicsSample):
 
     def weight_systematics(self):
         systematics = super(MC, self).weight_systematics()
-        if self.channel == 'hadhad':
+        if self.channel == 'hadhad' and self.year != 2015:
             systematics.update({
                     'FAKERATE': {
                         'UP': [

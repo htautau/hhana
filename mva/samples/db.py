@@ -16,7 +16,7 @@ from .. import NTUPLE_PATH, DEFAULT_STUDENT
 from . import log; log = log[__name__]
 
 
-DB = datasets.Database(name='datasets_hh', verbose=False)
+DB = datasets.Database(name='datasets_hh_c', verbose=False)
 FILES = {}
 TEMPFILE = TemporaryFile()
 

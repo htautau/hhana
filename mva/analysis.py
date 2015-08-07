@@ -65,6 +65,7 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=True,
+                 trigger=False,
                  target_region=TARGET_REGION,
                  fakes_region=FAKES_REGION,
                  decouple_qcd_shape=False,
@@ -85,6 +86,7 @@ class Analysis(object):
         self.fakes_region = fakes_region
         self.suffix = suffix
         self.norm_field = norm_field
+        self.trigger = trigger
 
         if use_embedding:
             log.info("Using embedded Ztautau")
@@ -95,9 +97,10 @@ class Analysis(object):
                 constrain_norm=constrain_norms,
                 color='#00A3FF')
         else:
-            log.info("Using ALPGEN Ztautau")
-            self.ztautau = samples.MC_Ztautau(
+            log.info("Using Pythia Ztautau")
+            self.ztautau = samples.Pythia_Ztautau(
                 year=year,
+                trigger=self.trigger,
                 systematics=systematics,
                 workspace_norm=ztt_workspace_norm,
                 constrain_norm=constrain_norms,
@@ -116,23 +119,25 @@ class Analysis(object):
             self.mu = mu
 
         self.data = samples.Data(year=year,
+                                 trigger=self.trigger,
                                  markersize=1.2,
                                  linewidth=1)
 
-        self.higgs_125 = samples.Higgs(
-            year=year,
-            mass=125,
-            systematics=systematics,
-            linecolor='red',
-            linewidth=2,
-            linestyle='dashed',
-            scale=self.mu,
-            ggf_weight=ggf_weight)
+        # self.higgs_125 = samples.Higgs(
+        #     year=year,
+        #     mass=125,
+        #     systematics=systematics,
+        #     linecolor='red',
+        #     linewidth=2,
+        #     linestyle='dashed',
+        #     scale=self.mu,
+        #     ggf_weight=ggf_weight)
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
             data=self.data,
-            mc=[self.ztautau, self.others],
+            # mc=[self.ztautau, self.others],
+            mc=[self.ztautau],
             shape_region=fakes_region,
             decouple_shape=decouple_qcd_shape,
             coherent_shape=coherent_qcd_shape,
@@ -146,12 +151,12 @@ class Analysis(object):
 
         self.backgrounds = [
             self.qcd,
-            self.others,
+            # self.others,
             self.ztautau,
         ]
 
         self.ggf_weight = ggf_weight
-        self.signals = self.get_signals(125)
+        # self.signals = self.get_signals(125)
 
     def get_signals(self, mass=125, mode=None, scale_125=False):
         signals = []

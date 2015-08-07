@@ -159,7 +159,7 @@ VARIABLES = {
             'PRESELECTION': (13, 15, 80),
             'REST': (13, 15, 80),
             None: (15, 0, 80)},
-        'scale': 0.001,
+        'scale': 1,
         'units': 'GeV',
     },
     'met_etx': {
@@ -233,7 +233,7 @@ VARIABLES = {
         'legend': 'left',
     },
 
-    'ditau_vis_mass': {
+    'tau_tau_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'ditau_vis_mass',
@@ -241,7 +241,7 @@ VARIABLES = {
             'PRESELECTION': (20, 30, 150),
             'REST': (20, 30, 150),
             None: (20, 0, 250)},
-        'scale': 0.001,
+        'scale': 1,
         'units': 'GeV',
         'blind': (70, 110),
     },
@@ -578,7 +578,7 @@ VARIABLES = {
         'root': '#font[52]{p}_{T}(#font[52]{j}2)',
         'filename': 'jet_1_pt',
         'binning': (10, 15, 80),
-        'scale': 0.001,
+        'scale': 1,
         'units': 'GeV',
         'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED']
     },
@@ -587,7 +587,7 @@ VARIABLES = {
         'root': '#font[52]{p}_{T}(#font[52]{j}1)',
         'filename': 'jet_0_pt',
         'binning': (10, 15, 80),
-        'scale': 0.001,
+        'scale': 1,
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
@@ -659,10 +659,10 @@ VARIABLES = {
 from . import MMC_VERSION
 mmc = MMC_VERSION
 
-VARIABLES['mmc%d_mass' % mmc] = {
+VARIABLES['mmc%s_mass' % mmc] = {
     'title': r'$m^{MMC}_{\tau\tau}$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
-    'filename': 'mmc%d_mass' % mmc,
+    'filename': 'tau_tau_mmc_%s_mass' % mmc,
     'binning': {
         2011: (25, 0, 250),
         2012: (25, 0, 250),

@@ -1,25 +1,25 @@
 from rootpy.tree import Cut
 
-OS = Cut('(tau1_charge * tau2_charge) == -1')
-NOT_OS = Cut('(tau1_charge * tau2_charge) != -1')
-SS = Cut('(tau1_charge * tau2_charge) == 1')
+OS = Cut('(tau_0_q * tau_1_q) == -1')
+NOT_OS = Cut('(tau_0_q * tau_1_q) != -1')
+SS = Cut('(tau_0_q * tau_1_q) == 1')
 
-P1P1 = Cut('tau1_numTrack == 1') & Cut('tau2_numTrack == 1')
-P3P3 = Cut('tau1_numTrack == 3') & Cut('tau2_numTrack == 3')
+P1P1 = Cut('tau_0_n_tracks == 1') & Cut('tau_1_n_tracks == 1')
+P3P3 = Cut('tau_0_n_tracks == 3') & Cut('tau_1_n_tracks == 3')
 P1P3 = (
-    (Cut('tau1_numTrack == 1') | Cut('tau1_numTrack == 3'))
+    (Cut('tau_0_n_tracks == 1') | Cut('tau_1_n_tracks == 3'))
     &
-    (Cut('tau2_numTrack == 1') | Cut('tau2_numTrack == 3')))
+    (Cut('tau_1_n_tracks == 1') | Cut('tau_0_n_tracks == 3')))
 
 TRACK_ISOLATION = (
-    Cut('tau1_numTrack_recounted == tau1_numTrack')
+    Cut('tau_0_n_wide_tracks == 0')
     & # AND
-    Cut('tau2_numTrack_recounted == tau2_numTrack'))
+    Cut('tau_1_n_wide_tracks == 0'))
 
 TRACK_NONISOLATION = (
-    Cut('tau1_numTrack_recounted > tau1_numTrack')
+    Cut('tau_0_n_wide_tracks != 0')
     | # OR
-    Cut('tau2_numTrack_recounted > tau2_numTrack'))
+    Cut('tau_1_n_wide_tracks != 0'))
 
 REGIONS = {
     'ALL': Cut(),

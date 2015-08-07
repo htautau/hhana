@@ -17,7 +17,9 @@ if not os.path.exists(CACHE_DIR):
 ETC_DIR = os.path.join(BASE_DIR, 'etc')
 DAT_DIR = os.path.join(BASE_DIR, 'dat')
 BDT_DIR = os.path.join(BASE_DIR, 'bdts')
-NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v29')
+
+#NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v29')
+NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/hadhad/v1' 
 DEFAULT_STUDENT = 'hhskim'
 
 # import rootpy before ROOT
@@ -58,9 +60,9 @@ import numpy as np
 # especially for test/train set selection
 np.random.seed(1987)
 
-MMC_VERSION = 1
-MMC_MASS = 'mmc%d_mass' % MMC_VERSION
-MMC_PT = 'mmc%d_resonance_pt' % MMC_VERSION
+MMC_VERSION = 'mlm'
+MMC_MASS = 'tau_tau_mmc_%s_m' % MMC_VERSION
+MMC_PT = 'tau_tau_mmc_%s_pt' % MMC_VERSION
 
 from rootpy.utils.silence import silence_sout_serr
 with silence_sout_serr():
