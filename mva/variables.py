@@ -499,7 +499,7 @@ VARIABLES = {
         'binning': (12, 0., 2.4),
         'legend': 'left',
     },
-    'ditau_deta': {
+    'tau_tau_deta': {
         'title': r'$\Delta \eta(\tau,\tau)$',
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'ditau_deta',

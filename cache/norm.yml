@@ -366,3 +366,16 @@
             qcd_z_scale: 1.0
             z_scale: 292.5121807908578
             z_scale_error: 13.931230238390182
+15:
+  PRESELECTION:
+    false:
+      TAU_TAU_DETA:
+        nOS_NONISOL:
+          OS_ISOL:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 0.6825185114829766
+            qcd_scale_error: 0.22201091982476873
+            qcd_z_scale: 1.0
+            z_scale: 0.10394548396318788
+            z_scale_error: 0.030690280136573087
