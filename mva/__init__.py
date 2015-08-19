@@ -18,8 +18,8 @@ ETC_DIR = os.path.join(BASE_DIR, 'etc')
 DAT_DIR = os.path.join(BASE_DIR, 'dat')
 BDT_DIR = os.path.join(BASE_DIR, 'bdts')
 
-#NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'prod_v29')
-NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/hadhad/v1' 
+NTUPLE_PATH = os.path.join(os.getenv('HIGGSTAUTAU_NTUPLE_DIR'), 'v1')
+# NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/hadhad/v1' 
 DEFAULT_STUDENT = 'hhskim'
 
 # import rootpy before ROOT

@@ -16,8 +16,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
-# rootpy imports
-from rootpy.extern.tabulartext import PrettyTable
+from prettytable import PrettyTable
 
 # root_numpy imports
 from root_numpy import rec2array, fill_hist
