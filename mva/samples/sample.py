@@ -37,6 +37,7 @@ from ..lumi import LUMI, get_lumi_uncert
 from .db import DB, TEMPFILE, get_file
 from ..cachedtable import CachedTable
 from ..variables import get_binning, get_scale
+from mva.categories import get_trigger
 
 BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
 
@@ -535,11 +536,11 @@ class Sample(object):
                 else:
                     weight_fields += variations['NOMINAL']
         # HACK
-        if self.channel == 'hadhad' and not self.trigger and 'tau1_trigger_sf' in weight_fields:
-            log.info("replacing trigger_sf with trigger_eff")
+        if not self.trigger:
+            log.info("No trigger: replacing trigger_sf with trigger_eff")
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
-            # weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
+            weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
         
         return weight_fields
 
@@ -550,7 +551,10 @@ class Sample(object):
         if region is not None:
             cuts &= REGIONS[region]
         if self.trigger:
-            cuts &= Cut('trigger')
+            trig_cut = get_trigger(self.channel)
+            cuts &= trig_cut
+            log.info('Trigger: {0}'.format(trig_cut))
+
         if isinstance(self, SystematicsSample):
             systerm, variation = SystematicsSample.get_sys_term_variation(
                 systematic)
@@ -899,7 +903,7 @@ class SystematicsSample(Sample):
                                 'tau1_id_sf',
                                 'tau2_id_sf']}
                         }
-                elif year == 2012:
+                elif self.year == 2012:
                     tauid = {
                         'TAU_ID': {
                             'STAT_UP': [
@@ -1359,7 +1363,7 @@ class MC(SystematicsSample):
                             'NOMINAL': [
                                 'tau1_trigger_sf',
                                 'tau2_trigger_sf']}})
-            else:
+            elif self.year == 2012:
                 systematics.update({
                         'TRIGGER': {
                             'UP': [
@@ -1403,6 +1407,14 @@ class MC(SystematicsSample):
                                 'tau1_trigger_sf_stat_scale_PeriodEM_EndCap_low',
                                 'tau2_trigger_sf_stat_scale_PeriodEM_EndCap_low'],
                             'NOMINAL': []}})
+            else:
+                log.warning('No trigger scale factor for 2015 yet')
+                systematics.update({
+                        'TRIGGER': {
+                            'UP': [],
+                            'DOWN': [],
+                            'NOMINAL': []},
+                        })
         return systematics
 
 

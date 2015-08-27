@@ -4,7 +4,6 @@ from math import pi
 from ..base import Category
 # All basic cut definitions are here
 
-TRIGGER = Cut('HLT_mu26_imedium == 1')  | Cut('HLT_e28_lhtight_iloose == 1')
 IS_OPPOSITE_SIGN = Cut('is_opposite_sign==1')
 IS_VBF = Cut('is_vbf_mva==1')
 IS_BOOSTED = Cut('is_boosted_mva==1')
@@ -14,8 +13,7 @@ MT_LEP_MET = Cut('ditau_mt_lep0_met < 70000.')
 
 # common preselection cuts
 PRESELECTION = (
-    TRIGGER
-    & IS_OPPOSITE_SIGN
+    IS_OPPOSITE_SIGN
     & MET 
     & BVETO
     & MT_LEP_MET

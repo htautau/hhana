@@ -65,7 +65,7 @@ class Analysis(object):
     def __init__(self, year,
                  systematics=False,
                  use_embedding=True,
-                 trigger=False,
+                 trigger=True,
                  target_region=TARGET_REGION,
                  fakes_region=FAKES_REGION,
                  decouple_qcd_shape=False,

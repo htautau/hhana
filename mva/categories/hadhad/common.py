@@ -5,10 +5,6 @@ from ..base import Category
 from ... import MMC_MASS
 # All basic cut definitions are here
 
-TRIG1 = Cut('HLT_tau35_medium1_tracktwo_tau25_loose1_tracktwo_L1TAU20IM_2TAU12IM == 1')
-TRIG2 = Cut('HLT_tau35_loose1_tracktwo_tau25_loose1_tracktwo_L1TAU20IM_2TAU12IM == 1')
-TRIGGER = TRIG1 | TRIG2
-
 TAU1_MEDIUM = Cut('tau_0_jet_bdt_medium==1')
 TAU2_MEDIUM = Cut('tau_1_jet_bdt_medium==1')
 TAU1_TIGHT = Cut('tau_0_jet_bdt_tight==1')
@@ -55,9 +51,8 @@ MET_CENTRALITY = 'tau_tau_met_bisect==1 || (tau_tau_met_min_dphi < {0})'
 
 # common preselection cuts
 PRESELECTION = (
-# 2015/08/26 DTemple: uncommented the "TRIGGER"
-      TRIGGER
-    & LEAD_TAU_40 & SUBLEAD_TAU_30
+    LEAD_TAU_40 
+    & SUBLEAD_TAU_30
     & ID_MEDIUM
     & MET
     & Cut('%s > 0' % MMC_MASS)
