@@ -116,10 +116,13 @@ class Sample(object):
         self.year = year
         if year == 2011:
             self.energy = 7
-        elif year==2012:
+        elif year == 2012:
             self.energy = 8
-        else:
+        elif year == 2015:
             self.energy = 13
+        else:
+            raise RuntimeError('wrong year. choose from 2011, 2012, 2015')
+
         self.scale = scale
         if cuts is None:
             self._cuts = Cut()
@@ -850,28 +853,34 @@ class SystematicsSample(Sample):
             'TRIGGER',
         ]
         if self.channel == 'lephad':
-            common.append('LEP_ID')
+            log.warning('Incomplete list of SF !')
+            return ['LEP_ID']
         
-        # No FAKERATE for embedding since fakes are data
-        # so don't include FAKERATE here
-        if self.year == 2011:
-            return common + [
-                'TES_TRUE_FINAL',
-                'TES_FAKE_FINAL',
-            ]
         else:
-            return common + [
-                'TAU_ID_STAT',
-                'TES_TRUE_INSITUINTERPOL',
-                'TES_TRUE_SINGLEPARTICLEINTERPOL',
-                'TES_TRUE_MODELING',
-                'TES_FAKE_TOTAL',
-                'TRIGGER_STAT_PERIODA',
-                'TRIGGER_STAT_PERIODBD_BARREL',
-                'TRIGGER_STAT_PERIODBD_ENDCAP',
-                'TRIGGER_STAT_PERIODEM_BARREL',
-                'TRIGGER_STAT_PERIODEM_ENDCAP',
-            ]
+            # No FAKERATE for embedding since fakes are data
+            # so don't include FAKERATE here
+            if self.year == 2011:
+                return common + [
+                    'TES_TRUE_FINAL',
+                    'TES_FAKE_FINAL',
+                    ]
+            elif self.year == 2012:
+                return common + [
+                    'TAU_ID_STAT',
+                    'TES_TRUE_INSITUINTERPOL',
+                    'TES_TRUE_SINGLEPARTICLEINTERPOL',
+                    'TES_TRUE_MODELING',
+                    'TES_FAKE_TOTAL',
+                    'TRIGGER_STAT_PERIODA',
+                    'TRIGGER_STAT_PERIODBD_BARREL',
+                    'TRIGGER_STAT_PERIODBD_ENDCAP',
+                    'TRIGGER_STAT_PERIODEM_BARREL',
+                    'TRIGGER_STAT_PERIODEM_ENDCAP',
+                    ]
+            else:
+                log.warning('Incomplete list of SF !')
+                return ['TAU_ID'] 
+
 
     def weight_systematics(self):
         systematics = {}
@@ -890,7 +899,7 @@ class SystematicsSample(Sample):
                                 'tau1_id_sf',
                                 'tau2_id_sf']}
                         }
-                else:
+                elif year == 2012:
                     tauid = {
                         'TAU_ID': {
                             'STAT_UP': [
@@ -905,6 +914,17 @@ class SystematicsSample(Sample):
                             'DOWN': [
                                 'tau1_id_sf_sys_low',
                                 'tau2_id_sf_sys_low'],
+                            'NOMINAL': [
+                                'tau1_id_sf',
+                                'tau2_id_sf']},
+                        }
+                else:
+                    tauid = {
+                        'TAU_ID': {
+                            'STAT_UP': [],
+                            'STAT_DOWN': [],
+                            'UP': [],
+                            'DOWN': [],
                             'NOMINAL': [
                                 'tau_0_jet_bdt_eff_sf',
                                 'tau_1_jet_bdt_eff_sf']},
@@ -1001,7 +1021,7 @@ class SystematicsSample(Sample):
             # events['NOMINAL'] = ds.nevents # len(tables['NOMINAL'])
 
             if self.systematics:
-
+                log.warning('Database of systematic uncertainties needs update!')
                 systematics_terms, systematics_samples = \
                     samples_db.get_systematics('hadhad', self.year, name)
 
