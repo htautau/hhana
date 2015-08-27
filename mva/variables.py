@@ -109,6 +109,7 @@ VARIABLES = {
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB,BCID}',
         'filename': 'n_avg_int',
         'binning': (40, 0, 40),
+#        'binning': (5, 0, 30), # 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
         'integer': True,
     },
     #'actualIntPerXing': {
@@ -148,7 +149,9 @@ VARIABLES = {
         'title': r'Number of Selected Jets',
         'root': '#font[52]{Number of Selected Jets}',
         'filename': 'n_jets',
-        'binning': (7, -.5, 6.5),
+# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
+#        'binning': (7, -.5, 6.5),
+        'binning': (5, -.5, 9.5),
         'integer': True,
     },
     'met_et': {
@@ -156,7 +159,9 @@ VARIABLES = {
         'root': '#font[52]{E}^{miss}_{T}',
         'filename': 'met_et',
         'binning': {
-            'PRESELECTION': (13, 15, 80),
+# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
+#            'PRESELECTION': (13, 15, 80),
+            'PRESELECTION': (5, 20, 95),
             'REST': (13, 15, 80),
             None: (15, 0, 80)},
         'scale': 1,
@@ -166,8 +171,10 @@ VARIABLES = {
         'title': r'$E^{miss}_{T_{x}}$',
         'root': '#font[52]{E}^{miss}_{T_{x}}',
         'filename': 'met_etx',
+# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
         'binning': (20, -75, 75),
-        'scale': 0.001,
+#        'binning': (5, -10, 10),
+#        'scale': 0.001, # 2015/08/26 DTemple: commented after Slack comment from Quentin
         'units': 'GeV',
         'legend': 'left',
     },
@@ -175,8 +182,10 @@ VARIABLES = {
         'title': r'$E^{miss}_{T_{y}}$',
         'root': '#font[52]{E}^{miss}_{T_{y}}',
         'filename': 'met_ety',
+# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
         'binning': (20, -75, 75),
-        'scale': 0.001,
+#        'binning': (5, -10, 10),
+#        'scale': 0.001, # 2015/08/26 DTemple: commented after Slack comment from Quentin
         'units': 'GeV',
         'legend': 'left',
     },
@@ -184,7 +193,9 @@ VARIABLES = {
         'title': r'$E^{miss}_{T} \phi$',
         'root': '#font[52]{E}^{miss}_{T} #phi',
         'filename': 'met_phi',
-        'binning': (20, -math.pi, math.pi),
+# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
+#        'binning': (20, -math.pi, math.pi),
+        'binning': (5, -math.pi, math.pi),
     },
     'ditau_met_min_dphi': {
         'title': r'min[$\Delta\phi$($\tau$,\/$E^{miss}_{T}$)]',
@@ -238,7 +249,9 @@ VARIABLES = {
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
         'filename': 'ditau_vis_mass',
         'binning': {
-            'PRESELECTION': (20, 30, 150),
+# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
+#            'PRESELECTION': (20, 30, 150),
+            'PRESELECTION': (5, 20, 120),
             'REST': (20, 30, 150),
             None: (20, 0, 250)},
         'scale': 1,
@@ -507,7 +520,9 @@ VARIABLES = {
             'BOOSTED': (10, 0, 1.5),
             'VBF': (10, 0, 1.5),
             'REST': (10, 0, 1.5),
-            None: (10, 0, 2.5)},
+# 2015/08/24 DTemple: redefined the histogram bins and range to be the same as that from the "norm" code
+#            None: (10, 0, 2.5)},
+            None: (5, 0, 2.0)},
         'ypadding': (0.5, 0),
     },
     #'tau1_charge': {

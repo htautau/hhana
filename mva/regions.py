@@ -1,8 +1,8 @@
 from rootpy.tree import Cut
 
-OS = Cut('(tau_0_q * tau_1_q) == -1')
+OS     = Cut('(tau_0_q * tau_1_q) == -1')
 NOT_OS = Cut('(tau_0_q * tau_1_q) != -1')
-SS = Cut('(tau_0_q * tau_1_q) == 1')
+SS     = Cut('(tau_0_q * tau_1_q) ==  1')
 
 P1P1 = Cut('tau_0_n_tracks == 1') & Cut('tau_1_n_tracks == 1')
 P3P3 = Cut('tau_0_n_tracks == 3') & Cut('tau_1_n_tracks == 3')

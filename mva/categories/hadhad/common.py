@@ -20,10 +20,21 @@ ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 # ID cuts for control region where both taus are medium but not tight
 ID_MEDIUM_NOT_TIGHT = (TAU1_MEDIUM & -TAU1_TIGHT) & (TAU2_MEDIUM & -TAU2_TIGHT)
 
+# 2015/08/25 DTemple: started trying to apply Quentin's suggestion from yesterday, putting attempt
+# on hold ...
+# TAU1_NOTMEDIUM = Cut('tau1_JetBDTSigMedium!=1')
+# TAU2_NOTMEDIUM = Cut('tau2_JetBDTSigMedium!=1')
+# OS_ID_MEDIUM_TIGHT
+# OS_NOT_MEDIUM = TAU1_NOTMEDIUM & TAU2_NOTMEDIUM
+
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
 
 LEAD_TAU_40 = Cut('tau_0_pt > 40')
 SUBLEAD_TAU_30 = Cut('tau_1_pt > 30')
+# 2015/08/25 DTemple: started trying to modify to match Quentin's version on GitHub ... too much
+# different, don't understand well enough, putting attempt on hold ...
+# LEAD_TAU_35    = Cut('tau0_pt > 35')
+# SUBLEAD_TAU_25 = Cut('tau1_pt > 25')
 
 LEAD_JET_50 = Cut('jet_0_pt > 50')
 SUBLEAD_JET_30 = Cut('jet_1_pt > 30')
@@ -44,14 +55,25 @@ MET_CENTRALITY = 'tau_tau_met_bisect==1 || (tau_tau_met_min_dphi < {0})'
 
 # common preselection cuts
 PRESELECTION = (
-    # TRIGGER
-    LEAD_TAU_40 & SUBLEAD_TAU_30
+# 2015/08/26 DTemple: uncommented the "TRIGGER"
+      TRIGGER
+    & LEAD_TAU_40 & SUBLEAD_TAU_30
     & ID_MEDIUM
     & MET
     & Cut('%s > 0' % MMC_MASS)
     & DR_TAUS
     # & TAU_SAME_VERTEX
     )
+# 2015/08/25 DTemple: started trying to modify to match Quentin's version on GitHub ... too much
+# different, don't understand well enough, putting attempt on hold ...
+# PRESELECTION = (
+#     LEAD_TAU_35 & SUBLEAD_TAU_25
+#     & ID_MEDIUM_TIGHT
+#     & MET
+#     & Cut('%s > 0' % MMC_MASS)
+#     & DR_TAUS
+#     & TAU_SAME_VERTEX
+#     )
 
 # VBF category cuts
 CUTS_VBF = (

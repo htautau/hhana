@@ -80,6 +80,8 @@ def draw_channel_array(
         output_suffix='',
         unblind=False,
         bootstrap_data=False,
+# 2015/08/19 DTemple: added "include_signal"
+        include_signal=True,
         **kwargs):
     # filter out plots that will not be made
     used_vars = {}
@@ -113,7 +115,9 @@ def draw_channel_array(
 
     field_channel = analysis.get_channel_array(vars,
         category, region, cuts,
-        include_signal=True,
+# 2015/08/19 DTemple: changed "include_signal" setting
+#        include_signal=True,
+        include_signal=include_signal,
         mass=mass,
         mode=mode,
         scale_125=scale_125,

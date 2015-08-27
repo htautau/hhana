@@ -122,8 +122,9 @@ def get_systematics(year=2012):
     elif year == 2011:
         return SYSTEMATICS_2011
     else:
-        raise ValueError("No systematics defined for year %d" % year)
-
+# 2015/08/19 DTemple: commented the following line and added the return statement to just force it to work for 2015
+        # raise ValueError("No systematics defined for year %d" % year)
+        return SYSTEMATICS_2012
 
 def systematic_name(systematic):
     if isinstance(systematic, basestring):

@@ -64,12 +64,97 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
                 'bins': args.plot_bins,
                 'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
     else:
-        VARS = VARIABLES
-        VARS.update(YEAR_VARIABLES[args.year])
+# 2015/08/19 DTemple: commented the following and added the "fields", "VARS" and for-loop. Note
+# that the names in "fields" are taken from "variables.py", and can be anything as long as they
+# exist.
+        # VARS = VARIABLES
+        # VARS.update(YEAR_VARIABLES[args.year])
+      fields = [
+# 2015/08/24 DTemple: commented out these variables from Quentin's basic plotting code
+#        'jet_0_pt',
+#        'jet_1_pt',
+#        'n_avg_int',
+#        'met_et',
+#        'tau_tau_vis_mass']
+# 2015/08/24 DTemple: included these variables from "variables.py" i.e. the full available list.
+# The commented out variables are those that are also commented out in "variables.py".
+      # 'ntrack_pv',
+      # 'ntrack_nontau_pv',
+        'n_avg_int',
+      # 'actualIntPerXing',
+###        'sum_pt',
+###        'scalar_sum_pt',
+###        'pt_total',
+        'n_jets',
+        'met_et',
+        'met_etx',
+        'met_ety',
+        'met_phi',
+###        'ditau_met_min_dphi',
+###        'ditau_met_bisect',
+###        'ditau_mt_lep0_met',
+      # 'sphericity',
+      # 'aplanarity',
+###        'ditau_met_centrality',
+        'tau_tau_vis_mass',
+###        'ditau_coll_approx_m',
+###        'ditau_mmc_mlm_m',
+###        'lep_pt',
+      # 'mass_tau1_tau2_jet1',
+      # 'jet3_centrality',
+###        'pt_ratio_lep_tau',
+###        'tau_pt',
+###        'tau_n_tracks',
+      # 'tau1_pt',
+      # 'tau2_pt',
+      # 'tau1_eta',
+      # 'tau2_eta',
+      # 'tau1_numTrack',
+      # 'tau2_numTrack',
+      # 'tau1_numTrack_recounted',
+      # 'tau2_numTrack_recounted',
+      # 'tau1_nPi0',
+      # 'tau2_nPi0',
+      # 'tau_x_product',
+      # 'tau_x_sum',
+      # 'tau1_collinear_momentum_fraction',
+      # 'tau2_collinear_momentum_fraction',
+      # 'tau1_jvtxf',
+      # 'tau2_jvtxf',
+      # 'tau1_BDTJetScore',
+      # 'tau2_BDTJetScore',
+      # 'tau1_vertex_prob',
+      # 'cos_theta_tau1_tau2',
+      # 'theta_tau1_tau2',
+###        'ditau_dr',
+###        'ditau_dphi',
+        'tau_tau_deta',
+      # 'tau1_charge',
+      # 'tau2_charge',
+      # 'tau1_seedCalo_centFrac',
+      # 'tau_centrality_product',
+      # 'tau1_centrality',
+      # 'tau2_centrality',
+        'jet_1_eta',
+        'jet_0_eta',
+        'jet_1_pt',
+        'jet_0_pt']
+###        'jets_delta_eta',
+###        'prod_eta_jets',
+      # 'eta_product_jets_boosted',
+###        'jets_visible_mass',
+      # 'higgspt',
+      # 'lepton_eta_centrality',
+      # 'transversemass']
+      VARS = {}
+      for f in fields:
+        VARS[f] = VARIABLES[f]
 
     clf = None
     if not is_control:
-        clf = analysis.get_clf(category, load=True, transform=True)
+# 2015/08/19 DTemple: redefined "clf" as otherwise gets hung up on incorrect BDT training info
+#        clf = analysis.get_clf(category, load=True, transform=True)
+        clf = None
     figs = draw_channel_array(
         analysis,
         vars=VARS,
@@ -90,6 +175,8 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         unblind=args.unblind,  # or is_control,
         cuts=cuts,
         show_ratio=args.show_ratio,
+# 2015/08/19 DTemple: added "include_signal"
+        include_signal=False
         #clf=clf,
         #min_score=0.5924344731341187,
         #no_data=args.no_data,
