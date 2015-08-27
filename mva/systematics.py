@@ -1,6 +1,8 @@
 # rootpy imports
 from rootpy.tree import Cut
 
+# local imports
+from . import log; log = log[__name__]
 
 class SYSTEMATICS_CATEGORIES:
     TAUS, \
@@ -121,10 +123,11 @@ def get_systematics(year=2012):
         return SYSTEMATICS_2012
     elif year == 2011:
         return SYSTEMATICS_2011
-    else:
-# 2015/08/19 DTemple: commented the following line and added the return statement to just force it to work for 2015
-        # raise ValueError("No systematics defined for year %d" % year)
+    elif year == 2015:
+        log.warning('Need to update the list of systematics for 2015')
         return SYSTEMATICS_2012
+    else:
+        raise ValueError("No systematics defined for year %d" % year)
 
 def systematic_name(systematic):
     if isinstance(systematic, basestring):
