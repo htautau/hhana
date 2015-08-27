@@ -5,12 +5,21 @@ from ..base import Category
 from ... import MMC_MASS
 # All basic cut definitions are here
 
+
+TAU1_LOOSE = Cut('tau_0_jet_bdt_loose==1')
 TAU1_MEDIUM = Cut('tau_0_jet_bdt_medium==1')
-TAU2_MEDIUM = Cut('tau_1_jet_bdt_medium==1')
 TAU1_TIGHT = Cut('tau_0_jet_bdt_tight==1')
+TAU1_ANTI_MEDIUM = TAU1_LOOSE & -TAU1_MEDIUM
+
+TAU2_LOOSE = Cut('tau_1_jet_bdt_loose==1')
+TAU2_MEDIUM = Cut('tau_1_jet_bdt_medium==1')
 TAU2_TIGHT = Cut('tau_1_jet_bdt_tight==1')
+TAU2_ANTI_MEDIUM = TAU2_LOOSE & -TAU2_MEDIUM
+
 
 ID_MEDIUM = TAU1_MEDIUM & TAU2_MEDIUM
+ANTI_ID_MEDIUM = TAU1_ANTI_MEDIUM & TAU2_ANTI_MEDIUM
+
 ID_TIGHT = TAU1_TIGHT & TAU2_TIGHT
 ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 # ID cuts for control region where both taus are medium but not tight
@@ -53,7 +62,7 @@ MET_CENTRALITY = 'tau_tau_met_bisect==1 || (tau_tau_met_min_dphi < {0})'
 PRESELECTION = (
     LEAD_TAU_40 
     & SUBLEAD_TAU_30
-    & ID_MEDIUM
+    # & ID_MEDIUM # implemented in regions
     & MET
     & Cut('%s > 0' % MMC_MASS)
     & DR_TAUS

@@ -370,12 +370,21 @@
   PRESELECTION:
     false:
       TAU_TAU_DETA:
+        OS_NONID:
+          OS_ISOL:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 0.5984389544124992
+            qcd_scale_error: 0.14629287114931172
+            qcd_z_scale: 1.0
+            z_scale: 0.061474550906861665
+            z_scale_error: 0.02427237192075001
         nOS_NONISOL:
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 0.9029353928734678
-            qcd_scale_error: 0.2815500443501065
+            qcd_scale: 1.397827684844411
+            qcd_scale_error: 0.41398759920117134
             qcd_z_scale: 1.0
-            z_scale: 0.09825228387070553
-            z_scale_error: 0.02625026229304852
+            z_scale: 0.08486261914513368
+            z_scale_error: 0.023006050802001778
