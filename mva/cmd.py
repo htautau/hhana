@@ -112,7 +112,7 @@ def mass_parser(parser=None):
 def plotting_parser(parser=None):
     if parser is None:
         parser = base_parser()
-    parser.add_argument('--plots', nargs='*',
+    parser.add_argument('--plots', nargs='*', default=None, choices=VARIABLES.keys(),
                         help='only draw these plots. see the keys in variables.py')
     parser.add_argument('--plot-cut', default=None, nargs='?',
                         help='extra cut to be applied on the plots, but excluded from the '
