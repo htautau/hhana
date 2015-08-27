@@ -29,6 +29,7 @@ elif args.plots is not None:
     for f in args.plot_field:
         VARS[f] = VARIABLES[f]
 else:
+    log.info('Make the entire plotbook')
     VARS = VARIABLES
     # YEAR_VARIABLES need to be updated
     # VARS.update(YEAR_VARIABLES[args.year])
