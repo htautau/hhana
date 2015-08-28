@@ -136,8 +136,8 @@ class Analysis(object):
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
             data=self.data,
-            # mc=[self.ztautau, self.others],
-            mc=[self.ztautau],
+            mc=[self.ztautau, self.others],
+            # mc=[self.ztautau],
             shape_region=fakes_region,
             decouple_shape=decouple_qcd_shape,
             coherent_shape=coherent_qcd_shape,
@@ -151,7 +151,7 @@ class Analysis(object):
 
         self.backgrounds = [
             self.qcd,
-            # self.others,
+            self.others,
             self.ztautau,
         ]
 

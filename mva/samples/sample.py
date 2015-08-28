@@ -1001,7 +1001,7 @@ class SystematicsSample(Sample):
                 events_bin = 1
             else:
                 # use mc_weighted second bin
-                if year == 2015 and channel=='lephad':
+                if year == 2015:
                     events_bin = 4
                 else:
                     events_bin = 2
@@ -1016,9 +1016,9 @@ class SystematicsSample(Sample):
                 h5file.root, treename))
             cutflow_hist = rfile[treename + events_hist_suffix]
             events['NOMINAL'] = cutflow_hist[events_bin].value
-            if year == 2015 and channel == 'hadhad':
-                # since cutflow hist is broken ...
-                events['NOMINAL'] = ds.nevents
+            # if year == 2015 and channel == 'hadhad':
+            #     # since cutflow hist is broken ...
+            #     events['NOMINAL'] = ds.nevents
             del cutflow_hist
 
             # since cutflow hist is broken ...

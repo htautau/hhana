@@ -18,7 +18,7 @@ class EWK(MC, Background):
         cut = super(EWK, self).cuts(*args, **kwargs)
         if self.matched:
             # require that at least one tau matches truth
-            cut &= Cut('tau1_matched || tau2_matched')
+            cut &= Cut('tau_0_matched == 1') | Cut('tau_1_matched == 1')
         return cut
 
 
@@ -35,7 +35,7 @@ class Top(MC, Background):
         cut = super(Top, self).cuts(*args, **kwargs)
         if self.matched:
             # require that at least one tau matches truth
-            cut &= Cut('tau1_matched || tau2_matched')
+            cut &= Cut('tau_0_matched == 1') | Cut('tau_1_matched == 1')
         return cut
 
 class Diboson(MC, Background):
@@ -50,7 +50,7 @@ class Diboson(MC, Background):
         cut = super(Diboson, self).cuts(*args, **kwargs)
         if self.matched:
             # require that at least one tau matches truth
-            cut &= Cut('tau1_matched || tau2_matched')
+            cut &= Cut('tau_0_matched == 1') | Cut('tau_1_matched == 1')
         return cut
 
 class Others(MC, Background):
@@ -74,7 +74,7 @@ class Others(MC, Background):
         cut = super(Others, self).cuts(*args, **kwargs)
         if self.matched:
             # require that at least one tau matches truth
-            cut &= Cut('tau1_matched || tau2_matched')
+            cut &= Cut('tau_0_matched == 1') | Cut('tau_1_matched == 1')
         return cut
 
 

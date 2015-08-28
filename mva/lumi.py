@@ -7,13 +7,14 @@ from glob import glob
 LUMI_UNCERT = {
     2010: 0.034,
     2011: 0.018,
-    2012: 0.028
+    2012: 0.028,
+    2015: 0.10,
 }
 LUMI = {
     2011: 4523.35,
     2012: 20274.2,
     2014: 100000,
-    2015: 6.0,
+    2015: 83.0,
 
 }
 # lumi_files = glob(os.path.join(NTUPLE_PATH, DEFAULT_STUDENT, 'lumi_*'))

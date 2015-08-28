@@ -503,7 +503,9 @@ def draw(name,
         # show p-value and chi^2
         pvalue = total_model.Chi2Test(data, 'WW')
         pvalue_label = ROOT.TLatex(
-            0.6, 0.97,
+            # fig.GetLeftMargin(),
+            # 1 - fig.GetTopMargin() + 0.01,
+            0.1, 0.97,
             "p-value={0:.2f}".format(pvalue))
         pvalue_label.SetNDC(True)
         pvalue_label.SetTextFont(43)
@@ -511,7 +513,9 @@ def draw(name,
         pvalue_label.Draw()
         chi2 = total_model.Chi2Test(data, 'WW CHI2/NDF')
         chi2_label = ROOT.TLatex(
-            0.78, 0.97,
+            # fig.GetLeftMargin() + 0.18,
+            # 1 - fig.GetTopMargin() + 0.01,
+            0.28, 0.97,
             "#chi^{{2}}/ndf={0:.2f}".format(chi2))
         chi2_label.SetNDC(True)
         chi2_label.SetTextFont(43)

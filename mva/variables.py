@@ -146,7 +146,7 @@ VARIABLES = {
         'title': r'Number of Selected Jets',
         'root': '#font[52]{Number of Selected Jets}',
         'filename': 'n_jets',
-        'binning': (5, -.5, 9.5),
+        'binning': (10, -.5, 9.5),
         'integer': True,
     },
     'met_et': {

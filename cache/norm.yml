@@ -374,17 +374,17 @@
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 0.5984389544124992
-            qcd_scale_error: 0.14629287114931172
+            qcd_scale: 1.713934891628829
+            qcd_scale_error: 0.5420041610196932
             qcd_z_scale: 1.0
-            z_scale: 0.061474550906861665
-            z_scale_error: 0.02427237192075001
+            z_scale: 4.4614298229869345
+            z_scale_error: 1.5231122956426393
         nOS_NONISOL:
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 1.397827684844411
-            qcd_scale_error: 0.41398759920117134
+            qcd_scale: 1.4069605652662742
+            qcd_scale_error: 0.4083701887291948
             qcd_z_scale: 1.0
-            z_scale: 0.08486261914513368
-            z_scale_error: 0.023006050802001778
+            z_scale: 4.79011206237212
+            z_scale_error: 1.328895041748623
