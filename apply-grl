@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+"""
+Requires the GRLSelectionTool from the Analysis release
+"""
+import sys
+import os
+import shutil
+from rootpy.io import root_open
+from rootpy.tree import TreeModel, FloatCol, IntCol
+from rootpy.plotting import Hist
+import logging
+from multiprocessing import Process
+import ROOT
+
+log = logging.getLogger('apply-grl')
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+ROOT.gROOT.Macro('$ROOTCOREDIR/scripts/load_packages.C')
+grl_vec = ROOT.std.vector('string')()
+grl_vec.push_back("/home/qbuat/data15_13TeV.periodAllYear_DetStatus-v62-pro18-01_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml")
+grl_vec.push_back("/home/qbuat/data15_13TeV.periodAllYear_DetStatus-v63-pro18-01_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml")
+grl_vec.push_back("/home/qbuat/data15_13TeV.periodAllYear_DetStatus-v64-pro19_DQDefects-00-01-02_PHYS_StandardGRL_All_Good.xml")
+
+from ROOT import GoodRunsListSelectionTool
+grl_tool = GoodRunsListSelectionTool('grl_tool')
+grl_tool.setProperty('GoodRunsListVec', grl_vec).ignore()
+grl_tool.initialize().ignore()
+
+
+
+class Model(TreeModel):
+    is_good_grl = IntCol()
+
+
+
+def add_grl_field(tree):
+    tree.create_buffer()
+    tree.set_buffer(Model(), create_branches=True)
+    branches = [tree.GetBranch(b) for b in ['is_good_grl']]
+    for event in tree:
+        pass_grl = int(grl_tool.passRunLB(tree.run_number, tree.lb_number))
+        tree.is_good_grl = pass_grl
+        for branch in branches:
+            branch.Fill()
+    tree.SetEntries(-1)
+
+
+
+
+class Job(Process):
+    def __init__(self, filename):
+        super(Job, self).__init__()
+        self.filename = filename
+
+    def run(self):
+        filename = self.filename
+        path, name = os.path.split(filename)
+        # copy to new file
+        output = os.path.join(path, 'extended.' + name)
+        if os.path.exists(output):
+            return 
+        log.info("copying {0} to {1} ...".format(filename, output))
+        shutil.copy(filename, output)
+        with root_open(output, 'UPDATE') as file:
+            tree = file.NOMINAL
+            if 'is_good_grl' in tree:
+                log.info("is_good_drl already exist in {0} ...".format(output))
+                return
+            add_grl_field(tree)
+            tree.Write(tree.name, ROOT.TObject.kOverwrite)
+
+
+if __name__ == '__main__':
+    from rootpy.extern.argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument('files', nargs='+')
+    args = parser.parse_args()
+
+    from statstools.parallel import run_pool
+    
+    jobs = [Job(f) for f in args.files]
+    run_pool(jobs, n_jobs=-1)

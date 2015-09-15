@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+from mva.cmd import get_parser
+
+args = get_parser(actions=False).parse_args()
+
+# rootpy imports
+from rootpy.tree import Cut
+
+# local imports
+from mva.plotting import draw_channel_array
+from mva.systematics import get_systematics, parse_systematics
+from mva.variables import VARIABLES, YEAR_VARIABLES, get_label
+from mva.analysis import get_analysis
+from mva import log;
+
+from mva.variables import VARIABLES
+from mva.categories.hadhad import Category_Preselection
+from mva.plotting import draw_ratio, draw
+from tabulate import tabulate
+
+
+args.fakes_region = 'nOS'
+ana_nOS = get_analysis(args)
+args.fakes_region = 'OS_NONID'
+ana_nONID = get_analysis(args)
+
+cat_defs = [args.categories]
+
+headers = ['cat', 'sample', 'OS_ISOL', 'nOS', 'OS_NONID']
+table = []
+for category in ana_nOS.iter_categories(*cat_defs, names=args.category_names):
+
+    row_d = [category.name, 'data']
+    row_z = [category.name, 'ztautau']
+    ana_nOS.normalize(category)
+
+    row_d.append(
+        "{0:1.2f}".format(
+            ana_nOS.data.events(category=category, region='OS_ISOL')[1].value))
+    
+    row_d.append(
+        "{0:1.2f}".format(
+            ana_nOS.data.events(category=category, region='nOS')[1].value))
+
+    row_d.append(
+        "{0:1.2f}".format(
+            ana_nOS.data.events(category=category, region='OS_NONID')[1].value))
+
+    ana_nONID.normalize(category)
+    row_z.append(
+        "{0:1.2f} / {1:1.2f}".format(
+            ana_nOS.ztautau.events(category=category, region='OS_ISOL')[1].value,
+        ana_nONID.ztautau.events(category=category, region='OS_ISOL')[1].value))
+    
+    row_z.append(
+            "{0:1.2f}".format(
+                ana_nOS.ztautau.events(category=category, region='nOS')[1].value))
+
+    row_z.append(
+        "{0:1.2f}".format(
+            ana_nONID.ztautau.events(category=category, region='OS_NONID')[1].value))
+    table.append(row_d)
+    table.append(row_z)
+
+
+print tabulate(table, headers=headers)
+
+
+# for sample in (ztautau, data):
+#     row = [sample.name]
+#     table.append(row)
+#     for category in categories:
+#         events = sample.events(category, region='OS_ISOL')
+#         row.append(
+#             "{0:.1f} +/- {1:.1f}".format(
+#                 events[1].value, events[1].error))
+       
+    
+# print tabulate(table, headers=headers)
+# print
+
+
+# for cat in categories:
+#     a1, b = data.get_field_hist(vars, cat, )
+#     data.draw_array(a1, cat, 'OS_ISOL', field_scale=b)
+    
+#     z_h, _ = ztautau.get_field_hist(vars, cat)
+#     ztautau.draw_array(z_h, cat, 'OS_ISOL', field_scale=b)
+
+
+#     for field in a1:
+#         # d = a1[field]
+#         draw(
+#             vars[field]['root'],
+#             cat,
+#            # data=a1[field],
+#             data=None if a1[field].Integral() == 0 else a1[field],
+#             model=[z_h[field]],
+#             units=vars[field]['units'] if 'units' in vars[field] else None, 
+#             logy=False,
+#             output_name='{0}_{1}.png'.format(field, cat.name))
+
+#         #print list(a1[field].y())
+#         #print a1[field].Integral()
+#         # HACK: clear the list of canvases
+#         ROOT.gROOT.GetListOfCanvases().Clear()
