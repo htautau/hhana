@@ -554,6 +554,10 @@ class Sample(object):
             trig_cut = get_trigger(self.channel)
             cuts &= trig_cut
             log.info('Trigger: {0}'.format(trig_cut))
+        from .data import Data
+        if isinstance(self, Data):
+            data_cut = Cut('is_good_grl == 1')
+            cuts &= data_cut
 
         if isinstance(self, SystematicsSample):
             systerm, variation = SystematicsSample.get_sys_term_variation(

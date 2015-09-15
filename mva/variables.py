@@ -118,17 +118,17 @@ VARIABLES = {
        'filename': 'n_actual_int',
        'binning': (20, 0, 40),
     },
-    'tau_tau_vect_sum_pt': {
+    'ditau_vect_sum_pt': {
         'title': r'$\sum p_T$ Taus and Two Leading Jets',
         'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and Two Leading Jets}',
-        'filename': 'tau_tau_vect_sum_pt',
+        'filename': 'ditau_vect_sum_pt',
         'binning': (20, 50, 550),
         'units': 'GeV',
     },
-    'tau_tau_scal_sum_pt': {
+    'ditau_scal_sum_pt': {
         'title': r'$\sum p_T$ Taus and All Selected Jets',
         'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and All Selected Jets}',
-        'filename': 'tau_tau_scal_sum_pt',
+        'filename': 'ditau_scal_sum_pt',
         'binning': (20, 50, 550),
         'units': 'GeV',
     },
@@ -183,24 +183,24 @@ VARIABLES = {
 #        'binning': (20, -math.pi, math.pi),
         'binning': (5, -math.pi, math.pi),
     },
-    'tau_tau_met_min_dphi': {
+    'ditau_met_min_dphi': {
         'title': r'min[$\Delta\phi$($\tau$,\/$E^{miss}_{T}$)]',
         'root': '#font[52]{min}[#font[152]{#Delta#phi}(#font[152]{#tau},#font[52]{E}^{miss}_{T})]',
-        'filename': 'tau_tau_met_min_dphi',
+        'filename': 'ditau_met_min_dphi',
         'binning': (20, 0, math.pi),
     },
-    'tau_tau_met_bisect': {
+    'ditau_met_bisect': {
         'title': r'$E^{miss}_{T}$ bisects',
         'root': '#font[52]{E}^{miss}_{T} bisects',
-        'filename': 'tau_tau_met_bisect',
+        'filename': 'ditau_met_bisect',
         'binning': (2, -0.5, 1.5),
         'legend': 'left',
         'integer': True,
     },
-    'tau_tau_mt_lep0_met': {
+    'ditau_mt_lep0_met': {
         'title': r'',
         'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
-        'filename': 'tau_tau_mt_lep0_met',
+        'filename': 'ditau_mt_lep0_met',
         'binning': (20, 0, 100),
         'units': 'GeV',
     },
@@ -221,18 +221,18 @@ VARIABLES = {
     #    'range': (0, .15),
     #    'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
     #},
-    'tau_tau_met_centrality': {
+    'ditau_met_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
         'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
-        'filename': 'tau_tau_met_centrality',
+        'filename': 'ditau_met_centrality',
         'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
 
-    'tau_tau_vis_mass': {
+    'ditau_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'tau_tau_vis_mass',
+        'filename': 'ditau_vis_mass',
         'binning': {
             'PRESELECTION': (5, 20, 120),
             'REST': (20, 30, 150),
@@ -240,10 +240,10 @@ VARIABLES = {
         'units': 'GeV',
         'blind': (70, 110),
     },
-    'tau_tau_coll_approx_m': {
+    'ditau_coll_approx_m': {
         'title': r'$m^{col}_{\tau\tau}$',
         'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'tau_tau_coll_approx_m',
+        'filename': 'ditau_coll_approx_m',
         'binning': (20, 0, 250),
         'units': 'GeV',
         'blind': (100, 150),
@@ -445,10 +445,10 @@ VARIABLES = {
     #    'range': (-0.0001, 1.0001),
     #    'cats': ['1J', '2J',]
     #},
-   'tau_tau_cosalpha': {
+   'ditau_cosalpha': {
        'title': r'$\cos[\alpha(\tau,\tau)]$',
        'root': '#font[52]{cos}(#font[152]{#alpha}_{#font[152]{#tau}#font[152]{#tau}})',
-       'filename': 'tau_tau_cosalpha',
+       'filename': 'ditau_cosalpha',
        'binning': (20, -1, 1),
    },
   #  'theta_tau1_tau2': {
@@ -457,30 +457,28 @@ VARIABLES = {
   #      'filename': 'theta_tau1_tau2',
   #      'binning': (20, 0, math.pi),
   #  },
-    'tau_tau_dr': {
+    'ditau_dr': {
         'title': r'$\Delta R(\tau,\tau)$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'tau_tau_dr',
+        'filename': 'ditau_dr',
         'binning': (20, 0, 5),
         'ypadding': (0.5, 0),
     },
-    'tau_tau_dphi': {
+    'ditau_dphi': {
         'title': r'$\Delta \phi(\tau,\tau)$',
         'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'tau_tau_dphi',
+        'filename': 'ditau_dphi',
         'binning': (12, 0., 2.4),
         'legend': 'left',
     },
-    'tau_tau_deta': {
+    'ditau_deta': {
         'title': r'$\Delta \eta(\tau,\tau)$',
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'tau_tau_deta',
+        'filename': 'ditau_deta',
         'binning': {
             'BOOSTED': (10, 0, 1.5),
             'VBF': (10, 0, 1.5),
             'REST': (10, 0, 1.5),
-# 2015/08/24 DTemple: redefined the histogram bins and range to be the same as that from the "norm" code
-#            None: (10, 0, 2.5)},
             None: (5, 0, 2.0)},
         'ypadding': (0.5, 0),
     },

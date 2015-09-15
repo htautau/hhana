@@ -50,13 +50,13 @@ CUTS_1J = LEAD_JET_50 & (- SUBLEAD_JET_30)
 CUTS_0J = (- LEAD_JET_50)
 
 MET = Cut('met_et > 20')
-DR_TAUS = Cut('0.8 < tau_tau_dr < 2.4')
-DETA_TAUS = Cut('tau_tau_deta < 1.5')
+DR_TAUS = Cut('0.8 < ditau_dr < 2.4')
+DETA_TAUS = Cut('ditau_deta < 1.5')
 DETA_TAUS_CR = Cut('dEta_tau1_tau2 > 1.5')
-RESONANCE_PT = Cut('tau_tau_vect_sum_pt > 100')
+RESONANCE_PT = Cut('ditau_vect_sum_pt > 100')
 
 # use .format() to set centality value
-MET_CENTRALITY = 'tau_tau_met_bisect==1 || (tau_tau_met_min_dphi < {0})'
+MET_CENTRALITY = 'ditau_met_bisect==1 || (ditau_met_min_dphi < {0})'
 
 # common preselection cuts
 PRESELECTION = (

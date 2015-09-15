@@ -20,8 +20,8 @@ from mva import CONST_PARAMS
 category = Category_Preselection
 
 # distribution to fit
-field = 'tau_tau_deta'
-if args.year == 2011:
+field = 'ditau_deta'
+if args.year == 2011 or args.year == 2015:
     template = Hist(4, 0, 2)
 else:
     template = Hist(5, 0, 2)

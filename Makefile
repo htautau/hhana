@@ -2,7 +2,7 @@
 # student name
 HHSTUDENT ?= hhskim
 # ntuple production directory
-HHNTUP ?= ntuples/prod_v29/hhskim
+HHNTUP ?= ntuples/v2/hhskim
 # ntuple running directory
 HHNTUP_RUNNING ?= ntuples_hh/running/hhskim
 # maximum number of processors to request in PBS

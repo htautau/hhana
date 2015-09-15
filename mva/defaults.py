@@ -1,4 +1,4 @@
 TARGET_REGION = 'OS_ISOL'
 FAKES_REGION = 'nOS_NONISOL'
 TRAIN_FAKES_REGION = 'NONISOL' # more events
-NORM_FIELD = 'tau_tau_deta'
+NORM_FIELD = 'ditau_deta'

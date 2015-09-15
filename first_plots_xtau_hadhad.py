@@ -8,13 +8,11 @@ from tabulate import tabulate
 
 ztautau = Pythia_Ztautau(
     2015,
-    trigger=False,
     color='#00A3FF')
 
 data = Data(
     2015,
-    label='Data 2015',
-    trigger=False)
+    label='Data 2015')
 
 
 fields = [
@@ -22,7 +20,7 @@ fields = [
     'jet_1_pt',
     'n_avg_int',
     'met_et',
-    'tau_tau_vis_mass',
+    'ditau_vis_mass',
 ]
 
 vars = {}
