@@ -18,6 +18,16 @@ PRESELECTION = (
     & MET 
     & BVETO
     & MT_LEP_MET
+    & LEPTON_IS_ELE
+    
+    )
+
+# common preselection cuts without BVETO
+PRESELECTION_NOBVETO = (
+    TRIGGER
+    & IS_OPPOSITE_SIGN
+    & MET 
+    
     )
 
 # VBF category cuts
@@ -37,5 +47,6 @@ class Category_Preselection_lh(Category):
     common_cuts = (
         PRESELECTION
         )
+
 
 
