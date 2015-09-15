@@ -95,6 +95,7 @@ VARIABLES = {
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB,BCID}',
         'filename': 'n_avg_int',
         'binning': (40, 0, 40),
+#        'binning': (5, 0, 30), # 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
         'integer': True,
     },
     'n_actual_int': {
@@ -127,6 +128,30 @@ HH_VARIABLES = {
         'binning': (20, 50, 550),
         'units': 'GeV',
     },
+    'tau_tau_vect_sum_pt': {
+        'title': r'$\sum p_T$ Taus and Two Leading Jets',
+        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and Two Leading Jets}',
+        'filename': 'tau_tau_vect_sum_pt',
+        'binning': (20, 50, 550),
+        'units': 'GeV',
+    },
+    'tau_tau_scal_sum_pt': {
+        'title': r'$\sum p_T$ Taus and All Selected Jets',
+        'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and All Selected Jets}',
+        'filename': 'tau_tau_scal_sum_pt',
+        'binning': (20, 50, 550),
+        'units': 'GeV',
+    },
+    # 'pt_total': {
+    #     'title': r'$\sum \vec{p}_T$',
+    #     'root': '#font[52]{p}_{T}^{Total}',
+    #     'filename': 'pt_total',
+    #     'binning': {
+    #         'VBF': (20, 0, 100),
+    #         None: (20, 0, 200)},
+    #     'scale': 0.001,
+    #     'units': 'GeV',
+    # },
     'met_et': {
         'title': r'$E^{miss}_{T}$',
         'root': '#font[52]{E}^{miss}_{T}',
@@ -159,21 +184,21 @@ HH_VARIABLES = {
         'filename': 'met_phi',
         'binning': (5, -math.pi, math.pi),
     },
-    'ditau_met_min_dphi': {
+    'tau_tau_met_min_dphi': {
         'title': r'min[$\Delta\phi$($\tau$,\/$E^{miss}_{T}$)]',
         'root': '#font[52]{min}[#font[152]{#Delta#phi}(#font[152]{#tau},#font[52]{E}^{miss}_{T})]',
         'filename': 'ditau_met_min_dphi',
         'binning': (10, 0, math.pi),
     },
-    'ditau_met_bisect': {
+    'tau_tau_met_bisect': {
         'title': r'$E^{miss}_{T}$ bisects',
         'root': '#font[52]{E}^{miss}_{T} bisects',
-        'filename': 'ditau_met_bisect',
+        'filename': 'tau_tau_met_bisect',
         'binning': (2, -0.5, 1.5),
         'legend': 'left',
         'integer': True,
     },
-    'ditau_mt_lep0_met': {
+    'tau_tau_mt_lep0_met': {
         'title': r'',
         'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
         'filename': 'ditau_mt_lep0_met',
@@ -189,10 +214,10 @@ HH_VARIABLES = {
         'legend': 'left',
     },
 
-    'ditau_vis_mass': {
+    'tau_tau_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'ditau_vis_mass',
+        'filename': 'tau_tau_vis_mass',
         'binning': {
             'PRESELECTION': (5, 20, 120),
             'REST': (20, 30, 150),
@@ -200,7 +225,6 @@ HH_VARIABLES = {
         'units': 'GeV',
         'blind': (70, 110),
     },
-
     'ditau_coll_approx_m': {
         'title': r'$m^{col}_{\tau\tau}$',
         'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
@@ -358,26 +382,22 @@ HH_VARIABLES = {
   #      'filename': 'theta_tau1_tau2',
   #      'binning': (20, 0, math.pi),
   #  },
-    'ditau_dr': {
+    'tau_tau_dr': {
         'title': r'$\Delta R(\tau,\tau)$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
         'filename': 'ditau_dr',
         'binning': {
             None: (20, 0, 5),
             'PRESELECTION': (9, 0.4, 2.8)},
+        'filename': 'tau_tau_dr',
+        'binning': (20, 0, 5),
         'ypadding': (0.5, 0),
-    },
-    'ditau_dphi': {
-        'title': r'$\Delta \phi(\tau,\tau)$',
-        'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'ditau_dphi',
-        'binning': (6, 0., 2.4),
         'legend': 'left',
     },
-    'ditau_deta': {
+    'tau_tau_deta': {
         'title': r'$\Delta \eta(\tau,\tau)$',
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'ditau_deta',
+        'filename': 'tau_tau_deta',
         'binning': {
             'BOOSTED': (10, 0, 1.5),
             'VBF': (10, 0, 1.5),
@@ -498,9 +518,10 @@ LH_VARIABLES = {
 }    
 
 
+
 from . import MMC_MASS
 
-HH_VARIABLES[MMC_MASS] = {
+VARIABLES[MMC_MASS] = {
     'title': r'$m^{MMC}_{\tau\tau}$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
     'filename': MMC_MASS,
