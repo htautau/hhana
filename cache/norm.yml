@@ -3,6 +3,14 @@
     false:
       DITAU_DETA:
         OS_NONID:
+          OS:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 1.512904395810135
+            qcd_scale_error: 0.6856834600070447
+            qcd_z_scale: 1.0
+            z_scale: 3.8866541641006105
+            z_scale_error: 0.8151098754090065
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
@@ -21,6 +29,14 @@
             z_scale: 9.393892139368359e-11
             z_scale_error: 2.951837518549267e-09
         nOS:
+          OS:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 0.4928005218255096
+            qcd_scale_error: 0.17875075862635828
+            qcd_z_scale: 1.0
+            z_scale: 2.9699337405244917
+            z_scale_error: 0.9554750248582734
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0

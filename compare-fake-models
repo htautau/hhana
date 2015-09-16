@@ -26,41 +26,41 @@ ana_nONID = get_analysis(args)
 
 cat_defs = [args.categories]
 
-headers = ['cat', 'sample', 'OS_ISOL', 'nOS', 'OS_NONID']
+headers = ['cat', 'sample', 'OS', 'nOS', 'OS_NONID']
 table = []
-for category in ana_nOS.iter_categories(*cat_defs, names=args.category_names):
 
-    row_d = [category.name, 'data']
-    row_z = [category.name, 'ztautau']
-    ana_nOS.normalize(category)
+category = Category_Preselection
+row_d = [category.name, 'data']
+row_z = [category.name, 'ztautau']
+# ana_nOS.normalize(category)
 
-    row_d.append(
-        "{0:1.2f}".format(
-            ana_nOS.data.events(category=category, region='OS_ISOL')[1].value))
+row_d.append(
+    "{0:1.2f}".format(
+        ana_nOS.data.events(category=category, region='OS', weighted=False)[1].value))
     
-    row_d.append(
-        "{0:1.2f}".format(
-            ana_nOS.data.events(category=category, region='nOS')[1].value))
+row_d.append(
+    "{0:1.2f}".format(
+        ana_nOS.data.events(category=category, region='nOS', weighted=False)[1].value))
 
-    row_d.append(
-        "{0:1.2f}".format(
-            ana_nOS.data.events(category=category, region='OS_NONID')[1].value))
+row_d.append(
+    "{0:1.2f}".format(
+        ana_nOS.data.events(category=category, region='OS_NONID', weighted=False)[1].value))
 
-    ana_nONID.normalize(category)
-    row_z.append(
-        "{0:1.2f} / {1:1.2f}".format(
-            ana_nOS.ztautau.events(category=category, region='OS_ISOL')[1].value,
-        ana_nONID.ztautau.events(category=category, region='OS_ISOL')[1].value))
-    
-    row_z.append(
-            "{0:1.2f}".format(
-                ana_nOS.ztautau.events(category=category, region='nOS')[1].value))
+# ana_nONID.normalize(category)
+row_z.append(
+    "{0:1.2f} / {1:1.2f}".format(
+        ana_nOS.ztautau.events(category=category, region='OS', weighted=False)[1].value,
+        ana_nONID.ztautau.events(category=category, region='OS', weighted=False)[1].value))
 
-    row_z.append(
-        "{0:1.2f}".format(
-            ana_nONID.ztautau.events(category=category, region='OS_NONID')[1].value))
-    table.append(row_d)
-    table.append(row_z)
+row_z.append(
+    "{0:1.2f}".format(
+        ana_nOS.ztautau.events(category=category, region='nOS', weighted=False)[1].value))
+
+row_z.append(
+    "{0:1.2f}".format(
+        ana_nONID.ztautau.events(category=category, region='OS_NONID', weighted=False)[1].value))
+table.append(row_d)
+table.append(row_z)
 
 
 print tabulate(table, headers=headers)

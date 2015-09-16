@@ -310,45 +310,45 @@ VARIABLES = {
     #     'binning': (5, -.5, 4.5),
     # },
     
-   'tau_0_pt': {
+   'ditau_tau0_pt': {
        'title': r'$\tau_{1} p_{T}$',
        'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
-       'filename': 'tau_0_pt',
+       'filename': 'ditau_tau0_pt',
        'binning': (7, 30, 100),
        'units': 'GeV',
    },
-   'tau_1_pt': {
+   'ditau_tau1_pt': {
        'title': r'$\tau_{2} p_{T}$',
        'root': '#font[152]{#tau}_{2} #font[52]{p}_{T}',
-       'filename': 'tau_1_pt',
+       'filename': 'ditau_tau1_pt',
        'binning': (7, 30, 100),
        'units': 'GeV',
    },
-   'tau_0_eta': {
+   'ditau_tau0_eta': {
        'title': r'$\tau_{1} \eta$',
        'root': '#font[152]{#tau}_{1} #font[152]{#eta}',
-       'filename': 'tau_0_eta',
+       'filename': 'ditau_tau0_eta',
        'binning': (10, -3, 3),
        'legend': 'left',
    },
-   'tau_1_eta': {
+   'ditau_tau1_eta': {
        'title': r'$\tau_{2} \eta$',
        'root': '#font[152]{#tau}_{2} #font[152]{#eta}',
-       'filename': 'tau_1_eta',
+       'filename': 'ditau_tau1_eta',
        'binning': (10, -3, 3),
        'legend': 'left',
    },
-   'tau_0_n_tracks': {
+   'ditau_tau0_n_tracks': {
        'title': r'$\tau_{1}$ Number of Tracks',
        'root': '#font[152]{#tau}_{1} #font[52]{Tracks}',
-       'filename': 'tau_0_n_tracks',
+       'filename': 'ditau_tau0_n_tracks',
        'binning': (5, -.5, 4.5),
        'integer': True,
    },
-   'tau_1_n_tracks': {
+   'ditau_tau1_n_tracks': {
        'title': r'$\tau_{2}$ Number of Tracks',
        'root': '#font[152]{#tau}_{2} #font[52]{Tracks}',
-       'filename': 'tau_1_n_tracks',
+       'filename': 'ditau_tau1_n_tracks',
        'binning': (5, -.5, 4.5),
        'integer': True,
    },
@@ -426,16 +426,16 @@ VARIABLES = {
     #    'bins': 20,
     #    'range': (0, 1),
     #},
-   'tau_0_jet_bdt_score': {
+   'ditau_tau0_jet_bdt_score': {
       'title': r'$\tau_{1}$ BDT Score',
       'root': '#font[152]{#tau}_{1} #font[52]{BDT Score}',
-      'filename': 'tau_0_jet_bdt_score',
+      'filename': 'ditau_tau0_jet_bdt_score',
       'binning': (5, 0.5, 1.0001),
    },
-   'tau_1_jet_bdt_score': {
+   'ditau_tau1_jet_bdt_score': {
       'title': r'$\tau_{2}$ BDT Score',
       'root': '#font[152]{#tau}_{2} #font[52]{BDT Score}',
-      'filename': 'tau_1_jet_bdt_score',
+      'filename': 'ditau_tau1_jet_bdt_score',
       'binning': (5, 0.5, 1.0001),
    },
     #'tau1_vertex_prob': {
@@ -485,17 +485,17 @@ VARIABLES = {
             None: (4, 0, 2.0)},
         'ypadding': (0.5, 0),
     },
-    'tau_0_q': {
+    'ditau_tau0_q': {
        'title': r'$\tau_1$ Charge',
        'root': '#font[152]{#tau}_{1} #font[52]{Charge}',
-       'filename': 'tau_0_q',
+       'filename': 'ditau_tau0_q',
        'binning': (7, -3.5, 3.5),
        'integer': True,
     },
-    'tau_1_q': {
+    'ditau_tau1_q': {
        'title': r'$\tau_2$ Charge',
        'root': '#font[152]{#tau}_{2} #font[52]{Charge}',
-       'filename': 'tau_1_q',
+       'filename': 'ditau_tau1_q',
        'binning': (7, -3.5, 3.5),
        'integer': True,
     },

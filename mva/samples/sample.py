@@ -934,8 +934,8 @@ class SystematicsSample(Sample):
                             'UP': [],
                             'DOWN': [],
                             'NOMINAL': [
-                                'tau_0_jet_bdt_eff_sf',
-                                'tau_1_jet_bdt_eff_sf']},
+                                'ditau_tau0_jet_bdt_eff_sf',
+                                'ditau_tau1_jet_bdt_eff_sf']},
                         }
             elif self.channel == 'lephad':
                 if self.year == 2011:
