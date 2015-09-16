@@ -1,4 +1,5 @@
 from rootpy.tree import Cut
+
 # Import does not work :-/
 # from categories.hadhad import ID_MEDIUM, ANTI_ID_MEDIUM
 
@@ -43,9 +44,6 @@ ID_MEDIUM_TIGHT = (TAU1_MEDIUM & TAU2_TIGHT) | (TAU1_TIGHT & TAU2_MEDIUM)
 ID_MEDIUM_NOT_TIGHT = (TAU1_MEDIUM & -TAU1_TIGHT) & (TAU2_MEDIUM & -TAU2_TIGHT)
 
 
-
-
-
 REGIONS = {
     'ALL': Cut(),
 
@@ -68,9 +66,6 @@ REGIONS = {
     'OS_NONID_NONISOL': OS & P1P3 & ANTI_ID_MEDIUM & TRACK_NONISOLATION,
 
     'NONISOL': TRACK_NONISOLATION,
-
-
-    
 }
 
 REGION_SYSTEMATICS = {
