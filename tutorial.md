@@ -78,3 +78,40 @@ plot-ranking workspaces/run1_comb/hh_combination_125/measurement_hh_combination_
 ```
 
 ## Run2 Analysis
+
+### Setup
+Start from a fresh terminal and do:
+
+```bash
+mkdir hhana_testbed_run2
+cp /afs/cern.ch/user/q/qbuat/public/hhana_run/initialize_run2.sh .
+source initialize_run2.sh
+source setup_lxplus.sh
+cd hhana/
+source setup.sh
+```
+### Running the normalization
+
+```bash
+norm --no-embedding
+```
+
+### Making the preselection plotbook
+
+```bash
+plot-features --no-embedding --categories presel
+```
+
+### Printing the yields table
+```bash
+compare-fakes-model --no-embedding
+```
+
+### Navigating through the data tables
+
+```python
+```
+
+### Filling histograms
+```python
+```
