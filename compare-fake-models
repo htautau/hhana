@@ -26,13 +26,12 @@ ana_nONID = get_analysis(args)
 
 cat_defs = [args.categories]
 
-headers = ['cat', 'sample', 'OS', 'nOS', 'OS_NONID']
+headers = ['cat', 'sample', 'OS', 'nOS', 'OS_NONID', 'OS_NONID_1', 'OS_NONID_2']
 table = []
 
 category = Category_Preselection
 row_d = [category.name, 'data']
 row_z = [category.name, 'ztautau']
-# ana_nOS.normalize(category)
 
 row_d.append(
     "{0:1.2f}".format(
@@ -46,19 +45,34 @@ row_d.append(
     "{0:1.2f}".format(
         ana_nOS.data.events(category=category, region='OS_NONID', weighted=False)[1].value))
 
-# ana_nONID.normalize(category)
+row_d.append(
+    "{0:1.2f}".format(
+        ana_nOS.data.events(category=category, region='OS_NONID_1', weighted=False)[1].value))
+
+row_d.append(
+    "{0:1.2f}".format(
+        ana_nOS.data.events(category=category, region='OS_NONID_2', weighted=False)[1].value))
+
+ana_nOS.normalize(category)
+ana_nONID.normalize(category)
 row_z.append(
     "{0:1.2f} / {1:1.2f}".format(
         ana_nOS.ztautau.events(category=category, region='OS', weighted=False)[1].value,
-        ana_nONID.ztautau.events(category=category, region='OS', weighted=False)[1].value))
+        ana_nONID.ztautau.events(category=category, region='OS', weighted=True)[1].value))
 
 row_z.append(
     "{0:1.2f}".format(
-        ana_nOS.ztautau.events(category=category, region='nOS', weighted=False)[1].value))
+        ana_nOS.ztautau.events(category=category, region='nOS', weighted=True)[1].value))
 
 row_z.append(
     "{0:1.2f}".format(
-        ana_nONID.ztautau.events(category=category, region='OS_NONID', weighted=False)[1].value))
+        ana_nONID.ztautau.events(category=category, region='OS_NONID', weighted=True)[1].value))
+row_z.append(
+    "{0:1.2f}".format(
+        ana_nONID.ztautau.events(category=category, region='OS_NONID_1', weighted=True)[1].value))
+row_z.append(
+    "{0:1.2f}".format(
+        ana_nONID.ztautau.events(category=category, region='OS_NONID_2', weighted=True)[1].value))
 table.append(row_d)
 table.append(row_z)
 
