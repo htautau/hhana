@@ -107,11 +107,66 @@ plot-features --no-embedding --categories presel
 compare-fakes-model --no-embedding
 ```
 
-### Navigating through the data tables
+### Getting your hands in the framework
+
+The following code snippets are meant to be run in the python interpreter. Typing `python` will open the console and you can then paste the following block of code
+
+#### Navigating through the database
 
 ```python
+# import the database from the hhdb package
+from hhdb import datasets
+db = datasets.Database(name='datasets_hh_c', verbose=True)
+# print all the datasets keys
+db.keys()
+# print a specific dataset
+ds = db['PoPy8_ggH125_tautauhh']
+ds
+# print the tabulated (cross-section, kfactor, filter efficiency)
+print ds.xsec_kfact_effic
+# import the sample info for Pythia Ztautau
+from hhdb import samples as samples_db
+sample_info = samples_db.get_sample('hadhad', 2015, 'background', 'pythia_ztautau')
+# list the datasets used for this sample
+sample_info['samples']
+# list the datasets info for EWK (outdated but good example of the logic)
+sample_info = samples_db.get_sample('hadhad', 2015, 'background', 'ewk')
+sample_info['samples']
 ```
 
-### Filling histograms
+#### Navigating through the data tables and basic histogram filling
+
 ```python
+from mva.samples.db import get_file
+hfile = get_file(hdf=True)
+# print the entire file
+hfile
+# print the list of tables
+hfile.root
+# get one table
+H_VBF = hfile.root.PoPy8_VBFH125_tautauhh
+H_VBF
+# list all the variables
+H_VBF.colnames
+# get the numpy array (loading the table in the memory for quick access)
+rec_array = H_VBF.read()
+type(rec_array)
+rec_array
+# get a sub-table by applying some cuts
+from rootpy.tree import Cut
+cut = Cut('HLT_tau35_medium1_tracktwo_tau25_medium1_tracktwo_L1TAU20IM_2TAU12IM == 1')
+rec_array = H_VBF.read_where(cut.where())
+
+arr = rec_array['ditau_vis_mass']
+# import rootpy Histogramming (wrapper of ROOT::TH1)
+from rootpy.plotting import Hist
+h_mvis = Hist(12, 30, 150)
+from root_numpy import fill_hist
+fill_hist(h_mvis, arr)
+list(h_mvis.y())
+```
+
+#### Filling histograms using the sample classes
+```python
+
 ```
