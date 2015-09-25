@@ -99,6 +99,7 @@ norm --no-embedding
 ### Making the preselection plotbook
 
 ```bash
+# potentially slow due to the EOS I/O and the current size of the ntuples (almost no selection)
 plot-features --no-embedding --categories presel
 ```
 
@@ -109,7 +110,7 @@ compare-fakes-model --no-embedding
 
 ### Getting your hands in the framework
 
-The following code snippets are meant to be run in the python interpreter. Typing `python` will open the console and you can then paste the following block of code
+The following code snippets are meant to be run in the python interpreter. Typing `python` will open the console and you can then paste the following blocks of code:
 
 #### Navigating through the database
 
@@ -167,6 +168,7 @@ list(h_mvis.y())
 ```
 
 #### Filling histograms using the sample classes
-```python
-
+You can run and modify `first_plots_xtau_hadhad.py` and run it from the terminal:
+```bash
+python -i first_plots_xtau_hadhad.py
 ```
