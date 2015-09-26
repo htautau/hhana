@@ -5,7 +5,7 @@ It is meant to be run on the CERN lxplus interactive computer nodes.
 
 There is two components:
 - Re-running the Run1 analysis
-- Running the first backgroun studies for run2
+- Running the first background studies for run2
 
 For the latter, the tutorial will focus on plotting the data/background comparison, workspace creation (stat-only) and significance and nuisance parameter ranking calculation.
 
