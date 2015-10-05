@@ -57,9 +57,16 @@ class Data(Sample):
             name=name, label=label,
             **kwargs)
         h5file = get_file(self.ntuple_path, self.student, hdf=True)
+        if year == 2015: 
+            if self.channel == 'hadhad':
+                stream_name = 'Main25'
+            else:
+                stream_name = 'Main'
+        else:
+            stream_name = 'JetTauEtMiss'
         dataname = 'data{0:1d}_{1}'.format(
-            int(year % 1E3), 
-            'Main25' if year == 2015 else 'JetTauEtmiss')
+            int(year % 1E3), stream_name)
+
         self.h5data = CachedTable.hook(getattr(h5file.root, dataname))
         self.info = DataInfo(LUMI[self.year] / 1e3, self.energy)
 

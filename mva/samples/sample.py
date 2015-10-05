@@ -968,7 +968,7 @@ class SystematicsSample(Sample):
             if 'color' in sample_info and 'color' not in kwargs:
                 kwargs['color'] = sample_info['color']
             self.samples = sample_info['samples']
-
+            log.debug(self.samples)
         elif isinstance(self, Signal):
             # samples already defined in Signal subclass
             # see Higgs class below
@@ -994,6 +994,7 @@ class SystematicsSample(Sample):
 
         for i, name in enumerate(self.samples):
 
+            log.debug(name)
             ds = self.db[name]
             treename = name.replace('.', '_')
             treename = treename.replace('-', '_')

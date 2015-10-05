@@ -12,7 +12,7 @@ from tabulate import tabulate
 DB = Database('datasets_lh')
 
 # Ntuples path
-NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v1_1'
+NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v2'
 
 
 
@@ -25,26 +25,27 @@ ztautau = Pythia_Ztautau(
     trigger=False,
     color='#00A3FF')
 
-top = Top(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
-    student='lhskim',
-    trigger=False,
-    color='lightskyblue')
+# top = Top(
+#     2015, db=DB, 
+#     channel='lephad', 
+#     ntuple_path=NTUPLE_PATH, 
+#     student='lhskim',
+#     trigger=False,
+#     color='lightskyblue')
 
-ewk = EWK(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
-    student='lhskim',
-    trigger=False,
-    color='#8A0F0F')
+# ewk = EWK(
+#     2015, db=DB, 
+#     channel='lephad', 
+#     ntuple_path=NTUPLE_PATH, 
+#     student='lhskim',
+#     trigger=False,
+#     color='#8A0F0F')
 
 data = Data(
     2015,
     ntuple_path=NTUPLE_PATH, 
     student='lhskim',
+    channel='lephad',
     label='Data 2015',
     trigger=False)
 
@@ -98,11 +99,11 @@ for cat in categories:
     z_h, _ = ztautau.get_field_hist(vars, cat)
     ztautau.draw_array(z_h, cat, 'ALL', field_scale=b)
 
-    t_h, _ = top.get_field_hist(vars, cat)
-    top.draw_array(t_h, cat, 'ALL', field_scale=b)
+    # t_h, _ = top.get_field_hist(vars, cat)
+    # top.draw_array(t_h, cat, 'ALL', field_scale=b)
 
-    ewk_h, _ = ewk.get_field_hist(vars, cat)
-    ewk.draw_array(ewk_h, cat, 'ALL', field_scale=b)
+    # ewk_h, _ = ewk.get_field_hist(vars, cat)
+    # ewk.draw_array(ewk_h, cat, 'ALL', field_scale=b)
 
 
     for field in a1:
@@ -112,7 +113,8 @@ for cat in categories:
             cat,
            # data=a1[field],
             data=None if a1[field].Integral() == 0 else a1[field],
-            model=[t_h[field], ewk_h[field], z_h[field]],
+            model=[z_h[field]],
+            # model=[t_h[field], ewk_h[field], z_h[field]],
             units=vars[field]['units'] if 'units' in vars[field] else None, 
             logy=False,
             output_name='{0}_{1}.png'.format(field, cat.name))
