@@ -188,16 +188,18 @@ def plot_ranking(name, file, outdir,
         textsize=30)
     mu_legend = Legend(
         (prefit_graph, postfit_graph), pad=pad1,
-        entryheight=0.018,
-        margin=0.1)
+        entryheight=0.018)
+        # margin=0.1)
     mu_legend.position_pixels = (left_pixels, c.height - 100, c.width, c.height - 20)
     mu_legend.Draw()
     theta_legend = Legend(
-        (pulls, pulls_1sigma), pad=pad1,
-        x=0.05, y=0.80,
-        entryheight=0.018,
-        margin=0.1)
-    theta_legend.position_pixels = (left_pixels, 20, c.width, 100)
+        (pulls, pulls_1sigma), pad=pad1, rightmargin=0.7)
+    
+        # # x=0.05, y=0.80,
+        # entryheight=0.018,
+        # margin=0.1)
+    # theta_legend.position_pixels = (left_pixels, 20, c.width, 100)
+    theta_legend.position_pixels = (2, 20, c.width, 100)
     theta_legend.Draw()
     c.Modified()
     c.Update()

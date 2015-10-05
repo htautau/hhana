@@ -29,7 +29,7 @@ def update_merged_file(
     intree = ROOT.TChain(treename)
     for f in dataset.files:
         intree.Add(f)
-
+    log.info(intree)
     # instantiate the cutflow histo
     outcutflow = ropen(dataset.files[0])[cutflow_name].Clone()
     outcutflow.Reset()
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', default='output.root')
     parser.add_argument('--db', default='datasets_lh')
     parser.add_argument('--reset', action='store_true', default=False)
-    parser.add_argument('--cutflow', default='cutflow_HSM_lephad_NOMINAL')
+    parser.add_argument('--cutflow', default='cutflow_HTauTauLepHad_NOMINAL')
     args = parser.parse_args()
 
     DB = Database(args.db)
@@ -85,7 +85,7 @@ if __name__ == '__main__':
         if len(dataset.files) == 0:
             log.warning(dataset)
             continue
-
+        log.info(dataset)
         # when dealing with systematics 
         # we will loop over different values of 
         # treename and cutflow_name

@@ -31,6 +31,7 @@ UNBLIND = {
 
 
 PATTERNS = [
+    re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z_]+)(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$'),
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<year>\d+)_(?P<category>[a-z_]+)(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$'),
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z]+)_(?P<mass>\d+)_(?P<year>\d+)$'),
     re.compile('^(?P<type>workspace|channel)(_hh)?_(?P<category>[a-z_]+)(?P<year>\d+)_(?P<mass>\d+)(_[a-z]+[a-z0-9_]*)?$'),
@@ -71,9 +72,12 @@ def parse_name(name):
     if not match:
         raise ValueError(
             "not a valid workspace/channel name: {0}".format(name))
-    return (int(match.group('year')) % 1000 + 2000,
-            match.group('category').strip('_'),
-            int(match.group('mass')))
+    if 'year' in match.groupdict().keys():
+        return (int(match.group('year')) % 1000 + 2000,
+                match.group('category').strip('_'),
+                int(match.group('mass')))
+    else:
+        return (None, match.group('category').strip('_'), int(match.group('mass')))
 
 
 def get_data(pickle_file):
