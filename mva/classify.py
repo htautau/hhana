@@ -46,7 +46,7 @@ def print_feature_ranking(clf, fields):
             fields[idx],
             '%.3f' % importances[idx]])
         print >> out, r"%d & %s & %.3f\\" % (f + 1,
-            variables.VARIABLES[fields[idx]]['title'],
+            variables.HH_VARIABLES[fields[idx]]['title'],
             importances[idx])
     print >> out, r"\end{tabular}"
     print >> out

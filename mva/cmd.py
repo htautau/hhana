@@ -3,7 +3,7 @@ from rootpy.extern import argparse
 
 from .categories.hadhad import CATEGORIES
 from .massregions import DEFAULT_LOW_MASS, DEFAULT_HIGH_MASS
-from .variables import VARIABLES
+from .variables import VARIABLES, HH_VARIABLES, LH_VARIABLES
 from .regions import REGIONS
 from .defaults import FAKES_REGION, TARGET_REGION
 
@@ -84,6 +84,7 @@ def analysis_parser(parser=None):
     parser.add_argument('--no-ggf-weight',
             dest='ggf_weight',
             action='store_false', default=True)
+    parser.add_argument('--channel', default='hadhad', choices=['hadhad', 'lephad'])
     return parser
 
 
@@ -112,7 +113,7 @@ def mass_parser(parser=None):
 def plotting_parser(parser=None):
     if parser is None:
         parser = base_parser()
-    parser.add_argument('--plots', nargs='*', default=None, choices=VARIABLES.keys(),
+    parser.add_argument('--plots', nargs='*', default=None,
                         help='only draw these plots. see the keys in variables.py')
     parser.add_argument('--plot-cut', default=None, nargs='?',
                         help='extra cut to be applied on the plots, but excluded from the '

@@ -3,12 +3,13 @@ from rootpy.plotting.style.atlas.labels import ATLAS_label
 
 import ROOT
 
-from ..variables import VARIABLES, get_label
+from ..variables import VARIABLES, HH_VARIABLES, get_label
 from .templates import RatioPlot
 from ..defaults import TARGET_REGION
 from .. import ATLAS_LABEL
 from .. import save_canvas
 
+VARIABLES.update(HH_VARIABLES)
 
 def draw_ratio(a, b, field, category,
                textsize=22,

@@ -90,26 +90,11 @@ YEAR_VARIABLES = {
 }
 
 VARIABLES = {
-    #'ntrack_pv': {
-    #    'title': r'Number of Tracks from the Primary Vertex',
-    #    'root': '#font[52]{Number of Tracks from the Primary Vertex}',
-    #    'filename': 'ntrack_pv',
-    #    'bins': 10,
-    #    'range': (0.5, 120.5),
-    #},
-    #'ntrack_nontau_pv': {
-    #    'title': r'Number of Non-Tau Tracks from the Primary Vertex',
-    #    'root': '#font[52]{Number of Non-Tau Tracks from the Primary Vertex}',
-    #    'filename': 'ntrack_nontau_pv',
-    #    'bins': 10,
-    #    'range': (0.5, 120.5),
-    #},
     'n_avg_int': {
         'title': r'$\langle\mu\rangle|_{LB,BCID}$',
         'root': '#font[152]{#LT#mu#GT#cbar}_{LB,BCID}',
         'filename': 'n_avg_int',
         'binning': (40, 0, 40),
-#        'binning': (5, 0, 30), # 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
         'integer': True,
     },
     'n_actual_int': {
@@ -118,7 +103,17 @@ VARIABLES = {
        'filename': 'n_actual_int',
        'binning': (20, 0, 40),
     },
-    'ditau_vect_sum_pt': {
+    'n_jets': {
+        'title': r'Number of Selected Jets',
+        'root': '#font[52]{Number of Selected Jets}',
+        'filename': 'n_jets',
+        'binning': (10, -.5, 9.5),
+        'integer': True,
+    },
+}
+ 
+HH_VARIABLES = {
+   'ditau_vect_sum_pt': {
         'title': r'$\sum p_T$ Taus and Two Leading Jets',
         'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and Two Leading Jets}',
         'filename': 'ditau_vect_sum_pt',
@@ -131,23 +126,6 @@ VARIABLES = {
         'filename': 'ditau_scal_sum_pt',
         'binning': (20, 50, 550),
         'units': 'GeV',
-    },
-    # 'pt_total': {
-    #     'title': r'$\sum \vec{p}_T$',
-    #     'root': '#font[52]{p}_{T}^{Total}',
-    #     'filename': 'pt_total',
-    #     'binning': {
-    #         'VBF': (20, 0, 100),
-    #         None: (20, 0, 200)},
-    #     'scale': 0.001,
-    #     'units': 'GeV',
-    # },
-    'n_jets': {
-        'title': r'Number of Selected Jets',
-        'root': '#font[52]{Number of Selected Jets}',
-        'filename': 'n_jets',
-        'binning': (10, -.5, 9.5),
-        'integer': True,
     },
     'met_et': {
         'title': r'$E^{miss}_{T}$',
@@ -179,8 +157,6 @@ VARIABLES = {
         'title': r'$E^{miss}_{T} \phi$',
         'root': '#font[52]{E}^{miss}_{T} #phi',
         'filename': 'met_phi',
-# 2015/08/25 DTemple: redefined the histogram to better show current (low) run-II statistics
-#        'binning': (20, -math.pi, math.pi),
         'binning': (5, -math.pi, math.pi),
     },
     'ditau_met_min_dphi': {
@@ -205,22 +181,6 @@ VARIABLES = {
         'units': 'GeV',
     },
 
-    #'sphericity': {
-    #    'title': r'Sphericity',
-    #    'root': '#font[52]{Sphericity}',
-    #    'filename': 'sphericity',
-    #    'bins': 20,
-    #    'range': (0, 1),
-    #    'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
-    #},
-    #'aplanarity': {
-    #    'title': r'Aplanarity',
-    #    'root': '#font[52]{Aplanarity}',
-    #    'filename': 'aplanarity',
-    #    'bins': 20,
-    #    'range': (0, .15),
-    #    'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
-    #},
     'ditau_met_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
         'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
@@ -240,6 +200,7 @@ VARIABLES = {
         'units': 'GeV',
         'blind': (70, 110),
     },
+
     'ditau_coll_approx_m': {
         'title': r'$m^{col}_{\tau\tau}$',
         'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
@@ -249,67 +210,6 @@ VARIABLES = {
         'units': 'GeV',
         'blind': (100, 150),
     },
-
-    # LEPHAD STUFF
-    # 'lep_pt':{
-    #     'title': r'p_T(l)',
-    #     'root': '#font[52]{p}_{T}(l)',
-    #     'filename': 'lep_pt',
-    #     'binning': (20, 20, 120),
-    #     'scale': 0.001,
-    #     'units': 'GeV',
-    #     },
-
-    # 'mass_tau1_tau2_jet1': {
-    #     'title': r'$m^{vis}_{j\tau\tau}$',
-    #     'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',
-    #     'filename': 'mass_taus_leading_jet',
-    #     'binning': (20, 0, 800),
-    #     'units': 'GeV',
-    #     'scale': 0.001,
-    # },
-    # 'jet3_centrality': {
-    #     'title': r'j3 Centrality',
-    #     'root': '#font[52]{j}_{3} #font[152]{#eta} centrality',
-    #     'filename': 'jet3_centrality',
-    #     'binning': (20, 0, 1),
-    #     'cats': ['2J', 'VBF'],
-    #     'legend': 'left',
-    # },
-    
-    # 'pt_ratio_lep_tau': {
-    #     'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
-    #     'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
-    #     'filename': 'pt_ratio_lep_tau',
-    #     'binning': (16, 1, 5),
-    # },
-    #  'tau_pt': {
-    #      'title': r'$\tau p_{T}$',
-    #      'root': '#font[152]{#tau} #font[52]{p}_{T}',
-    #      'filename': 'tau_pt',
-    #      'binning': {
-    #          2011: {
-    #              'PRESELECTION': (10, 35, 90),
-    #              'REST': (10, 35, 90),
-    #              None: (10, 35, 160)},
-    #          2012: {
-    #              'PRESELECTION': (20, 35, 90),
-    #              'REST': (20, 35, 90),
-    #              None: (20, 35, 160)},
-    #          2015: {
-    #              'PRESELECTION': (20, 35, 90),
-    #              'REST': (20, 35, 90),
-    #              None: (15, 20, 100)}},
-    #      'scale': 0.001,
-    #      'units': 'GeV',
-    #      },
-    # 'tau_n_tracks': {
-    #     'title': r'$\tau$ Number of Tracks',
-    #     'root': '#font[152]{#tau} #font[52]{Tracks}',
-    #     'filename': 'tau_n_tracks',
-    #     'binning': (5, -.5, 4.5),
-    # },
-    
    'ditau_tau0_pt': {
        'title': r'$\tau_{1} p_{T}$',
        'root': '#font[152]{#tau}_{1} #font[52]{p}_{T}',
@@ -499,37 +399,6 @@ VARIABLES = {
        'binning': (7, -3.5, 3.5),
        'integer': True,
     },
-    #'tau1_seedCalo_centFrac': {
-    #    'title': r'$\tau_1$ Centrality Fraction',
-    #    'root': '#font[152]{#tau}_{1} #font[52]{Centrality Fraction}',
-    #    'filename': 'tau1_centfrac',
-    #    'bins': 20,
-    #    'range': (0.5, 1),
-    #},
-    #'tau_centrality_product': {
-    #    'title': r'$\tau$ Centrality Product',
-    #    'root': '#font[152]{#tau} centrality product',
-    #    'filename': 'tau_centrality_product',
-    #    'bins': 20,
-    #    'range': (0, 1),
-    #    'cats': ['2J', 'VBF']
-    #},
-   # 'tau1_centrality': {
-   #     'title': r'$\tau_1$ Centrality',
-   #     'root': '#font[152]{#tau}_{1} #font[152]{#eta} centrality',
-   #     'filename': 'tau1_centrality',
-   #     'binning': (20, 0, 1),
-   #     'cats': ['2J', 'VBF'],
-   #     'legend': 'left',
-   # },
-   # 'tau2_centrality': {
-   #     'title': r'$\tau_2$ Centrality',
-   #     'root': '#font[152]{#tau}_{2} #font[152]{#eta} centrality',
-   #     'filename': 'tau2_centrality',
-   #     'binning': (20, 0, 1),
-   #     'cats': ['2J', 'VBF'],
-   #     'legend': 'left',
-   # },
     'jet_1_eta': {
         'title': r'jet$_{2}$ $\eta$',
         'root': '#font[152]{#eta}(#font[52]{j}2)',
@@ -564,75 +433,74 @@ VARIABLES = {
         'units': 'GeV',
         'cats': ['2J', 'VBF']
     },
+}
 
-    # 'jets_delta_eta': {
-    #     'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
-    #     'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
-    #     'filename': 'jets_delta_eta',
-    #     'cuts': 'dEta_jets > 0', # ignore default value in plot
-    #     'binning': {
-    #         'VBF': (10, 2, 7),
-    #         None: (14, 0, 7)},
-    #     'cats': ['2J', 'VBF', 'PRESELECTION']
-    # },
-    # 'prod_eta_jets': {
-    #     'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
-    #     'root': '#font[152]{#eta}_{#font[52]{j}_{1}} #times #font[152]{#eta}_{#font[52]{j}_{2}}',
-    #     'filename': 'prod_eta_jets',
-    #     'binning': (15, -10, 5),
-    #     'cats': ['2J', 'VBF'],
-    #     'legend': 'left',
-    # },
-    #'eta_product_jets_boosted': {
-    #    'title': r'Boosted $\eta_{jet_{1}} \times \/ \eta_{jet_{2}}$',
-    #    'root': 'Boosted #eta_{jet_{1}} #times #eta_{jet_{2}}',
-    #    'filename': 'eta_product_jets_boosted',
-    #    'bins': 20,
-    #    'range': (-10, 10),
-    #    'cats': ['2J', 'VBF']
-    #},
-    # 'jets_visible_mass': {
-    #     'title': r'$M(jet_{1},\/jet_{2})$',
-    #     'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
-    #     'filename': 'jets_visible_mass',
-    #     'binning': (20, 0, 1000),
-    #     'scale': 0.001,
-    #     'units': 'GeV',
-    #     'cats': ['2J', 'VBF']
-    # },
- #     'higgspt': {
-  #        'title': r'$p_{T}^{H}$',
-  #        'root': '#font[52]{p}_{T}^{H}',
-   #       'filename': 'higgspt',
-     #     'binning': {
-      #        'BOOSTED': (18, 70, 250),
-       #       'VBF': (25, 0, 250),
-      #        'REST': (11, 0, 110),
-      #        None: (20, 0, 200)},
-      #    'scale': 0.001,
-      #    'units': 'GeV',
-    #  },
-    # 'lepton_eta_centrality': {
-    #    'title': r'$Lep_{eta}$ Centrality',
-    #     'root': '#font[52]{Lep}_{eta} #font[152] centrality',
-    #     'filename': 'lepton_eta_centrality',
-    #     'binning': (30, 0, 1.1),
-    #     'legend': 'left',
-    #     },
-  #   'transversemass': {
-  #       'title': r'$m^{T}_{\lep\met}$',
-  #       'root': '#font[52]{m}^{T}_{#font[152]{#lep}#font[152]{#met}}',
-  #       'filename': 'transversemass',
-  #       'binning': (30, 0, 150),
-  #      'units': 'GeV',
-  #       'scale': 0.001,
- #      'blind': (100, 150),
- #        },
-    }
+LH_VARIABLES = {
+    # LEPHAD STUFF
+    'lep_pt':{
+        'title': r'p_T(l)',
+        'root': '#font[52]{p}_{T}(l)',
+        'filename': 'lep_pt',
+        'binning': (20, 20, 120),
+        'scale': 0.001,
+        'units': 'GeV',
+        },
+
+    'mass_tau1_tau2_jet1': {
+        'title': r'$m^{vis}_{j\tau\tau}$',
+        'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',
+        'filename': 'mass_taus_leading_jet',
+        'binning': (20, 0, 800),
+        'units': 'GeV',
+        'scale': 0.001,
+    },
+    'jet3_centrality': {
+        'title': r'j3 Centrality',
+        'root': '#font[52]{j}_{3} #font[152]{#eta} centrality',
+        'filename': 'jet3_centrality',
+        'binning': (20, 0, 1),
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
+    },
+    
+    'pt_ratio_lep_tau': {
+        'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
+        'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
+        'filename': 'pt_ratio_lep_tau',
+        'binning': (16, 1, 5),
+    },
+     'tau_pt': {
+         'title': r'$\tau p_{T}$',
+         'root': '#font[152]{#tau} #font[52]{p}_{T}',
+         'filename': 'tau_pt',
+         'binning': {
+             2011: {
+                 'PRESELECTION': (10, 35, 90),
+                 'REST': (10, 35, 90),
+                 None: (10, 35, 160)},
+             2012: {
+                 'PRESELECTION': (20, 35, 90),
+                 'REST': (20, 35, 90),
+                 None: (20, 35, 160)},
+             2015: {
+                 'PRESELECTION': (20, 35, 90),
+                 'REST': (20, 35, 90),
+                 None: (15, 20, 100)}},
+         'scale': 0.001,
+         'units': 'GeV',
+         },
+    'tau_n_tracks': {
+        'title': r'$\tau$ Number of Tracks',
+        'root': '#font[152]{#tau} #font[52]{Tracks}',
+        'filename': 'tau_n_tracks',
+        'binning': (5, -.5, 4.5),
+    },
+}    
+
 
 from . import MMC_MASS
 
-VARIABLES[MMC_MASS] = {
+HH_VARIABLES[MMC_MASS] = {
     'title': r'$m^{MMC}_{\tau\tau}$',
     'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
     'filename': MMC_MASS,

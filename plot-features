@@ -12,9 +12,16 @@ from rootpy.tree import Cut
 # local imports
 from mva.plotting import draw_channel_array
 from mva.systematics import get_systematics, parse_systematics
-from mva.variables import VARIABLES, YEAR_VARIABLES, get_label
+from mva.variables import (VARIABLES, HH_VARIABLES, 
+                           LH_VARIABLES, YEAR_VARIABLES, 
+                           get_label)
 from mva.analysis import get_analysis
 from mva import log;
+
+if args.channel == 'hadhad':
+    VARIABLES.update(HH_VARIABLES)
+elif args.channel == 'lephad':
+    VARIABLES.update(LH_VARIABLES)
 
 if args.plot_expr is not None:
     VARS = {

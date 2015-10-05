@@ -70,7 +70,8 @@ fields = [
 
 vars = {}
 for f in fields:
-    vars[f] =  VARIABLES[f]
+    if f in VARIABLES.keys():
+        vars[f] =  VARIABLES[f]
 
 categories = [Category_Preselection_lh, Category_Boosted_lh, Category_VBF_lh]
 headers = [c.name for c in categories]
@@ -78,7 +79,8 @@ headers.insert(0, 'sample / category')
 # categories = [Category_VBF_lh]
 table = []
 
-for sample in ( ztautau, top, ewk, data):
+# for sample in (ztautau, top, ewk, data):
+for sample in (ztautau, data):
     row = [sample.name]
     table.append(row)
     for category in categories:

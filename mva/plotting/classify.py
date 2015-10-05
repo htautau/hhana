@@ -4,7 +4,7 @@ import os
 
 # local imports
 from . import log
-from ..variables import VARIABLES
+from ..variables import VARIABLES, HH_VARIABLES
 from .. import PLOTS_DIR
 from .draw import draw
 from statstools.utils import efficiency_cut, significance
@@ -26,6 +26,7 @@ from rootpy.plotting import Hist
 
 from root_numpy import fill_hist
 
+VARIABLES.update(HH_VARIABLES)
 
 def correlations(signal, signal_weight,
                  background, background_weight,

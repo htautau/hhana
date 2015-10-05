@@ -536,7 +536,7 @@ class Sample(object):
                 else:
                     weight_fields += variations['NOMINAL']
         # HACK
-        if not self.trigger:
+        if not self.trigger and self.channel == 'hadhad':
             log.info("No trigger: replacing trigger_sf with trigger_eff")
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
@@ -556,8 +556,9 @@ class Sample(object):
             log.info('Trigger: {0}'.format(trig_cut))
         from .data import Data
         if isinstance(self, Data):
-            data_cut = Cut('is_good_grl == 1')
-            cuts &= data_cut
+            if self.channel == 'hadhad':
+                data_cut = Cut('is_good_grl == 1')
+                cuts &= data_cut
 
         if isinstance(self, SystematicsSample):
             systerm, variation = SystematicsSample.get_sys_term_variation(
@@ -947,7 +948,7 @@ class SystematicsSample(Sample):
                 else:
                     tauid = {
                         'TAU_ID': {
-                            'NOMINAL': ['tau_jet_bdt_eff_sf'],},
+                            'NOMINAL': ['tau_0_jet_bdt_eff_sf'],},
                         }
             systematics.update(tauid)
 
@@ -1271,8 +1272,8 @@ class SystematicsSample(Sample):
                 if correction_weights:
                     weights *= reduce(np.multiply, correction_weights)
                 if self.channel == 'lephad' and self.lep_id_sf:
-                    weights_el = reduce(np.multiply, [rec['lep_isele'], rec['lep_eff_sf_id_tight']])
-                    weights_mu = reduce(np.multiply, [rec['lep_ismu'], rec['lep_eff_sf_id_loose']])
+                    weights_el = reduce(np.multiply, [rec['lep_isele'], rec['lep_0_id_eff_sf_tight']])
+                    weights_mu = reduce(np.multiply, [rec['lep_ismu'], rec['lep_0_id_eff_sf_loose']])
                     weights *= reduce(np.add, [weights_el, weights_mu])
                     
                 # drop other weight fields
