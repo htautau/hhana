@@ -18,14 +18,13 @@ PRESELECTION = (
     & MET 
     & BVETO
     & MT_LEP_MET
-    & LEPTON_IS_ELE
-    
+    # & LEPTON_IS_ELE
     )
 
 # common preselection cuts without BVETO
 PRESELECTION_NOBVETO = (
-    TRIGGER
-    & IS_OPPOSITE_SIGN
+    # TRIGGER
+    IS_OPPOSITE_SIGN
     & MET 
     
     )
