@@ -3,7 +3,7 @@ from math import pi
 
 from ..base import Category
 # All basic cut definitions are here
-
+TRIGGER = Cut('HLT_e24_lhmedium_iloose_L1EM18VH==1') | Cut('HLT_e24_lhmedium_iloose_L1EM20VH==1') | Cut('HLT_e24_lhmedium_nod0_iloose_L1EM18VH==1') | Cut('HLT_e24_lhmedium_nod0_iloose_L1EM20VH==1') | Cut('HLT_e24_medium_iloose_L1EM18VH==1') | Cut('HLT_e24_medium_iloose_L1EM20VH==1') | Cut('HLT_mu20_iloose_L1MU15==1') | Cut('HLT_mu24_iloose_L1MU15==1')
 IS_OPPOSITE_SIGN = Cut('is_opposite_sign==1')
 IS_VBF = Cut('is_vbf_mva==1')
 IS_BOOSTED = Cut('is_boosted_mva==1')
@@ -17,7 +17,8 @@ DITAU_MASS_ZTT_CR = Cut('lephad_mmc_mlm_m < 110000')
 
 # common preselection cuts
 PRESELECTION = (
-    IS_OPPOSITE_SIGN
+    TRIGGER
+    & IS_OPPOSITE_SIGN
     & MET 
     & BVETO
     & MT_LEP_MET
@@ -26,8 +27,8 @@ PRESELECTION = (
 
 # common preselection cuts without BVETO
 PRESELECTION_NOBVETO = (
-    # TRIGGER
-    IS_OPPOSITE_SIGN
+    TRIGGER
+    & IS_OPPOSITE_SIGN
     & MET 
     
     )
