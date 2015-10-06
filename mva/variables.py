@@ -438,31 +438,42 @@ HH_VARIABLES = {
 
 LH_VARIABLES = {
     # LEPHAD STUFF
-    'lep_pt':{
+    'lep_0_pt':{
         'title': r'p_T(l)',
         'root': '#font[52]{p}_{T}(l)',
-        'filename': 'lep_pt',
+        'filename': 'lep_0_pt',
         'binning': (20, 20, 120),
         'scale': 0.001,
         'units': 'GeV',
         },
-
-    'mass_tau1_tau2_jet1': {
-        'title': r'$m^{vis}_{j\tau\tau}$',
-        'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'mass_taus_leading_jet',
-        'binning': (20, 0, 800),
-        'units': 'GeV',
+    'met_reco_et': {
+        'title': r'$E^{miss}_{T}$',
+        'root': '#font[52]{E}^{miss}_{T}',
+        'filename': 'met_reco_et',
+        'binning': {
+            'PRESELECTION': (13, 15, 80),
+            'REST': (13, 15, 80),
+            None: (15, 0, 80)},
         'scale': 0.001,
+        'units': 'GeV',
     },
-    'jet3_centrality': {
-        'title': r'j3 Centrality',
-        'root': '#font[52]{j}_{3} #font[152]{#eta} centrality',
-        'filename': 'jet3_centrality',
-        'binning': (20, 0, 1),
-        'cats': ['2J', 'VBF'],
-        'legend': 'left',
-    },
+
+#    'mass_tau1_tau2_jet1': {
+#        'title': r'$m^{vis}_{j\tau\tau}$',
+#        'root': '#font[52]{m}_{#font[52]{j}#font[152]{#tau}#font[152]{#tau}}',
+#        'filename': 'mass_taus_leading_jet',
+#        'binning': (20, 0, 800),
+#        'units': 'GeV',
+#        'scale': 0.001,
+#    },
+#    'jet3_centrality': {
+#        'title': r'j3 Centrality',
+#        'root': '#font[52]{j}_{3} #font[152]{#eta} centrality',
+#        'filename': 'jet3_centrality',
+#        'binning': (20, 0, 1),
+#        'cats': ['2J', 'VBF'],
+#        'legend': 'left',
+#    },
     
     'pt_ratio_lep_tau': {
         'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
@@ -470,10 +481,10 @@ LH_VARIABLES = {
         'filename': 'pt_ratio_lep_tau',
         'binning': (16, 1, 5),
     },
-     'tau_pt': {
+     'tau_0_pt': {
          'title': r'$\tau p_{T}$',
          'root': '#font[152]{#tau} #font[52]{p}_{T}',
-         'filename': 'tau_pt',
+         'filename': 'tau_0_pt',
          'binning': {
              2011: {
                  'PRESELECTION': (10, 35, 90),
@@ -490,12 +501,110 @@ LH_VARIABLES = {
          'scale': 0.001,
          'units': 'GeV',
          },
-    'tau_n_tracks': {
+    'tau_0_n_tracks': {
         'title': r'$\tau$ Number of Tracks',
         'root': '#font[152]{#tau} #font[52]{Tracks}',
-        'filename': 'tau_n_tracks',
+        'filename': 'tau_0_n_tracks',
         'binning': (5, -.5, 4.5),
     },
+    'jet_0_pt': {
+        'title': r'jet$_{0}$ $p_{T}$',
+        'root': '#font[52]{p}_{T}(#font[52]{j}1)',
+        'filename': 'jet_0_pt',
+        'binning': (10, 15, 80),
+        'scale': 0.001,
+        'units': 'GeV',
+        'cats': ['2J', 'VBF']
+    },
+    'jet_0_eta': {
+        'title': r'jet$_{1}$ $\eta$',
+        'root': '#font[152]{#eta}(#font[52]{j}1)',
+        'filename': 'jet_0_eta',
+        'binning': (20, -5, 5),
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
+    },
+    'lephad_mmc_mlm_m': {
+        'title': r'$m^{MMC}_{\tau\tau}$',
+        'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
+        'filename': 'lephad_mmc_mlm_m',
+        'binning': (20, 0, 250),
+        'units': 'GeV',
+        'scale': 0.001,
+        'blind': (100, 150),
+    },
+    'lephad_coll_approx_m': {
+        'title': r'$m^{col}_{\tau\tau}$',
+        'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
+        'filename': 'lephad_coll_approx_m',
+        'binning': (20, 0, 250),
+        'units': 'GeV',
+        'scale': 0.001,
+        'blind': (100, 150),
+    },
+    'lephad_met_centrality': {
+        'title': r'$E^{miss}_{T}$ Centrality',
+        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
+        'filename': 'lephad_met_centrality',
+        'binning': (20, -math.sqrt(2), math.sqrt(2)),
+        'legend': 'left',
+    },
+    'lephad_dr': {
+        'title': r'$\Delta R(\tau,\tau)$',
+        'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
+        'filename': 'lephad_dr',
+        'binning': (20, 0, 5),
+        'ypadding': (0.5, 0),
+    },
+    'lephad_dphi': {
+        'title': r'$\Delta \phi(\tau,\tau)$',
+        'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
+        'filename': 'lephad_dphi',
+        'binning': (12, 0., 2.4),
+        'legend': 'left',
+    },
+    'lephad_deta': {
+        'title': r'$\Delta \eta(\tau,\tau)$',
+        'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
+        'filename': 'lephad_deta',
+        'binning': {
+            'BOOSTED': (10, 0, 1.5),
+            'VBF': (10, 0, 1.5),
+            'REST': (10, 0, 1.5),
+            None: (10, 0, 2.5)},
+        'ypadding': (0.5, 0),
+    },
+    'jets_delta_eta': {
+        'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
+        'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
+        'filename': 'jets_delta_eta',
+        'cuts': 'dEta_jets > 0', # ignore default value in plot
+        'binning': {
+            'VBF': (10, 2, 7),
+            None: (14, 0, 7)},
+        'cats': ['2J', 'VBF', 'PRESELECTION']
+    },
+    'prod_eta_jets': {
+        'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
+        'root': '#font[152]{#eta}_{#font[52]{j}_{1}} #times #font[152]{#eta}_{#font[52]{j}_{2}}',
+        'filename': 'prod_eta_jets',
+        'binning': (15, -10, 5),
+        'cats': ['2J', 'VBF'],
+        'legend': 'left',
+    },
+     'jets_visible_mass': {
+        'title': r'$M(jet_{1},\/jet_{2})$',
+        'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
+        'filename': 'jets_visible_mass',
+        'binning': (20, 0, 1000),
+        'scale': 0.001,
+        'units': 'GeV',
+        'cats': ['2J', 'VBF']
+    },  
+ 
+
+
+
 }    
 
 

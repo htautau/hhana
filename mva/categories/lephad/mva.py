@@ -1,7 +1,7 @@
 from math import pi
 from rootpy.tree import Cut
 from .common import (
-    Category_Preselection_lh,
+    Category_Preselection_lh, Category_Preselection_lh_NoBveto,
     CUTS_VBF, CUTS_BOOSTED, CUTS_WPLUSJETS_CR, CUTS_Ztt_CR, CUTS_top_CR)
 
 class Category_VBF_lh(Category_Preselection_lh):

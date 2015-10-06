@@ -3,9 +3,9 @@ from mva.analysis import Analysis
 from mva.samples import MC_Ztautau, Pythia_Ztautau, Data
 from mva.samples.others import EWK, Top, MC_Wtaunu
 from hhdb.datasets import Database
-from mva.variables import VARIABLES
-# from mva.categories.lephad import Category_VBF_lh,Category_Boosted_lh,Category_Preselection_lh,Category_wplusjets_CR_lh,Category_Ztautau_CR_lh,Category_Top_CR_lh 
-from mva.categories.lephad import Category_VBF_lh
+from mva.variables import VARIABLES, LH_VARIABLES
+from mva.categories.lephad import Category_VBF_lh,Category_Boosted_lh,Category_Preselection_lh,Category_wplusjets_CR_lh,Category_Ztautau_CR_lh,Category_Top_CR_lh 
+#from mva.categories.lephad import Category_VBF_lh
 from mva.plotting import draw_ratio, draw
 from tabulate import tabulate
 
@@ -16,7 +16,7 @@ DB = Database('datasets_lh')
 NTUPLE_PATH = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v2'
 
 
-
+VARIABLES.update(LH_VARIABLES)
 
 
 ztautau = Pythia_Ztautau(
@@ -35,7 +35,7 @@ ztautau = Pythia_Ztautau(
 #     trigger=False,
 #     color='lightskyblue')
 
-# ewk = EWK(
+#ewk = EWK(
 #     2015, db=DB, 
 #     channel='lephad', 
 #     ntuple_path=NTUPLE_PATH, 
@@ -57,17 +57,22 @@ data = Data(
 
 fields = [
     'jet_0_pt',
-#    'jet_1_pt',
+    'jet_0_eta',
+    'lep_0_pt',
+    'tau_0_pt',
+    'met_reco_et',
+    'pt_ratio_lep_tau',
+    'lephad_mmc_mlm_m',
+    'lephad_coll_approx_m',
+    'lephad_dr',
+    'lephad_dphi',
+    'lephad_deta',
+    'lephad_met_centrality',
+    'jets_delta_eta',
+    'prod_eta_jets',
+    'jets_visible_mass',
     'n_avg_int',
-#    'met_et',
-#    'ditau_vis_mass',
-#    'ditau_coll_approx_m',
-#    'ditau_mmc_mlm_m',
-#    'ditau_mt_lep0_met',
-#    'tau_pt',
-#    'lep_pt',
-#    'met_et',
-#    'ditau_dr'
+
 ]
 
 vars = {}
@@ -75,10 +80,10 @@ for f in fields:
     if f in VARIABLES.keys():
         vars[f] =  VARIABLES[f]
 
-# categories = [Category_Preselection_lh, Category_Boosted_lh, Category_VBF_lh, Category_wplusjets_CR_lh, Category_Ztautau_CR_lh, Category_Top_CR_lh, Category_VBF_wplusjets_CR_lh,  Category_VBF_Ztautau_CR_lh, Category_VBF_Top_CR_lh, Category_Boosted_wplusjets_CR_lh, Category_Boosted_Ztautau_CR_lh, Category_Boosted_Top_CR_lh ]
+categories = [Category_Preselection_lh, Category_Boosted_lh, Category_VBF_lh, Category_wplusjets_CR_lh, Category_Ztautau_CR_lh, Category_Top_CR_lh ]
 headers = [c.name for c in categories]
 headers.insert(0, 'sample / category')
-categories = [Category_VBF_lh]
+#categories = [Category_VBF_lh]
 table = []
 
 # for sample in (ztautau, top, ewk, data):
