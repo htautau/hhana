@@ -186,29 +186,28 @@ VARIABLES = {
         'filename': 'met_phi',
         'binning': (20, -math.pi, math.pi),
     },
-    'ditau_met_min_dphi': {
+    'lephad_met_min_dphi': {
         'title': r'min[$\Delta\phi$($\tau$,\/$E^{miss}_{T}$)]',
         'root': '#font[52]{min}[#font[152]{#Delta#phi}(#font[152]{#tau},#font[52]{E}^{miss}_{T})]',
-        'filename': 'ditau_met_min_dphi',
+        'filename': 'lephad_met_min_dphi',
         'binning': (20, 0, math.pi),
     },
-    'ditau_met_bisect': {
+    'lephad_met_bisect': {
         'title': r'$E^{miss}_{T}$ bisects',
         'root': '#font[52]{E}^{miss}_{T} bisects',
-        'filename': 'ditau_met_bisect',
+        'filename': 'lephad_met_bisect',
         'binning': (2, -0.5, 1.5),
         'legend': 'left',
         'integer': True,
     },
-    'ditau_mt_lep0_met': {
-        'title': r'',
-        'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
-        'filename': 'ditau_met_min_dphi',
-        'binning': (20, 0, 100),
-        'units': 'GeV',
-        'scale': 0.001,
-    },
-
+    # 'lephad_mt_lep0_met': {
+     #    'title': r'',
+      #   'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
+       #  'filename': 'lephad_mt_lep0_met',
+        # 'binning': (20, 0, 100),
+         #'units': 'GeV',
+        # 'scale': 0.001,
+    # },
     #'sphericity': {
     #    'title': r'Sphericity',
     #    'root': '#font[52]{Sphericity}',
@@ -225,18 +224,18 @@ VARIABLES = {
     #    'range': (0, .15),
     #    'cats': ['2J', 'VBF', '1J', '1J_NONBOOSTED'],
     #},
-    'ditau_met_centrality': {
+    'lephad_met_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
         'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
-        'filename': 'ditau_met_centrality',
+        'filename': 'lephad_met_centrality',
         'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
 
-    'ditau_vis_mass': {
+    'lephad_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
         'root': '#font[52]{m}^{vis}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'ditau_vis_mass',
+        'filename': 'lephad_vis_mass',
         'binning': {
             'PRESELECTION': (20, 30, 150),
             'REST': (20, 30, 150),
@@ -245,20 +244,20 @@ VARIABLES = {
         'units': 'GeV',
         'blind': (70, 110),
     },
-    'ditau_coll_approx_m': {
+    'lephad_coll_approx_m': {
         'title': r'$m^{col}_{\tau\tau}$',
         'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'ditau_coll_approx_m',
+        'filename': 'lephad_coll_approx_m',
         'binning': (20, 0, 250),
         'units': 'GeV',
         'scale': 0.001,
         'blind': (100, 150),
     },
 
-    'ditau_mmc_mlm_m': {
+    'lephad_mmc_mlm_m': {
         'title': r'$m^{MMC}_{\tau\tau}$',
         'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'ditau_mmc_mlm_m',
+        'filename': 'lephad_mmc_mlm_m',
         'binning': (20, 0, 250),
         'units': 'GeV',
         'scale': 0.001,
@@ -266,10 +265,10 @@ VARIABLES = {
     },
 
 
-    'lep_pt':{
+    'lep_0_pt':{
         'title': r'p_T(l)',
         'root': '#font[52]{p}_{T}(l)',
-        'filename': 'lep_pt',
+        'filename': 'lep_0_pt',
         'binning': (20, 20, 120),
         'scale': 0.001,
         'units': 'GeV',
@@ -297,10 +296,10 @@ VARIABLES = {
         'filename': 'pt_ratio_lep_tau',
         'binning': (16, 1, 5),
     },
-    'tau_pt': {
+    'tau_0_pt': {
         'title': r'$\tau p_{T}$',
         'root': '#font[152]{#tau} #font[52]{p}_{T}',
-        'filename': 'tau_pt',
+        'filename': 'tau_0_pt',
         'binning': {
             2011: {
                 'PRESELECTION': (10, 35, 90),
@@ -485,24 +484,24 @@ VARIABLES = {
   #      'filename': 'theta_tau1_tau2',
   #      'binning': (20, 0, math.pi),
   #  },
-    'ditau_dr': {
+    'lephad_dr': {
         'title': r'$\Delta R(\tau,\tau)$',
         'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'ditau_dr',
+        'filename': 'lephad_dr',
         'binning': (20, 0, 5),
         'ypadding': (0.5, 0),
     },
-    'ditau_dphi': {
+    'lephad_dphi': {
         'title': r'$\Delta \phi(\tau,\tau)$',
         'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'ditau_dphi',
+        'filename': 'lephad_dphi',
         'binning': (12, 0., 2.4),
         'legend': 'left',
     },
-    'ditau_deta': {
+    'lephad_deta': {
         'title': r'$\Delta \eta(\tau,\tau)$',
         'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'ditau_deta',
+        'filename': 'lephad_deta',
         'binning': {
             'BOOSTED': (10, 0, 1.5),
             'VBF': (10, 0, 1.5),
@@ -510,6 +509,7 @@ VARIABLES = {
             None: (10, 0, 2.5)},
         'ypadding': (0.5, 0),
     },
+
     #'tau1_charge': {
     #    'title': r'$\tau_1$ Charge',
     #    'root': '#font[152]{#tau}_{1} #font[52]{Charge}',
