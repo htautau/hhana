@@ -73,7 +73,7 @@ if __name__ == '__main__':
         outname = args.output
     else:
         # this has to be updated
-        outname = '/afs/cern.ch/user/q/qbuat/work/public/xtau_output/lephad/v1_1/merged/lhskim.root'
+        outname = '/afs/cern.ch/work/m/mayoub/prod_v2/2015-09-22/lhskim.root'
 
     if args.reset:
         if os.path.exists(outname):
