@@ -42,6 +42,7 @@ def update_merged_file(
     log.info('merging in %s' % outname)
     with ropen(outname, 'UPDATE') as outfile:
         outfile.cd()
+        print outfile, type(outfile)
         outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
         outtree.OptimizeBaskets()
         outtree.SetName(dataset.name.replace('-', '_'))
