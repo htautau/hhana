@@ -11,12 +11,23 @@ BVETO = Cut('is_btagged == 0')
 MET = Cut('met_reco_et > 0')
 MT_LEP_MET = Cut('lephad_mt_lep0_met < 70000.')
 
+
 # common preselection cuts
 PRESELECTION = (
     IS_OPPOSITE_SIGN
     & MET 
     & BVETO
     & MT_LEP_MET
+    & LEPTON_IS_ELE
+    
+    )
+
+# common preselection cuts without BVETO
+PRESELECTION_NOBVETO = (
+    TRIGGER
+    & IS_OPPOSITE_SIGN
+    & MET 
+    
     )
 
 # VBF category cuts
@@ -36,5 +47,6 @@ class Category_Preselection_lh(Category):
     common_cuts = (
         PRESELECTION
         )
+
 
 

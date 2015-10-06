@@ -1,5 +1,6 @@
 import math
 
+
 BDT_BLIND = {
     2012: {
         'vbf': 3,
