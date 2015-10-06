@@ -200,13 +200,13 @@ VARIABLES = {
         'legend': 'left',
         'integer': True,
     },
-    # 'lephad_mt_lep0_met': {
-     #    'title': r'',
-      #   'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
-       #  'filename': 'lephad_mt_lep0_met',
-        # 'binning': (20, 0, 100),
-         #'units': 'GeV',
-        # 'scale': 0.001,
+    'lephad_mt_lep0_met': {
+        'title': r'',
+        'root': '#font[52]{m}_{T} (l, #font[52]{E}^{miss}_{T})',
+        'filename': 'lephad_mt_lep0_met',
+        'binning': (20, 0, 100),
+        'units': 'GeV',
+        'scale': 0.001,
     # },
     #'sphericity': {
     #    'title': r'Sphericity',
