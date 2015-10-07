@@ -35,13 +35,13 @@ ztautau = Pythia_Ztautau(
 #     trigger=False,
 #     color='lightskyblue')
 
-#ewk = EWK(
-#     2015, db=DB, 
-#     channel='lephad', 
-#     ntuple_path=NTUPLE_PATH, 
-#     student='lhskim',
-#     trigger=False,
-#     color='#8A0F0F')
+ewk = EWK(
+    2015, db=DB, 
+    channel='lephad', 
+    ntuple_path=NTUPLE_PATH, 
+    student='lhskim',
+    trigger=False,
+    color='#8A0F0F')
 
 data = Data(
     2015,
@@ -87,7 +87,7 @@ headers.insert(0, 'sample / category')
 table = []
 
 # for sample in (ztautau, top, ewk, data):
-for sample in (ztautau, data):
+for sample in (ztautau, ewk, data):
     row = [sample.name]
     table.append(row)
     for category in categories:
@@ -111,8 +111,8 @@ for cat in categories:
     # t_h, _ = top.get_field_hist(vars, cat)
     # top.draw_array(t_h, cat, 'ALL', field_scale=b)
 
-    # ewk_h, _ = ewk.get_field_hist(vars, cat)
-    # ewk.draw_array(ewk_h, cat, 'ALL', field_scale=b)
+    ewk_h, _ = ewk.get_field_hist(vars, cat)
+    ewk.draw_array(ewk_h, cat, 'ALL', field_scale=b)
 
 
     for field in a1:
@@ -122,7 +122,7 @@ for cat in categories:
             cat,
            # data=a1[field],
             data=None if a1[field].Integral() == 0 else a1[field],
-            model=[z_h[field]],
+            model=[z_h[field],  ewk_h[field]], 
             # model=[t_h[field], ewk_h[field], z_h[field]],
             units=vars[field]['units'] if 'units' in vars[field] else None, 
             logy=False,
