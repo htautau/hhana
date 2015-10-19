@@ -31,9 +31,9 @@ def update_merged_file(
         intree.Add(f)
     log.info(intree)
     # instantiate the cutflow histo
-    outcutflow = ropen(dataset.files[0])[cutflow_name].Clone()
-    outcutflow.Reset()
-    outcutflow.name = dataset.name + '_cutflow'
+    # outcutflow = ropen(dataset.files[0])[cutflow_name].Clone()
+    # outcutflow.Reset()
+    # outcutflow.name = dataset.name + '_cutflow'
 
     outdaod = ropen(dataset.files[0])[daod_cutflow_name].Clone()
     outdaod.Reset()
@@ -49,11 +49,11 @@ def update_merged_file(
         outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
         for f in dataset.files:
             with ropen(f, 'READ') as infile:
-                outcutflow += infile[cutflow_name]
+                # outcutflow += infile[cutflow_name]
                 outdaod += infile[daod_cutflow_name]
 
         outfile.cd()
-        outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)
+        # outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)
         outdaod.Write(outdaod.GetName(), ROOT.TObject.kOverwrite)
 
 

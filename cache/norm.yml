@@ -6,11 +6,11 @@
           OS:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 1.512904395810135
-            qcd_scale_error: 0.6856834600070447
+            qcd_scale: 2.6486116796028596
+            qcd_scale_error: 0.323942261242413
             qcd_z_scale: 1.0
-            z_scale: 3.8866541641006105
-            z_scale_error: 0.8151098754090065
+            z_scale: 0.5360841808200961
+            z_scale_error: 0.18428322009720413
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
@@ -32,11 +32,11 @@
           OS:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 0.4928005218255096
-            qcd_scale_error: 0.17875075862635828
+            qcd_scale: 0.8396481653422029
+            qcd_scale_error: 0.14757463651752392
             qcd_z_scale: 1.0
-            z_scale: 2.9699337405244917
-            z_scale_error: 0.9554750248582734
+            z_scale: 0.1801924587707772
+            z_scale_error: 0.07884151650737992
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
