@@ -14,7 +14,7 @@ LUMI = {
     2011: 4523.35,
     2012: 20274.2,
     2014: 100000,
-    2015: 200.0,
+    2015: 1011.48,
 
 }
 # lumi_files = glob(os.path.join(NTUPLE_PATH, DEFAULT_STUDENT, 'lumi_*'))
