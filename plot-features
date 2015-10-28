@@ -12,8 +12,8 @@ from rootpy.tree import Cut
 # local imports
 from mva.plotting import draw_channel_array
 from mva.systematics import get_systematics, parse_systematics
-from mva.variables import (VARIABLES, HH_VARIABLES, 
-                           LH_VARIABLES, YEAR_VARIABLES, 
+from mva.variables import (VARIABLES, HH_VARIABLES,
+                           LH_VARIABLES, YEAR_VARIABLES,
                            get_label)
 from mva.analysis import get_analysis
 from mva import log;

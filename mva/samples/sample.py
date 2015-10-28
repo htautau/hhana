@@ -39,6 +39,8 @@ from ..cachedtable import CachedTable
 from ..variables import get_binning, get_scale
 from mva.categories import get_trigger
 
+from moments import HCM
+
 BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
 
 
@@ -541,7 +543,7 @@ class Sample(object):
             weight_fields.remove('tau1_trigger_sf')
             weight_fields.remove('tau2_trigger_sf')
             weight_fields.extend(['tau1_trigger_eff', 'tau2_trigger_eff'])
-        
+
         return weight_fields
 
     def cuts(self, category=None, region=None, systematic='NOMINAL', **kwargs):
@@ -864,7 +866,7 @@ class SystematicsSample(Sample):
         if self.channel == 'lephad':
             log.warning('Incomplete list of SF !')
             return ['LEP_ID']
-        
+
         else:
             # No FAKERATE for embedding since fakes are data
             # so don't include FAKERATE here
@@ -888,7 +890,7 @@ class SystematicsSample(Sample):
                     ]
             else:
                 log.warning('Incomplete list of SF !')
-                return ['TAU_ID'] 
+                return ['TAU_ID']
 
 
     def weight_systematics(self):
@@ -1011,12 +1013,12 @@ class SystematicsSample(Sample):
                     events_bin = 4
                 else:
                     events_bin = 2
-                    
+
             if year == 2015:
                 events_hist_suffix = '_daod'
             else:
                 events_hist_suffix = '_cutflow'
-                
+
 
             tables['NOMINAL'] =  CachedTable.hook(getattr(
                 h5file.root, treename))
@@ -1275,7 +1277,7 @@ class SystematicsSample(Sample):
                     weights_el = reduce(np.multiply, [rec['lep_isele'], rec['lep_0_id_eff_sf_tight']])
                     weights_mu = reduce(np.multiply, [rec['lep_ismu'], rec['lep_0_id_eff_sf_loose']])
                     weights *= reduce(np.add, [weights_el, weights_mu])
-                    
+
                 # drop other weight fields
                 #rec = recfunctions.rec_drop_fields(rec, weight_branches)
                 # add the combined weight
@@ -1285,6 +1287,50 @@ class SystematicsSample(Sample):
                     dtypes='f8')
                 if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
                     log.warning("{0}: weights sum to zero!".format(table.name))
+            mom_branches = [
+                'tau_0_pt', 'tau_0_eta', 'tau_0_phi', 'tau_0_m',
+                'tau_1_pt', 'tau_1_eta', 'tau_1_phi', 'tau_1_m',
+                'jet_0_pt', 'jet_0_eta', 'jet_0_phi', 'jet_0_m',
+                'jet_1_pt', 'jet_1_eta', 'jet_1_phi', 'jet_1_m',
+            ]
+
+            mom_arr = rec[mom_branches]
+            mom_arr = rec2array( mom_arr ).reshape((mom_arr.shape[0], 4, 4))
+            # convert array of pT, eta, phi, m
+            # to array of p, px, py, pz, pT, eta, phi, m
+            kin_arr = np.empty(shape=(mom_arr.shape[0], 4, 8))
+            # |p| = pT cosh eta
+            kin_arr[:,:,0] = mom_arr[:,:,0] * np.cosh(mom_arr[:,:,1])
+            # px, py, pz
+            kin_arr[:,:,1] = mom_arr[:,:,0] * np.cos(mom_arr[:,:,2])
+            kin_arr[:,:,2] = mom_arr[:,:,0] * np.sin(mom_arr[:,:,2])
+            kin_arr[:,:,3] = mom_arr[:,:,0] * np.sinh(mom_arr[:,:,1])
+            # pT, eta, phi, m
+            kin_arr[:,:,4] = mom_arr[:,:,0]
+            kin_arr[:,:,5] = mom_arr[:,:,1]
+            kin_arr[:,:,6] = mom_arr[:,:,2]
+            kin_arr[:,:,7] = mom_arr[:,:,3]
+            rec2jj_moments = HCM( 2, kin_arr[:,[2,3],:], kin_arr[:,[2,3],:])#, kin_arr[:,:,:] )
+            rec = recfunctions.rec_append_fields(rec,
+                names='HCM2jj',
+                data=rec2jj_moments,
+                dtypes='f8')
+            rec2_moments = HCM( 2, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
+            rec = recfunctions.rec_append_fields(rec,
+                names='HCM2',
+                data=rec2_moments,
+                dtypes='f8')
+            rec3_moments = HCM( 3, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
+            rec = recfunctions.rec_append_fields(rec,
+                names='HCM3',
+                data=rec3_moments,
+                dtypes='f8')
+            rec1_moments = HCM( 1, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
+            rec = recfunctions.rec_append_fields(rec,
+                names='HCM1',
+                data=rec1_moments,
+                dtypes='f8')
+
             if fields is not None:
                 try:
                     rec = rec[fields]

@@ -75,5 +75,5 @@ for filename in args.files:
         print ','.join(read_names)
         for row in rec:
             print ','.join(map(str, row))
-        print 
+        print
         print

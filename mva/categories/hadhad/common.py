@@ -31,7 +31,7 @@ MET_CENTRALITY = 'ditau_met_bisect==1 || (ditau_met_min_dphi < {0})'
 
 # common preselection cuts
 PRESELECTION = (
-    LEAD_TAU_40 
+    LEAD_TAU_40
     & SUBLEAD_TAU_30
     # & ID_MEDIUM # implemented in regions
     & MET

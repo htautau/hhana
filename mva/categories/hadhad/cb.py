@@ -60,7 +60,7 @@ class Category_Cuts_VBF_LowDR(Category_Preselection):
         & Cut('true_resonance_pt>140000'))
     limitbins = {}
     limitbins[2011] = [0, 64, 80, 92, 104, 116, 132, INF]
-    # limitbins[2012] = [0, 64, 80, 92, 104, 116, 132, 176, INF] 
+    # limitbins[2012] = [0, 64, 80, 92, 104, 116, 132, 176, INF]
     limitbins[2012] = [0, 60, 80, 100, 120, 150, INF] # - new binning
     #limitbins[2012] = [0, 60, 80, 100, 120, 180, INF] # - new binning
     norm_category = Category_Preselection
@@ -81,7 +81,7 @@ class Category_Cuts_VBF_HighDR_Tight(Category_Preselection):
         CUTS_TRUE_VBF_CUTBASED
         & Cut('true_resonance_pt<140000')
         & Cut('true_mass_jet1_jet2_no_overlap > (-250000 * true_dEta_jet1_jet2_no_overlap + 1550000)'))
-    
+
     # limitbins = [0, 80, 92, 104, 116, 132, 152, INF] - old binning
     # limitbins = [0, 80, 104, 132, INF] - new bining (merging of old)
     limitbins = [0, 70, 100, 125, 150, INF] # - new binning

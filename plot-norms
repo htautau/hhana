@@ -86,7 +86,7 @@ def make_colormap(seq, name='CustomMap'):
     """Return a matplotlib LinearSegmentedColormap
     seq: a sequence of floats and RGB-tuples. The floats should be increasing
     and in the interval (0,1).
-    
+
     References
     ----------
     http://stackoverflow.com/questions/16834861/create-own-colormap-using-matplotlib-and-plot-color-scale
@@ -98,7 +98,7 @@ def make_colormap(seq, name='CustomMap'):
     def convert(color):
         try:
             return to_rgb(color)
-        except: 
+        except:
             return color
 
     seq = [(None,) * 3, 0.0] + list(seq) + [1.0, (None,) * 3]
