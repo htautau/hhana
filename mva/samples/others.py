@@ -58,7 +58,7 @@ class Others(MC, Background):
     NORM_BY_THEORY = True
 
     def __init__(self, *args, **kwargs):
-        self.matched = kwargs.pop('matched', True)
+        self.matched = kwargs.pop('matched', False)
         super(Others, self).__init__(*args, **kwargs)
 
     def histfactory(self, sample, category, systematics=False, **kwargs):

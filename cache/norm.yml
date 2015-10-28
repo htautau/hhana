@@ -32,11 +32,11 @@
           OS:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 0.8396481653422029
-            qcd_scale_error: 0.14757463651752392
+            qcd_scale: 0.6747713625942393
+            qcd_scale_error: 0.0843567714275221
             qcd_z_scale: 1.0
-            z_scale: 0.1801924587707772
-            z_scale_error: 0.07884151650737992
+            z_scale: 0.6519181466889057
+            z_scale_error: 0.17804666972609168
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
