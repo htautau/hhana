@@ -10,7 +10,7 @@ from rootpy.io import root_open as ropen
 from rootpy.tree import Tree, TreeChain
 import ROOT
 import logging
-
+from rootpy import asrootpy
 
 log = logging.getLogger(os.path.basename(__file__))
 
@@ -34,7 +34,8 @@ def update_merged_file(
     # outcutflow = ropen(dataset.files[0])[cutflow_name].Clone()
     # outcutflow.Reset()
     # outcutflow.name = dataset.name + '_cutflow'
-
+    if (intree.GetEntries() == 0):
+      return None  
     outdaod = ropen(dataset.files[0])[daod_cutflow_name].Clone()
     outdaod.Reset()
     outdaod.name = dataset.name + '_daod'
