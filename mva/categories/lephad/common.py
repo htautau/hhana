@@ -25,8 +25,8 @@ PRESELECTION = (
     # & LEPTON_IS_ELE
     )
 
-# common preselection cuts without BVETO
-PRESELECTION_NOBVETO = (
+# common preselection cuts without BVETO and without Mt cuts (useful for CR)
+PRESELECTION_CR = (
     TRIGGER
     & IS_OPPOSITE_SIGN
     & MET 
@@ -70,10 +70,10 @@ class Category_Preselection_lh(Category):
         PRESELECTION
         )
 
-class Category_Preselection_lh_NoBveto(Category):
+class Category_Preselection_lh_CR(Category):
     name = 'preselection_lh'
     label = 'e#tau_{had} + #mu#tau_{had} Preselection'
     common_cuts = (
-        PRESELECTION_NOBVETO
+        PRESELECTION_CR
         )
 

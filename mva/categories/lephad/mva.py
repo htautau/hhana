@@ -1,7 +1,7 @@
 from math import pi
 from rootpy.tree import Cut
 from .common import (
-    Category_Preselection_lh, Category_Preselection_lh_NoBveto,
+    Category_Preselection_lh, Category_Preselection_lh_CR,
     CUTS_VBF, CUTS_BOOSTED, CUTS_WPLUSJETS_CR, CUTS_Ztt_CR, CUTS_top_CR)
 
 class Category_VBF_lh(Category_Preselection_lh):
@@ -27,13 +27,13 @@ class Category_Boosted_lh(Category_Preselection_lh):
         & CUTS_BOOSTED
         )
 
-class Category_wplusjets_CR_lh(Category_Preselection_lh):
+class Category_wplusjets_CR_lh(Category_Preselection_lh_CR):
     name = 'wplusjets_CR_lh'
     label = 'e#tau_{had} + #mu#tau_{had} '
     latex = '\\textbf{wplusjets_CR}'
     color = 'red'
     linestyle = 'dotted'
-    common_cuts = Category_Preselection_lh.common_cuts
+    common_cuts = Category_Preselection_lh_CR.common_cuts
     cuts = (
         CUTS_WPLUSJETS_CR
         )
@@ -49,24 +49,24 @@ class Category_Ztautau_CR_lh(Category_Preselection_lh):
         CUTS_Ztt_CR
         )
 
-class Category_Top_CR_lh(Category_Preselection_lh_NoBveto):
+class Category_Top_CR_lh(Category_Preselection_lh_CR):
     name = 'Top_CR_lh'
     label = 'e#tau_{had} + #mu#tau_{had} '
     latex = '\\textbf{Top_CR}'
     color = 'red'
     linestyle = 'dotted'
-    common_cuts = Category_Preselection_lh_NoBveto.common_cuts
+    common_cuts = Category_Preselection_lh_CR.common_cuts
     cuts = (
         CUTS_top_CR
         )
 
-class Category_VBF_wplusjets_CR_lh(Category_Preselection_lh):
+class Category_VBF_wplusjets_CR_lh(Category_Preselection_lh_CR):
     name = 'VBF_wplusjets_CR_lh'
     label = 'e#tau_{had} + #mu#tau_{had} '
     latex = '\\textbf{VBF_wplusjets_CR}'
     color = 'red'
     linestyle = 'dotted'
-    common_cuts = Category_Preselection_lh.common_cuts
+    common_cuts = Category_Preselection_lh_CR.common_cuts
     cuts = (
         CUTS_WPLUSJETS_CR
         & CUTS_VBF
@@ -84,25 +84,25 @@ class Category_VBF_Ztautau_CR_lh(Category_Preselection_lh):
         & CUTS_VBF
         )
 
-class Category_VBF_Top_CR_lh(Category_Preselection_lh_NoBveto):
+class Category_VBF_Top_CR_lh(Category_Preselection_lh_CR):
     name = 'VBF_Top_CR_lh'
     label = 'e#tau_{had} + #mu#tau_{had} '
     latex = '\\textbf{VBF_Top_CR}'
     color = 'red'
     linestyle = 'dotted'
-    common_cuts = Category_Preselection_lh_NoBveto.common_cuts
+    common_cuts = Category_Preselection_lh_CR.common_cuts
     cuts = (
         CUTS_top_CR
         & CUTS_VBF
         )
 
-class Category_Boosted_wplusjets_CR_lh(Category_Preselection_lh):
+class Category_Boosted_wplusjets_CR_lh(Category_Preselection_lh_CR):
     name = 'Boosted_wplusjets_CR_lh'
     label = 'e#tau_{had} + #mu#tau_{had} '
     latex = '\\textbf{Boosted_wplusjets_CR}'
     color = 'red'
     linestyle = 'dotted'
-    common_cuts = Category_Preselection_lh.common_cuts
+    common_cuts = Category_Preselection_lh_CR.common_cuts
     cuts = (
         CUTS_WPLUSJETS_CR
         & CUTS_BOOSTED
@@ -121,13 +121,13 @@ class Category_Boosted_Ztautau_CR_lh(Category_Preselection_lh):
         & CUTS_BOOSTED
         )
 
-class Category_Boosted_Top_CR_lh(Category_Preselection_lh_NoBveto):
+class Category_Boosted_Top_CR_lh(Category_Preselection_lh_CR):
     name = 'Boosted_Top_CR_lh'
     label = 'e#tau_{had} + #mu#tau_{had} '
     latex = '\\textbf{Boosted_Top_CR}'
     color = 'red'
     linestyle = 'dotted'
-    common_cuts = Category_Preselection_lh_NoBveto.common_cuts
+    common_cuts = Category_Preselection_lh_CR.common_cuts
     cuts = (
         CUTS_top_CR
         & CUTS_BOOSTED
