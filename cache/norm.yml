@@ -6,11 +6,11 @@
           OS:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 2.6486116796028596
-            qcd_scale_error: 0.323942261242413
+            qcd_scale: 2.2646599728872197
+            qcd_scale_error: 0.2998401976661628
             qcd_z_scale: 1.0
-            z_scale: 0.5360841808200961
-            z_scale_error: 0.18428322009720413
+            z_scale: 0.9451733350044333
+            z_scale_error: 0.26301610597875946
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
@@ -19,6 +19,15 @@
             qcd_z_scale: 1.0
             z_scale: 3.3445022588021986
             z_scale_error: 1.3874817488654698
+        OS_NONID_ISOL:
+          OS_ISOL:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 3.026236411007537
+            qcd_scale_error: 0.517823476049236
+            qcd_z_scale: 1.0
+            z_scale: 0.8333841206642217
+            z_scale_error: 0.2630749955527622
         OS_NONISOL:
           OS_ISOL:
             qcd_data_scale: 1.0
@@ -32,11 +41,11 @@
           OS:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-            qcd_scale: 0.6747713625942393
-            qcd_scale_error: 0.0843567714275221
+            qcd_scale: 0.6803203787982531
+            qcd_scale_error: 0.07870380128225622
             qcd_z_scale: 1.0
-            z_scale: 0.6519181466889057
-            z_scale_error: 0.17804666972609168
+            z_scale: 1.0243949494145137
+            z_scale_error: 0.19369539438327496
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
@@ -45,6 +54,15 @@
             qcd_z_scale: 1.0
             z_scale: 2.745222636264566
             z_scale_error: 0.988382372199548
+        nOS_ISOL:
+          OS_ISOL:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 0.6929666558882234
+            qcd_scale_error: 0.1000828124228396
+            qcd_z_scale: 1.0
+            z_scale: 0.7581200271101799
+            z_scale_error: 0.23869136699034033
         nOS_NONISOL:
           OS_ISOL:
             qcd_data_scale: 1.0
