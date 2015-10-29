@@ -1,6 +1,6 @@
 import ROOT
 from mva.analysis import Analysis
-from mva.samples import MC_Ztautau, Pythia_Ztautau, Data
+from mva.samples import MC_Ztautau, Pythia_Ztautau, Data, QCD
 from mva.samples.others import EWK, Top, MC_Wtaunu
 from hhdb.datasets import Database
 from mva.variables import VARIABLES, LH_VARIABLES
@@ -35,13 +35,21 @@ ztautau = Pythia_Ztautau(
     trigger=False,
     color='#00A3FF')
 
-#top = Top(
-#    2015, db=DB, 
+#qcd = QCD(
+#    2015, db=data, 
 #    channel='lephad', 
 #    ntuple_path=NTUPLE_PATH, 
 #    student='lhskim',
 #    trigger=False,
-#    color='lightskyblue')
+#    color='#00A3FF')
+
+top = Top(
+    2015, db=DB, 
+    channel='lephad', 
+    ntuple_path=NTUPLE_PATH, 
+    student='lhskim',
+    trigger=False,
+    color='lightskyblue')
 
 ewk = EWK(
     2015, db=DB, 
@@ -95,7 +103,7 @@ headers.insert(0, 'sample / category')
 table = []
 
 # for sample in (ztautau, top, ewk, data):
-for sample in (ztautau, ewk,  data):
+for sample in (ztautau, ewk, top,  data):
     row = [sample.name]
     table.append(row)
     for category in categories:
@@ -116,8 +124,8 @@ for cat in categories:
     z_h, _ = ztautau.get_field_hist(vars, cat)
     ztautau.draw_array(z_h, cat, 'ALL', field_scale=b)
 
-    #t_h, _ = top.get_field_hist(vars, cat)
-    #top.draw_array(t_h, cat, 'ALL', field_scale=b)
+    t_h, _ = top.get_field_hist(vars, cat)
+    top.draw_array(t_h, cat, 'ALL', field_scale=b)
 
     ewk_h, _ = ewk.get_field_hist(vars, cat)
     ewk.draw_array(ewk_h, cat, 'ALL', field_scale=b)
