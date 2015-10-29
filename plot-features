@@ -91,5 +91,5 @@ for category in analysis.iter_categories(*cat_defs, names=args.category_names):
         clf=clf,
         #min_score=0.5924344731341187,
         no_data=args.no_data,
-        #top_label="Fakes Model: {0}".format(analysis.fakes_region),
+        top_label="Fakes Model: {0}".format(analysis.fakes_region),
         )
