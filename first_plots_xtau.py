@@ -13,19 +13,27 @@ from tabulate import tabulate
 DB = Database('datasets_lh')
 
 # Ntuples path
-NTUPLE_PATH = '/afs/cern.ch/work/m/mayoub/public/htautau-21-07-2015-working-version-Copy-11-09-2015/eos/atlas/user/m/mayoub/production_v3_22-10-2015/'
+NTUPLE_PATH = '/afs/cern.ch/work/m/mayoub/public/htautau-21-07-2015-working-version-Copy-11-09-2015/eos/atlas/user/m/mayoub/production-v3/'
 
 
 VARIABLES.update(LH_VARIABLES)
 
 
-#ztautau = Pythia_Ztautau(
+#ztautau = MC_Ztautau(
 #    2015, db=DB, 
 #    channel='lephad', 
 #    ntuple_path=NTUPLE_PATH, 
 #    student='lhskim',
 #    trigger=False,
 #    color='#00A3FF')
+
+ztautau = Pythia_Ztautau(
+    2015, db=DB, 
+    channel='lephad', 
+    ntuple_path=NTUPLE_PATH, 
+    student='lhskim',
+    trigger=False,
+    color='#00A3FF')
 
 #top = Top(
 #    2015, db=DB, 
@@ -79,15 +87,15 @@ vars = {}
 for f in fields:
     if f in VARIABLES.keys():
         vars[f] =  VARIABLES[f]
-
-categories = [Category_Preselection_lh, Category_Boosted_lh, Category_VBF_lh, Category_wplusjets_CR_lh, Category_Ztautau_CR_lh, Category_Top_CR_lh ]
+categories = [Category_Preselection_lh]
+#categories = [Category_Preselection_lh, Category_Boosted_lh, Category_VBF_lh, Category_wplusjets_CR_lh, Category_Ztautau_CR_lh, Category_Top_CR_lh ]
 headers = [c.name for c in categories]
 headers.insert(0, 'sample / category')
 #categories = [Category_VBF_lh]
 table = []
 
 # for sample in (ztautau, top, ewk, data):
-for sample in (ewk, data):
+for sample in (ztautau, ewk,  data):
     row = [sample.name]
     table.append(row)
     for category in categories:
@@ -105,8 +113,8 @@ for cat in categories:
     a1, b = data.get_field_hist(vars, cat)
     data.draw_array(a1, cat, 'ALL', field_scale=b)
     
-    #z_h, _ = ztautau.get_field_hist(vars, cat)
-    #ztautau.draw_array(z_h, cat, 'ALL', field_scale=b)
+    z_h, _ = ztautau.get_field_hist(vars, cat)
+    ztautau.draw_array(z_h, cat, 'ALL', field_scale=b)
 
     #t_h, _ = top.get_field_hist(vars, cat)
     #top.draw_array(t_h, cat, 'ALL', field_scale=b)
@@ -122,7 +130,7 @@ for cat in categories:
             cat,
            # data=a1[field],
             data=None if a1[field].Integral() == 0 else a1[field],
-            model=[ewk_h[field]], 
+            model=[ewk_h[field], z_h[field]], 
             # model=[t_h[field], ewk_h[field], z_h[field]],
             units=vars[field]['units'] if 'units' in vars[field] else None, 
             logy=False,
