@@ -35,13 +35,6 @@ ztautau = Pythia_Ztautau(
     trigger=False,
     color='#00A3FF')
 
-#qcd = QCD(
-#    2015, db=data, 
-#    channel='lephad', 
-#    ntuple_path=NTUPLE_PATH, 
-#    student='lhskim',
-#    trigger=False,
-#    color='#00A3FF')
 
 top = Top(
     2015, db=DB, 
