@@ -8,21 +8,22 @@ from mva.samples.others import Top, Diboson, EWK
 from tabulate import tabulate
 
 categories = (
-    Category_Preselection, Category_Rest,
-    Category_Boosted, Category_VBF)
+    Category_Preselection, )#Category_Rest,
+#    Category_Boosted, Category_VBF)
 headers = [c.name for c in categories]
 headers.insert(0, 'sample / category')
 
-for year in (2011, 2012):
+for year in (2015, ):#2011, 2012):
     ana = Analysis(year=year)
     ana.normalize(Category_Preselection)
-    higgs = Higgs(year=year, mass=125)
-    top = Top(year=year)
-    diboson = Diboson(year=year)
-    ewk = EWK(year=year)
+#    higgs = Higgs(year=year, mass=125)
+#    top = Top(year=year)
+#    other = Others(year=year)
+#    diboson = Diboson(year=year)
+#    ewk = EWK(year=year)
     table = []
-    for sample in (ana.ztautau, ana.qcd, ana.others,
-                   top, diboson, ewk, higgs):
+    for sample in (ana.ztautau, ana.qcd, ana.others):#,
+#            top, diboson, ewk, higgs):
         row = [sample.name]
         for category in categories:
             events = sample.events(category, ana.target_region)
