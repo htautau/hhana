@@ -41,19 +41,11 @@
           OS:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0
-<<<<<<< HEAD
-            qcd_scale: 0.7251562512412579
-            qcd_scale_error: 0.07891256267933999
-            qcd_z_scale: 1.0
-            z_scale: 0.7352559785161085
-            z_scale_error: 0.17857072948531144
-=======
             qcd_scale: 0.6803203787982531
             qcd_scale_error: 0.07870380128225622
             qcd_z_scale: 1.0
             z_scale: 1.0243949494145137
             z_scale_error: 0.19369539438327496
->>>>>>> origin/run2_dev
           OS_ISOL:
             qcd_data_scale: 1.0
             qcd_others_scale: 1.0

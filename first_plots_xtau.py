@@ -20,9 +20,9 @@ VARIABLES.update(LH_VARIABLES)
 
 
 #ztautau = MC_Ztautau(
-#    2015, db=DB, 
-#    channel='lephad', 
-#    ntuple_path=NTUPLE_PATH, 
+#    2015, db=DB,
+#    channel='lephad',
+#    ntuple_path=NTUPLE_PATH,
 #    student='lhskim',
 #    trigger=False,
 #    color='#00A3FF')
@@ -35,24 +35,13 @@ ztautau = Pythia_Ztautau(
     trigger=False,
     color='#00A3FF')
 
-<<<<<<< HEAD
-# top = Top(
-#     2015, db=DB,
-#     channel='lephad',
-#     ntuple_path=NTUPLE_PATH,
-#     student='lhskim',
-#     trigger=False,
-#     color='lightskyblue')
-=======
-
 top = Top(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
+    2015, db=DB,
+    channel='lephad',
+    ntuple_path=NTUPLE_PATH,
     student='lhskim',
     trigger=False,
     color='lightskyblue')
->>>>>>> origin/run2_dev
 
 ewk = EWK(
     2015, db=DB,
@@ -141,11 +130,7 @@ for cat in categories:
             cat,
            # data=a1[field],
             data=None if a1[field].Integral() == 0 else a1[field],
-<<<<<<< HEAD
-            model=[z_h[field],  ewk_h[field]],
-=======
-            model=[ewk_h[field], z_h[field]], 
->>>>>>> origin/run2_dev
+            model=[ewk_h[field], z_h[field]],
             # model=[t_h[field], ewk_h[field], z_h[field]],
             units=vars[field]['units'] if 'units' in vars[field] else None,
             logy=False,
