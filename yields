@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+from mva.cmd import get_parser
 
+<<<<<<< HEAD
 from mva.analysis import Analysis
 from mva.categories.hadhad import (Category_Preselection, Category_Rest,
                                    Category_Boosted, Category_VBF)
@@ -34,3 +36,45 @@ for year in (2015, ):#2011, 2012):
     print year
     print tabulate(table, headers=headers)
     print
+=======
+args = get_parser(actions=False).parse_args()
+
+from mva.analysis import get_analysis
+from mva.categories.hadhad import Category_Preselection
+
+analysis = get_analysis(args)
+
+print analysis.others.events(Category_Preselection)[1].value
+# from mva.categories.hadhad import (Category_Preselection, Category_Rest, 
+#                                    Category_Boosted, Category_VBF)
+# from mva.samples import Higgs, Others
+# from mva.samples.others import Top, Diboson, EWK
+# from tabulate import tabulate
+
+# categories = (
+#     Category_Preselection, Category_Rest,
+#     Category_Boosted, Category_VBF)
+# headers = [c.name for c in categories]
+# headers.insert(0, 'sample / category')
+
+# for year in (2011, 2012):
+#     ana = Analysis(year=year)
+#     ana.normalize(Category_Preselection)
+#     higgs = Higgs(year=year, mass=125)
+#     top = Top(year=year)
+#     diboson = Diboson(year=year)
+#     ewk = EWK(year=year)
+#     table = []
+#     for sample in (ana.ztautau, ana.qcd, ana.others,
+#                    top, diboson, ewk, higgs):
+#         row = [sample.name]
+#         for category in categories:
+#             events = sample.events(category, ana.target_region)
+#             row.append(
+#                 "{0:.1f} +/- {1:.1f}".format(
+#                     events[1].value, events[1].error))
+#         table.append(row)
+#     print year
+#     print tabulate(table, headers=headers)
+#     print
+>>>>>>> origin/run2_dev

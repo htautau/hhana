@@ -229,14 +229,14 @@ HH_VARIABLES = {
        'title': r'$\tau_{1} \eta$',
        'root': '#font[152]{#tau}_{1} #font[152]{#eta}',
        'filename': 'ditau_tau0_eta',
-       'binning': (10, -3, 3),
+       'binning': [-3.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 3.0],
        'legend': 'left',
    },
    'ditau_tau1_eta': {
        'title': r'$\tau_{2} \eta$',
        'root': '#font[152]{#tau}_{2} #font[152]{#eta}',
        'filename': 'ditau_tau1_eta',
-       'binning': (10, -3, 3),
+       'binning': [-3.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 3.0],
        'legend': 'left',
    },
    'ditau_tau0_n_tracks': {

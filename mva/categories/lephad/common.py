@@ -4,7 +4,7 @@ from math import pi
 from ..base import Category
 # All basic cut definitions are here
 TRIGGER = Cut('HLT_e24_lhmedium_iloose_L1EM18VH==1') | Cut('HLT_e24_lhmedium_iloose_L1EM20VH==1') | Cut('HLT_e24_lhmedium_nod0_iloose_L1EM18VH==1') | Cut('HLT_e24_lhmedium_nod0_iloose_L1EM20VH==1') | Cut('HLT_e24_medium_iloose_L1EM18VH==1') | Cut('HLT_e24_medium_iloose_L1EM20VH==1') | Cut('HLT_mu20_iloose_L1MU15==1') | Cut('HLT_mu24_iloose_L1MU15==1')
-IS_OPPOSITE_SIGN = Cut('is_opposite_sign==1')
+IS_OPPOSITE_SIGN = Cut('lep_0_q*tau_0_q == -1')
 IS_VBF = Cut('is_vbf_mva==1')
 IS_BOOSTED = Cut('is_boosted_mva==1')
 BVETO = Cut('is_btagged == 0')
@@ -14,10 +14,14 @@ MT_LEP_MET_WPLUSJETS_CR =Cut('lephad_mt_lep0_met > 70000')
 MT_LEP_MET_TOP_CR =Cut('lephad_mt_lep0_met > 70000')
 MT_LEP_MET_ZTT_CR =Cut('lephad_mt_lep0_met < 40000')
 DITAU_MASS_ZTT_CR = Cut('lephad_mmc_mlm_m < 110000')
+ONE_SELECTED_LEPTON= Cut('is_oneselectedlep==1')
+ONE_SELECTED_TAU= Cut('is_oneselectedtau==1')
 
 # common preselection cuts
 PRESELECTION = (
     TRIGGER
+    & ONE_SELECTED_LEPTON
+    & ONE_SELECTED_TAU
     & IS_OPPOSITE_SIGN
     & MET 
     & BVETO

@@ -97,8 +97,8 @@ class Analysis(object):
                 constrain_norm=constrain_norms,
                 color='#00A3FF')
         else:
-            log.info("Using Sherpa Ztautau")
-            self.ztautau = samples.MC_Ztautau(
+            log.info("Using Pythia Ztautau")
+            self.ztautau = samples.Pythia_Ztautau(
                 year=year,
                 trigger=self.trigger,
                 systematics=systematics,

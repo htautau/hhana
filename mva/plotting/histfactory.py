@@ -115,8 +115,6 @@ def draw_channel_array(
 
     field_channel = analysis.get_channel_array(vars,
         category, region, cuts,
-# 2015/08/19 DTemple: changed "include_signal" setting
-#        include_signal=True,
         include_signal=include_signal,
         mass=mass,
         mode=mode,

@@ -950,7 +950,7 @@ class SystematicsSample(Sample):
                 else:
                     tauid = {
                         'TAU_ID': {
-                            'NOMINAL': ['tau_0_jet_bdt_eff_sf'],},
+                            'NOMINAL': ['tau_0_jet_id_medium_sf'],},
                         }
             systematics.update(tauid)
 
