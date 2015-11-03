@@ -1,7 +1,7 @@
 # numpy imports
 import numpy as np
 from numpy.lib import recfunctions
-
+from matplotlib.mlab import rec_append_fields
 # rootpy imports
 from rootpy import asrootpy
 from rootpy.plotting import Hist
@@ -140,10 +140,11 @@ class Data(Sample):
         if include_weight:
             # data is not weighted
             weights = np.ones(rec.shape[0], dtype='f8')
-            rec = recfunctions.rec_append_fields(rec,
+#            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='weight',
-                data=weights,
-                dtypes='f8')
+                arrs=weights,
+                dtypes=np.dtype('f8'))
         mom_branches = [
             'tau_0_pt', 'tau_0_eta', 'tau_0_phi', 'tau_0_m',
             'tau_1_pt', 'tau_1_eta', 'tau_1_phi', 'tau_1_m',
@@ -168,25 +169,25 @@ class Data(Sample):
         kin_arr[:,:,6] = mom_arr[:,:,2]
         kin_arr[:,:,7] = mom_arr[:,:,3]
         rec2jj_moments = HCM( 2, kin_arr[:,[2,3],:], kin_arr[:,[2,3],:])#, kin_arr[:,:,:] )
-        rec = recfunctions.rec_append_fields(rec,
+        rec = rec_append_fields(rec,
             names='HCM2jj',
-            data=rec2jj_moments,
-            dtypes='f8')
+            arrs=rec2jj_moments,
+            dtypes=np.dtype('f8'))
         rec2_moments = HCM( 2, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
-        rec = recfunctions.rec_append_fields(rec,
+        rec = rec_append_fields(rec,
             names='HCM2',
-            data=rec2_moments,
-            dtypes='f8')
+            arrs=rec2_moments,
+            dtypes=np.dtype('f8'))
         rec3_moments = HCM( 3, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
-        rec = recfunctions.rec_append_fields(rec,
+        rec = rec_append_fields(rec,
             names='HCM3',
-            data=rec3_moments,
-            dtypes='f8')
+            arrs=rec3_moments,
+            dtypes=np.dtype('f8'))
         rec1_moments = HCM( 1, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
-        rec = recfunctions.rec_append_fields(rec,
+        rec = rec_append_fields(rec,
             names='HCM1',
-            data=rec1_moments,
-            dtypes='f8')
+            arrs=rec1_moments,
+            dtypes=np.dtype('f8'))
 
         if fields is not None:
             rec = rec[fields]

@@ -7,7 +7,8 @@ from collections import namedtuple
 
 # numpy imports
 import numpy as np
-from numpy.lib import recfunctions
+#from numpy.lib import recfunctions
+from matplotlib.mlab import rec_append_fields
 
 # rootpy imports
 import ROOT
@@ -513,10 +514,10 @@ class Sample(object):
             elif isinstance(scores, tuple):
                 # ignore weights
                 scores = scores[0]
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names=clf_name,
-                data=scores,
-                dtypes='f4')
+                arrs=scores,
+                dtypes=np.dtype('f4'))
         return rec
 
     def array(self, *args, **kwargs):
@@ -756,10 +757,10 @@ class Sample(object):
                     hist.datainfo = DataInfo(self.info.lumi, self.info.energies)
 
         if scores is not None and 'classifier' not in rec.dtype.names:
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='classifier',
-                data=scores,
-                dtypes='f4')
+                arrs=scores,
+                dtypes=np.dtype('f4'))
         return rec, weights
 
     def events(self, category=None, region=None,
@@ -1281,10 +1282,10 @@ class SystematicsSample(Sample):
                 # drop other weight fields
                 #rec = recfunctions.rec_drop_fields(rec, weight_branches)
                 # add the combined weight
-                rec = recfunctions.rec_append_fields(rec,
+                rec = rec_append_fields(rec,
                     names='weight',
-                    data=weights,
-                    dtypes='f8')
+                    arrs=weights,
+                    dtypes=np.dtype('f8'))
                 if rec['weight'].shape[0] > 1 and rec['weight'].sum() == 0:
                     log.warning("{0}: weights sum to zero!".format(table.name))
             mom_branches = [
@@ -1311,25 +1312,25 @@ class SystematicsSample(Sample):
             kin_arr[:,:,6] = mom_arr[:,:,2]
             kin_arr[:,:,7] = mom_arr[:,:,3]
             rec2jj_moments = HCM( 2, kin_arr[:,[2,3],:], kin_arr[:,[2,3],:])#, kin_arr[:,:,:] )
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='HCM2jj',
-                data=rec2jj_moments,
-                dtypes='f8')
+                arrs=rec2jj_moments,
+                dtypes=np.dtype('f8'))
             rec2_moments = HCM( 2, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='HCM2',
-                data=rec2_moments,
-                dtypes='f8')
+                arrs=rec2_moments,
+                dtypes=np.dtype('f8'))
             rec3_moments = HCM( 3, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='HCM3',
-                data=rec3_moments,
-                dtypes='f8')
+                arrs=rec3_moments,
+                dtypes=np.dtype('f8'))
             rec1_moments = HCM( 1, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='HCM1',
-                data=rec1_moments,
-                dtypes='f8')
+                arrs=rec1_moments,
+                dtypes=np.dtype('f8'))
 
             if fields is not None:
                 try:

@@ -9,6 +9,7 @@ from rootpy.plotting.utils import draw
 from rootpy.io import root_open
 from root_numpy import fill_hist, array2tree
 from numpy.lib import recfunctions
+from matplotlib.mlab import rec_append_fields
 import numpy as np
 
 UNKNOWN, TAUTAU, WW, ZZ, BB = range(5)
@@ -69,7 +70,7 @@ for mode, id in modes:
         rec = higgs.merged_records(cat, ana.target_region, fields=['EventNumber'], include_weight=False)
         idrec = np.empty(len(rec), dtype=int)
         idrec.fill(id)
-        rec = recfunctions.rec_append_fields(rec, data=idrec, names='Category')
+        rec = rec_append_fields(rec, arrs=idrec, names='Category')
         recs.append(rec)
     rec = np.hstack(recs)
     tree = array2tree(rec, name='physics')
