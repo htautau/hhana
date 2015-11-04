@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+from mva.samples import Data, Others, Pythia_Ztautau
+from mva.samples.others import EWK, Top
+from mva.variables import VARIABLES
+from mva.categories.hadhad import Category_Preselection
+from mva.regions import REGIONS
+from mva.plotting.draw import draw
+
+fields = [
+'ditau_vis_mass'
+]
+
+
+vars = {}
+for f in fields:
+    vars[f] = VARIABLES[f]
+
+cat = Category_Preselection
+
+data = Data(2015, markersize=1.2, linewidth=1)
+ztt = Pythia_Ztautau(2015, color='#00A3FF')
+ewk = EWK(2015, color='#8A0F0F', label='EWK')
+top = Top(2015, color='#00008B', label='t#bar{t} + single-top')
+CRs = [
+    'SS_NONID_ISOL',
+    'SS_LM_ISOL',
+    'SS_ML_ISOL',
+    'OS_NONID_ISOL',
+    'OS_LM_ISOL',
+    'OS_ML_ISOL',
+]    
+
+
+for cr in CRs:
+    d_h, b = data.get_field_hist(vars, cat)                     
+    data.draw_array(d_h, cat, cr, field_scale=b)
+
+    z_h, _ = ztt.get_field_hist(vars, cat)
+    ztt.draw_array(z_h, cat, cr, field_scale=b)
+
+    ewk_h, _ = ewk.get_field_hist(vars, cat)
+    ewk.draw_array(ewk_h, cat, cr, field_scale=b)
+
+    top_h, _ = top.get_field_hist(vars, cat)
+    top.draw_array(top_h, cat, cr, field_scale=b)
+
+    for var in vars:
+        fig = draw(
+            var, cat,
+            data=d_h[var],
+            model=[z_h[var], ewk_h[var], top_h[var]],
+            signal=None,
+            output_name=cr,
+            top_label='CR: {0}'.format(cr))
+    
