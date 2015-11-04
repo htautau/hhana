@@ -9,6 +9,9 @@ from collections import namedtuple
 import numpy as np
 from numpy.lib import recfunctions
 
+# mpl imports
+from matplotlib import mlab
+
 # rootpy imports
 import ROOT
 from rootpy.plotting import Hist, Hist2D, Canvas, HistStack

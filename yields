@@ -5,10 +5,23 @@ args = get_parser(actions=False).parse_args()
 
 from mva.analysis import get_analysis
 from mva.categories.hadhad import Category_Preselection
+from tabulate import tabulate
+ana = get_analysis(args)
+ana.normalize(Category_Preselection)
 
-analysis = get_analysis(args)
 
-print analysis.others.events(Category_Preselection)[1].value
+headers = [ana.ztautau.name, ana.qcd.name, ana.others.name, ana.data.name]
+print headers
+yields= []
+yields.append([
+    ana.ztautau.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
+    ana.qcd.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
+    ana.others.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
+    ana.data.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
+])
+
+print tabulate(yields, headers=headers)
+
 # from mva.categories.hadhad import (Category_Preselection, Category_Rest, 
 #                                    Category_Boosted, Category_VBF)
 # from mva.samples import Higgs, Others
