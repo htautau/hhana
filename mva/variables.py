@@ -184,8 +184,22 @@ HH_VARIABLES = {
 
     'ditau_met_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
-        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
+        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi #text{Centrality}}',
         'filename': 'ditau_met_centrality',
+        'binning': (10, -math.sqrt(2), math.sqrt(2)),
+        'legend': 'left',
+    },
+    'tau1_centrality': {
+        'title': r'$#tau_1$ Centrality',
+        'root': '#font[52]{#tau_1} #font[152]{#eta #text{Centrality}}',
+        'filename': 'tau1_centrality',
+        'binning': (10, -math.sqrt(2), math.sqrt(2)),
+        'legend': 'left',
+    },
+    'tau2_centrality': {
+        'title': r'$#tau_2$ Centrality',
+        'root': '#font[52]{#tau_2} #font[152]{#eta #test{Centrality}}',
+        'filename': 'tau2_centrality',
         'binning': (10, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
@@ -239,6 +253,14 @@ HH_VARIABLES = {
        'binning': [-3.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 3.0],
        'legend': 'left',
    },
+   'eta_product_jets': {
+       'title': r'$\eta_{jet1} \times \eta_{jet2}$',
+       'root': '#font[152]{#eta}_{j1} #times #font[152]{#eta}_{j2}',
+       'filename': 'eta_product_jets',
+       'binning': [-12.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 12.0],
+       'legend': 'left',
+   },
+
    'ditau_tau0_n_tracks': {
        'title': r'$\tau_{1}$ Number of Tracks',
        'root': '#font[152]{#tau}_{1} #font[52]{Tracks}',
@@ -369,10 +391,10 @@ HH_VARIABLES = {
        'binning': (6, 0., 2.4),
        'legend': 'left',
    },
-   'ditau_deta': {
+   'dEta_jets': {
        'title': r'$\Delta \eta(\tau,\tau)$',
        'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
-       'filename': 'ditau_deta',
+       'filename': 'dEta_jets',
        'binning': {
            'BOOSTED': (10, 0, 1.5),
            'VBF': (10, 0, 1.5),
@@ -442,7 +464,7 @@ HH_VARIABLES = {
 #    },
     'HCM1': {
         'title': r'HCM1',
-        'root': '#font[52]HCM1',
+        'root': '#font[52]{HCM1}',
         'filename': 'HCM1',
         'binning': {
             'BOOSTED': (15, 0.0, 1.0),
@@ -454,7 +476,7 @@ HH_VARIABLES = {
     },
     'HCM2': {
         'title': r'HCM2',
-        'root': '#font[52]HCM2',
+        'root': '#font[52]{HCM2}',
         'filename': 'HCM2',
         'binning': {
             'BOOSTED': (15, 0.0, 1.0),
@@ -466,7 +488,7 @@ HH_VARIABLES = {
     },
     'HCM3': {
         'title': r'HCM3',
-        'root': '#font[52]HCM3',
+        'root': '#font[52]{HCM3}',
         'filename': 'HCM3',
         'binning': {
             'BOOSTED': (15, 0.0, 1.0),
@@ -478,7 +500,7 @@ HH_VARIABLES = {
     },
     'HCM2jj': {
         'title': r'HCM2jj',
-        'root': '#font[52]HCM2jj',
+        'root': '#font[52]{HCM2jj}',
         'filename': 'HCM2jj',
         'binning': {
             'BOOSTED': (15, 0.0, 1.0),
@@ -489,6 +511,21 @@ HH_VARIABLES = {
         'units': 'No Units',
     },
 
+    'mass_jet1_jet2': {
+        'title': r'$m^{vis}_{jj}$',
+        'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
+        'filename': 'mass_jet1_jet2',
+        'binning': (20, 0, 800),
+        'units': 'GeV',
+        'scale': 0.001,
+    },
+
+    'ditau_pt_ratio': {
+        'title': r'$\tau_{1} p_{T} / \tau_{2} p_{T}$',
+        'root': '#font[52]{p}_{T}(#font[152]{#tau}_{1}) / #font[52]{p}_{T}(#font[152]{#tau}_{2})',
+        'filename': 'ditau_pt_ratio',
+        'binning': (16, 1, 5),
+    },
 
 }
 
@@ -600,7 +637,7 @@ LH_VARIABLES = {
     },
     'lephad_met_centrality': {
         'title': r'$E^{miss}_{T}$ Centrality',
-        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi} centrality',
+        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi Centrality}',
         'filename': 'lephad_met_centrality',
         'binning': (20, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',

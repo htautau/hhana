@@ -22,7 +22,7 @@ log = logging.getLogger('merge-ntup')
 if args.output is None:
     args.output = '%s.root' % args.student
 
-ds_pattern = re.compile('%s\.(?P<name>.+)\.root$' % (args.student))
+ds_pattern = re.compile('%s\.(?P<name>.+)hist\-output\.root$' % (args.student))
 
 with ropen(args.output, 'UPDATE') as outfile:
     for path in args.paths:
@@ -62,7 +62,7 @@ with ropen(args.output, 'UPDATE') as outfile:
                 outtree.SetName(name)
                 outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
                 # will need to be upated for the next skim
-                outcutflow = infile.cutflow_HSM_lephad_NOMINAL.Clone(name=name + '_cutflow')
+                outcutflow = infile.cutflow_HSM_hadhad_NOMINAL.Clone(name=name + '_cutflow')
                 #outcutflow_event = infile.cutflow_event.Clone(name=name + '_cutflow_event')
                 outfile.cd()
                 outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)

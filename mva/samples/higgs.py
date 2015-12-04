@@ -25,19 +25,19 @@ TAUTAUHADHADBR = 0.4197744 # = (1. - 0.3521) ** 2
 
 class Higgs(MC, Signal):
     MASSES = range(100, 155, 5)
-    MODES = ['Z', 'W', 'gg', 'VBF']
-    MODES_COMBINED = [['Z', 'W'], ['gg'], ['VBF']]
+    MODES = ['gg', 'VBF']#['Z', 'W', 'gg', 'VBF']
+    MODES_COMBINED = [['gg'], ['VBF']]#[['Z', 'W'], ['gg'], ['VBF']]
     MODES_DICT = {
-        'gg': ('ggf', 'PowPyth_', 'PowPyth8_AU2CT10_'),
-        'VBF': ('vbf', 'PowPyth_', 'PowPyth8_AU2CT10_'),
-        'Z': ('zh', 'Pyth8_AU2CTEQ6L1_', 'Pyth8_AU2CTEQ6L1_'),
-        'W': ('wh', 'Pyth8_AU2CTEQ6L1_', 'Pyth8_AU2CTEQ6L1_'),
+        'gg': ('ggf', 'PowPyth_', 'PowPyth8_AU2CT10_', 'PoPy8_'),
+        'VBF': ('vbf', 'PowPyth_', 'PowPyth8_AU2CT10_', 'PoPy8_'),
+#        'Z': ('zh', 'Pyth8_AU2CTEQ6L1_', 'Pyth8_AU2CTEQ6L1_'),
+#        'W': ('wh', 'Pyth8_AU2CTEQ6L1_', 'Pyth8_AU2CTEQ6L1_'),
     }
     MODES_WORKSPACE = {
         'gg': 'ggH',
         'VBF': 'VBF',
-        'Z': 'ZH',
-        'W': 'WH',
+#        'Z': 'ZH',
+#        'W': 'WH',
     }
 
     # https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/HSG4Uncertainties
@@ -185,7 +185,7 @@ class Higgs(MC, Signal):
         elif year == 2015:#CHANGED by lspiller
             if suffix is None:
                 suffix = ''
-            generator_index = 1
+            generator_index = 3
         else:
             raise ValueError('No Higgs defined for year %d' % year)
 
@@ -217,12 +217,12 @@ class Higgs(MC, Signal):
         else:
             self.mass = None
 
-        self.ggf_weight = ggf_weight
+        self.ggf_weight = False#ggf_weight
         self.ggf_weight_field = 'ggf_weight'
-        self.vbf_weight = vbf_weight
+        self.vbf_weight = False#vbf_weight
         self.vbf_weight_field = 'vbf_weight'
         # use separate signal files by default
-        kwargs.setdefault('student', 'hhskim_signal')
+#        kwargs.setdefault('student', 'hhskim_signal')
         super(Higgs, self).__init__(
             year=year, label=label, name=name, **kwargs)
 

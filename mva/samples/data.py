@@ -168,25 +168,72 @@ class Data(Sample):
         kin_arr[:,:,5] = mom_arr[:,:,1]
         kin_arr[:,:,6] = mom_arr[:,:,2]
         kin_arr[:,:,7] = mom_arr[:,:,3]
-        rec2jj_moments = HCM( 2, kin_arr[:,[2,3],:], kin_arr[:,[2,3],:])#, kin_arr[:,:,:] )
+        rec2jj_moments = HCM( 2, kin_arr[:,[2,3],:])#, kin_arr[:,:,:] )
         rec = rec_append_fields(rec,
             names='HCM2jj',
             arrs=rec2jj_moments,
             dtypes=np.dtype('f8'))
-        rec2_moments = HCM( 2, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
+        rec2_moments = HCM( 2, kin_arr[:,:,:])#, kin_arr[:,:,:] )
         rec = rec_append_fields(rec,
             names='HCM2',
             arrs=rec2_moments,
             dtypes=np.dtype('f8'))
-        rec3_moments = HCM( 3, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
+        rec3_moments = HCM( 3, kin_arr[:,:,:])#, kin_arr[:,:,:] )
         rec = rec_append_fields(rec,
             names='HCM3',
             arrs=rec3_moments,
             dtypes=np.dtype('f8'))
-        rec1_moments = HCM( 1, kin_arr[:,:,:], kin_arr[:,:,:])#, kin_arr[:,:,:] )
+        rec1_moments = HCM( 1, kin_arr[:,:,:])#, kin_arr[:,:,:] )
         rec = rec_append_fields(rec,
             names='HCM1',
             arrs=rec1_moments,
+            dtypes=np.dtype('f8'))
+
+# VBF Variables
+        rec = rec_append_fields(rec,
+            names='dEta_jets',
+            arrs=(np.absolute(kin_arr[:,2,5]-kin_arr[:,3,5])),
+            dtypes=np.dtype('f8'))
+        rec = rec_append_fields(rec,
+            names='eta_product_jets',
+            arrs=(kin_arr[:,2,5]*kin_arr[:,3,5]),
+            dtypes=np.dtype('f8'))
+        # M2 = 2 pT1 pT2 ( cosh(eta1-eta2) - cos(phi1-phi2)
+        M2 = kin_arr[:,2,4] * kin_arr[:,3,4] * 2 * (np.cosh(kin_arr[:,2,5]-kin_arr[:,3,5])-np.cos(kin_arr[:,2,6]-kin_arr[:,3,6]))
+        rec = rec_append_fields(rec,
+            names='mass_jet1_jet2',
+            arrs=np.absolute(M2)**0.5*10**3,
+            dtypes=np.dtype('f8'))
+        sum_vector_pt2 = np.sum(kin_arr[:,:,1], axis = 1)**2 \
+                      + np.sum(kin_arr[:,:,2], axis = 1)**2
+        rec = rec_append_fields(rec,
+            names='vector_sum_pt',
+            arrs=sum_vector_pt2**0.5,
+            dtypes=np.dtype('f8'))
+
+# centrality: exp( -4/(eta1-eta2)^2 (eta- eta1+eta2.2)^2)
+        tau1_centrality = np.exp( \
+                -4 / (kin_arr[:,2,5]-kin_arr[:,3,5])**2 \
+                * (kin_arr[:,0,5]-(kin_arr[:,2,5]+kin_arr[:,3,5])/2)**2 \
+                )
+        tau2_centrality = np.exp( \
+                -4 / (kin_arr[:,2,5]-kin_arr[:,3,5])**2 \
+                * (kin_arr[:,1,5]-(kin_arr[:,2,5]+kin_arr[:,3,5])/2)**2 \
+                )
+# No MET centrality
+        rec = rec_append_fields(rec,
+            names='tau1_centrality',
+            arrs=tau1_centrality,
+            dtypes=np.dtype('f8'))
+        rec = rec_append_fields(rec,
+            names='tau2_centrality',
+            arrs=tau2_centrality,
+            dtypes=np.dtype('f8'))
+
+# Tau PT ratio for boosted
+        rec = rec_append_fields(rec,
+            names='ditau_pt_ratio',
+            arrs=(kin_arr[:,0,4]/kin_arr[:,1,4]),
             dtypes=np.dtype('f8'))
 
         if fields is not None:

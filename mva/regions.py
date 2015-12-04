@@ -3,9 +3,9 @@ from rootpy.tree import Cut
 # Import does not work :-/
 # from categories.hadhad import ID_MEDIUM, ANTI_ID_MEDIUM
 
-OS     = Cut('(ditau_tau0_q * ditau_tau1_q) < 0')
+OS     = Cut('ditau_qxq < 0')
 NOT_OS = -OS #Cut('(ditau_tau0_q * ditau_tau1_q) != -1')
-SS     = Cut('(ditau_tau0_q * ditau_tau1_q) >  0')
+SS     = Cut('ditau_qxq >  0')
 
 P1P1 = Cut('ditau_tau0_n_tracks == 1') & Cut('ditau_tau1_n_tracks == 1')
 P3P3 = Cut('ditau_tau0_n_tracks == 3') & Cut('ditau_tau1_n_tracks == 3')

@@ -16,7 +16,7 @@ log = logging.getLogger(os.path.basename(__file__))
 
 
 TREENAME = 'NOMINAL'
-CUTFLOW_NAME = 'cutflow_HSM_lephad_NOMINAL'
+CUTFLOW_NAME = 'cutflow_HSM_hadhad_NOMINAL'
 DAOD_CUTFLOW = 'h_mc_derivation'
 
 
@@ -36,13 +36,14 @@ class DoesNotExist(Exception):
 
 
 def update_merged_file(
-    dataset, outfilename, 
-    treename='NOMINAL', 
-    cutflow_name='cutflow_HSM_lephad_NOMINAL',
+    dataset, outfilename,
+    treename='NOMINAL',
+    cutflow_name='cutflow_HSM_hadhad_NOMINAL',
     daod_cutflow_name='h_mc_derivation'):
     log.info('{0} ...'.format(dataset.name))
-    # intree = TreeChain(name=treename, files=dataset.files)
+    #intree = TreeChain(name=treename, files=dataset.files)
     intree = ROOT.TChain(treename)
+    intree.SetBranchStatus("*_CP_*", 0)
     for f in dataset.files:
      try:
          ff = ROOT.TFile.Open(f)
@@ -50,7 +51,7 @@ def update_merged_file(
          if key:
              intree.Add(f)
          else:
-             log.warning(' does not exist {0} has no {1} tree'.format(f, treename)) 
+             log.warning(' does not exist {0} has no {1} tree'.format(f, treename))
          ff.Close()
      except DoesNotExist:
          log.warning('{0} has no {1} tree'.format(f, treename))
@@ -60,7 +61,7 @@ def update_merged_file(
     # outcutflow.Reset()
     # outcutflow.name = dataset.name + '_cutflow'
     if (intree.GetEntries() == 0):
-      return None  
+      return None
     outdaod = ropen(dataset.files[0])[daod_cutflow_name].Clone()
     outdaod.Reset()
     outdaod.name = dataset.name + '_daod'
@@ -82,7 +83,7 @@ def update_merged_file(
                     if key:
                         intree.Add(f)
                     else:
-                        log.warning(' does not exist {0} has no {1} tree'.format(f,daod_cutflow_name )) 
+                        log.warning(' does not exist {0} has no {1} tree'.format(f,daod_cutflow_name ))
                     ff.Close()
                 except DoesNotExist:
                     log.warning('{0} has no {1} tree'.format(f, daod_cutflow_name))
@@ -100,9 +101,9 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('-o', '--output', default='output.root')
-    parser.add_argument('--db', default='datasets_lh')
+    parser.add_argument('--db', default='datasets_hh_c')
     parser.add_argument('--reset', action='store_true', default=False)
-    parser.add_argument('--cutflow', default='cutflow_HTauTauLepHad_NOMINAL')
+    parser.add_argument('--cutflow', default='cutflow_HTauTauHadHad_NOMINAL')
     args = parser.parse_args()
 
     DB = Database(args.db)
@@ -110,7 +111,7 @@ if __name__ == '__main__':
         outname = args.output
     else:
         # this has to be updated
-        outname = '/afs/cern.ch/work/m/mayoub/prod_v2/2015-09-22/lhskim.root'
+        outname = '/tmpfs/ntuples_hh_run2/v7/hhskim/hhskim.root'
 
     if args.reset:
         if os.path.exists(outname):
@@ -126,11 +127,11 @@ if __name__ == '__main__':
             log.warning(dataset)
             continue
         log.info(dataset)
-        # when dealing with systematics 
-        # we will loop over different values of 
+        # when dealing with systematics
+        # we will loop over different values of
         # treename and cutflow_name
         update_merged_file(
-            dataset, outname, 
-            treename='NOMINAL', 
+            dataset, outname,
+            treename='NOMINAL',
             cutflow_name=args.cutflow)
 
