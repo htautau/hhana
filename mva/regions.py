@@ -3,7 +3,7 @@ from rootpy.tree import Cut
 # Import does not work :-/
 # from categories.hadhad import ID_MEDIUM, ANTI_ID_MEDIUM
 
-OS     = Cut('ditau_qxq < 0')
+OS     = Cut('selection_opposite_sign')
 NOT_OS = -OS #Cut('(ditau_tau0_q * ditau_tau1_q) != -1')
 SS     = Cut('ditau_qxq >  0')
 

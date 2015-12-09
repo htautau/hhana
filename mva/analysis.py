@@ -64,7 +64,7 @@ class Analysis(object):
 
     def __init__(self, year,
                  systematics=False,
-                 use_embedding=False, #Changed, lspiller
+                 use_embedding=False,
                  trigger=True,
                  target_region=TARGET_REGION,
                  fakes_region=FAKES_REGION,

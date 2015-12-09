@@ -6,6 +6,45 @@ from ... import MMC_MASS
 # All basic cut definitions are here
 
 
+# Tau Selection
+TAU_CHARGE = Cut('abs(ditau_tau0_q) == 1 && abs(ditau_tau1_q) == 1')
+TAU_NTRACKS = Cut('(ditau_tau0_n_tracks == 1 || ditau_tau0_n_tracks == 3) && (ditau_tau1_n_tracks == 1 || ditau_tau1_n_tracks == 3)')
+TAU_ID = Cut('ditau_tau0_jet_bdt_medium == 1 && ditau_tau1_jet_bdt_medium == 1')
+TAU_SELECTION = (
+        TAU_CHARGE
+        & TAU_NTRACKS
+        & TAU_ID
+        )
+
+# Di-Tau Selection
+LEADING = Cut('ditau_tau0_pt > 40')
+SUBLEADING = Cut('ditau_tau1_pt > 30')
+OS = Cut('selection_opposite_sign == 1')
+MET = Cut('selection_met == 1')
+DETA = Cut('selection_delta_eta == 1')
+DR = Cut('selection_delta_r == 1')
+
+DITAU_SELECTION = (
+        TAU_CHARGE
+        & TAU_NTRACKS
+        & TAU_ID
+        & LEADING
+        & SUBLEADING
+        & OS
+        & MET
+        & DETA
+        & DR
+        )
+
+class Category_TauSelection(Category):
+    name = 'tau_selection'
+    label = '#tau_{had}#tau_{had} Tau Preselection'
+    common_cuts = TAU_SELECTION
+
+class Category_DiTauSelection(Category):
+    name = 'ditau_selection'
+    label = '#tau_{had}#tau_{had} Di-Tau Preselection'
+    common_cuts = DITAU_SELECTION
 
 TAU_SAME_VERTEX = Cut('tau_same_vertex')
 

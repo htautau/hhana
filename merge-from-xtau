@@ -20,21 +20,6 @@ CUTFLOW_NAME = 'cutflow_HSM_hadhad_NOMINAL'
 DAOD_CUTFLOW = 'h_mc_derivation'
 
 
-__all__ = [
-    'DoesNotExist',
-]
-
-class DoesNotExist(Exception):
-    """
-    This exception is raised if an attempt is made to access an object
-    that does not exist in a directory.
-    """
-    pass
-
-
-
-
-
 def update_merged_file(
     dataset, outfilename,
     treename='NOMINAL',
@@ -45,16 +30,17 @@ def update_merged_file(
     intree = ROOT.TChain(treename)
     intree.SetBranchStatus("*_CP_*", 0)
     for f in dataset.files:
-     try:
-         ff = ROOT.TFile.Open(f)
-         key = ff.GetKey('NOMINAL')
-         if key:
-             intree.Add(f)
-         else:
-             log.warning(' does not exist {0} has no {1} tree'.format(f, treename))
-         ff.Close()
-     except DoesNotExist:
-         log.warning('{0} has no {1} tree'.format(f, treename))
+        try:
+            ff = ROOT.TFile.Open(f)
+            key = ff.GetKey('NOMINAL')
+            if key:
+                intree.Add(f)
+            else:
+                log.warning(' does not exist {0} has no {1} tree'.format(f, treename))
+            ff.Close()
+        except:
+            log.warning('{0} has no {1} tree'.format(f, treename))
+
     log.info(intree)
     # instantiate the cutflow histo
     # outcutflow = ropen(dataset.files[0])[cutflow_name].Clone()
@@ -68,33 +54,22 @@ def update_merged_file(
 
     log.info('merging in %s' % outname)
     with ropen(outname, 'UPDATE') as outfile:
+        for f in dataset.files:
+            with ropen(f, 'READ') as infile:
+                if 'h_mc_derivation' in ff:
+                    intree.Add(f)
+                    outdaod += infile[daod_cutflow_name]
+                else:
+                    log.warning('{0} has no {1} tree'.format(f, daod_cutflow_name))
+
         outfile.cd()
-        print outfile, type(outfile)
         outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
         outtree.OptimizeBaskets()
         outtree.SetName(dataset.name.replace('-', '_'))
+
+        outfile.cd()
         outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
-        for f in dataset.files:
-            with ropen(f, 'READ') as infile:
-                # outcutflow += infile[cutflow_name]
-                try:
-                    ff = ROOT.TFile.Open(f)
-                    key = ff.GetKey('h_mc_derivation')
-                    if key:
-                        intree.Add(f)
-                    else:
-                        log.warning(' does not exist {0} has no {1} tree'.format(f,daod_cutflow_name ))
-                    ff.Close()
-                except DoesNotExist:
-                    log.warning('{0} has no {1} tree'.format(f, daod_cutflow_name))
-                    outdaod += infile[daod_cutflow_name]
-
-                outfile.cd()
-        # outcutflow.Write(outcutflow.GetName(), ROOT.TObject.kOverwrite)
         outdaod.Write(outdaod.GetName(), ROOT.TObject.kOverwrite)
-
-
-
 
 if __name__ == '__main__':
 
