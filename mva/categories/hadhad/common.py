@@ -11,9 +11,10 @@ TAU_CHARGE = Cut('abs(ditau_tau0_q) == 1 && abs(ditau_tau1_q) == 1')
 TAU_NTRACKS = Cut('(ditau_tau0_n_tracks == 1 || ditau_tau0_n_tracks == 3) && (ditau_tau1_n_tracks == 1 || ditau_tau1_n_tracks == 3)')
 TAU_ID = Cut('ditau_tau0_jet_bdt_medium == 1 && ditau_tau1_jet_bdt_medium == 1')
 TAU_SELECTION = (
-        TAU_CHARGE
-        & TAU_NTRACKS
-        & TAU_ID
+        Cut()
+#        TAU_CHARGE
+#        & TAU_NTRACKS
+#        & TAU_ID
         )
 
 # Di-Tau Selection
@@ -25,15 +26,16 @@ DETA = Cut('selection_delta_eta == 1')
 DR = Cut('selection_delta_r == 1')
 
 DITAU_SELECTION = (
-        TAU_CHARGE
-        & TAU_NTRACKS
-        & TAU_ID
-        & LEADING
-        & SUBLEADING
-        & OS
-        & MET
-        & DETA
-        & DR
+        Cut()
+#        TAU_CHARGE
+#        & TAU_NTRACKS
+#        & TAU_ID
+#        & LEADING
+#        & SUBLEADING
+#        & OS
+#        & MET
+#        & DETA
+#        & DR
         )
 
 class Category_TauSelection(Category):

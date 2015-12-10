@@ -937,9 +937,9 @@ class SystematicsSample(Sample):
                             'STAT_DOWN': [],
                             'UP': [],
                             'DOWN': [],
-                            'NOMINAL': [
-                                'ditau_tau0_jet_id_medium_sf',
-                                'ditau_tau1_jet_id_medium_sf']},
+                            'NOMINAL': []},
+                               # 'ditau_tau0_ele_bdt_medium_eff_sf',
+                               # 'ditau_tau1_ele_bdt_medium_eff_sf']},
                         }
             elif self.channel == 'lephad':
                 if self.year == 2011:

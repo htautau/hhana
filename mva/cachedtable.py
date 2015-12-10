@@ -68,4 +68,5 @@ class CachedTable(Table):
 
     @memoize_or_nothing
     def read_where(self, *args, **kwargs):
+        log.debug(str(args))
         return Table.read_where(self, *args, **kwargs)

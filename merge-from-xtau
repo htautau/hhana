@@ -1,17 +1,24 @@
 #!/usr/bin/env python
 
-import os
+import os, sys
 from hhdb.datasets import Database
 
 import re
 import os
 from glob import glob
-from rootpy.io import root_open as ropen
+from rootpy.io import root_open
 from rootpy.tree import Tree, TreeChain
 import ROOT
 import logging
 from rootpy import asrootpy
 
+from argparse import ArgumentParser
+parser = ArgumentParser()
+parser.add_argument('-o', '--output', default='output.root')
+parser.add_argument('--db', default='datasets_hh_c')
+parser.add_argument('--reset', action='store_true', default=False)
+parser.add_argument('--cutflow', default='h_mc_derivation')
+args = parser.parse_args()
 log = logging.getLogger(os.path.basename(__file__))
 
 
@@ -21,92 +28,69 @@ DAOD_CUTFLOW = 'h_mc_derivation'
 
 
 def update_merged_file(
-    dataset, outfilename,
-    treename='NOMINAL',
-    cutflow_name='cutflow_HSM_hadhad_NOMINAL',
-    daod_cutflow_name='h_mc_derivation'):
+        dataset, outfilename,
+        treename='NOMINAL',
+        daod_cutflow_name='h_mc_derivation',
+        rm_branches=[]):
+
     log.info('{0} ...'.format(dataset.name))
-    #intree = TreeChain(name=treename, files=dataset.files)
     intree = ROOT.TChain(treename)
-    intree.SetBranchStatus("*_CP_*", 0)
-    for f in dataset.files:
-        try:
-            ff = ROOT.TFile.Open(f)
-            key = ff.GetKey('NOMINAL')
-            if key:
-                intree.Add(f)
-            else:
-                log.warning(' does not exist {0} has no {1} tree'.format(f, treename))
-            ff.Close()
-        except:
-            log.warning('{0} has no {1} tree'.format(f, treename))
+
+    for br in rm_branches:
+        intree.SetBranchStatus(br, 0)
 
     log.info(intree)
-    # instantiate the cutflow histo
-    # outcutflow = ropen(dataset.files[0])[cutflow_name].Clone()
-    # outcutflow.Reset()
-    # outcutflow.name = dataset.name + '_cutflow'
-    if (intree.GetEntries() == 0):
-      return None
-    outdaod = ropen(dataset.files[0])[daod_cutflow_name].Clone()
+    outdaod = root_open(dataset.files[0])[daod_cutflow_name].Clone()
     outdaod.Reset()
     outdaod.name = dataset.name + '_daod'
 
     log.info('merging in %s' % outname)
-    with ropen(outname, 'UPDATE') as outfile:
+    with root_open(outname, 'UPDATE') as outfile:
         for f in dataset.files:
-            with ropen(f, 'READ') as infile:
-                if 'h_mc_derivation' in ff:
-                    intree.Add(f)
+            with root_open(f, 'READ') as infile:
+                if daod_cutflow_name in infile:
                     outdaod += infile[daod_cutflow_name]
                 else:
-                    log.warning('{0} has no {1} tree'.format(f, daod_cutflow_name))
+                    log.warning('{0} has no {1} histogram'.format(f, daod_cutflow_name))
+                intree.Add(f)
 
-        outfile.cd()
         outtree = intree.CloneTree(-1, "fast SortBasketsByEntry")
+        if not outtree:
+            log.warning("Tree has no entries: {0}".format(dataset.name))
+            dummy_tree = root_open(dataset.files[0])[treename]
+            for br in rm_branches:
+                dummy_tree.SetBranchStatus(br, 0)
+            outtree = dummy_tree.CloneTree()
         outtree.OptimizeBaskets()
         outtree.SetName(dataset.name.replace('-', '_'))
-
         outfile.cd()
         outtree.Write(outtree.GetName(), ROOT.TObject.kOverwrite)
         outdaod.Write(outdaod.GetName(), ROOT.TObject.kOverwrite)
 
-if __name__ == '__main__':
+DB = Database(args.db)
+if args.output is not None:
+    outname = args.output
+else:
+    # this has to be updated
+    outname = '/tmpfs/ntuples_hh_run2/v7/hhskim/hhskim.root'
 
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument('-o', '--output', default='output.root')
-    parser.add_argument('--db', default='datasets_hh_c')
-    parser.add_argument('--reset', action='store_true', default=False)
-    parser.add_argument('--cutflow', default='cutflow_HTauTauHadHad_NOMINAL')
-    args = parser.parse_args()
-
-    DB = Database(args.db)
-    if args.output is not None:
-        outname = args.output
-    else:
-        # this has to be updated
-        outname = '/tmpfs/ntuples_hh_run2/v7/hhskim/hhskim.root'
-
+if os.path.exists(outname):
     if args.reset:
-        if os.path.exists(outname):
-            log.warning('Deleting %s' % outname)
-            os.remove(outname)
+        log.warning('Deleting %s' % outname)
+        os.remove(outname)
+    else:
+        log.warning('Output file already exists!. Set --reset to overwrite')
+        sys.exit()
 
-    for d in DB.keys():
-        dataset = DB[d]
-      #  print 'here',d
-      #  if d.find('data15') == -1:
-      #      continue
-        if len(dataset.files) == 0:
-            log.warning(dataset)
-            continue
-        log.info(dataset)
-        # when dealing with systematics
-        # we will loop over different values of
-        # treename and cutflow_name
-        update_merged_file(
-            dataset, outname,
-            treename='NOMINAL',
-            cutflow_name=args.cutflow)
+for d in DB.keys():
+    dataset = DB[d]
+    if len(dataset.files) == 0:
+        log.warning(dataset)
+        continue
+    log.info(dataset)
+    update_merged_file(
+        dataset,
+        outname,
+        treename='NOMINAL',
+        rm_branches=['*_CP_*', 'tau*'])
 

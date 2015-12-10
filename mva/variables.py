@@ -2,6 +2,9 @@ import math
 
 
 BDT_BLIND = {
+    2015: {
+        'vbf': 3,
+        'boosted': 1},
     2012: {
         'vbf': 3,
         'boosted': 1},
@@ -114,7 +117,14 @@ VARIABLES = {
 }
 
 HH_VARIABLES = {
-   'ditau_vect_sum_pt': {
+    'ditau_deta': {
+        'title': r'$\Delta \Eta_{\tau \tau}$',
+        'root': '#font[152]{#Delta #Eta_{#tau #tau}}',
+        'filename': 'ditau_deta',
+        'binning': (0, 5, 5),
+        'units': ''
+    },
+    'ditau_vect_sum_pt': {
         'title': r'$\sum p_T$ Taus and Two Leading Jets',
         'root': '#font[152]{#sum} #font[52]{p}_{T} #font[52]{Taus and Two Leading Jets}',
         'filename': 'ditau_vect_sum_pt',

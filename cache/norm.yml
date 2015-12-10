@@ -72,3 +72,15 @@
             qcd_z_scale: 1.0
             z_scale: 3.2367772046470638
             z_scale_error: 0.6858500761651389
+  TAU_SELECTION:
+    false:
+      DITAU_DETA:
+        nOS_ISOL:
+          OS_ISOL:
+            qcd_data_scale: 1.0
+            qcd_others_scale: 1.0
+            qcd_scale: 0.744744051212679
+            qcd_scale_error: 0.013851091529434567
+            qcd_z_scale: 1.0
+            z_scale: 0.2739460945241674
+            z_scale_error: 0.022787537143881466
