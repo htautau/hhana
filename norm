@@ -10,14 +10,14 @@ analysis = get_analysis(args)
 from rootpy.plotting import Hist
 from rootpy.stats import histfactory
 from mva.plotting import draw_channel
-from mva.categories.hadhad import Category_TauSelection
+from mva.categories.hadhad import Category_Preselection
 from mva import norm_cache as cache
 from mva.variables import VARIABLES
 from mva import CONST_PARAMS
 
 # reference category for initial normalization
 #category = Category_Rest
-category = Category_TauSelection
+category = Category_Preselection
 
 # distribution to fit
 field = 'ditau_deta'

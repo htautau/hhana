@@ -121,7 +121,7 @@ HH_VARIABLES = {
         'title': r'$\Delta \Eta_{\tau \tau}$',
         'root': '#font[152]{#Delta #Eta_{#tau #tau}}',
         'filename': 'ditau_deta',
-        'binning': (0, 5, 5),
+        'binning': (5, 0, 5),
         'units': ''
     },
     'ditau_vect_sum_pt': {
