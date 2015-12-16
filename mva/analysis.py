@@ -658,9 +658,9 @@ class Analysis(object):
         output_suffix = self.get_suffix()
         clf_output_suffix = self.get_suffix(clf=True)
         if year == 2015:
-            kwargs['partition_key'] = 'event_number'
+            kwargs['partition_key'] = 'ditau_tau0_phi*100'#'event_number'
         else:
-            kwargs['partition_key'] = 'EventNumber'
+            kwargs['partition_key'] = 'ditau_tau0_phi*100'#'EventNumber'
         clf = Classifier(
             fields=category.features,
             category=category,
