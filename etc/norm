@@ -71,7 +71,7 @@ qcd_syst[3,3] = 0.92383
 """
 
 def xtick_track_func(x, pos):
-    # used by matplotlib to label the x axis with the (#track1, #track2) tuples 
+    # used by matplotlib to label the x axis with the (#track1, #track2) tuples
     ntrack1 = int((x - 1) / bins) + 1
     ntrack2 = (x - 1) % bins + 1
     return "(%d,%d)" % (ntrack1, ntrack2)
@@ -130,22 +130,22 @@ higgs = samples.Higgs(
 for cat_def in args.categories:
     # loop over the categories
     for category in CATEGORIES[cat_def]:
-        
+
         print
         print "=" * 40
         print category.name
         print "=" * 40
         print
-        
+
         log.info(data.cuts(category, model_region))
-        
+
         qcd.shape_region = fit_region
         ztt.scale = 1.
         ztt.scale_error = 0.
         qcd.scale = 1.
         qcd.scale_error = 0.
         scale_init = 1.
-        
+
         # Determine scale factor to get from 1p3p embedded Z to 1p3p ALPGEN Z
         sf_embed_13 = ztt.events(category, 'OS_TRK')[1].value / ztt_embedded.events(category, 'OS_TRK')[1].value
         sf_embed = ztt.events(category, 'OS')[1].value / ztt_embedded.events(category, 'OS')[1].value
@@ -179,31 +179,31 @@ for cat_def in args.categories:
                 xtick_formatter=xtick_formatter,
                 xtick_rotation=xtick_rotation,
                 output_formats=['eps', 'png'])
-        
+
         data_hist = hist_template.Clone()
         data.draw_into(data_hist, expr, category, model_region,
                 cuts=control_region, systematics=False)
-        
-        tau_hist = hist_template.Clone() 
+
+        tau_hist = hist_template.Clone()
         ztt.draw_into(tau_hist, expr, category, model_region,
                 cuts=control_region, systematics=False)
-        
+
         others_hist = hist_template.Clone()
         others.draw_into(others_hist, expr, category, model_region,
                 cuts=control_region, systematics=False)
-        
+
         qcd_data_hist = hist_template.Clone()
         data.draw_into(qcd_data_hist, expr, category, fit_region,
                 cuts=control_region, systematics=False)
-        
-        qcd_tau_hist = hist_template.Clone() 
+
+        qcd_tau_hist = hist_template.Clone()
         ztt.draw_into(qcd_tau_hist, expr, category, fit_region,
                 cuts=control_region, systematics=False)
-        
+
         qcd_others_hist = hist_template.Clone()
         others.draw_into(qcd_others_hist, expr, category, fit_region,
                 cuts=control_region, systematics=False)
-    
+
         qcd_hist = qcd_data_hist - qcd_tau_hist - qcd_others_hist
 
         # construct QCD shape systematic from OSFF model
@@ -211,23 +211,23 @@ for cat_def in args.categories:
         qcd_osff_data_hist = hist_template.Clone()
         data.draw_into(qcd_osff_data_hist, expr, category, 'OSFF',
                 cuts=control_region, systematics=False)
-        
-        qcd_osff_tau_hist = hist_template.Clone() 
+
+        qcd_osff_tau_hist = hist_template.Clone()
         ztt.draw_into(qcd_osff_tau_hist, expr, category, 'OSFF',
                 cuts=control_region, systematics=False)
-        
+
         qcd_osff_others_hist = hist_template.Clone()
         others.draw_into(qcd_osff_others_hist, expr, category, 'OSFF',
                 cuts=control_region, systematics=False)
-        
+
         qcd_ssff_data_hist = hist_template.Clone()
         data.draw_into(qcd_ssff_data_hist, expr, category, 'SSFF',
                 cuts=control_region, systematics=False)
-        
-        qcd_ssff_tau_hist = hist_template.Clone() 
+
+        qcd_ssff_tau_hist = hist_template.Clone()
         ztt.draw_into(qcd_ssff_tau_hist, expr, category, 'SSFF',
                 cuts=control_region, systematics=False)
-        
+
         qcd_ssff_others_hist = hist_template.Clone()
         others.draw_into(qcd_ssff_others_hist, expr, category, 'SSFF',
                 cuts=control_region, systematics=False)
@@ -243,7 +243,7 @@ for cat_def in args.categories:
                 qcd_syst, qcd_hist,
                 # tau PU low, tau PU high
                 tau_hist, tau_hist)
-        
+
         # Cache the fitted normalization scale factors for SS
         cache.set_scales(
             year,
@@ -258,7 +258,7 @@ for cat_def in args.categories:
             qcd_others_scale=1.,
             z_scale=fit_result.sf_Z,
             z_scale_error=fit_result.sf_Z_err)
-            
+
         cache.set_scales(
             year,
             category.name,
@@ -275,10 +275,10 @@ for cat_def in args.categories:
 
         qcd_scale = fit_result.sf13_QCD
         qcd_scale_error = fit_result.sf13_QCD_err
-        
+
         z_scale = fit_result.sf13_Z * scale_init
         z_scale_error = fit_result.sf13_Z_err * scale_init
-        
+
         """ Iterative approach
         # QCD = C x [A x Data - B x Z - O]
 
@@ -288,7 +288,7 @@ for cat_def in args.categories:
         C_prev = 0
         C_error = None
         B_error = None
-        
+
         iteration = 1
         # converge on the fitted values of A and B until C is close to 1.
         while abs(C - C_prev) > 0.01:
@@ -302,11 +302,11 @@ for cat_def in args.categories:
                 qcd_syst, qcd_hist,
                 # tau PU low, tau PU high
                 tau_hist_float, tau_hist_float)
-            
+
             C_prev = C
             C = fit_result.sf13_QCD
             B *= fit_result.sf13_Z
-            
+
             if C_error is None:
                 C_error = fit_result.sf13_QCD_err
                 B_error = fit_result.sf13_Z_err
@@ -318,10 +318,10 @@ for cat_def in args.categories:
             log.info("sf_QCD: %.4f +/- %.4f sf_Z: %.4f +/- %.4f" % (C, C_error, B, B_error))
             iteration += 1
             break
-        
+
         qcd_scale = C
         qcd_scale_error = C_error
-        
+
         z_scale = B * scale_init
         z_scale_error = B_error * scale_init
         """
@@ -330,7 +330,7 @@ for cat_def in args.categories:
         qcd.scale_error = qcd_scale_error
         ztt.scale = z_scale
         ztt.scale_error = z_scale_error
-        
+
         if args.plot:
             # Draw the distribution after the fit
             draw_samples(hist_template, expr,
@@ -347,25 +347,25 @@ for cat_def in args.categories:
                 integer=integer,
                 xtick_formatter=xtick_formatter,
                 xtick_rotation=xtick_rotation,
-                output_formats=['eps', 'png'])       
-        
+                output_formats=['eps', 'png'])
+
         """
         # correct to f13QCD
         f13_current = qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region) / qcd.events(category, 'SS', cuts=control_region)
         qcd_scale_correct = fit_result.f13_QCD / f13_current
-        
+
         qcd_scale *= qcd_scale_correct
         qcd_scale_error *= qcd_scale_correct
 
         qcd.scale = qcd_scale
         qcd.scale_error = qcd_scale_error
-        
+
         nZ = (data.events(category, 'OS_TRK', cuts=control_region)
                 - others.events(category, 'OS_TRK', cuts=control_region)
                 - qcd.events(category, 'SS', cuts=P1P3_RECOUNTED & control_region))
 
         z_scale_correct = nZ / ztt.events(category, 'OS_TRK', cuts=control_region)
-        
+
         z_scale *= z_scale_correct
         z_scale_error *= z_scale_correct
 
@@ -387,7 +387,7 @@ for cat_def in args.categories:
             qcd_others_scale=1.,
             z_scale=z_scale,
             z_scale_error=z_scale_error)
-            
+
         cache.set_scales(
             year,
             category.name,
@@ -413,7 +413,7 @@ for cat_def in args.categories:
                           |Z(SS_TRK)|
                     - B x ----------- x Z(nOS)
                            |Z(nOS)|
-                  
+
                       |Others(SS_TRK)|
                     - ---------------- x Others(nOS)
                        |Others(nOS)|
@@ -425,13 +425,13 @@ for cat_def in args.categories:
                    |QCD(SS_TRK)|
         QCD(nOS) = ------------- x (Data(nOS) - Z(nOS) - Others(nOS))
                     |QCD(nOS)|
-        
+
         Correct the QCD scale to account for difference between fitting model
         and target model (SS vs !OS). The final OS model includes the
         requirement that the number of recounted tracks equals 1 or 3
         for both taus, so we need to scale the QCD to what would be expected
         after this requirement
-        
+
         Note: All regions are defined in mva/regions.py
         """
 
@@ -439,10 +439,10 @@ for cat_def in args.categories:
         # correct each term separately
         sf_data   = (data.events(category, 'SS_TRK') /
                      float(data.events(category, 'nOS')))
-        
+
         sf_ztt    = (ztt.events(category, 'SS_TRK') /
                      float(ztt.events(category, 'nOS')))
-        
+
         sf_others = (others.events(category, 'SS_TRK') /
                      float(others.events(category, 'nOS')))
 
@@ -454,7 +454,7 @@ for cat_def in args.categories:
         qcd_data_scale_nos = 1.
         qcd_z_scale_nos = 1.
         qcd_others_scale_nos = 1.
-        
+
         qcd.shape_region = 'SS_TRK'
         qcd_events_ss = qcd.events(category, 'SS_TRK')[1].value
         qcd.shape_region = 'nOS'
@@ -478,7 +478,7 @@ for cat_def in args.categories:
             qcd_others_scale=qcd_others_scale_nos,
             z_scale=z_scale,
             z_scale_error=z_scale_error)
-        
+
         cache.set_scales(
             year,
             category.name,

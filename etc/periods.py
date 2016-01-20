@@ -6,8 +6,8 @@ and associated trigger requirements in each period and
 integrated luminosity
 """
 
-from rootpy.extern.tabulartext import PrettyTable
-
+#from rootpy.extern.tabulartext import PrettyTable
+from prettytable import PrettyTable
 
 """
 PERIODS = {

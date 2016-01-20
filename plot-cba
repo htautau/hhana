@@ -36,8 +36,11 @@ def density_channel(channel):
 
 
 category = Category_Cuts_VBF_LowDR
-ana = Analysis(2012)#, use_embedding=False)
+ana = Analysis(2015, use_embedding=False)
 ana.normalize(category)
+print ana
+print category
+
 binning = category.limitbins[ana.year]
 binning[-1] = 250
 template = Hist(binning)

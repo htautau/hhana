@@ -35,13 +35,13 @@ if args.category == 'vbf':
     category = Category_VBF
 else:
     category = Category_Boosted
-
+print Category_VBF
 analysis = Analysis(
-    year=2012,
+    year=2015,
     systematics=False,
     fakes_region=TRAIN_FAKES_REGION,
     suffix=args.suffix)
-analysis.normalize(category)
+#analysis.normalize(category)
 
 # combine embedded and MC Ztt for training
 # TODO: account for the fact that N(MC) != N(EMB)
@@ -61,12 +61,12 @@ analysis.normalize(category)
 backgrounds_train = analysis.backgrounds
 
 signals_train = [
-    Higgs(year=2012,
+    Higgs(year=2015,
           masses=args.masses,
           modes=category.train_signal_modes),
     ]
 
-clf = analysis.get_clf(category, load=False, mass=masses_label)
+clf = analysis.get_clf(category, load=False, mass=masses_label, year=2015)
 clf.train(signals=signals_train,
           backgrounds=backgrounds_train,
           remove_negative_weights=True,

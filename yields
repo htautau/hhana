@@ -22,35 +22,12 @@ yields.append([
 
 print tabulate(yields, headers=headers)
 
-# from mva.categories.hadhad import (Category_Preselection, Category_Rest, 
-#                                    Category_Boosted, Category_VBF)
-# from mva.samples import Higgs, Others
-# from mva.samples.others import Top, Diboson, EWK
-# from tabulate import tabulate
+print "Ztautau"
+print analysis.ztautau.events(Category_Preselection)[1].value
 
-# categories = (
-#     Category_Preselection, Category_Rest,
-#     Category_Boosted, Category_VBF)
-# headers = [c.name for c in categories]
-# headers.insert(0, 'sample / category')
+print "Others"
+print analysis.others.events(Category_Preselection)[1].value
 
-# for year in (2011, 2012):
-#     ana = Analysis(year=year)
-#     ana.normalize(Category_Preselection)
-#     higgs = Higgs(year=year, mass=125)
-#     top = Top(year=year)
-#     diboson = Diboson(year=year)
-#     ewk = EWK(year=year)
-#     table = []
-#     for sample in (ana.ztautau, ana.qcd, ana.others,
-#                    top, diboson, ewk, higgs):
-#         row = [sample.name]
-#         for category in categories:
-#             events = sample.events(category, ana.target_region)
-#             row.append(
-#                 "{0:.1f} +/- {1:.1f}".format(
-#                     events[1].value, events[1].error))
-#         table.append(row)
-#     print year
-#     print tabulate(table, headers=headers)
-#     print
+print "QCD"
+print analysis.qcd.events(Category_Preselection)[1].value
+

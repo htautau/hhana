@@ -5,7 +5,8 @@ import sys
 
 # rootpy imports
 from rootpy.extern.argparse import ArgumentParser
-from rootpy.extern.tabulartext import TextTable
+#from rootpy.extern.tabulartext import TextTable
+from prettytable import TextTable
 from rootpy.io import root_open as ropen
 
 # higgstautau imports
