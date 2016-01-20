@@ -14,7 +14,8 @@ from rootpy import asrootpy
 from rootpy.plotting import Hist
 from rootpy.stats.histfactory import HistoSys, split_norm_shape
 from rootpy.stats import Workspace
-from rootpy.extern.tabulartext import PrettyTable
+#from rootpy.extern.tabulartext import PrettyTable
+from prettytable import PrettyTable
 from rootpy.extern.pyparsing import (Literal, Word, Combine,
                                      Optional, delimitedList,
                                      oneOf, alphas, nums, Suppress)
@@ -27,12 +28,12 @@ class highlighted_string(unicode):
             return unicode.__new__(self, "\033[93m%s\033[0m"%str(content))
         else:
             return unicode.__new__(self, "\033[93m%0.2f\033[0m"%content)
-            
+
     def __len__(self):
         ESC = Literal('\x1b')
         integer = Word(nums)
         escapeSeq = Combine(ESC + '[' + Optional(delimitedList(integer,';')) + oneOf(list(alphas)))
-        return unicode.__len__(Suppress(escapeSeq).transformString(str(self)))        
+        return unicode.__len__(Suppress(escapeSeq).transformString(str(self)))
 
 class prettyfloat(float):
     def __repr__(self):
@@ -46,7 +47,7 @@ class prettyfloat(float):
         return repr(self)
 
 
-            
+
 class workspaceinterpretor:
     """
     A class to read and retrieve HSG4-type WS components
@@ -72,7 +73,7 @@ class workspaceinterpretor:
             self.PrintHistsContents(cat, hlist)
 
 
-    
+
 #     Integral_bkg_total = pdfmodel.createIntegral(ROOT.RooArgSet(obs))
 #     Yield_bkg_total = Integral_bkg_total.getVal() * binWidth.getVal()
 

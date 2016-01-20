@@ -14,8 +14,9 @@ from rootpy.plotting import Canvas, HistStack, Graph, Legend, set_style
 from rootpy.plotting.utils import draw
 from rootpy.plotting.style.atlas import ATLAS_style, ATLAS_label
 from rootpy.utils.path import mkdir_p
-from rootpy.extern.tabulartext import PrettyTable
-from ROOT import TGraphAsymmErrors 
+#from rootpy.extern.tabulartext import PrettyTable
+from prettytable import PrettyTable
+from ROOT import TGraphAsymmErrors
 
 # local imports
 from mva import ATLAS_LABEL, MMC_MASS

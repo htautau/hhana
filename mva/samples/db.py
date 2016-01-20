@@ -22,14 +22,14 @@ TEMPFILE = TemporaryFile()
 
 
 def get_file(
-    ntuple_path=NTUPLE_PATH, 
-    student=DEFAULT_STUDENT, 
-    hdf=False, 
-    suffix='', 
+    ntuple_path=NTUPLE_PATH,
+    student=DEFAULT_STUDENT,
+    hdf=False,
+    suffix='',
     force_reopen=False):
     """
-    Grab the requested file. If the file is already open it, 
-    point to the dictionary item. If not, open the file and 
+    Grab the requested file. If the file is already open it,
+    point to the dictionary item. If not, open the file and
     register it in the dictionary FILES
     """
     ext = '.h5' if hdf else '.root'

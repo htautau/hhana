@@ -4,7 +4,7 @@ from mva.samples import MC_Ztautau, Pythia_Ztautau, Data, QCD
 from mva.samples.others import EWK, Top, MC_Wtaunu
 from hhdb.datasets import Database
 from mva.variables import VARIABLES, LH_VARIABLES
-from mva.categories.lephad import Category_VBF_lh,Category_Boosted_lh,Category_Preselection_lh,Category_wplusjets_CR_lh,Category_Ztautau_CR_lh,Category_Top_CR_lh 
+from mva.categories.lephad import Category_VBF_lh,Category_Boosted_lh,Category_Preselection_lh,Category_wplusjets_CR_lh,Category_Ztautau_CR_lh,Category_Top_CR_lh
 #from mva.categories.lephad import Category_VBF_lh
 from mva.plotting import draw_ratio, draw
 from tabulate import tabulate
@@ -20,41 +20,40 @@ VARIABLES.update(LH_VARIABLES)
 
 
 #ztautau = MC_Ztautau(
-#    2015, db=DB, 
-#    channel='lephad', 
-#    ntuple_path=NTUPLE_PATH, 
+#    2015, db=DB,
+#    channel='lephad',
+#    ntuple_path=NTUPLE_PATH,
 #    student='lhskim',
 #    trigger=False,
 #    color='#00A3FF')
 
 ztautau = Pythia_Ztautau(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
+    2015, db=DB,
+    channel='lephad',
+    ntuple_path=NTUPLE_PATH,
     student='lhskim',
     trigger=False,
     color='#00A3FF')
 
-
 top = Top(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
+    2015, db=DB,
+    channel='lephad',
+    ntuple_path=NTUPLE_PATH,
     student='lhskim',
     trigger=False,
     color='lightskyblue')
 
 ewk = EWK(
-    2015, db=DB, 
-    channel='lephad', 
-    ntuple_path=NTUPLE_PATH, 
+    2015, db=DB,
+    channel='lephad',
+    ntuple_path=NTUPLE_PATH,
     student='lhskim',
     trigger=False,
     color='#8A0F0F')
 
 data = Data(
     2015,
-    ntuple_path=NTUPLE_PATH, 
+    ntuple_path=NTUPLE_PATH,
     student='lhskim',
     channel='lephad',
     label='Data 2015',
@@ -104,8 +103,8 @@ for sample in (ztautau, ewk, top,  data):
         row.append(
             "{0:.1f} +/- {1:.1f}".format(
                 events[1].value, events[1].error))
-       
-    
+
+
 print tabulate(table, headers=headers)
 print
 
@@ -113,7 +112,7 @@ print
 for cat in categories:
     a1, b = data.get_field_hist(vars, cat)
     data.draw_array(a1, cat, 'ALL', field_scale=b)
-    
+
     z_h, _ = ztautau.get_field_hist(vars, cat)
     ztautau.draw_array(z_h, cat, 'ALL', field_scale=b)
 
@@ -131,9 +130,9 @@ for cat in categories:
             cat,
            # data=a1[field],
             data=None if a1[field].Integral() == 0 else a1[field],
-            model=[ewk_h[field], z_h[field]], 
+            model=[ewk_h[field], z_h[field]],
             # model=[t_h[field], ewk_h[field], z_h[field]],
-            units=vars[field]['units'] if 'units' in vars[field] else None, 
+            units=vars[field]['units'] if 'units' in vars[field] else None,
             logy=False,
             output_name='{0}_{1}.png'.format(field, cat.name))
 

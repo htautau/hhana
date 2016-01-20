@@ -64,7 +64,7 @@ class Analysis(object):
 
     def __init__(self, year,
                  systematics=False,
-                 use_embedding=True,
+                 use_embedding=False,
                  trigger=True,
                  target_region=TARGET_REGION,
                  fakes_region=FAKES_REGION,
@@ -123,15 +123,15 @@ class Analysis(object):
                                  markersize=1.2,
                                  linewidth=1)
 
-        # self.higgs_125 = samples.Higgs(
-        #     year=year,
-        #     mass=125,
-        #     systematics=systematics,
-        #     linecolor='red',
-        #     linewidth=2,
-        #     linestyle='dashed',
-        #     scale=self.mu,
-        #     ggf_weight=ggf_weight)
+        self.higgs_125 = samples.Higgs(
+            year=year,
+            mass=125,
+            systematics=systematics,
+            linecolor='red',
+            linewidth=2,
+            linestyle='dashed',
+            scale=self.mu,
+            ggf_weight=None)#ggf_weight)
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(
@@ -654,9 +654,13 @@ class Analysis(object):
 
     def get_clf(self, category,
                 load=False, swap=False,
-                mass=125, transform=True, **kwargs):
+                mass=125, transform=True, year=None, **kwargs):
         output_suffix = self.get_suffix()
         clf_output_suffix = self.get_suffix(clf=True)
+        if year == 2015:
+            kwargs['partition_key'] = 'ditau_tau0_phi*100'#'event_number'
+        else:
+            kwargs['partition_key'] = 'ditau_tau0_phi*100'#'EventNumber'
         clf = Classifier(
             fields=category.features,
             category=category,

@@ -19,7 +19,7 @@ set_style('ATLAS', shape='rect')
 
 
 #             log.info(overall_sys)
-            
+
 class Yields(object):
     """
     """
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('file')
     parser.add_argument('--name', default='combined')
     args = parser.parse_args()
-    
+
     with root_open(args.file) as file:
         for meas in file:
             if isinstance(meas, Measurement):

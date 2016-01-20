@@ -1,7 +1,7 @@
 # numpy imports
 import numpy as np
 from numpy.lib import recfunctions
-
+from matplotlib.mlab import rec_append_fields
 # rootpy imports
 from rootpy import asrootpy
 from rootpy.plotting import Hist
@@ -12,7 +12,8 @@ from .sample import Sample
 from .db import TEMPFILE, get_file
 from ..cachedtable import CachedTable
 from ..lumi import LUMI
-
+from moments import HCM
+from root_numpy import rec2array
 
 class DataInfo():
     """
@@ -57,7 +58,7 @@ class Data(Sample):
             name=name, label=label,
             **kwargs)
         h5file = get_file(self.ntuple_path, self.student, hdf=True)
-        if year == 2015: 
+        if year == 2015:
             if self.channel == 'hadhad':
                 stream_name = 'Main25'
             else:
@@ -139,10 +140,10 @@ class Data(Sample):
         if include_weight:
             # data is not weighted
             weights = np.ones(rec.shape[0], dtype='f8')
-            rec = recfunctions.rec_append_fields(rec,
+            rec = rec_append_fields(rec,
                 names='weight',
-                data=weights,
-                dtypes='f8')
+                arrs=weights,
+                dtypes=np.dtype('f8'))
 
         if fields is not None:
             rec = rec[fields]

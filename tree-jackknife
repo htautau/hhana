@@ -5,6 +5,7 @@ import os
 import logging
 import numpy as np
 from numpy.lib import recfunctions
+from matplotlib.mlab import rec_append_fields
 
 # ROOT/rootpy/root_numpy imports
 from rootpy.io import root_open
@@ -50,9 +51,9 @@ def get_records(analysis, category,
     # category type
     type_array = np.ones(len(rec), dtype=int)
     # merge fields
-    rec = recfunctions.rec_append_fields(
-        rec, data=[binned_array, index_array, type_array],
-        names=[binned_field_name, 
+    rec = rec_append_fields(
+        rec, arrs=[binned_array, index_array, type_array],
+        names=[binned_field_name,
                'cat{0}'.format(category_type),
                'Is{0}'.format(category_type)],
         dtypes=['f4', 'i4', 'i4'])

@@ -11,11 +11,11 @@ CATEGORIES = {
     'presel_deta_controls': [
         Category_Preselection_DEta_Control,
         ],
-    
+
     '1j_inclusive': [
         Category_1J_Inclusive,
         ],
-    
+
     # CB Categories
     'cuts' : [
         Category_Cuts_VBF_LowDR,
@@ -58,7 +58,7 @@ CATEGORIES = {
     'cuts_studies' : [
         Category_Cuts_Boosted_Tight,
         Category_Cuts_Boosted_Tight_NoDRCut,
-        ],    
+        ],
     # MVA Categories
     'mva': [
         Category_VBF,
