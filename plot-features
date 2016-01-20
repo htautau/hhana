@@ -31,9 +31,9 @@ if args.plot_expr is not None:
             'bins': args.plot_bins,
             'filename': 'expr_' + args.plot_name.replace(' ', '_')}}
 elif args.plots is not None:
-    log.info('Plot selected variables: {0}'.format(args.plot_field))
+    log.info('Plot selected variables: {0}'.format(args.plots))
     VARS = {}
-    for f in args.plot_field:
+    for f in list(args.plots):
         VARS[f] = VARIABLES[f]
 else:
     log.info('Make the entire plotbook')
