@@ -43,7 +43,10 @@ from ..cachedtable import CachedTable
 from ..variables import get_binning, get_scale
 from mva.categories import get_trigger
 
-from moments import HCM
+try:
+    from moments import HCM
+except:
+    log.warning('moments module is not installed')
 
 BCH_UNCERT = pickle.load(open(os.path.join(CACHE_DIR, 'bch_cleaning.cache')))
 

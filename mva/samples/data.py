@@ -12,9 +12,12 @@ from .sample import Sample
 from .db import TEMPFILE, get_file
 from ..cachedtable import CachedTable
 from ..lumi import LUMI
-from moments import HCM
 from root_numpy import rec2array
 
+try:
+    from moments import HCM
+except:
+    log.warning('moments module not installed')
 class DataInfo():
     """
     Class to hold lumi and collision energy info for plot labels
