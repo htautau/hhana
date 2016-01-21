@@ -199,20 +199,20 @@ HH_VARIABLES = {
         'binning': (10, -math.sqrt(2), math.sqrt(2)),
         'legend': 'left',
     },
-    'tau1_centrality': {
-        'title': r'$#tau_1$ Centrality',
-        'root': '#font[52]{#tau_1} #font[152]{#eta #text{Centrality}}',
-        'filename': 'tau1_centrality',
-        'binning': (10, -math.sqrt(2), math.sqrt(2)),
-        'legend': 'left',
-    },
-    'tau2_centrality': {
-        'title': r'$#tau_2$ Centrality',
-        'root': '#font[52]{#tau_2} #font[152]{#eta #test{Centrality}}',
-        'filename': 'tau2_centrality',
-        'binning': (10, -math.sqrt(2), math.sqrt(2)),
-        'legend': 'left',
-    },
+    # 'tau1_centrality': {
+    #     'title': r'$#tau_1$ Centrality',
+    #     'root': '#font[52]{#tau_1} #font[152]{#eta #text{Centrality}}',
+    #     'filename': 'tau1_centrality',
+    #     'binning': (10, -math.sqrt(2), math.sqrt(2)),
+    #     'legend': 'left',
+    # },
+    # 'tau2_centrality': {
+    #     'title': r'$#tau_2$ Centrality',
+    #     'root': '#font[52]{#tau_2} #font[152]{#eta #test{Centrality}}',
+    #     'filename': 'tau2_centrality',
+    #     'binning': (10, -math.sqrt(2), math.sqrt(2)),
+    #     'legend': 'left',
+    # },
 
     'ditau_vis_mass': {
         'title': r'$m^{vis}_{\tau\tau}$',
@@ -263,13 +263,13 @@ HH_VARIABLES = {
        'binning': [-3.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 3.0],
        'legend': 'left',
    },
-   'eta_product_jets': {
-       'title': r'$\eta_{jet1} \times \eta_{jet2}$',
-       'root': '#font[152]{#eta}_{j1} #times #font[152]{#eta}_{j2}',
-       'filename': 'eta_product_jets',
-       'binning': [-12.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 12.0],
-       'legend': 'left',
-   },
+   # 'eta_product_jets': {
+   #     'title': r'$\eta_{jet1} \times \eta_{jet2}$',
+   #     'root': '#font[152]{#eta}_{j1} #times #font[152]{#eta}_{j2}',
+   #     'filename': 'eta_product_jets',
+   #     'binning': [-12.0, -2.5, -1.52, -1.37, -0.6, 0, 0.6, 1.37, 1.52, 2.5, 12.0],
+   #     'legend': 'left',
+   # },
 
    'ditau_tau0_n_tracks': {
        'title': r'$\tau_{1}$ Number of Tracks',
@@ -401,17 +401,17 @@ HH_VARIABLES = {
        'binning': (6, 0., 2.4),
        'legend': 'left',
    },
-   'dEta_jets': {
-       'title': r'$\Delta \eta(\tau,\tau)$',
-       'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
-       'filename': 'dEta_jets',
-       'binning': {
-           'BOOSTED': (10, 0, 1.5),
-           'VBF': (10, 0, 1.5),
-           'REST': (10, 0, 1.5),
-           None: (8, 0, 2.0)},
-       'ypadding': (0.5, 0),
-   },
+   # 'dEta_jets': {
+   #     'title': r'$\Delta \eta(\tau,\tau)$',
+   #     'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
+   #     'filename': 'dEta_jets',
+   #     'binning': {
+   #         'BOOSTED': (10, 0, 1.5),
+   #         'VBF': (10, 0, 1.5),
+   #         'REST': (10, 0, 1.5),
+   #         None: (8, 0, 2.0)},
+   #     'ypadding': (0.5, 0),
+   # },
    'ditau_tau0_q': {
       'title': r'$\tau_1$ Charge',
       'root': '#font[152]{#tau}_{1} #font[52]{Charge}',
@@ -629,83 +629,33 @@ LH_VARIABLES = {
         'cats': ['2J', 'VBF'],
         'legend': 'left',
     },
-    'lephad_mmc_mlm_m': {
-        'title': r'$m^{MMC}_{\tau\tau}$',
-        'root': '#font[52]{m}^{MMC}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'lephad_mmc_mlm_m',
-        'binning': (20, 0, 250),
-        'units': 'GeV',
-        'scale': 0.001,
-        'blind': (100, 150),
-    },
-    'lephad_coll_approx_m': {
-        'title': r'$m^{col}_{\tau\tau}$',
-        'root': '#font[52]{m}^{col}_{#font[152]{#tau}#font[152]{#tau}}',
-        'filename': 'lephad_coll_approx_m',
-        'binning': (20, 0, 250),
-        'units': 'GeV',
-        'scale': 0.001,
-        'blind': (100, 150),
-    },
-    'lephad_met_centrality': {
-        'title': r'$E^{miss}_{T}$ Centrality',
-        'root': '#font[52]{E}^{miss}_{T} #font[152]{#phi Centrality}',
-        'filename': 'lephad_met_centrality',
-        'binning': (20, -math.sqrt(2), math.sqrt(2)),
-        'legend': 'left',
-    },
-    'lephad_dr': {
-        'title': r'$\Delta R(\tau,\tau)$',
-        'root': '#font[152]{#Delta}#font[52]{R}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'lephad_dr',
-        'binning': (20, 0, 5),
-        'ypadding': (0.5, 0),
-    },
-    'lephad_dphi': {
-        'title': r'$\Delta \phi(\tau,\tau)$',
-        'root': '#font[152]{#Delta#phi}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'lephad_dphi',
-        'binning': (12, 0., 2.4),
-        'legend': 'left',
-    },
-    'lephad_deta': {
-        'title': r'$\Delta \eta(\tau,\tau)$',
-        'root': '#font[152]{#Delta#eta}(#font[152]{#tau},#font[152]{#tau})',
-        'filename': 'lephad_deta',
-        'binning': {
-            'BOOSTED': (10, 0, 1.5),
-            'VBF': (10, 0, 1.5),
-            'REST': (10, 0, 1.5),
-            None: (10, 0, 2.5)},
-        'ypadding': (0.5, 0),
-    },
-    'jets_delta_eta': {
-        'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
-        'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
-        'filename': 'jets_delta_eta',
-        'cuts': 'dEta_jets > 0', # ignore default value in plot
-        'binning': {
-            'VBF': (10, 2, 7),
-            None: (14, 0, 7)},
-        'cats': ['2J', 'VBF', 'PRESELECTION']
-    },
-    'prod_eta_jets': {
-        'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
-        'root': '#font[152]{#eta}_{#font[52]{j}_{1}} #times #font[152]{#eta}_{#font[52]{j}_{2}}',
-        'filename': 'prod_eta_jets',
-        'binning': (15, -10, 5),
-        'cats': ['2J', 'VBF'],
-        'legend': 'left',
-    },
-     'jets_visible_mass': {
-        'title': r'$M(jet_{1},\/jet_{2})$',
-        'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
-        'filename': 'jets_visible_mass',
-        'binning': (20, 0, 1000),
-        'scale': 0.001,
-        'units': 'GeV',
-        'cats': ['2J', 'VBF']
-    },
+    # 'jets_delta_eta': {
+    #     'title': r'$\Delta\eta(jet_{1},\/jet_{2})$',
+    #     'root': '#font[152]{#Delta#eta}(#font[52]{j}_{1},#font[52]{j}_{2})',
+    #     'filename': 'jets_delta_eta',
+    #     'cuts': 'dEta_jets > 0', # ignore default value in plot
+    #     'binning': {
+    #         'VBF': (10, 2, 7),
+    #         None: (14, 0, 7)},
+    #     'cats': ['2J', 'VBF', 'PRESELECTION']
+    # },
+    # 'prod_eta_jets': {
+    #     'title': r'jet$_{1}$ $\eta \times \/$ jet$_{2}$ $\eta$',
+    #     'root': '#font[152]{#eta}_{#font[52]{j}_{1}} #times #font[152]{#eta}_{#font[52]{j}_{2}}',
+    #     'filename': 'prod_eta_jets',
+    #     'binning': (15, -10, 5),
+    #     'cats': ['2J', 'VBF'],
+    #     'legend': 'left',
+    # },
+    #  'jets_visible_mass': {
+    #     'title': r'$M(jet_{1},\/jet_{2})$',
+    #     'root': '#font[52]{m}_{#font[52]{j}#font[52]{j}}',
+    #     'filename': 'jets_visible_mass',
+    #     'binning': (20, 0, 1000),
+    #     'scale': 0.001,
+    #     'units': 'GeV',
+    #     'cats': ['2J', 'VBF']
+    # },
 
 
 }
