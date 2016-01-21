@@ -63,7 +63,7 @@ class Data(Sample):
         h5file = get_file(self.ntuple_path, self.student, hdf=True)
         if year == 2015:
             if self.channel == 'hadhad':
-                stream_name = 'Main25'
+                stream_name = 'Main'
             else:
                 stream_name = 'Main'
         else:
