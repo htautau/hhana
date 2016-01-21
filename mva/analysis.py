@@ -123,15 +123,15 @@ class Analysis(object):
                                  markersize=1.2,
                                  linewidth=1)
 
-        # self.higgs_125 = samples.Higgs(
-        #     year=year,
-        #     mass=125,
-        #     systematics=systematics,
-        #     linecolor='red',
-        #     linewidth=2,
-        #     linestyle='dashed',
-        #     scale=self.mu,
-        #     ggf_weight=None)#ggf_weight)
+        self.higgs_125 = samples.Higgs(
+            year=year,
+            mass=125,
+            systematics=systematics,
+            linecolor='red',
+            linewidth=2,
+            linestyle='dashed',
+            scale=self.mu,
+            ggf_weight=None)#ggf_weight)
 
         # QCD shape region SS or !OS
         self.qcd = samples.QCD(

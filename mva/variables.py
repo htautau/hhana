@@ -119,7 +119,7 @@ VARIABLES = {
 HH_VARIABLES = {
     'ditau_deta': {
         'title': r'$\Delta \Eta_{\tau \tau}$',
-        'root': '#font[152]{#Delta #Eta_{#tau #tau}}',
+        'root': '#font[152]{#Delta #eta_{#tau #tau}}',
         'filename': 'ditau_deta',
         'binning': (5, 0, 5),
         'units': ''
@@ -460,6 +460,8 @@ HH_VARIABLES = {
        'units': 'GeV',
        'cats': ['2J', 'VBF']
    },
+}
+MOMENTS_VARIABLES = {
 #    'HCM2': {
 #        'title': r'HCM2',
 #        'root': '#font[52]HCM2',
