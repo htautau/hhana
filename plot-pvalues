@@ -58,7 +58,7 @@ def plot(cat_name, cat_label, year, curves, labels):
         log.info(['{0:0.3f}'.format(yval) for yval in list(graph.y())])
 
     leg = Legend(
-        graphs,x=0.45, y=0.01,
+        graphs, leftmargin=0.4, topmargin=0.2,
         entrysep=0.001, textsize=17)
     leg.Draw()
     lat = ROOT.TLatex(c.GetLeftMargin()+0.02, 1-c.GetTopMargin()+0.015, cat_label)
@@ -66,30 +66,41 @@ def plot(cat_name, cat_label, year, curves, labels):
     lat.SetTextSize(20)
     lat.Draw()
     ATLAS_label(0.75, 0.88, text="Internal", sqrts=None, pad=c, sep=0.09)
-    save_canvas(c, 'plots/pvalues', cat_name+'_'+str(year), formats=('.eps', '.png'))
+    if year is not None:
+        canv_ext_name = cat_name+'_'+str(year) 
+    else:
+        canv_ext_name = cat_name
+    save_canvas(c, 'plots/pvalues', canv_ext_name, formats=('.eps', '.png'))
 
 if __name__ == '__main__':
     from rootpy.extern.argparse import ArgumentParser
     parser = ArgumentParser()
+    parser.add_argument('path')
     parser.add_argument('--unblind', action='store_true', default=False)
-    parser.add_argument('--year', default=12, choices=[11, 12], type=int)
+    parser.add_argument('--year', default=0, choices=[11, 12, 0], type=int)
     parser.add_argument('--categories', default='cuts', choices=['mva', 'cuts'])
     parser.add_argument('--category-break-plot', action='store_true', default=False)
     args = parser.parse_args()
 
     # This part need to be updated manually - TODO: implement automatisation
     #path = 'workspaces/14_08_2014/hh_nos_nonisol_ebz_cuts_fixed/'
-    path = 'workspaces/paper_first_draft/hh_nos_nonisol_ebz_cuts_fixed/'
-    categories = CATEGORIES['cuts']
+    path = args.path #'workspaces/paper_first_draft/hh_nos_nonisol_ebz_cuts_fixed/'
+    categories = CATEGORIES[args.categories]
 
     cat_names = []
 
     for dir in os.listdir(path):
         if os.path.isdir(os.path.join(path, dir)):
-            year, cat_name, mass = parse_name('channel_'+dir)
+            if dir == 'weighted_mass':
+                continue
+            year, cat_name, mass = parse_name('channel_' + dir)
             log.info('Year: {0}, Cat: {1}, Mass: {2}'.format(year, cat_name, mass))
             if not cat_name in cat_names:
                 cat_names.append(cat_name)
+
+    year = args.year
+    if args.year == 0:
+        year = None
 
     log.info(cat_names)
     pvalues_dict = {}
@@ -99,11 +110,11 @@ if __name__ == '__main__':
         elif cat_name=='cuts_boosted':
             continue
         exp = get_sigs(
-            path, cat_name, year=args.year, 
+            path, cat_name, year=year, 
             meas=True, blind=True)
         if args.unblind:
             obs = get_sigs(
-                path, cat_name, year=args.year, 
+                path, cat_name, year=year, 
                 meas=True, blind=False)
 
         pvals_exp = map(gaus_cdf, exp)
@@ -111,10 +122,10 @@ if __name__ == '__main__':
         category = get_category(cat_name, categories)
 
         if isinstance(category, CategoryMeta):
-            plot(category.name, category.label, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
+            plot(category.name, category.label, year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
             pvalues_dict[category.name] = {'exp':pvals_exp, 'obs':pvals_obs}
         elif cat_name == 'combination':
-            plot(cat_name, cat_name, args.year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
+            plot(cat_name, cat_name, year, [pvals_exp, pvals_obs], ['Expected', 'Observed'])
             pvalues_dict[cat_name] = {'exp':pvals_exp, 'obs':pvals_obs}
 
     if args.category_break_plot:
@@ -123,7 +134,7 @@ if __name__ == '__main__':
         for cat in CATEGORIES[args.categories]:
             pvalues.append(pvalues_dict[cat.name]['exp'])
             labels.append('{0} Exp.'.format(cat.label))
-        plot('combination_breakdown', '#tau_{had}#tau_{had} combination', args.year, pvalues, labels)
+        plot('combination_breakdown', '#tau_{had}#tau_{had} combination', year, pvalues, labels)
 
 # # 8TeV combination
 # bdt_combined_12 = map(gaus_cdf, get_sigs(bdt_path, 'combination', year=12))

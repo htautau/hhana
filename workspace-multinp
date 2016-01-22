@@ -8,15 +8,18 @@ import sys
 from rootpy.io import root_open
 from rootpy import asrootpy
 from rootpy.stats import ArgSet
-# higgstautau imports
-from pbs import qsub
-import cluster
 # local imports
 from statstools.utils import get_bestfit_nll_workspace
 from statstools.parallel import run_pool
 from statstools.nuisance import get_nuisance_params, get_nuis_nll_nofit
 from statstools.pulls import NuisancePullScan, MinosError
 from mva import log; log = log[__file__]
+# higgstautau imports
+try:
+    from pbs import qsub
+    import cluster
+except:
+    log.warning('pbs module needs to be installed')
 
 
 if __name__ == '__main__':
