@@ -14,20 +14,20 @@ headers = [ana.ztautau.name, ana.qcd.name, ana.others.name, ana.data.name]
 print headers
 yields= []
 yields.append([
-    ana.ztautau.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
-    ana.qcd.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
-    ana.others.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
-    ana.data.events(Category_Preselection, args.target_region, cuts=args.cut)[1].value,
+    ana.ztautau.events(Category_Preselection, args.target_region)[1].value,
+    ana.qcd.events(Category_Preselection, args.target_region)[1].value,
+    ana.others.events(Category_Preselection, args.target_region)[1].value,
+    ana.data.events(Category_Preselection, args.target_region)[1].value,
 ])
 
 print tabulate(yields, headers=headers)
 
-print "Ztautau"
-print analysis.ztautau.events(Category_Preselection)[1].value
+# print "Ztautau"
+# print ana.ztautau.events(Category_Preselection)[1].value
 
-print "Others"
-print analysis.others.events(Category_Preselection)[1].value
+# print "Others"
+# print ana.others.events(Category_Preselection)[1].value
 
-print "QCD"
-print analysis.qcd.events(Category_Preselection)[1].value
+# print "QCD"
+# print ana.qcd.events(Category_Preselection)[1].value
 
